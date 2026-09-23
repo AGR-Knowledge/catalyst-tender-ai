@@ -1,0 +1,144 @@
+/* ───────── App shell ───────── */
+.app { display: flex; min-height: 100vh; min-height: 100dvh; background: var(--bg); }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex: none;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+  transition: width 220ms var(--ease-out);
+}
+/* Every icon sits on the same 30px axis, expanded or collapsed, so nothing shifts sideways when the rail folds. */
+.sb-brand { flex: none; height: var(--header-h); padding: 0 12px 0 16px; border-bottom: 1px solid var(--line); display: flex; gap: 11px; align-items: center; }
+.sb-logo { width: 28px; height: 28px; border-radius: 7px; background: var(--primary-bg); color: var(--primary-fg); display: grid; place-items: center; font-weight: 600; font-size: 14px; letter-spacing: -0.4px; flex: none; }
+.sb-brand-tx { min-width: 0; white-space: nowrap; transition: opacity 160ms var(--ease-out); }
+.sb-name { font-size: 14.5px; font-weight: 600; letter-spacing: -0.2px; line-height: 1.2; }
+.sb-tag { font-size: 11.5px; color: var(--ink-4); margin-top: 1px; }
+.sidebar .sb-toggle { margin-left: auto; color: var(--ink-4); flex: none; border-color: transparent; background: transparent; border-radius: var(--radius-sm); }
+.sidebar .sb-toggle:hover { color: var(--ink); background: var(--surface-hover); }
+.sidebar .sb-close { display: none; margin-left: auto; }
+.sb-nav { padding: 14px 10px 8px; flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior: contain; scrollbar-width: thin; }
+/* Brand stays on top; Settings and the status line stay on the bottom. Only the nav scrolls. */
+.sb-pinned { flex: none; padding: 8px 10px; border-top: 1px solid var(--line-2); }
+.sb-pinned .sb-item { margin-bottom: 0; }
+[id^='sec-'] { scroll-margin-top: calc(var(--header-h) + 18px); }
+
+.sb-group { margin-bottom: 14px; }
+.sb-group-label { height: 26px; display: flex; align-items: center; font-size: 11.5px; color: var(--ink-5); font-weight: 500; padding: 6px 12px 0; white-space: nowrap; position: relative; }
+.sb-group-label span { transition: opacity 160ms var(--ease-out); }
+.sb-group-label::after { content: ''; position: absolute; left: 12px; width: 16px; top: 16px; height: 1px; background: var(--line); opacity: 0; transition: opacity 160ms var(--ease-out); }
+
+.sb-item {
+  display: flex; width: 100%; align-items: center; gap: 11px; height: 34px; padding: 0 10px 0 12px; border-radius: var(--radius-sm);
+  margin-bottom: 1px; text-align: left; font-size: 13.5px; color: var(--ink-3); white-space: nowrap;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.sb-item > svg, .sb-ic-gap { flex: none; width: 16px; color: var(--ink-4); transition: color var(--dur-fast) ease; }
+.sb-item:hover { background: var(--surface-hover); color: var(--ink); }
+.sb-item:hover > svg, .sb-item.on > svg { color: var(--ink); }
+.sb-item:active { background: var(--surface-active); }
+.sb-item .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; transition: opacity 160ms var(--ease-out); }
+.sb-item .tag { font-size: 11px; font-family: var(--font-mono); color: var(--ink-5); flex: none; }
+.sb-item.on { background: var(--surface-active); color: var(--ink); font-weight: 600; }
+
+/* The persona's own stage: a folding tree with a guide line, like a file browser. */
+.sb-tree { margin: 2px 0 14px; }
+.sb-tree-head { color: var(--ink-2); }
+.sb-tree.has-on .sb-tree-head > svg:first-child { color: var(--ink); }
+.sb-tree-head .chev { width: 14px; margin-right: 1px; color: var(--ink-5); transition: transform 180ms var(--ease-out); }
+.sb-tree.open .sb-tree-head .chev { transform: rotate(90deg); }
+.sb-tree-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms var(--ease-out); }
+.sb-tree.open .sb-tree-body { grid-template-rows: 1fr; }
+.sb-tree-inner { min-height: 0; overflow: hidden; margin-left: 19px; padding-left: 10px; border-left: 1px solid var(--line); }
+.sb-tree-inner > :first-child { margin-top: 2px; }
+.sb-item.child { position: relative; height: 31px; padding-left: 10px; font-size: 13px; }
+.sb-item.child::before { content: ''; position: absolute; left: -11px; top: 7px; bottom: 7px; width: 2px; border-radius: 2px; background: var(--ink); opacity: 0; transform: scaleY(0.4); transition: opacity 200ms var(--ease-out), transform 200ms var(--ease-out); }
+.sb-item.child.on::before { opacity: 1; transform: none; }
+
+.sb-foot { flex: none; height: 40px; padding: 0 16px 6px 27px; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-4); white-space: nowrap; }
+.sb-foot .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
+.sb-foot .lbl { transition: opacity 160ms var(--ease-out); }
+
+/* Collapsed: a 60px icon rail. Labels fade out in place rather than jumping. */
+.sidebar.mini { width: 60px; }
+.sidebar.mini .sb-brand { padding: 0 0 0 13px; }
+.sidebar.mini .sb-logo, .sidebar.mini .sb-brand-tx { display: none; }
+.sidebar.mini .sb-toggle { margin-left: 0; }
+.sidebar.mini .lbl, .sidebar.mini .sb-group-label span { opacity: 0; }
+.sidebar.mini .sb-item .tag, .sidebar.mini .chev { display: none; }
+.sidebar.mini .sb-group-label::after { opacity: 1; }
+.sidebar.mini .sb-tree.has-on .sb-tree-head { background: var(--surface-active); }
+.sb-scrim { display: none; }
+
+.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+/* ───────── Header ───────── */
+.header {
+  position: sticky; top: 0; z-index: 20;
+  background: var(--glass);
+  -webkit-backdrop-filter: saturate(180%) blur(14px);
+  backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--line);
+  height: var(--header-h);
+  padding: 0 var(--gutter);
+  display: flex; align-items: center; gap: 16px;
+}
+.header .hd-menu { display: none; }
+.hd-title { min-width: 0; flex: 1 1 auto; }
+.hd-title h1 { font-size: 19px; font-weight: 600; letter-spacing: -0.35px; line-height: 1.3; }
+.hd-title p { font-size: 12.5px; color: var(--ink-4); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hd-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: none; }
+.hd-sep { width: 1px; height: 22px; background: var(--line); }
+
+/* ───────── Content ───────── */
+.content {
+  container-type: inline-size;
+  container-name: content;
+  width: 100%;
+  max-width: calc(var(--content-max) + var(--gutter) * 2);
+  margin: 0 auto;
+  padding: 28px var(--gutter) 80px;
+  flex: 1;
+}
+.view { animation: viewIn var(--dur-view) var(--ease-out) both; }
+
+.footer-note {
+  margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+  display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-size: 11px; letter-spacing: 0.4px; color: var(--ink-5);
+}
+.footer-note .r { margin-left: auto; color: var(--ink-6); }
+
+/* ───────── Responsive shell ───────── */
+@media (max-width: 1100px) {
+  .sidebar {
+    position: fixed; left: 0; top: 0; bottom: 0;
+    transform: translateX(-102%);
+    transition: transform var(--dur-overlay) var(--ease-drawer), box-shadow var(--dur-overlay) ease;
+    z-index: 55;
+  }
+  .sidebar.open { transform: none; box-shadow: 18px 0 50px rgba(0, 0, 0, 0.18); }
+  .sidebar .sb-close { display: inline-flex; }
+  .sb-scrim { display: block; position: fixed; inset: 0; background: var(--scrim); z-index: 54; animation: scrimIn 200ms ease-out both; }
+  .header .hd-menu { display: inline-flex; margin-left: -6px; }
+}
+
+@media (max-width: 760px) {
+  .header { gap: 10px; }
+  .hd-title h1 { font-size: 16.5px; }
+  .hd-title p { display: none; }
+  .hd-sep { display: none; }
+  .content { padding-top: 18px; padding-bottom: 56px; }
+  .footer-note .r { margin-left: 0; }
+}
+
+@media (max-width: 760px) {
+  .hd-title h1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+}

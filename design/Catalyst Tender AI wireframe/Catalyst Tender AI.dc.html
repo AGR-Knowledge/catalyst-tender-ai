@@ -1,0 +1,1907 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="crossorigin" />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#FBFBFD;-webkit-font-smoothing:antialiased;font-family:'IBM Plex Sans',system-ui,sans-serif}
+a{color:#0A7EA4;text-decoration:none}
+a:hover{color:#065F7C}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+input{font:inherit}
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-thumb{background:#DEDEE4;border-radius:6px}
+::-webkit-scrollbar-track{background:transparent}
+@keyframes viewIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes drawerIn{from{transform:translateX(34px);opacity:0}to{transform:none;opacity:1}}
+@keyframes scrimIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes rowIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes pulseDot{0%,100%{opacity:1}50%{opacity:.25}}
+@media(max-width:1280px){[data-appcol]{min-width:1180px !important}}
+</style>
+</helmet>
+<div style="display:flex;min-height:100vh;background:#FBFBFD;color:#1D1D1F;font-family:'IBM Plex Sans',system-ui,sans-serif;font-size:14px;line-height:1.5">
+
+  <aside style="width:252px;flex:none;background:#fff;border-right:1px solid #E8E8ED;position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column">
+    <div style="padding:22px 22px 18px;border-bottom:1px solid #F2F2F4;display:flex;gap:11px;align-items:center">
+      <div style="width:30px;height:30px;border-radius:8px;background:#1D1D1F;color:#fff;display:grid;place-items:center;font-weight:600;font-size:15px;letter-spacing:-.4px">C</div>
+      <div>
+        <div style="font-size:14px;font-weight:600;letter-spacing:-.2px">Catalyst_Tender_AI</div>
+        <div style="font-size:9.5px;color:#8C8C93;letter-spacing:.9px;font-weight:500;margin-top:1px">AGENTIC BID &amp; TENDER INTELLIGENCE</div>
+      </div>
+    </div>
+
+    <div style="padding:14px 12px 8px;flex:1">
+      <sc-for list="{{ nav }}" as="g" hint-placeholder-count="7">
+        <div style="margin-bottom:12px">
+          <div style="font-size:10px;letter-spacing:.9px;color:#9A9AA1;font-weight:600;padding:0 10px 7px">{{ g.label }}</div>
+          <sc-for list="{{ g.items }}" as="t" hint-placeholder-count="3">
+            <button onClick="{{ t.go }}" style="display:flex;width:100%;align-items:center;gap:9px;padding:7px 10px;border-radius:7px;margin-bottom:1px;text-align:left;transition:background .15s ease;background:{{ t.bg }};color:{{ t.fg }};font-weight:{{ t.fw }};font-size:13px" style-hover="background:#F5F5F7">
+              <span style="width:2px;align-self:stretch;border-radius:2px;background:{{ t.rail }};flex:none"></span>
+              <span style="flex:1">{{ t.label }}</span>
+              <sc-if value="{{ t.tag }}" hint-placeholder-val="{{ true }}"><span style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:{{ t.tagColor }}">{{ t.tag }}</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+      </sc-for>
+    </div>
+
+    <div style="margin-top:auto;padding:14px 22px;border-top:1px solid #F2F2F4;display:flex;align-items:center;gap:8px">
+      <span style="width:6px;height:6px;border-radius:50%;background:#2E7D50"></span>
+      <span style="font-size:11.5px;color:#77777D">10 agents · orchestrator healthy</span>
+    </div>
+  </aside>
+
+  <div data-appcol="1" style="flex:1;min-width:0;display:flex;flex-direction:column">
+    <header style="position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(14px);border-bottom:1px solid #E8E8ED;padding:16px 36px 15px;display:flex;align-items:center;gap:20px">
+      <div style="min-width:0">
+        <div style="font-size:19px;font-weight:600;letter-spacing:-.35px">{{ head.title }}</div>
+        <div style="font-size:12.5px;color:#77777D;margin-top:1px">{{ head.sub }}</div>
+      </div>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:8px;border:1px solid #E8E8ED;border-radius:20px;padding:6px 14px;background:#fff;transition:border-color .15s ease" style-hover="border-color:#C9C9D1">
+          <span style="font-size:12px;color:#9A9AA1">⌕</span>
+          <input value="{{ query }}" onChange="{{ onQuery }}" placeholder="Search tenders, packages, clauses" style="border:0;outline:none;font-size:12.5px;width:210px;background:transparent;color:#1D1D1F" />
+        </div>
+        <span style="position:relative;display:inline-block">
+          <button onClick="{{ toggleNotif }}" style="border:1px solid #E8E8ED;background:#fff;border-radius:20px;padding:7px 13px;font-size:12.5px;color:#55555B;transition:border-color .15s ease" style-hover="border-color:#C9C9D1;color:#1D1D1F">Alerts <span style="font-family:'IBM Plex Mono',monospace;color:{{ notifColor }}">{{ notifCount }}</span></button>
+          <sc-if value="{{ notifOpen }}" hint-placeholder-val="{{ true }}">
+            <span style="position:absolute;top:calc(100% + 9px);right:0;z-index:40;width:360px;display:block;background:#fff;border:1px solid #E8E8ED;border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.14);overflow:hidden;animation:modalIn .18s ease both;text-align:left">
+              <span style="display:flex;padding:13px 18px;border-bottom:1px solid #F2F2F4;align-items:center">
+                <span style="font-size:13px;font-weight:600;flex:1">Agent alerts</span>
+                <button onClick="{{ toggleNotif }}" style="font-size:12px;color:#77777D">Close</button>
+              </span>
+              <sc-for list="{{ notifs }}" as="n" hint-placeholder-count="4">
+                <button onClick="{{ n.go }}" style="display:flex;gap:11px;width:100%;text-align:left;padding:13px 18px;border-bottom:1px solid #F5F5F7;transition:background .15s ease" style-hover="background:#FBFBFD">
+                  <span style="width:3px;align-self:stretch;border-radius:2px;background:{{ n.tone }};flex:none"></span>
+                  <span style="flex:1">
+                    <span style="display:block;font-size:12.5px;font-weight:500">{{ n.title }}</span>
+                    <span style="display:block;font-size:11.5px;color:#77777D;margin-top:2px">{{ n.body }}</span>
+                  </span>
+                  <span style="font-size:11px;color:#9A9AA1;white-space:nowrap">{{ n.when }}</span>
+                </button>
+              </sc-for>
+              <span style="display:block;padding:11px 18px;font-size:11.5px;color:#9A9AA1;background:#FBFBFD">Every alert is an audit entry.</span>
+            </span>
+          </sc-if>
+        </span>
+        <div style="width:1px;height:22px;background:#E8E8ED"></div>
+        <span style="position:relative;display:inline-block">
+        <button onClick="{{ toggleProfile }}" style="display:flex;align-items:center;gap:10px;border:1px solid {{ profileBorder }};border-radius:22px;padding:4px 10px 4px 14px;background:#fff;transition:border-color .15s ease" style-hover="border-color:#C9C9D1">
+          <span style="text-align:right">
+            <span style="display:block;font-size:12.5px;font-weight:500">{{ head.person }}</span>
+            <span style="display:block;font-size:11px;color:#9A9AA1">{{ head.roleLine }}</span>
+          </span>
+          <span style="width:30px;height:30px;border-radius:50%;background:#1D1D1F;color:#fff;display:grid;place-items:center;font-size:10.5px;font-weight:600">{{ head.initials }}</span>
+          <span style="font-size:9px;color:#9A9AA1">▾</span>
+        </button>
+
+    <sc-if value="{{ profileOpen }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;top:calc(100% + 9px);right:0;z-index:39;width:340px;background:#fff;border:1px solid #E8E8ED;border-radius:12px;box-shadow:0 18px 44px rgba(0,0,0,.16);overflow:hidden;animation:modalIn .18s ease both;text-align:left">
+        <div style="padding:14px 18px 12px;border-bottom:1px solid #F2F2F4">
+          <div style="font-size:13px;font-weight:600">Genesis Infra — Gulf JV</div>
+          <div style="font-size:11.5px;color:#9A9AA1;margin-top:2px">Signed in as the bid office operator · switch the dashboard you are working in</div>
+        </div>
+        <div style="padding:8px 8px 4px;max-height:390px;overflow-y:auto">
+          <div style="font-size:10.5px;letter-spacing:.8px;color:#9A9AA1;font-weight:600;padding:4px 10px 7px">VIEW AS</div>
+          <sc-for list="{{ roleList }}" as="r" hint-placeholder-count="8">
+            <button onClick="{{ r.go }}" style="display:flex;width:100%;gap:10px;padding:8px 10px;border-radius:8px;margin-bottom:2px;text-align:left;align-items:flex-start;transition:background .15s ease;background:{{ r.bg }}" style-hover="background:#F7F7F9">
+              <span style="width:26px;height:26px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:9.5px;font-weight:600;letter-spacing:.2px;background:{{ r.avBg }};color:{{ r.avFg }}">{{ r.initials }}</span>
+              <span style="flex:1;min-width:0">
+                <span style="display:block;font-size:13px;font-weight:{{ r.fw }};color:{{ r.fg }};letter-spacing:-.1px">{{ r.title }}</span>
+                <span style="display:block;font-size:11.5px;color:#9A9AA1;margin-top:1px">{{ r.name }} · {{ r.view }}</span>
+              </span>
+              <sc-if value="{{ r.dot }}" hint-placeholder-val="{{ true }}"><span style="width:6px;height:6px;border-radius:50%;background:#C67A17;margin-top:10px;flex:none;animation:pulseDot 2s ease-in-out infinite"></span></sc-if>
+              <sc-if value="{{ r.current }}" hint-placeholder-val="{{ true }}"><span style="font-size:11px;color:#2E7D50;margin-top:6px;flex:none">✓</span></sc-if>
+            </button>
+          </sc-for>
+        </div>
+        <div style="padding:11px 18px;background:#FBFBFD;border-top:1px solid #F2F2F4;display:flex;align-items:center;gap:12px">
+          <span style="font-size:11.5px;color:#9A9AA1;flex:1">Every view switch is an audit entry.</span>
+          <button onClick="{{ signOut }}" style="font-size:12px;color:#55555B" style-hover="color:#1D1D1F">Sign out</button>
+        </div>
+      </div>
+    </sc-if>
+        </span>
+      </div>
+    </header>
+
+    <main style="padding:28px 36px 80px;max-width:1420px;width:100%">
+
+      <sc-if value="{{ is.workflow }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:22px">
+            <sc-for list="{{ gates }}" as="g" hint-placeholder-count="3">
+              <div style="border:1px solid #E8E8ED;border-radius:12px;background:#fff;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="display:flex;align-items:center;gap:9px">
+                  <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:#fff;background:{{ g.tone }};border-radius:5px;padding:2px 7px">{{ g.id }}</span>
+                  <span style="font-size:13.5px;font-weight:600;letter-spacing:-.1px">{{ g.name }}</span>
+                  <span style="margin-left:auto;font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ g.sla }}</span>
+                </div>
+                <div style="font-size:12.5px;color:#55555B;margin-top:9px">{{ g.owner }}</div>
+                <div style="font-size:12px;color:#9A9AA1;margin-top:3px">{{ g.after }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px">
+            <h2 style="font-size:15px;font-weight:600;letter-spacing:-.2px">The nine-stage lifecycle</h2>
+            <span style="font-size:12.5px;color:#9A9AA1">Stages 4 &amp; 5 run in parallel · rework loop after DG3 · Stage 9 feeds back into Stage 1</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:8px;margin-bottom:22px">
+            <sc-for list="{{ stageChips }}" as="s" hint-placeholder-count="9">
+              <button onClick="{{ s.go }}" style="text-align:left;border:1px solid {{ s.border }};background:{{ s.bg }};color:{{ s.fg }};border-radius:10px;padding:12px 11px 13px;transition:all .18s ease;box-shadow:{{ s.shadow }}" style-hover="border-color:#C9C9D1">
+                <span style="display:block;font-family:'IBM Plex Mono',monospace;font-size:11px;color:{{ s.num }}">{{ s.n }}</span>
+                <span style="display:block;font-size:12px;font-weight:500;margin-top:6px;line-height:1.32;letter-spacing:-.1px">{{ s.short }}</span>
+                <span style="display:block;height:2px;border-radius:2px;margin-top:10px;background:{{ s.bar }}"></span>
+                <span style="display:block;font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:{{ s.tagColor }};margin-top:7px">{{ s.tag }}</span>
+              </button>
+            </sc-for>
+          </div>
+
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03);margin-bottom:26px">
+            <div style="padding:20px 24px 18px;border-bottom:1px solid #F2F2F4">
+              <div style="font-size:17px;font-weight:600;letter-spacing:-.3px">Stage {{ stage.n }} — {{ stage.name }}</div>
+              <div style="font-size:12.5px;color:#77777D;margin-top:4px">Primary agent: {{ stage.agent }} · Business owner: {{ stage.owner }} · Control point: {{ stage.control }}</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr)">
+              <sc-for list="{{ stage.cols }}" as="c" hint-placeholder-count="3">
+                <div style="padding:18px 24px 20px;border-right:1px solid #F2F2F4">
+                  <div style="font-size:10.5px;letter-spacing:.8px;font-weight:600;color:{{ c.tone }}">{{ c.head }}</div>
+                  <sc-for list="{{ c.items }}" as="i" hint-placeholder-count="4">
+                    <div style="display:flex;gap:9px;margin-top:11px;font-size:13px;color:#33333A;line-height:1.45">
+                      <span style="color:#C9C9D1;font-size:11px;margin-top:3px">●</span><span>{{ i.t }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:14px 24px;background:#FBFBFD;border-top:1px solid #F2F2F4;display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+              <span style="font-size:10.5px;letter-spacing:.8px;font-weight:600;color:#9A9AA1">ACCEPTANCE / KPI</span>
+              <sc-for list="{{ stage.kpi }}" as="k" hint-placeholder-count="2">
+                <span style="font-size:12.5px;color:#2E7D50;font-weight:500">{{ k.t }}</span>
+              </sc-for>
+              <button onClick="{{ stage.openRole }}" style="margin-left:auto;font-size:12.5px;color:#0A7EA4;font-weight:500">Open the dashboard that owns this stage →</button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px">
+            <h2 style="font-size:15px;font-weight:600;letter-spacing:-.2px">Who does what, stage by stage</h2>
+            <span style="font-size:12.5px;color:#9A9AA1">R responsible · A accountable · C consulted · I informed — select a role to open its dashboard</span>
+          </div>
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="display:grid;grid-template-columns:230px repeat(9,1fr);padding:11px 20px;border-bottom:1px solid #F2F2F4;background:#FBFBFD">
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">ROLE</span>
+              <sc-for list="{{ raciHead }}" as="h" hint-placeholder-count="9">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:center">{{ h.t }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ raci }}" as="r" hint-placeholder-count="10">
+              <button onClick="{{ r.go }}" style="display:grid;width:100%;grid-template-columns:230px repeat(9,1fr);padding:10px 20px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                <span style="font-size:13px;color:{{ r.fg }};font-weight:{{ r.fw }}">{{ r.role }}</span>
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="9">
+                  <span style="text-align:center;font-size:11.5px;font-family:'IBM Plex Mono',monospace;font-weight:600;color:{{ c.fg }}">{{ c.v }}</span>
+                </sc-for>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.agents }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#E8E8ED;border:1px solid #E8E8ED;border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <sc-for list="{{ agentKpis }}" as="k" hint-placeholder-count="5">
+              <div style="background:#fff;padding:18px 20px 19px">
+                <div style="font-size:11.5px;color:#77777D">{{ k.label }}</div>
+                <div style="font-size:27px;font-weight:600;letter-spacing:-1px;margin-top:6px;font-family:'IBM Plex Mono',monospace;color:{{ k.tone }}">{{ k.value }}</div>
+                <div style="font-size:11.5px;color:#9A9AA1;margin-top:4px">{{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start">
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center">
+                <span style="font-size:13.5px;font-weight:600;flex:1">Agent status</span>
+                <span style="font-size:11.5px;color:#9A9AA1">Select an agent for its remit, guardrails and eval history</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1.6fr .5fr .7fr .6fr .6fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                <sc-for list="{{ agentHead }}" as="h" hint-placeholder-count="5">
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:{{ h.align }}">{{ h.t }}</span>
+                </sc-for>
+              </div>
+              <sc-for list="{{ agents }}" as="a" hint-placeholder-count="10">
+                <button onClick="{{ a.go }}" style="display:grid;width:100%;grid-template-columns:1.6fr .5fr .7fr .6fr .6fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                  <span style="font-size:13.5px;font-weight:500;letter-spacing:-.1px">{{ a.name }}</span>
+                  <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ a.stage }}</span>
+                  <span style="font-size:12px;color:{{ a.stateColor }};display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:{{ a.stateColor }}"></span>{{ a.state }}</span>
+                  <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ a.runs }}</span>
+                  <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ a.evalColor }}">{{ a.eval }}</span>
+                </button>
+              </sc-for>
+              <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D">Per-agent and per-tender cost ceilings are enforced by the orchestrator. No agent releases without passing its evaluation threshold.</div>
+            </div>
+
+            <div style="display:grid;gap:22px">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center">
+                  <span style="font-size:13.5px;font-weight:600;flex:1">Model routing</span>
+                  <span style="font-size:11.5px;color:#9A9AA1">cost control</span>
+                </div>
+                <div style="padding:16px 22px 6px">
+                  <sc-for list="{{ routing }}" as="r" hint-placeholder-count="3">
+                    <div style="margin-bottom:14px">
+                      <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ r.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#55555B">{{ r.pct }}</span></div>
+                      <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ r.tone }};width:{{ r.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:2px 22px 16px;font-size:12px;color:#77777D;line-height:1.5">Classification and routing run on the economy tier; the frontier tier is reserved for Stages 3, 5, 6 and 7 where reasoning quality changes the outcome.</div>
+                <div style="padding:12px 22px;background:#FBFBFD;border-top:1px solid #F2F2F4;font-size:12px;color:#77777D">Provider is a configuration value. A switch is a revalidation exercise against the evaluation harness, not a rebuild.</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:baseline;gap:12px;margin:26px 0 12px">
+            <h2 style="font-size:15px;font-weight:600;letter-spacing:-.2px">Recent guardrail activations</h2>
+            <span style="font-size:12.5px;color:#9A9AA1">Every activation is an audit entry</span>
+          </div>
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="display:grid;grid-template-columns:.7fr 1fr 1.3fr 1.7fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+              <sc-for list="{{ guardHead }}" as="h" hint-placeholder-count="4">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">{{ h.t }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ guardrails }}" as="g" hint-placeholder-count="5">
+              <div style="display:grid;grid-template-columns:.7fr 1fr 1.3fr 1.7fr;padding:13px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                <span style="font-size:12.5px;color:#77777D;font-family:'IBM Plex Mono',monospace">{{ g.when }}</span>
+                <span style="font-size:13px">{{ g.agent }}</span>
+                <span style="font-size:12.5px;color:#55555B">{{ g.rule }}</span>
+                <span style="font-size:12.5px;color:{{ g.tone }}">{{ g.action }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.pipeline }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E8E8ED;border:1px solid #E8E8ED;border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <sc-for list="{{ page.pipeKpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;padding:18px 20px 19px">
+                <div style="font-size:11.5px;color:#77777D">{{ k.label }}</div>
+                <div style="font-size:27px;font-weight:600;letter-spacing:-1px;margin-top:6px;font-family:'IBM Plex Mono',monospace;color:{{ k.tone }}">{{ k.value }}</div>
+                <div style="font-size:11.5px;color:#9A9AA1;margin-top:4px">{{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:14px">
+            <sc-for list="{{ page.filters }}" as="f" hint-placeholder-count="4">
+              <button onClick="{{ f.go }}" style="font-size:12.5px;font-weight:500;border-radius:16px;padding:6px 14px;background:{{ f.bg }};color:{{ f.fg }};border:1px solid {{ f.border }};transition:all .15s ease" style-hover="border-color:#C9C9D1">{{ f.label }}</button>
+            </sc-for>
+          </div>
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Tender register</span><span style="font-size:11.5px;color:#9A9AA1">{{ page.rowCount }}</span></div>
+            <div style="display:grid;grid-template-columns:2fr 1.1fr .7fr .6fr .8fr .6fr .6fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TENDER</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">CLIENT</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">VALUE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">STAGE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">OWNER</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">DUE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">WIN PROB.</span>
+            </div>
+            <sc-for list="{{ page.rows }}" as="t" hint-placeholder-count="18">
+              <button onClick="{{ t.go }}" style="display:grid;width:100%;grid-template-columns:2fr 1.1fr .7fr .6fr .8fr .6fr .6fr;padding:11px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                <span style="min-width:0"><span style="display:block;font-size:13.5px;font-weight:500;letter-spacing:-.1px">{{ t.name }}</span><span style="display:block;font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#9A9AA1;margin-top:1px">{{ t.id }}</span></span>
+                <span style="font-size:12.5px;color:#55555B">{{ t.client }}</span>
+                <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ t.value }}</span>
+                <span style="font-size:12.5px;color:#55555B;text-align:right">{{ t.stage }}</span>
+                <span style="font-size:12.5px;color:#77777D;text-align:right">{{ t.owner }}</span>
+                <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#55555B">{{ t.due }}</span>
+                <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ t.tone }}">{{ t.win }}</span>
+              </button>
+            </sc-for>
+            <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D">One register, one record per tender. Role dashboards are views onto this — nothing is re-keyed between them.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.submission }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start">
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Submission package</span><span style="font-size:11.5px;color:#9A9AA1">Assembled by the agent · authorised by you</span></div>
+              <sc-for list="{{ page.subChecks }}" as="c" hint-placeholder-count="5">
+                <div style="display:flex;gap:14px;padding:13px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                  <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">{{ c.name }}</span><span style="display:block;font-size:11.5px;color:#77777D;margin-top:2px">{{ c.meta }}</span></span>
+                  <span style="font-size:12.5px;font-weight:500;color:{{ c.tone }}">{{ c.state }}</span>
+                </div>
+              </sc-for>
+              <div style="padding:14px 22px;background:#FBFBFD;display:flex;gap:14px;align-items:center">
+                <span style="flex:1;font-size:12px;color:#77777D;line-height:1.5">The Document Assembly Agent packages, places signatures and validates against the portal schema. It cannot submit without a DG3 record.</span>
+                <button onClick="{{ page.subAct }}" style="font-size:12.5px;font-weight:500;border-radius:16px;padding:8px 17px;white-space:nowrap;background:{{ page.subActBg }};color:{{ page.subActFg }};border:1px solid {{ page.subActBorder }};transition:opacity .15s ease" style-hover="opacity:.86">{{ page.subActLabel }}</button>
+              </div>
+            </div>
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;font-size:13.5px;font-weight:600">Gate and window</div>
+              <sc-for list="{{ page.subGates }}" as="g" hint-placeholder-count="3">
+                <div style="padding:13px 22px;border-bottom:1px solid #F5F5F7">
+                  <div style="font-size:13px;font-weight:500">{{ g.name }}</div>
+                  <div style="font-size:12px;color:{{ g.tone }};margin-top:3px;line-height:1.45">{{ g.state }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Pre-submission log</span><span style="font-size:11.5px;color:#9A9AA1">Every entry is auditable</span></div>
+            <sc-for list="{{ page.subLog }}" as="l" hint-placeholder-count="4">
+              <div style="display:grid;grid-template-columns:.8fr 1fr 2fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ l.when }}</span>
+                <span style="font-size:13px;font-weight:500">{{ l.what }}</span>
+                <span style="font-size:12.5px;color:#55555B">{{ l.detail }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.suppliers }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Screened suppliers</span><span style="font-size:11.5px;color:#9A9AA1">Scored on delivered performance · refreshed by the Learning Loop</span></div>
+            <div style="display:grid;grid-template-columns:1.4fr 1.3fr .6fr .6fr .7fr .7fr .7fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">SUPPLIER</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TRADE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">SCORE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">PROJECTS</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">RFQ RESPONSE</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">SCREENING</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">STANDING</span>
+            </div>
+            <sc-for list="{{ page.suppliers }}" as="x" hint-placeholder-count="12">
+              <button onClick="{{ x.go }}" style="display:grid;width:100%;grid-template-columns:1.4fr 1.3fr .6fr .6fr .7fr .7fr .7fr;padding:11px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                <span style="font-size:13.5px;font-weight:500">{{ x.name }}</span>
+                <span style="font-size:12.5px;color:#55555B">{{ x.trade }}</span>
+                <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ x.scoreTone }}">{{ x.score }}</span>
+                <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ x.projects }}</span>
+                <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#55555B">{{ x.response }}</span>
+                <span style="font-size:12.5px;text-align:right;color:#2E7D50">{{ x.screen }}</span>
+                <span style="font-size:12.5px;text-align:right;color:{{ x.tone }};font-weight:500">{{ x.status }}</span>
+              </button>
+            </sc-for>
+            <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D">Two inverter suppliers currently sit on Watch after delivered performance downgrades — they rank lower in every shortlist generated at Stage 2.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.library }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#E8E8ED;border:1px solid #E8E8ED;border-radius:12px;overflow:hidden;margin-bottom:22px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <sc-for list="{{ page.libraryStats }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;padding:18px 20px 19px">
+                <div style="font-size:11.5px;color:#77777D">{{ k.label }}</div>
+                <div style="font-size:27px;font-weight:600;letter-spacing:-1px;margin-top:6px;font-family:'IBM Plex Mono',monospace;color:{{ k.tone }}">{{ k.value }}</div>
+                <div style="font-size:11.5px;color:#9A9AA1;margin-top:4px">{{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Most reused artefacts</span><span style="font-size:11.5px;color:#9A9AA1">Every reuse carries its source into the draft</span></div>
+            <div style="display:grid;grid-template-columns:2fr .8fr 1.4fr .6fr .8fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">ARTEFACT</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">KIND</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">ORIGIN</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">REUSES</span>
+              <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">LAST USED</span>
+            </div>
+            <sc-for list="{{ page.library }}" as="x" hint-placeholder-count="8">
+              <button onClick="{{ x.go }}" style="display:grid;width:100%;grid-template-columns:2fr .8fr 1.4fr .6fr .8fr;padding:11px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                <span style="font-size:13.5px;font-weight:500">{{ x.title }}</span>
+                <span style="font-size:12.5px;color:#55555B">{{ x.kind }}</span>
+                <span style="font-size:12.5px;color:#77777D">{{ x.origin }}</span>
+                <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ x.reuse }}</span>
+                <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#77777D">{{ x.used }}</span>
+              </button>
+            </sc-for>
+            <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D">The Drafting Agent cites the source of any reused content. Nothing enters a proposal without a traceable origin.</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.settings }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start">
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Sources watched</span><span style="font-size:11.5px;color:#9A9AA1">Intake Agent · Stage 1</span></div>
+              <sc-for list="{{ page.sources }}" as="x" hint-placeholder-count="6">
+                <div style="display:flex;gap:14px;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                  <span style="flex:1"><span style="display:block;font-size:13px;font-weight:500">{{ x.name }}</span><span style="display:block;font-size:11.5px;color:#77777D;margin-top:2px">{{ x.mode }}</span></span>
+                  <span style="font-size:12px;color:{{ x.tone }}">{{ x.state }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Gates and control points</span><span style="font-size:11.5px;color:#9A9AA1">Cannot be bypassed</span></div>
+              <sc-for list="{{ page.gates }}" as="x" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:1.6fr 1fr .5fr;gap:12px;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                  <span><span style="display:block;font-size:13px;font-weight:500">{{ x.name }}</span><span style="display:block;font-size:11.5px;color:#77777D;margin-top:2px">{{ x.state }}</span></span>
+                  <span style="font-size:12.5px;color:#55555B">{{ x.owner }}</span>
+                  <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#55555B">{{ x.sla }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Users and roles</span><span style="font-size:11.5px;color:#9A9AA1">Administrator only</span></div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+              <sc-for list="{{ page.users }}" as="u" hint-placeholder-count="8">
+                <button onClick="{{ u.go }}" style="display:flex;gap:11px;text-align:left;padding:14px 20px;border-right:1px solid #F5F5F7;border-bottom:1px solid #F5F5F7;align-items:flex-start;transition:background .15s ease" style-hover="background:#FBFBFD">
+                  <span style="width:26px;height:26px;border-radius:50%;background:#F2F2F4;color:#55555B;display:grid;place-items:center;font-size:9.5px;font-weight:600;flex:none">{{ u.initials }}</span>
+                  <span style="min-width:0">
+                    <span style="display:block;font-size:13px;font-weight:500">{{ u.name }}</span>
+                    <span style="display:block;font-size:11.5px;color:#77777D;margin-top:1px">{{ u.role }}</span>
+                    <span style="display:block;font-size:11px;color:#9A9AA1;margin-top:3px">{{ u.scope }}</span>
+                  </span>
+                </button>
+              </sc-for>
+            </div>
+            <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D;line-height:1.5">{{ page.settingsNote }}</div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ is.roles }}" hint-placeholder-val="{{ true }}">
+        <div style="animation:viewIn .3s ease both">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <span style="font-size:11.5px;font-weight:500;color:#55555B;border:1px solid #E8E8ED;background:#fff;border-radius:16px;padding:4px 12px">{{ role.scope }}</span>
+            <span style="font-size:12.5px;color:#77777D">{{ role.blurb }}</span>
+          </div>
+
+          <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:#E8E8ED;border:1px solid #E8E8ED;border-radius:12px;overflow:hidden;margin-bottom:24px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+            <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+              <div style="background:#fff;padding:18px 20px 19px;animation:rowIn .35s ease both">
+                <div style="font-size:11.5px;color:#77777D">{{ k.label }}</div>
+                <div style="font-size:27px;font-weight:600;letter-spacing:-1px;margin-top:6px;font-family:'IBM Plex Mono',monospace;color:{{ k.tone }}">{{ k.value }}</div>
+                <div style="font-size:11.5px;color:{{ k.subTone }};margin-top:4px">{{ k.sub }}</div>
+              </div>
+            </sc-for>
+          </div>
+
+          <sc-if value="{{ r.exec }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center">
+                  <span style="font-size:13.5px;font-weight:600;flex:1">Decisions waiting on the Bid Committee</span>
+                  <span style="font-size:11.5px;color:#9A9AA1">Evidence pack attached to each</span>
+                </div>
+                <sc-for list="{{ d.decisions }}" as="x" hint-placeholder-count="2">
+                  <div style="display:flex;gap:14px;padding:16px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start;animation:rowIn .3s ease both">
+                    <span style="width:3px;align-self:stretch;border-radius:2px;background:{{ x.tone }};flex:none"></span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:14px;font-weight:600;letter-spacing:-.15px">{{ x.title }}</span>
+                      <span style="display:block;font-size:12.5px;color:#55555B;margin-top:4px;line-height:1.5">{{ x.body }}</span>
+                      <span style="display:flex;gap:8px;margin-top:11px">
+                        <button onClick="{{ x.decide }}" style="font-size:12.5px;font-weight:500;background:#1D1D1F;color:#fff;border-radius:16px;padding:6px 15px;transition:opacity .15s ease" style-hover="opacity:.86">Open DG2 decision</button>
+                        <button onClick="{{ x.open }}" style="font-size:12.5px;border:1px solid #E8E8ED;border-radius:16px;padding:6px 15px;color:#55555B;transition:border-color .15s ease" style-hover="border-color:#C9C9D1;color:#1D1D1F">Evidence pack</button>
+                      </span>
+                    </span>
+                    <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:{{ x.whenTone }};white-space:nowrap">{{ x.when }}</span>
+                  </div>
+                </sc-for>
+                <sc-for list="{{ d.recorded }}" as="x" hint-placeholder-count="1">
+                  <button onClick="{{ x.open }}" style="display:flex;width:100%;text-align:left;gap:14px;padding:16px 22px;align-items:flex-start;transition:background .15s ease" style-hover="background:#FBFBFD">
+                    <span style="width:3px;align-self:stretch;border-radius:2px;background:#2E7D50;flex:none"></span>
+                    <span style="flex:1">
+                      <span style="display:block;font-size:14px;font-weight:500">{{ x.title }}</span>
+                      <span style="display:block;font-size:12.5px;color:#77777D;margin-top:3px">{{ x.body }}</span>
+                    </span>
+                    <span style="font-size:12px;color:#2E7D50;white-space:nowrap">Recorded</span>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div style="display:grid;gap:22px">
+                <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                  <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;font-size:13.5px;font-weight:600">Pipeline by stage</div>
+                  <div style="padding:16px 22px 4px">
+                    <sc-for list="{{ d.pipeline }}" as="p" hint-placeholder-count="5">
+                      <div style="margin-bottom:13px">
+                        <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ p.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#55555B">{{ p.n }}</span></div>
+                        <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ p.tone }};width:{{ p.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="padding:12px 22px;background:#FBFBFD;border-top:1px solid #F2F2F4;font-size:12px;color:#77777D;line-height:1.5">Capacity flag: Stage 6 is carrying four concurrent bids against a planned ceiling of three. The Drafting Agent has absorbed the overflow; SME review time is the constraint.</div>
+                </div>
+                <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                  <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Why we win</span><span style="font-size:11.5px;color:#9A9AA1">trailing 15 decided</span></div>
+                  <div style="padding:16px 22px 8px">
+                    <sc-for list="{{ d.whyWin }}" as="p" hint-placeholder-count="3">
+                      <div style="margin-bottom:13px">
+                        <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ p.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#55555B">{{ p.pct }}</span></div>
+                        <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ p.tone }};width:{{ p.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Portfolio margin — bid vs delivered</span><span style="font-size:11.5px;color:#9A9AA1">feeds the margin model at Stage 5</span></div>
+              <div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .8fr .6fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">PROJECT</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">SECTOR</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">BID MARGIN</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">DELIVERED</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">DELTA</span>
+              </div>
+              <sc-for list="{{ d.margins }}" as="m" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:1.6fr 1fr .8fr .8fr .6fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                  <span style="font-size:13.5px">{{ m.project }}</span>
+                  <span style="font-size:12.5px;color:#77777D">{{ m.sector }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ m.bid }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ m.del }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ m.tone }}">{{ m.delta }}</span>
+                </div>
+              </sc-for>
+              <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D;line-height:1.5">The Learning Loop Agent feeds this variance back into the margin model — bids in the same sector are now priced against delivered outcomes, not bid assumptions.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.bid }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center">
+                  <span style="font-size:13.5px;font-weight:600;flex:1">Active bid register</span>
+                  <span style="font-size:11.5px;color:#9A9AA1">{{ d.registerCount }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:1.9fr 1fr .7fr .6fr .5fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TENDER</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">CLIENT</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">VALUE</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">STAGE</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">DUE</span>
+                </div>
+                <sc-for list="{{ d.register }}" as="t" hint-placeholder-count="6">
+                  <button onClick="{{ t.go }}" style="display:grid;width:100%;grid-template-columns:1.9fr 1fr .7fr .6fr .5fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                    <span style="min-width:0">
+                      <span style="display:block;font-size:13.5px;font-weight:500;letter-spacing:-.1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</span>
+                      <span style="display:block;font-size:11.5px;color:#9A9AA1;font-family:'IBM Plex Mono',monospace;margin-top:2px">{{ t.id }} · {{ t.status }}</span>
+                    </span>
+                    <span style="font-size:12.5px;color:#55555B">{{ t.client }}</span>
+                    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ t.value }}</span>
+                    <span style="font-size:12.5px;color:#55555B;text-align:right">{{ t.stage }}</span>
+                    <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ t.tone }}">{{ t.days }}</span>
+                  </button>
+                </sc-for>
+                <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D">Select any row for the single tender record — the same record every other role reads.</div>
+              </div>
+
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Needs you today</span><span style="font-size:11.5px;color:#9A9AA1">gate owner</span></div>
+                <sc-for list="{{ d.today }}" as="x" hint-placeholder-count="4">
+                  <div style="display:flex;gap:13px;padding:15px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start;animation:rowIn .3s ease both">
+                    <span style="width:18px;height:18px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;background:{{ x.tone }};margin-top:1px">{{ x.mark }}</span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:13.5px;font-weight:500">{{ x.title }}</span>
+                      <span style="display:block;font-size:12.5px;color:#77777D;margin-top:3px;line-height:1.5">{{ x.body }}</span>
+                      <sc-if value="{{ x.label }}" hint-placeholder-val="{{ true }}">
+                        <button onClick="{{ x.act }}" style="margin-top:9px;font-size:12.5px;font-weight:500;border:1px solid #E8E8ED;border-radius:16px;padding:5px 14px;color:#1D1D1F;transition:all .15s ease" style-hover="background:#1D1D1F;color:#fff;border-color:#1D1D1F">{{ x.label }}</button>
+                      </sc-if>
+                    </span>
+                    <span style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:{{ x.tone }};white-space:nowrap">{{ x.when }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center">
+                <span style="font-size:13.5px;font-weight:600;flex:1">T-2026-041 · 400 kV Substation — stage progress</span>
+                <button onClick="{{ d.openFocus }}" style="font-size:12.5px;color:#0A7EA4;font-weight:500">Open tender record →</button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(8,1fr);gap:8px;padding:18px 22px 6px">
+                <sc-for list="{{ d.focus }}" as="f" hint-placeholder-count="8">
+                  <div>
+                    <div style="height:3px;border-radius:2px;background:{{ f.bar }}"></div>
+                    <div style="display:flex;justify-content:space-between;margin-top:7px">
+                      <span style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:{{ f.fg }}">{{ f.label }}</span>
+                      <span style="font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:#B8B8BF">{{ f.gate }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#F2F2F4;margin:16px 0 0;border-top:1px solid #F2F2F4">
+                <sc-for list="{{ d.focusFigures }}" as="f" hint-placeholder-count="4">
+                  <div style="background:#fff;padding:14px 22px">
+                    <div style="font-size:10.5px;letter-spacing:.6px;color:#9A9AA1;font-weight:600">{{ f.label }}</div>
+                    <div style="font-size:20px;font-weight:600;font-family:'IBM Plex Mono',monospace;margin-top:5px;letter-spacing:-.6px;color:{{ f.tone }}">{{ f.value }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:13px 22px;background:#FBFBFD;border-top:1px solid #F2F2F4;font-size:12.5px;color:#55555B;line-height:1.5">Addendum 3 was issued by the client on 04 Mar. The Intake Agent linked it to the parent tender and re-flagged two priced packages and four compliance clauses for re-verification.</div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.coord }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1.55fr 1fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Validation queue — fields the agent would not accept alone</span><span style="font-size:11.5px;color:#9A9AA1">Nothing is silently accepted</span></div>
+                <sc-for list="{{ d.queue }}" as="x" hint-placeholder-count="4">
+                  <div style="display:flex;gap:13px;padding:15px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start;animation:rowIn .3s ease both">
+                    <span style="width:18px;height:18px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600;color:#C67A17;background:#FBF3E7;margin-top:1px">?</span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:13.5px;font-weight:500">{{ x.title }}</span>
+                      <span style="display:block;font-size:12.5px;color:#77777D;margin-top:3px;line-height:1.5">{{ x.detail }}</span>
+                    </span>
+                    <button onClick="{{ x.act }}" style="font-size:12.5px;font-weight:500;border:1px solid #E8E8ED;border-radius:16px;padding:5px 14px;white-space:nowrap;transition:all .15s ease" style-hover="background:#1D1D1F;color:#fff;border-color:#1D1D1F">{{ x.label }}</button>
+                  </div>
+                </sc-for>
+                <sc-for list="{{ d.queueClean }}" as="x" hint-placeholder-count="1">
+                  <div style="display:flex;gap:13px;padding:15px 22px;align-items:flex-start">
+                    <span style="width:18px;height:18px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600;color:#2E7D50;background:#EFF6F1;margin-top:1px">✓</span>
+                    <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">{{ x.title }}</span><span style="display:block;font-size:12.5px;color:#77777D;margin-top:3px">{{ x.body }}</span></span>
+                    <span style="font-size:12px;color:#2E7D50">Clean</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Extraction confidence</span><span style="font-size:11.5px;color:#9A9AA1">last 50 tenders</span></div>
+                <div style="padding:16px 22px 6px">
+                  <sc-for list="{{ d.confidence }}" as="c" hint-placeholder-count="6">
+                    <div style="margin-bottom:12px">
+                      <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ c.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:{{ c.tone }}">{{ c.pct }}</span></div>
+                      <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ c.tone }};width:{{ c.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:12px 22px;background:#FBFBFD;border-top:1px solid #F2F2F4;font-size:12px;color:#77777D;line-height:1.5">Bond and evaluation-criteria fields sit lowest and are routed to you most often. These are the fields the golden set is being expanded against this quarter.</div>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Intake today — source and disposition</span><span style="font-size:11.5px;color:#9A9AA1">The agent never discards — it flags</span></div>
+              <div style="display:grid;grid-template-columns:.5fr .9fr 1.7fr 1fr .5fr .9fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TIME</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">SOURCE</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TENDER</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">CLIENT</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">FIT</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">DISPOSITION</span>
+              </div>
+              <sc-for list="{{ d.intake }}" as="x" hint-placeholder-count="5">
+                <button onClick="{{ x.go }}" style="display:grid;width:100%;grid-template-columns:.5fr .9fr 1.7fr 1fr .5fr .9fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                  <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ x.time }}</span>
+                  <span style="font-size:12.5px;color:#55555B">{{ x.source }}</span>
+                  <span style="min-width:0"><span style="display:block;font-size:13.5px;font-weight:500">{{ x.name }}</span><span style="display:block;font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:#9A9AA1">{{ x.id }}</span></span>
+                  <span style="font-size:12.5px;color:#55555B">{{ x.client }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ x.fit }}</span>
+                  <span style="font-size:12.5px;text-align:right;color:{{ x.tone }}">{{ x.disp }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.proc }}" hint-placeholder-val="{{ true }}">
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">T-2026-041 · package board</span><span style="font-size:11.5px;color:#9A9AA1">Agent recommends · buyer decides</span></div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+                <sc-for list="{{ d.board }}" as="col" hint-placeholder-count="4">
+                  <div style="border-right:1px solid #F2F2F4;padding:14px 16px 18px;background:#FDFDFE">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+                      <span style="font-size:10.5px;letter-spacing:.7px;font-weight:600;color:{{ col.tone }}">{{ col.head }}</span>
+                      <span style="margin-left:auto;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#9A9AA1">{{ col.count }}</span>
+                    </div>
+                    <sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="3">
+                      <button onClick="{{ c.go }}" style="display:block;width:100%;text-align:left;background:#fff;border:1px solid #E8E8ED;border-radius:10px;padding:11px 13px;margin-bottom:8px;transition:all .16s ease" style-hover="border-color:#C9C9D1;box-shadow:0 3px 10px rgba(0,0,0,.05);transform:translateY(-1px)">
+                        <span style="display:block;font-size:13px;font-weight:500;letter-spacing:-.1px">{{ c.name }}</span>
+                        <span style="display:block;font-size:11.5px;color:#77777D;margin-top:3px">{{ c.meta }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start;margin-top:22px">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Normalised quote comparison — transformers</span><span style="font-size:11.5px;color:#9A9AA1">Parsed to a common schema by the agent</span></div>
+                <div style="display:grid;grid-template-columns:1.4fr .7fr .7fr .7fr .6fr .8fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">SUPPLIER</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">BASE PRICE</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">FREIGHT</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">VALIDITY</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">LEAD TIME</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">ACTION</span>
+                </div>
+                <sc-for list="{{ d.quotes }}" as="q" hint-placeholder-count="3">
+                  <div style="display:grid;grid-template-columns:1.4fr .7fr .7fr .7fr .6fr .8fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                    <span style="min-width:0"><span style="display:block;font-size:13.5px;font-weight:500">{{ q.supplier }}</span><span style="display:block;font-size:11.5px;color:{{ q.tone }};margin-top:2px">{{ q.note }}</span></span>
+                    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ q.price }}</span>
+                    <span style="font-size:12.5px;text-align:right;color:{{ q.tone }}">{{ q.freight }}</span>
+                    <span style="font-size:12.5px;text-align:right;color:#55555B">{{ q.validity }}</span>
+                    <span style="font-size:12.5px;text-align:right;color:#55555B">{{ q.lead }}</span>
+                    <span style="text-align:right">
+                      <button onClick="{{ q.select }}" style="font-size:12px;font-weight:500;border:1px solid #E8E8ED;border-radius:14px;padding:4px 12px;transition:all .15s ease" style-hover="background:#1D1D1F;color:#fff;border-color:#1D1D1F">Select</button>
+                    </span>
+                  </div>
+                </sc-for>
+                <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D;line-height:1.5">One offer excludes freight. The agent normalises before ranking so nothing is compared as if identical — and it cannot commit spend. Selection is yours and is recorded with its reason.</div>
+              </div>
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;font-size:13.5px;font-weight:600">Guardrails in force</div>
+                <sc-for list="{{ d.guards }}" as="g" hint-placeholder-count="4">
+                  <div style="display:flex;gap:11px;padding:13px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start">
+                    <span style="width:16px;height:16px;border-radius:50%;background:#EFF6F1;color:#2E7D50;display:grid;place-items:center;font-size:10px;flex:none;margin-top:2px">✓</span>
+                    <span><span style="display:block;font-size:13px;font-weight:500">{{ g.title }}</span><span style="display:block;font-size:12px;color:#77777D;margin-top:2px">{{ g.body }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.comm }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1fr 1.25fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Cost build-up</span><span style="font-size:11.5px;color:#9A9AA1">Direct 86% · Indirect 14%</span></div>
+                <sc-for list="{{ d.buildup }}" as="b" hint-placeholder-count="7">
+                  <button onClick="{{ b.go }}" style="display:block;width:100%;text-align:left;padding:11px 22px;border-bottom:1px solid #F5F5F7;transition:background .15s ease" style-hover="background:#FBFBFD">
+                    <span style="display:flex;font-size:13px;align-items:baseline"><span style="flex:1;color:#33333A">{{ b.label }}</span><span style="font-family:'IBM Plex Mono',monospace;font-weight:500">{{ b.value }}</span></span>
+                    <span style="display:block;height:4px;border-radius:2px;background:#F2F2F4;margin-top:7px;overflow:hidden"><span style="display:block;height:100%;border-radius:2px;background:#1D1D1F;width:{{ b.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></span>
+                  </button>
+                </sc-for>
+                <div style="padding:13px 22px;background:#FBFBFD;font-size:12px;color:#77777D;line-height:1.5">Every line traces to its source quote or historical norm. Select a line to open its provenance.</div>
+              </div>
+
+              <div style="display:grid;gap:22px">
+                <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                  <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Margin scenarios</span><span style="font-size:11.5px;color:#9A9AA1">You select · the platform records</span></div>
+                  <div style="display:grid;grid-template-columns:1.2fr .8fr .7fr .7fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                    <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">SCENARIO</span>
+                    <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">PRICE</span>
+                    <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">MARGIN</span>
+                    <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">WIN PROB.</span>
+                  </div>
+                  <sc-for list="{{ d.scenarios }}" as="x" hint-placeholder-count="3">
+                    <button onClick="{{ x.pick }}" style="display:grid;width:100%;grid-template-columns:1.2fr .8fr .7fr .7fr;padding:13px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;background:{{ x.bg }};transition:background .18s ease" style-hover="background:#F7F7F9">
+                      <span style="font-size:13.5px;font-weight:{{ x.fw }};display:flex;align-items:center;gap:9px"><span style="color:{{ x.markColor }};font-size:11px">{{ x.mark }}</span>{{ x.name }}</span>
+                      <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:{{ x.fw }}">{{ x.price }}</span>
+                      <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;font-weight:{{ x.fw }}">{{ x.margin }}</span>
+                      <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:#55555B">{{ x.win }}</span>
+                    </button>
+                  </sc-for>
+                  <div style="padding:14px 22px;background:#FBFBFD;display:flex;gap:14px;align-items:center">
+                    <span style="flex:1;font-size:12px;color:#77777D;line-height:1.5">Base and stretch carry near-identical expected value. The agent surfaces the trade-off rather than resolving it — margin against backlog is a commercial judgement, not a calculation.</span>
+                    <button onClick="{{ d.freeze }}" style="font-size:12.5px;font-weight:500;border-radius:16px;padding:7px 16px;white-space:nowrap;background:{{ d.freezeBg }};color:{{ d.freezeFg }};border:1px solid {{ d.freezeBorder }};transition:opacity .15s ease" style-hover="opacity:.86">{{ d.freezeLabel }}</button>
+                  </div>
+                </div>
+
+                <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                  <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Sensitivity — margin at risk</span><span style="font-size:11.5px;color:#9A9AA1">steel is the dominant exposure</span></div>
+                  <div style="padding:16px 22px 8px">
+                    <sc-for list="{{ d.sensitivity }}" as="x" hint-placeholder-count="5">
+                      <div style="margin-bottom:12px">
+                        <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ x.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:#55555B">{{ x.value }}</span></div>
+                        <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:#C67A17;width:{{ x.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Live re-price log</span><span style="font-size:11.5px;color:#9A9AA1">The model re-runs — it is not patched</span></div>
+              <div style="display:grid;grid-template-columns:.7fr 2fr .6fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">WHEN</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TRIGGER</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">IMPACT</span>
+              </div>
+              <sc-for list="{{ d.reprice }}" as="x" hint-placeholder-count="4">
+                <div style="display:grid;grid-template-columns:.7fr 2fr .6fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                  <span style="font-size:12.5px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ x.when }}</span>
+                  <span style="font-size:13px">{{ x.trigger }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ x.tone }}">{{ x.impact }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.prop }}" hint-placeholder-val="{{ true }}">
+            <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Section board — T-2026-041</span><span style="font-size:11.5px;color:#9A9AA1">42 sections · 4 days to submission</span></div>
+              <div style="display:grid;grid-template-columns:repeat(4,1fr)">
+                <sc-for list="{{ d.sections }}" as="col" hint-placeholder-count="4">
+                  <div style="border-right:1px solid #F2F2F4;padding:14px 16px 18px;background:#FDFDFE">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:11px">
+                      <span style="font-size:10.5px;letter-spacing:.7px;font-weight:600;color:{{ col.tone }}">{{ col.head }}</span>
+                      <span style="margin-left:auto;font-size:11px;font-family:'IBM Plex Mono',monospace;color:#9A9AA1">{{ col.count }}</span>
+                    </div>
+                    <sc-for list="{{ col.cards }}" as="c" hint-placeholder-count="3">
+                      <button onClick="{{ c.go }}" style="display:block;width:100%;text-align:left;background:#fff;border:1px solid #E8E8ED;border-radius:10px;padding:11px 13px;margin-bottom:8px;transition:all .16s ease" style-hover="border-color:#C9C9D1;box-shadow:0 3px 10px rgba(0,0,0,.05);transform:translateY(-1px)">
+                        <span style="display:block;font-size:13px;font-weight:500;letter-spacing:-.1px">{{ c.name }}</span>
+                        <span style="display:block;font-size:11.5px;color:{{ c.tone }};margin-top:3px">{{ c.meta }}</span>
+                      </button>
+                    </sc-for>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1.25fr;gap:22px;align-items:start;margin-top:22px">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Simulated evaluator scoring</span><span style="font-size:11.5px;color:#9A9AA1">78 / 100</span></div>
+                <div style="padding:16px 22px 6px">
+                  <sc-for list="{{ d.scoring }}" as="x" hint-placeholder-count="5">
+                    <div style="margin-bottom:12px">
+                      <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ x.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:{{ x.tone }}">{{ x.value }}</span></div>
+                      <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ x.tone }};width:{{ x.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="padding:14px 22px;background:#FBFBFD;border-top:1px solid #F2F2F4;display:flex;gap:14px;align-items:center">
+                  <span style="flex:1;font-size:12px;color:#77777D;line-height:1.5">{{ d.scoreNote }}</span>
+                  <button onClick="{{ d.applyCvs }}" style="font-size:12.5px;font-weight:500;background:#1D1D1F;color:#fff;border-radius:16px;padding:7px 15px;white-space:nowrap;transition:opacity .15s ease" style-hover="opacity:.86">Apply</button>
+                </div>
+              </div>
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Win themes woven through</span><span style="font-size:11.5px;color:#9A9AA1">coverage checked per section</span></div>
+                <sc-for list="{{ d.themes }}" as="t" hint-placeholder-count="4">
+                  <div style="display:flex;gap:13px;padding:14px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start">
+                    <span style="width:20px;height:20px;border-radius:6px;background:#F2F2F4;color:#55555B;display:grid;place-items:center;font-size:11px;font-family:'IBM Plex Mono',monospace;flex:none">{{ t.n }}</span>
+                    <span style="flex:1"><span style="display:block;font-size:13.5px;font-weight:500">{{ t.title }}</span><span style="display:block;font-size:12.5px;color:{{ t.tone }};margin-top:3px;line-height:1.5">{{ t.body }}</span></span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.comp }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1.6fr 1fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Compliance matrix — T-2026-041 (extract)</span><span style="font-size:11.5px;color:#9A9AA1">214 requirements mapped</span></div>
+                <div style="display:grid;grid-template-columns:1.7fr .6fr .6fr 1.5fr .7fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">REQUIREMENT</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">REF.</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">TYPE</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">EVIDENCE IN PROPOSAL</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">STATUS</span>
+                </div>
+                <sc-for list="{{ d.matrix }}" as="m" hint-placeholder-count="6">
+                  <div style="display:grid;grid-template-columns:1.7fr .6fr .6fr 1.5fr .7fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center">
+                    <span style="font-size:13px">{{ m.req }}</span>
+                    <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:#77777D">{{ m.ref }}</span>
+                    <span style="font-size:12.5px;color:#55555B">{{ m.type }}</span>
+                    <span style="font-size:12.5px;color:#55555B">{{ m.evidence }}</span>
+                    <span style="font-size:12.5px;text-align:right;color:{{ m.tone }};font-weight:500">{{ m.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+
+              <div style="display:grid;gap:22px">
+                <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                  <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;font-size:13.5px;font-weight:600">Gaps by severity</div>
+                  <div style="padding:16px 22px 8px">
+                    <sc-for list="{{ d.gaps }}" as="g" hint-placeholder-count="3">
+                      <div style="margin-bottom:12px">
+                        <div style="display:flex;font-size:12.5px;margin-bottom:6px"><span style="flex:1;color:#33333A">{{ g.label }}</span><span style="font-family:'IBM Plex Mono',monospace;color:{{ g.tone }}">{{ g.n }}</span></div>
+                        <div style="height:5px;border-radius:3px;background:#F2F2F4;overflow:hidden"><span style="display:block;height:100%;border-radius:3px;background:{{ g.tone }};width:{{ g.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="margin:6px 16px 16px;padding:14px 16px;border-radius:10px;background:{{ d.gateBg }};border:1px solid {{ d.gateBorder }}">
+                    <div style="font-size:13.5px;font-weight:600;color:{{ d.gateTone }}">{{ d.gateTitle }}</div>
+                    <div style="font-size:12.5px;color:#55555B;margin-top:5px;line-height:1.5">{{ d.gateBody }}</div>
+                    <button onClick="{{ d.closeGap }}" style="margin-top:11px;font-size:12.5px;font-weight:500;background:#1D1D1F;color:#fff;border-radius:16px;padding:7px 16px;transition:opacity .15s ease" style-hover="opacity:.86">Open critical gap</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:22px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+              <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Escalated contractual positions</span><span style="font-size:11.5px;color:#9A9AA1">Non-standard exposure escalated automatically</span></div>
+              <div style="display:grid;grid-template-columns:1.2fr 1.1fr 1.6fr .8fr .7fr .8fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">CLAUSE</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">CLIENT POSITION</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">RECOMMENDED REDLINE</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">EXPOSURE</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">OWNER</span>
+                <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">STATUS</span>
+              </div>
+              <sc-for list="{{ d.redlines }}" as="x" hint-placeholder-count="4">
+                <button onClick="{{ x.go }}" style="display:grid;width:100%;grid-template-columns:1.2fr 1.1fr 1.6fr .8fr .7fr .8fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                  <span style="font-size:13px;font-weight:500">{{ x.clause }}</span>
+                  <span style="font-size:12.5px;color:#55555B">{{ x.client }}</span>
+                  <span style="font-size:12.5px;color:#55555B">{{ x.redline }}</span>
+                  <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ x.exposure }}</span>
+                  <span style="font-size:12.5px;text-align:right;color:#77777D">{{ x.owner }}</span>
+                  <span style="font-size:12.5px;text-align:right;color:{{ x.tone }};font-weight:500">{{ x.status }}</span>
+                </button>
+              </sc-for>
+            </div>
+          </sc-if>
+
+          <sc-if value="{{ r.dir }}" hint-placeholder-val="{{ true }}">
+            <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:22px;align-items:start">
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Delivery against bid commitments</span><span style="font-size:11.5px;color:#9A9AA1">Bid artefacts handed over intact</span></div>
+                <div style="display:grid;grid-template-columns:1.6fr 1.1fr .7fr .7fr .5fr;padding:9px 22px;background:#FBFBFD;border-bottom:1px solid #F2F2F4">
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">PROJECT</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">PROGRESS</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">BID MARGIN</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">CURRENT</span>
+                  <span style="font-size:10.5px;letter-spacing:.7px;color:#9A9AA1;font-weight:600;text-align:right">Δ</span>
+                </div>
+                <sc-for list="{{ d.projects }}" as="p" hint-placeholder-count="5">
+                  <button onClick="{{ p.go }}" style="display:grid;width:100%;grid-template-columns:1.6fr 1.1fr .7fr .7fr .5fr;padding:12px 22px;border-bottom:1px solid #F5F5F7;align-items:center;text-align:left;transition:background .15s ease" style-hover="background:#FBFBFD">
+                    <span style="font-size:13.5px;font-weight:500">{{ p.name }}</span>
+                    <span style="display:flex;align-items:center;gap:9px">
+                      <span style="flex:1;height:4px;border-radius:2px;background:#F2F2F4;overflow:hidden;display:block"><span style="display:block;height:100%;border-radius:2px;background:#1D1D1F;width:{{ p.w }};transition:width .8s cubic-bezier(.2,.7,.3,1)"></span></span>
+                      <span style="font-size:12px;font-family:'IBM Plex Mono',monospace;color:#77777D;width:32px;text-align:right">{{ p.progress }}</span>
+                    </span>
+                    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ p.bid }}</span>
+                    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right">{{ p.curr }}</span>
+                    <span style="font-size:13px;font-family:'IBM Plex Mono',monospace;text-align:right;color:{{ p.tone }}">{{ p.delta }}</span>
+                  </button>
+                </sc-for>
+              </div>
+
+              <div style="border:1px solid #E8E8ED;border-radius:14px;background:#fff;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+                <div style="padding:16px 22px 14px;border-bottom:1px solid #F2F2F4;display:flex;align-items:center"><span style="font-size:13.5px;font-weight:600;flex:1">Agent-detected deviations</span><span style="font-size:11.5px;color:#9A9AA1">recommends · you approve</span></div>
+                <sc-for list="{{ d.deviations }}" as="x" hint-placeholder-count="4">
+                  <div style="display:flex;gap:13px;padding:15px 22px;border-bottom:1px solid #F5F5F7;align-items:flex-start;animation:rowIn .3s ease both">
+                    <span style="width:18px;height:18px;border-radius:5px;flex:none;display:grid;place-items:center;font-size:11px;font-weight:600;color:#fff;background:{{ x.tone }};margin-top:1px">{{ x.mark }}</span>
+                    <span style="flex:1;min-width:0">
+                      <span style="display:block;font-size:13.5px;font-weight:500">{{ x.title }}</span>
+                      <span style="display:block;font-size:12.5px;color:#77777D;margin-top:3px;line-height:1.5">{{ x.body }}</span>
+                      <sc-if value="{{ x.label }}" hint-placeholder-val="{{ true }}">
+                        <button onClick="{{ x.act }}" style="margin-top:9px;font-size:12.5px;font-weight:500;border:1px solid #E8E8ED;border-radius:16px;padding:5px 14px;transition:all .15s ease" style-hover="background:#1D1D1F;color:#fff;border-color:#1D1D1F">{{ x.label }}</button>
+                      </sc-if>
+                    </span>
+                    <span style="font-size:11.5px;font-family:'IBM Plex Mono',monospace;color:{{ x.tone }};white-space:nowrap">{{ x.when }}</span>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="margin-top:22px">
+              <div style="display:flex;align-items:baseline;gap:12px;margin-bottom:12px">
+                <h2 style="font-size:15px;font-weight:600;letter-spacing:-.2px">What delivery is teaching the bid office</h2>
+                <span style="font-size:12.5px;color:#9A9AA1">Stage 9b — the loop closing onto Stage 1</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+                <sc-for list="{{ d.learning }}" as="l" hint-placeholder-count="3">
+                  <button onClick="{{ l.act }}" style="text-align:left;border:1px solid #E8E8ED;border-radius:14px;background:#fff;padding:18px 20px 16px;box-shadow:0 1px 2px rgba(0,0,0,.03);transition:all .16s ease" style-hover="border-color:#C9C9D1;box-shadow:0 6px 18px rgba(0,0,0,.06);transform:translateY(-1px)">
+                    <span style="display:flex;align-items:center;gap:9px"><span style="font-size:13.5px;font-weight:600;flex:1">{{ l.title }}</span><span style="font-size:11.5px;color:{{ l.tone }}">{{ l.status }}</span></span>
+                    <span style="display:block;font-size:12.5px;color:#55555B;margin-top:8px;line-height:1.55">{{ l.body }}</span>
+                  </button>
+                </sc-for>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+      </sc-if>
+      <sc-if value="{{ is.roles }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:26px;border:1px solid #E8E8ED;border-radius:14px;background:#fff;padding:14px 20px;display:flex;align-items:center;gap:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)">
+          <span style="font-size:12.5px;color:#77777D;flex:1">{{ walk.position }} — act here, then hand the tender to the next owner.</span>
+          <sc-if value="{{ walk.hasPrev }}" hint-placeholder-val="{{ true }}">
+            <button onClick="{{ walk.prev }}" style="font-size:12.5px;border:1px solid #E8E8ED;border-radius:16px;padding:7px 15px;color:#55555B;white-space:nowrap;transition:all .15s ease" style-hover="border-color:#C9C9D1;color:#1D1D1F">{{ walk.prevLabel }}</button>
+          </sc-if>
+          <button onClick="{{ walk.next }}" style="font-size:12.5px;font-weight:500;background:#1D1D1F;color:#fff;border-radius:16px;padding:7px 16px;white-space:nowrap;transition:opacity .15s ease" style-hover="opacity:.86">{{ walk.nextLabel }}</button>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ showBanner }}" hint-placeholder-val="{{ true }}">
+        <div style="margin-top:34px;padding-top:16px;border-top:1px solid #EDEDF1;display:flex;align-items:center;gap:10px">
+          <span style="font-size:11px;letter-spacing:.4px;color:#9A9AA1">Wireframe — indicative UI, illustrative data</span>
+          <span style="margin-left:auto;font-size:11px;letter-spacing:.4px;color:#B8B8BF">Catalyst_Tender_AI · Genesis Infra — Gulf JV · tenant build 2026.03</span>
+        </div>
+      </sc-if>
+    </main>
+  </div>
+
+  <sc-if value="{{ drawer }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:50;display:flex;justify-content:flex-end">
+      <div onClick="{{ closeDrawer }}" style="position:absolute;inset:0;background:rgba(20,20,22,.34);animation:scrimIn .2s ease both"></div>
+      <div style="position:relative;width:560px;max-width:94vw;background:#fff;height:100%;overflow-y:auto;box-shadow:-18px 0 50px rgba(0,0,0,.16);animation:drawerIn .26s cubic-bezier(.2,.7,.3,1) both">
+        <div style="position:sticky;top:0;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-bottom:1px solid #F2F2F4;padding:18px 24px 15px;display:flex;align-items:flex-start;gap:14px;z-index:2">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:11px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">{{ drawer.eyebrow }}</div>
+            <div style="font-size:17px;font-weight:600;letter-spacing:-.3px;margin-top:4px">{{ drawer.title }}</div>
+            <div style="font-size:12.5px;color:#77777D;margin-top:3px">{{ drawer.sub }}</div>
+          </div>
+          <button onClick="{{ closeDrawer }}" style="font-size:12.5px;color:#77777D;border:1px solid #E8E8ED;border-radius:16px;padding:5px 13px;transition:all .15s ease" style-hover="border-color:#C9C9D1;color:#1D1D1F">Close</button>
+        </div>
+
+        <sc-if value="{{ drawer.hasKpis }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#F2F2F4;border-bottom:1px solid #F2F2F4">
+            <sc-for list="{{ drawer.kpis }}" as="k" hint-placeholder-count="4">
+              <div style="background:#fff;padding:14px 16px">
+                <div style="font-size:10.5px;color:#9A9AA1;letter-spacing:.4px">{{ k.label }}</div>
+                <div style="font-size:16px;font-weight:600;font-family:'IBM Plex Mono',monospace;margin-top:5px;color:{{ k.tone }}">{{ k.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ drawer.hasStages }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:18px 24px 6px">
+            <div style="font-size:10.5px;letter-spacing:.8px;color:#9A9AA1;font-weight:600;margin-bottom:10px">STAGE PROGRESS</div>
+            <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:5px">
+              <sc-for list="{{ drawer.stages }}" as="s" hint-placeholder-count="9">
+                <div style="text-align:center">
+                  <div style="height:3px;border-radius:2px;background:{{ s.bar }}"></div>
+                  <div style="font-size:10px;font-family:'IBM Plex Mono',monospace;color:{{ s.fg }};margin-top:6px">{{ s.label }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-for list="{{ drawer.sections }}" as="sec" hint-placeholder-count="2">
+          <div style="padding:18px 24px 4px">
+            <div style="font-size:10.5px;letter-spacing:.8px;color:#9A9AA1;font-weight:600;margin-bottom:8px">{{ sec.head }}</div>
+            <sc-for list="{{ sec.rows }}" as="r" hint-placeholder-count="4">
+              <div style="display:flex;gap:16px;padding:9px 0;border-bottom:1px solid #F5F5F7;align-items:baseline">
+                <span style="font-size:13px;color:#55555B;flex:1">{{ r.k }}</span>
+                <span style="font-size:13px;font-weight:500;color:{{ r.tone }};text-align:right;font-family:{{ r.font }}">{{ r.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </sc-for>
+
+        <sc-if value="{{ drawer.note }}" hint-placeholder-val="{{ true }}">
+          <div style="margin:18px 24px 6px;padding:14px 16px;background:#FBFBFD;border:1px solid #F2F2F4;border-radius:10px;font-size:12.5px;color:#55555B;line-height:1.55">{{ drawer.note }}</div>
+        </sc-if>
+
+        <div style="position:sticky;bottom:0;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border-top:1px solid #F2F2F4;padding:14px 24px;display:flex;gap:10px;margin-top:18px">
+          <sc-for list="{{ drawer.actions }}" as="a" hint-placeholder-count="2">
+            <button onClick="{{ a.act }}" style="font-size:13px;font-weight:500;border-radius:18px;padding:8px 18px;transition:all .15s ease;background:{{ a.bg }};color:{{ a.fg }};border:1px solid {{ a.border }}" style-hover="opacity:.86">{{ a.label }}</button>
+          </sc-for>
+          <span style="margin-left:auto;font-size:11.5px;color:#9A9AA1;align-self:center">{{ drawer.foot }}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ modal }}" hint-placeholder-val="{{ true }}">
+    <div style="position:fixed;inset:0;z-index:60;display:flex;align-items:flex-start;justify-content:center;padding:84px 16px">
+      <div onClick="{{ closeModal }}" style="position:absolute;inset:0;background:rgba(20,20,22,.44);animation:scrimIn .18s ease both"></div>
+      <div style="position:relative;width:100%;max-width:540px;background:#fff;border-radius:14px;overflow:hidden;box-shadow:0 26px 64px rgba(0,0,0,.26);animation:modalIn .22s cubic-bezier(.2,.7,.3,1) both">
+        <div style="padding:19px 24px 15px;border-bottom:1px solid #F2F2F4">
+          <div style="font-size:11px;letter-spacing:.7px;color:#9A9AA1;font-weight:600">{{ modal.eyebrow }}</div>
+          <div style="font-size:16.5px;font-weight:600;letter-spacing:-.25px;margin-top:4px">{{ modal.title }}</div>
+          <div style="font-size:12.5px;color:#77777D;margin-top:3px">{{ modal.sub }}</div>
+        </div>
+        <div style="padding:16px 24px 6px">
+          <sc-for list="{{ modal.rows }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;gap:16px;padding:9px 0;border-bottom:1px solid #F5F5F7;align-items:baseline">
+              <span style="font-size:13px;color:#55555B;flex:1">{{ r.k }}</span>
+              <span style="font-size:13px;font-weight:500;color:{{ r.tone }};text-align:right">{{ r.v }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <sc-if value="{{ modal.note }}" hint-placeholder-val="{{ true }}">
+          <div style="margin:14px 24px 4px;padding:13px 15px;background:#FBFBFD;border:1px solid #F2F2F4;border-radius:10px;font-size:12.5px;color:#55555B;line-height:1.55">{{ modal.note }}</div>
+        </sc-if>
+        <div style="padding:16px 24px;background:#FBFBFD;border-top:1px solid #F2F2F4;display:flex;gap:10px;margin-top:14px;align-items:center">
+          <sc-for list="{{ modal.actions }}" as="a" hint-placeholder-count="2">
+            <button onClick="{{ a.act }}" style="font-size:13px;font-weight:500;border-radius:18px;padding:8px 18px;transition:all .15s ease;background:{{ a.bg }};color:{{ a.fg }};border:1px solid {{ a.border }}" style-hover="opacity:.86">{{ a.label }}</button>
+          </sc-for>
+          <span style="margin-left:auto;font-size:11.5px;color:#9A9AA1;text-align:right">{{ modal.foot }}</span>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <div style="position:fixed;right:24px;bottom:24px;z-index:70;display:flex;flex-direction:column;gap:9px;align-items:flex-end">
+    <sc-for list="{{ toasts }}" as="t" hint-placeholder-count="0">
+      <div style="background:#1D1D1F;color:#fff;border-radius:10px;padding:11px 16px;font-size:12.5px;box-shadow:0 12px 30px rgba(0,0,0,.24);display:flex;gap:10px;align-items:center;animation:toastIn .22s ease both">
+        <span style="width:6px;height:6px;border-radius:50%;background:{{ t.tone }}"></span>{{ t.msg }}
+      </div>
+    </sc-for>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1440,&quot;height&quot;:960},&quot;entryView&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;workflow&quot;,&quot;roles&quot;,&quot;agents&quot;],&quot;default&quot;:&quot;roles&quot;,&quot;tsType&quot;:&quot;'workflow'|'roles'|'agents'&quot;,&quot;section&quot;:&quot;Demo setup&quot;},&quot;defaultRole&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;exec&quot;,&quot;bid&quot;,&quot;coord&quot;,&quot;proc&quot;,&quot;comm&quot;,&quot;prop&quot;,&quot;comp&quot;,&quot;dir&quot;],&quot;default&quot;:&quot;bid&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Demo setup&quot;},&quot;showDataBanner&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Demo setup&quot;}}">
+const INK='#1D1D1F', INK2='#55555B', INK3='#77777D', LINE='#E8E8ED', RED='#C1372B', ORG='#C67A17', GRN='#2E7D50', CY='#0A7EA4';
+
+const ROLES=[
+ {key:'exec',name:'A. Menon',initials:'AM',title:'Executive Sponsor / Bid Committee',short:'Bid Committee / Sponsor',view:'Portfolio Dashboard',scope:'Gate owner · DG2',blurb:'Pipeline health, capital at risk and the decisions waiting on you. Read-only except at DG2.'},
+ {key:'bid',name:'R. Iyer',initials:'RI',title:'Bid Manager',short:'Bid Manager',view:'Bid Cockpit',scope:'Gate owner · DG1 · Accountable at Stage 8',blurb:'Every live pursuit you own, what each is waiting on, and what needs your decision today.'},
+ {key:'coord',name:'S. Nair',initials:'SN',title:'Tender Coordinator',short:'Tender Coordinator',view:'Intake & Validation Queue',scope:'Responsible · Stage 1',blurb:'What the Intake Agent captured overnight, and the fields it was not confident enough to accept alone.'},
+ {key:'proc',name:'V. Kulkarni',initials:'VK',title:'Procurement / Estimation Lead',short:'Procurement / Estimation',view:'Vendor & RFQ Hub',scope:'Accountable · Stage 2',blurb:'Package coverage, live RFQ status and normalised quote comparison across every subcontract trade.'},
+ {key:'comm',name:'D. Fernandes',initials:'DF',title:'Commercial Manager',short:'Commercial Manager',view:'Cost & Margin Studio',scope:'Accountable · Stage 5',blurb:'The cost build-up, the margin scenarios and the sensitivity behind the number you will sign.'},
+ {key:'prop',name:'K. Bose',initials:'KB',title:'Proposal Manager',short:'Proposal Manager',view:'Proposal Workspace',scope:'Accountable · Stage 6',blurb:'Section status, SME tasks and simulated evaluator scoring across the submission.'},
+ {key:'comp',name:'J. Thomas',initials:'JT',title:'Compliance / Legal Lead',short:'Compliance / Legal',view:'Compliance & Risk Console',scope:'Accountable · Stage 7',blurb:'Requirement-to-evidence coverage, open gaps by severity and the contractual redline position.'},
+ {key:'dir',name:'M. Rao',initials:'MR',title:'Project Director',short:'Project Director',view:'Delivery Oversight',scope:'Accountable · Stage 9a',blurb:'Won projects tracked against the commitments made in the bid, with margin variance in view.'}
+];
+
+const STAGES=[
+ {n:1,name:'Tender Identification & Screening',short:'Identification & screening',agent:'Intake & Extraction Agent',owner:'Tender Coordinator',control:'DG1 · Milestone M1',tag:'DG1',role:'coord',
+  ai:['Continuous capture from portals, mailboxes and scanned hard copy','Field extraction with page-level provenance on every value','Duplicate and addendum linking to the parent tender','Fit-score against capability, geography and balance-sheet rules'],
+  hu:['Coordinator validates fields below the confidence threshold','Coordinator resolves conflicting dates and scope boundaries','Bid Manager takes the DG1 pursue-or-discard call'],
+  out:['Validated tender record with provenance','Fit-score and screening rationale','DG1 decision pack'],
+  kpi:['Intake to logged ≤ 15 min','Zero missed tenders on daily reconciliation']},
+ {n:2,name:'Subcontractor & Internal Input Orchestration',short:'Subcontractor inputs',agent:'Outreach & Evaluation Agent',owner:'Procurement / Estimation Lead',control:'—',tag:'',role:'proc',
+  ai:['Scope split into packages and supplier shortlists built from performance history','RFQs issued package by package with the right attachments','Non-responders nudged at T+48h and escalated to the buyer','Incoming quotes normalised to a common schema — exclusions and validity flagged'],
+  hu:['Buyer approves the shortlist and the ranking criteria','Buyer selects the supplier; any override is recorded with a reason'],
+  out:['Normalised quote comparison per package','Coverage report by trade','Supplier engagement and screening log'],
+  kpi:['≥ 3 comparable quotes on 90% of packages','Response rate 79%, up 22 pts since go-live']},
+ {n:3,name:'Bid / No-Bid Decisioning',short:'Bid / No-Bid',agent:'Win-Probability & Recommendation Agent',owner:'Bid Committee / Sponsor',control:'DG2',tag:'DG2',role:'exec',
+  ai:['Win-probability modelled with an explicit uncertainty band','Comparable-bid evidence assembled from the decided-bid history','Resource ask quantified in FTE and calendar weeks','Low-data confidence flagged rather than hidden'],
+  hu:['Bid Committee takes the bid / no-bid decision at DG2','Sponsor sets any conditions attached to the pursuit'],
+  out:['DG2 evidence pack','Recorded decision with rationale','Resource commitment'],
+  kpi:['Decision within the 24h SLA','Trailing calibration inside ±10% of actual win rate']},
+ {n:4,name:'Project Scheduling & Planning',short:'Scheduling & planning',agent:'Scheduling Agent',owner:'Planning Manager',control:'Milestone M2',tag:'M2',role:'bid',
+  ai:['Baseline programme and critical path generated from the scope split','Resource histogram levelled against committed delivery load','Re-plan triggered automatically when scope or quotes move','Schedule reconciled against the cost model line by line'],
+  hu:['Planning Manager validates and releases the baseline','Delivery input on constructability and sequencing'],
+  out:['Baseline programme and critical path','Resource histogram','Schedule–cost reconciliation at M2'],
+  kpi:['Programme and cost model reconciled at M2','Re-plan turnaround under 4 hours']},
+ {n:5,name:'Financial & Cost Modelling',short:'Cost & margin',agent:'Costing & Margin Agent',owner:'Commercial Manager',control:'Milestone M2',tag:'M2',role:'comm',
+  ai:['Traceable cost build-up — every line links to its quote or historical norm','Base, stretch and defensive scenarios with win probability attached','Sensitivity run across steel, FX, schedule and productivity','Model re-run on every input change; never patched'],
+  hu:['Commercial Manager selects the scenario that goes forward','Finance confirms bonds, insurances and HO recovery treatment'],
+  out:['Priced BOQ','Margin scenario set and break-even price','Sensitivity and re-price log'],
+  kpi:['100% of cost lines traceable to source','Re-price completed within 2 hours of a trigger']},
+ {n:6,name:'Proposal Preparation & Drafting',short:'Proposal drafting',agent:'Drafting & Section Assembly Agent',owner:'Proposal Manager',control:'—',tag:'',role:'prop',
+  ai:['Sections drafted from past-bid IP with the source of any reused content cited','SME tasks created, assigned and chased against the submission date','Evaluator scoring simulated against the published criteria','Red-team pass run before the review cycle'],
+  hu:['SMEs author the specialist content only they can write','Proposal Manager approves every section before it locks'],
+  out:['Section pack with reuse provenance','Simulated evaluator score','Win-theme coverage map'],
+  kpi:['64% of content reused from the library','Simulated score up 6 points after red-team']},
+ {n:7,name:'Compliance & Risk Verification',short:'Compliance & risk',agent:'Compliance Verification Agent',owner:'Compliance / Legal Lead',control:'DG3',tag:'DG3',role:'comp',
+  ai:['Requirement-to-evidence matrix maintained continuously, not assembled at the end','Gaps classified by severity the moment they appear','Non-standard contractual positions detected and redlines recommended','Exposure quantified where it can be quantified'],
+  hu:['Legal accepts, amends or escalates each recommended redline','Tender Review Board clears DG3'],
+  out:['Compliance matrix across every requirement','Risk register with named owners','DG3 approval pack'],
+  kpi:['Zero open mandatory gaps at submission','100% of risks carry a named owner']},
+ {n:8,name:'Final Compilation & Submission',short:'Compilation & submission',agent:'Document Assembly & e-Submission Agent',owner:'Bid Manager',control:'Milestone M3',tag:'M3',role:'bid',
+  ai:['Multi-format packaging against the portal specification','Signature and stamp placement checked page by page','Portal submission executed and the receipt captured','Complete submission archive written to the audit trail'],
+  hu:['Bid Manager authorises the submission','Authorised signatories sign the commercial forms'],
+  out:['Submission package in the required formats','Portal receipt','Immutable submission archive'],
+  kpi:['100% on-time submission — 19 of 19 this quarter','No submission without a DG3 record']},
+ {n:9,name:'Post-Award Oversight & Learning',short:'Oversight & learning',agent:'Delivery Oversight + Learning Loop Agents',owner:'Project Director / Bid Office',control:'Loop → Stage 1',tag:'Loop',role:'dir',
+  ai:['Milestone and obligation tracking against the commitments made in the bid','Deviation detection with recommended corrective actions','Win/loss pattern analytics across the decided-bid set','Supplier scoring and margin model refresh'],
+  hu:['Project Director leads delivery and approves corrections','Bid Office accepts model refinements at the Governance Forum','Sponsor reviews governance quarterly'],
+  out:['Live KPI dashboards','Audit and compliance reports','Win/loss trend reports','Updated scoring and margin models'],
+  kpi:['~35% fewer delivery delays','Calibration improves quarter on quarter']}
+];
+
+const RACI=[
+ ['Tender Coordinator','coord',['R','I','I','·','·','·','·','I','I']],
+ ['Bid Manager','bid',['A','C','R','C','C','C','C','A','I']],
+ ['Procurement / Estimation','proc',['I','A','C','C','C','·','·','I','C']],
+ ['Bid Committee / Sponsor','exec',['I','·','A','I','I','·','·','I','I']],
+ ['Planning Manager','bid',['·','C','C','A','C','C','·','·','C']],
+ ['Commercial Manager','comm',['·','C','C','C','A','C','C','·','C']],
+ ['Proposal Manager','prop',['·','·','·','·','·','A','C','R','·']],
+ ['Compliance / Legal','comp',['·','·','C','·','·','C','A','C','I']],
+ ['Project Director','dir',['·','·','C','C','·','·','·','·','A']],
+ ['Bid Office / Analytics','dir',['C','·','C','·','·','·','·','·','A']]
+];
+
+const TENDERS=[
+ {id:'T-2026-041',name:'400 kV Substation & Transmission Line',client:'TN Transco',value:'₹ 486 Cr',stage:6,stageLabel:'Stage 6',days:4,due:'12 Mar',status:'Drafting 78% · SME input open',tone:ORG,
+  kpis:[['Win probability','74% ±6',INK],['Priced BOQ','₹ 486 Cr',INK],['Base margin','12.1%',INK],['Compliance cover','91%',ORG]],
+  progress:6,
+  rows:[['Client','TN Transco'],['Scope','Turnkey 400/220 kV GIS substation + 62 km line'],['Submission','12 Mar 2026, 15:00 IST · CPPP portal'],['Bid security','₹ 1.92 Cr — BG issued 02 Mar'],['Packages priced','9 of 9 · 7 with ≥3 quotes'],['Sections complete','31 of 42'],['Open gaps','1 critical · 3 major · 6 minor']],
+  events:[['04 Mar 09:12','Addendum 3 linked to parent; 2 packages and 4 clauses re-flagged'],['03 Mar 16:40','Cost model re-run — transformer quote revised (−₹ 0.8 Cr)'],['02 Mar 11:20','Bank guarantee issued and filed to Annexure C'],['28 Feb 11:05','Steel index escalation applied (+₹ 2.2 Cr)']],
+  note:'Addendum 3 was issued by the client on 04 Mar. The Intake Agent linked it to the parent tender and re-flagged two priced packages and four compliance clauses for re-verification. DG3 remains blocked on one critical compliance gap.'},
+ {id:'T-2026-044',name:'Metro Depot Civil Works — Phase II',client:'Pune Metro Rail',value:'₹ 312 Cr',stage:5,stageLabel:'Stage 5',days:11,due:'19 Mar',status:'Cost model at M2 reconciliation',tone:INK2,
+  kpis:[['Win probability','61% ±8',INK],['Priced BOQ','₹ 312 Cr',INK],['Base margin','10.8%',INK],['Compliance cover','84%',INK2]],
+  progress:5,
+  rows:[['Client','Pune Metro Rail'],['Scope','Depot civil works, workshop and stabling lines'],['Submission','19 Mar 2026 · GeM portal'],['Bid security','₹ 1.24 Cr — in preparation'],['Packages priced','6 of 8'],['Schedule','Baseline matched to cost model at M2'],['Open gaps','2 major · 4 minor']],
+  events:[['05 Mar 10:02','Schedule reconciled to cost model at M2'],['04 Mar 14:33','Win-theme sign-off requested from Bid Manager'],['01 Mar 09:15','Two civil packages returned to the buyer for re-quote']],
+  note:'Executive summary draft is ready and awaiting win-theme sign-off. The Scheduling Agent has reconciled the baseline programme against the cost model — M2 can be frozen once the two open packages return.'},
+ {id:'T-2026-047',name:'250 MW Solar PV — Balance of Plant',client:'Rajasthan Renewables',value:'₹ 208 Cr',stage:3,stageLabel:'Stage 3',days:21,due:'29 Mar',status:'DG2 pack with the Bid Committee',tone:CY,
+  kpis:[['Win probability','48% ±9',ORG],['Indicative value','₹ 208 Cr',INK],['Expected margin','9.1–12.4%',INK],['Resource ask','6.5 FTE',INK]],
+  progress:3,
+  rows:[['Client','Rajasthan Renewables'],['Scope','BoP for 250 MW PV — civil, MV, SCADA'],['Comparable bids','11 in the decided set'],['Sector note','Solar BoP margins running 2.4 pts below bid'],['Decision SLA','DG2 · 14h remaining']],
+  events:[['06 Mar 08:40','DG2 evidence pack assembled and issued to the committee'],['05 Mar 17:10','Learning Loop flagged sector margin variance on solar BoP']],
+  note:'The Learning Loop Agent has attached the sector margin variance to this pack: solar BoP has delivered 2.4 pts below bid across three projects. Pricing this pursuit against delivered outcomes rather than bid assumptions is the committee decision.'},
+ {id:'T-2026-049',name:'Refinery Piping Package 4B',client:'Jamnagar Petro',value:'₹ 655 Cr',stage:7,stageLabel:'Stage 7',days:9,due:'17 Mar',status:'Compliance verification',tone:INK2,
+  kpis:[['Win probability','69% ±5',INK],['Priced BOQ','₹ 655 Cr',INK],['Base margin','13.4%',INK],['Compliance cover','98%',GRN]],
+  progress:7,
+  rows:[['Client','Jamnagar Petro'],['Scope','Piping, supports and stress analysis — Package 4B'],['Approved at DG2','18 Feb 2026'],['Submission','17 Mar 2026 · client portal'],['Requirements mapped','186 of 190'],['Open gaps','0 critical · 1 major · 3 minor']],
+  events:[['06 Mar 12:05','38 intake fields auto-accepted with provenance recorded'],['18 Feb 15:30','DG2 approved — pursuit confirmed by the committee']],
+  note:'Cleanest compliance position in the register. The Compliance Agent expects the remaining major gap — welder qualification records — to close on receipt of the fabricator dossier.'},
+ {id:'T-2026-052',name:'Bulk Water Supply Scheme',client:'Karnataka WSSB',value:'₹ 141 Cr',stage:2,stageLabel:'Stage 2',days:26,due:'03 Apr',status:'RFQs issued · 2 fields with coordinator',tone:INK2,
+  kpis:[['Win probability','35% ±12',RED],['Indicative value','₹ 141 Cr',INK],['Expected margin','8.4–10.2%',INK],['Data confidence','Low',RED]],
+  progress:2,
+  rows:[['Client','Karnataka WSSB'],['Scope','Intake works, 46 km transmission main, 3 reservoirs'],['Comparable bids','3 only — low-data confidence flagged'],['RFQs live','11 across 4 packages'],['Open validations','2 with the Tender Coordinator']],
+  events:[['06 Mar 07:22','Eligibility turnover field routed to human — poor OCR'],['05 Mar 11:48','RFQs issued to 11 suppliers across 4 packages']],
+  note:'Only three comparable bids sit behind this win-probability. The Recommendation Agent has flagged low-data confidence rather than presenting a false precision to the committee.'},
+ {id:'T-2026-053',name:'Effluent Treatment Plant — Dahej',client:'Gujarat Industrial',value:'₹ 96 Cr',stage:1,stageLabel:'Stage 1',days:33,due:'10 Apr',status:'DG1 due · fit-score 71%',tone:RED,
+  kpis:[['Fit-score','71%',INK],['Indicative value','₹ 96 Cr',INK],['Sector margin','14.1% delivered',GRN],['DG1 SLA','24h',RED]],
+  progress:1,
+  rows:[['Client','Gujarat Industrial'],['Scope','40 MLD effluent treatment plant, 15-year O&M option'],['Source','CPPP portal · captured 06:12 today'],['Bid security','₹ 1.92 Cr — extracted at 61% confidence'],['Coordinator status','Validated · 2 fields confirmed'],['Comparable','Dahej ETP Phase I delivered at 14.6%']],
+  events:[['Today 06:12','Captured from CPPP and screened at fit-score 71%'],['Today 08:05','Coordinator confirmed bid security and resolved deadline conflict']],
+  note:'Dahej ETP Phase I is the closest comparable in the portfolio and delivered above bid margin. The screening rationale, the fit-score breakdown and the comparable set are attached to the DG1 pack.'}
+];
+
+const AGENTS=[
+ {name:'Intake & Extraction',stage:'S1',state:'Active',runs:'1,284',eval:'97.2%',guard:'Never auto-discards a tender',remit:'Watches nine portals, three mailboxes and a scanned-document drop. Extracts every field with page-level provenance and links addenda to the parent tender.',owner:'Tender Coordinator',tier:'Economy',esc:'5 fields today'},
+ {name:'Outreach & Evaluation',stage:'S2',state:'Active',runs:'642',eval:'94.8%',guard:'Recommends only — never commits spend',remit:'Builds supplier shortlists from delivered performance, issues RFQs, nudges non-responders at T+48h and normalises incoming quotes to a common schema.',owner:'Procurement / Estimation Lead',tier:'Economy',esc:'1 award held'},
+ {name:'Win-Probability & Recommendation',stage:'S3',state:'Active',runs:'38',eval:'91.5%',guard:'Cannot make the Bid/No-Bid call',remit:'Models win probability with an explicit uncertainty band against the decided-bid set, and flags low-data confidence instead of presenting false precision.',owner:'Bid Committee',tier:'Frontier',esc:'2 packs pending'},
+ {name:'Scheduling',stage:'S4',state:'Active',runs:'54',eval:'93.1%',guard:'Schedules stay draft until validated',remit:'Generates the baseline programme and critical path from the scope split, levels resources and re-plans when scope or quotes move.',owner:'Planning Manager',tier:'Workhorse',esc:'None'},
+ {name:'Costing & Margin',stage:'S5',state:'Active',runs:'61',eval:'95.6%',guard:'No price without Commercial Manager selection',remit:'Builds a traceable cost model, runs base / stretch / defensive scenarios with sensitivity, and re-runs the model on every input change.',owner:'Commercial Manager',tier:'Frontier',esc:'Scenario set open'},
+ {name:'Drafting & Section Assembly',stage:'S6',state:'Active',runs:'417',eval:'92.4%',guard:'Cites source of any reused content',remit:'Drafts sections from past-bid IP with citation, orchestrates SME tasks and simulates evaluator scoring against the published criteria.',owner:'Proposal Manager',tier:'Frontier',esc:'3 SME tasks overdue'},
+ {name:'Compliance Verification',stage:'S7',state:'Active',runs:'128',eval:'96.9%',guard:'Cannot clear the gate with open gaps',remit:'Maintains the requirement-to-evidence matrix continuously, classifies gaps by severity and recommends redlines on non-standard positions.',owner:'Compliance / Legal Lead',tier:'Frontier',esc:'DG3 blocked'},
+ {name:'Document Assembly & e-Submission',stage:'S8',state:'Idle',runs:'19',eval:'99.1%',guard:'No submission without a DG3 record',remit:'Packages the submission to the portal specification, places signatures, submits and captures the receipt into an immutable archive.',owner:'Bid Manager',tier:'Workhorse',esc:'None'},
+ {name:'Delivery Oversight',stage:'S9a',state:'Active',runs:'206',eval:'90.7%',guard:'Recommends corrections — humans approve',remit:'Tracks milestones and obligations against the commitments made in the bid and detects deviations early enough to correct them.',owner:'Project Director',tier:'Workhorse',esc:'2 corrections open'},
+ {name:'Learning Loop',stage:'S9b',state:'Scheduled',runs:'4',eval:'—',guard:'Model changes need Governance Forum approval',remit:'Refreshes margin models, supplier scoring and win-probability calibration from delivered outcomes, and proposes changes for approval.',owner:'Bid Office / Analytics',tier:'Workhorse',esc:'1 proposal pending'}
+];
+
+const PIPELINE=[
+ ['T-2026-041','400 kV Substation & Transmission Line','TN Transco','₹ 486 Cr',6,'R. Iyer','12 Mar','74%',1],
+ ['T-2026-044','Metro Depot Civil Works — Phase II','Pune Metro Rail','₹ 312 Cr',5,'R. Iyer','19 Mar','61%',1],
+ ['T-2026-047','250 MW Solar PV — Balance of Plant','Rajasthan Renewables','₹ 208 Cr',3,'A. Menon','29 Mar','48%',2],
+ ['T-2026-049','Refinery Piping Package 4B','Jamnagar Petro','₹ 655 Cr',7,'R. Iyer','17 Mar','69%',1],
+ ['T-2026-052','Bulk Water Supply Scheme','Karnataka WSSB','₹ 141 Cr',2,'V. Kulkarni','03 Apr','35%',3],
+ ['T-2026-053','Effluent Treatment Plant — Dahej','Gujarat Industrial','₹ 96 Cr',1,'S. Nair','10 Apr','71% fit',2],
+ ['T-2026-036','Coastal Desalination — Package B','TN Water Board','₹ 402 Cr',8,'R. Iyer','09 Mar','66%',1],
+ ['T-2026-038','765 kV Line — Section 3','PowerGrid','₹ 718 Cr',6,'K. Bose','21 Mar','58%',1],
+ ['T-2026-039','Industrial Park Roads & Drainage','GIDC','₹ 128 Cr',4,'D. Fernandes','24 Mar','52%',1],
+ ['T-2026-042','LNG Terminal Civil Works','Petronet East','₹ 894 Cr',5,'D. Fernandes','27 Mar','44%',2],
+ ['T-2026-043','Airport Apron Extension','AAI Bhubaneswar','₹ 233 Cr',3,'A. Menon','31 Mar','39%',2],
+ ['T-2026-045','220 kV GIS Substation — Kochi','Kerala SEB','₹ 176 Cr',4,'V. Kulkarni','02 Apr','63%',1],
+ ['T-2026-046','Water Treatment Plant — 120 MLD','Maha Jeevan','₹ 189 Cr',2,'V. Kulkarni','06 Apr','47%',2],
+ ['T-2026-048','Rail Electrification — Phase IV','CORE Allahabad','₹ 541 Cr',3,'A. Menon','08 Apr','55%',2],
+ ['T-2026-050','Hybrid Renewable Park — BoP','NTPC Renewables','₹ 367 Cr',1,'S. Nair','14 Apr','61% fit',2],
+ ['T-2026-051','Steel Plant Utilities Package','JSW Dolvi','₹ 622 Cr',2,'V. Kulkarni','16 Apr','42%',2],
+ ['T-2026-054','Township Infrastructure','Private developer','₹ 74 Cr',1,'S. Nair','18 Apr','38% fit',3],
+ ['T-2026-056','Pipeline Package 7','Jamnagar Petro','₹ 298 Cr',1,'S. Nair','21 Apr','82% fit',1]
+];
+
+const SUPPLIERS=[
+ ['Bharat Heavy Electricals','Transformers · HV equipment','8.6','41','98%','Cleared','Preferred'],
+ ['Toshiba T&D India','Transformers · switchgear','9.1','23','94%','Cleared','Preferred'],
+ ['Crompton Greaves','Transformers · motors','7.9','31','78%','Cleared','Approved'],
+ ['KEC International','Transmission lines · towers','8.8','52','91%','Cleared','Preferred'],
+ ['Sterlite Power','HV cabling · OPGW','8.2','28','86%','Cleared','Approved'],
+ ['L&T Construction','Civil works · foundations','8.9','64','89%','Cleared','Preferred'],
+ ['Tata Projects','Civil · balance of plant','8.4','47','83%','Cleared','Approved'],
+ ['Apar Industries','Conductors · cables','7.6','19','72%','Cleared','Approved'],
+ ['Sungrow India','Solar inverters','6.4','12','64%','Cleared','Watch'],
+ ['Delta Green Energy','Solar inverters · SCADA','6.1','9','58%','Cleared','Watch'],
+ ['Hitachi Energy India','Protection & control','9.0','26','96%','Cleared','Preferred'],
+ ['Kirloskar Brothers','Pumps · water systems','8.1','33','88%','Cleared','Approved']
+];
+
+const LIBRARY=[
+ ['Executive summary — HV substation turnkey','Narrative','Won · Vadodara 400 kV','18','06 Mar 2026'],
+ ['QHSE management plan — EPC standard','Plan','Reused across 31 bids','31','04 Mar 2026'],
+ ['Zero-outage tie-in methodology','Case study','Won · Trichy TL','14','02 Mar 2026'],
+ ['Form EXP-2 — comparable experience table','Form','Auto-assembled from delivery records','44','06 Mar 2026'],
+ ['Key personnel CV set — substation','CV pack','9 CVs, substation-specific','22','28 Feb 2026'],
+ ['Local content declaration template','Form','Threshold logic per state','17','24 Feb 2026'],
+ ['Testing & commissioning approach — GIS','Method','Won · Vadodara, Kochi','11','21 Feb 2026'],
+ ['Risk register — EPC baseline (214 lines)','Register','Seeds every new tender','58','18 Feb 2026']
+];
+
+class Component extends DCLogic {
+  state={tab:null,role:null,stage:1,drawer:null,modal:null,toasts:[],done:{},scenario:'base',query:'',notif:false,profile:false,seq:0};
+
+  toast(msg,tone){
+    const id='t'+(this.state.seq+1);
+    this.setState(s=>({seq:s.seq+1,toasts:[...s.toasts,{id,msg,tone:tone||GRN}]}));
+    setTimeout(()=>this.setState(s=>({toasts:s.toasts.filter(t=>t.id!==id)})),3800);
+  }
+  isDone(k){return !!this.state.done[k];}
+  markDone(k,msg,tone){
+    this.setState(s=>({done:Object.assign({},s.done,{[k]:true}),modal:null,drawer:null}));
+    if(msg) this.toast(msg,tone);
+  }
+  go(tab,role){this.setState({tab,navId:tab==='roles'?'dash':tab,role:role||this.state.role,drawer:null,modal:null,notif:false,profile:false});}
+  openTender(id){
+    const t=TENDERS.find(x=>x.id===id); if(!t) return;
+    const self=this;
+    this.setState({notif:false,drawer:{
+      eyebrow:t.id+' · '+t.stageLabel,title:t.name,sub:t.client+' · '+t.value+' · submission '+t.due+' ('+t.days+' days)',
+      hasKpis:true,kpis:t.kpis.map(k=>({label:k[0],value:k[1],tone:k[2]})),
+      hasStages:true,progress:t.progress,
+      sections:[
+        {head:'TENDER RECORD',rows:t.rows.map(r=>({k:r[0],v:r[1],tone:INK,font:"'IBM Plex Sans',sans-serif"}))},
+        {head:'AGENT ACTIVITY',rows:t.events.map(r=>({k:r[1],v:r[0],tone:INK3,font:"'IBM Plex Mono',monospace"}))}
+      ],
+      note:t.note,
+      foot:'Single record · all roles read the same tender',
+      actions:[
+        {label:'Open evidence pack',primary:true,act:()=>{self.toast(t.id+' evidence pack opened — 14 documents, provenance intact');}},
+        {label:'Open owning dashboard',act:()=>{const st=STAGES[t.progress-1];self.go('roles',st.role);self.toast('Switched to '+ROLES.find(r=>r.key===st.role).view);}}
+      ]
+    }});
+  }
+  openAgent(i){
+    const a=AGENTS[i], self=this;
+    this.setState({notif:false,drawer:{
+      eyebrow:'AGENT · '+a.stage,title:a.name+' Agent',sub:a.state+' · '+a.runs+' runs in 24h · eval '+a.eval,
+      hasKpis:true,kpis:[{label:'Eval score',value:a.eval,tone:a.eval==='—'?INK3:(parseFloat(a.eval)<92?ORG:GRN)},{label:'Runs 24h',value:a.runs,tone:INK},{label:'Model tier',value:a.tier,tone:INK},{label:'Open escalations',value:a.esc,tone:a.esc==='None'?INK3:ORG}],
+      hasStages:false,
+      sections:[
+        {head:'REMIT',rows:[{k:a.remit,v:'',tone:INK,font:"'IBM Plex Sans',sans-serif"}]},
+        {head:'GUARDRAILS',rows:[{k:a.guard,v:'Enforced',tone:GRN,font:"'IBM Plex Sans',sans-serif"},{k:'Human owner of the decision',v:a.owner,tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Cost ceiling',v:'Per-agent and per-tender',tone:INK,font:"'IBM Plex Sans',sans-serif"}]}
+      ],
+      note:'This agent does not release a change without passing its evaluation threshold against the golden set. Every guardrail activation is written to the audit trail.',
+      foot:'AI governance view',
+      actions:[
+        {label:'Run evaluation harness',primary:true,act:()=>self.toast(a.name+' — harness queued against 240 golden-set cases')},
+        {label:'View audit entries',act:()=>self.toast('Audit log filtered to '+a.name+' — 1,842 entries')}
+      ]
+    }});
+  }
+  renderVals(){
+    const self=this;
+    const s=Object.assign({},this.state,{
+      tab:this.state.tab||this.props.entryView||'roles',
+      role:this.state.role||this.props.defaultRole||'bid'
+    });
+    const role=ROLES.find(r=>r.key===s.role)||ROLES[1];
+    const st=STAGES[s.stage-1];
+    const navId=s.navId||'dash';
+    const mkItem=it=>{
+      const roleTarget=it.id.indexOf('r:')===0?it.id.slice(2):null;
+      const on=navId===it.key;
+      return {label:it.label,tag:it.tag||'',tagColor:it.tone||'#9A9AA1',sub:it.sub||'',
+        bg:on?'#F2F2F4':'transparent',fg:on?INK:INK2,fw:on?'600':'400',
+        rail:on?INK:'transparent',
+        go:roleTarget?()=>self.setState({tab:'roles',role:roleTarget,navId:it.key,drawer:null,modal:null,profile:false,notif:false})
+                     :(it.id==='dash'?()=>self.setState({tab:'roles',navId:'dash',drawer:null,modal:null,profile:false,notif:false})
+                                     :()=>self.setState({tab:it.id,navId:it.key,drawer:null,modal:null,profile:false,notif:false}))};
+    };
+    const nav=[
+      {label:'WORKSPACE',items:[
+        {key:'dash',id:'dash',label:'My dashboard',tag:role.initials},
+        {key:'pipeline',id:'pipeline',label:'Pipeline',tag:'18'},
+        {key:'workflow',id:'workflow',label:'Workflow'},
+        {key:'agents',id:'agents',label:'Agent console',tag:'10'}]},
+      {label:'1 · DISCOVER AND QUALIFY',items:[
+        {key:'radar',id:'r:coord',label:'Tender radar',tag:'14',tone:ORG},
+        {key:'decide',id:'r:bid',label:'Decide · DG1',tag:'DG1',tone:self.isDone('dg1')?'#9A9AA1':RED}]},
+      {label:'2 · SOURCE AND PRICE',items:[
+        {key:'rfq',id:'r:proc',label:'Suppliers and RFQ',tag:'7',tone:ORG},
+        {key:'suppliers',id:'suppliers',label:'Supplier database',tag:'214'},
+        {key:'cost',id:'r:comm',label:'Cost and margin',tag:'M2'}]},
+      {label:'3 · BUILD THE BID',items:[
+        {key:'draft',id:'r:prop',label:'Draft the bid',tag:'9',tone:ORG},
+        {key:'comply',id:'r:comp',label:'Compliance check',tag:'DG3',tone:self.isDone('gap')?GRN:RED}]},
+      {label:'4 · DECIDE AND SUBMIT',items:[
+        {key:'committee',id:'r:exec',label:'Bid committee · DG2',tag:'DG2',tone:ORG},
+        {key:'submission',id:'submission',label:'Submission desk',tag:'M3'}]},
+      {label:'5 · DELIVERY',items:[
+        {key:'projects',id:'r:dir',label:'Projects',tag:'7'}]},
+      {label:'REFERENCE',items:[
+        {key:'library',id:'library',label:'Artifacts library',tag:'1.2k'},
+        {key:'settings',id:'settings',label:'Settings'}]}
+    ].map(g=>({label:g.label,items:g.items.map(mkItem)}));
+
+    const alerts=[
+      {title:'DG1 decision due',body:'T-2026-053 Dahej ETP · fit-score 71%',when:'24h',tone:RED,key:'dg1',go:()=>{self.setState({notif:false});self.go('roles','bid');self.openTender('T-2026-053');}},
+      {title:'Critical compliance gap',body:'ISO 45001 expires 4 days before submission',when:'Now',tone:RED,key:'gap',go:()=>{self.setState({notif:false});self.go('roles','comp');}},
+      {title:'Supplier escalation',body:'Two structural steel bidders past SLA on T-2026-041',when:'2h',tone:ORG,key:'sup',go:()=>{self.setState({notif:false});self.go('roles','proc');}},
+      {title:'Learning Loop proposal',body:'Solar BoP margin correction pending Governance Forum',when:'1d',tone:CY,key:'loop',go:()=>{self.setState({notif:false});self.go('roles','dir');}}
+    ].filter(a=>!self.isDone(a.key));
+
+    const head={
+      workflow:{title:'Envisaged Product Workflow',sub:'Nine stages, ten agents, three mandatory human gates — select any stage to see what is automated and what stays human.'},
+      agents:{title:'Agent Console',sub:'Ten agents, each with a narrow remit, its own guardrails and an evaluation threshold. Operations and AI governance only.'},
+      roles:{title:role.view,sub:role.title+' · '+role.name},
+      pipeline:{title:'Pipeline',sub:'Every live pursuit in the bid office — one register, read by every role.'},
+      submission:{title:'Submission desk',sub:'T-2026-041 · 400 kV Substation — packaging, signatures and portal submission. Milestone M3.'},
+      suppliers:{title:'Supplier database',sub:'214 screened suppliers scored on delivered performance, not on who answered fastest.'},
+      library:{title:'Artifacts library',sub:'The past-bid IP the Drafting Agent reuses — every reuse cites its source.'},
+      settings:{title:'Settings',sub:'Sources, gates, model routing and who holds which role.'}
+    }[s.tab];
+
+    const drawer=s.drawer?Object.assign({},s.drawer,{
+      stages:(s.drawer.hasStages?[1,2,3,4,5,6,7,8,9]:[]).map(n=>({
+        label:'S'+n,
+        bar:n<s.drawer.progress?INK:(n===s.drawer.progress?ORG:'#E8E8ED'),
+        fg:n<=s.drawer.progress?INK2:'#B8B8BF'
+      })),
+      actions:(s.drawer.actions||[]).map(a=>({label:a.label,act:a.act,
+        bg:a.primary?INK:'#fff',fg:a.primary?'#fff':INK2,border:a.primary?INK:LINE}))
+    }):null;
+    const modal=s.modal?Object.assign({},s.modal,{
+      actions:(s.modal.actions||[]).map(a=>({label:a.label,act:a.act,
+        bg:a.primary?INK:(a.danger?'#fff':'#fff'),fg:a.primary?'#fff':(a.danger?RED:INK2),border:a.primary?INK:(a.danger?'#E4C6C2':LINE)}))
+    }):null;
+
+    const base={
+      nav,
+      is:{workflow:s.tab==='workflow',roles:s.tab==='roles',agents:s.tab==='agents',
+          pipeline:s.tab==='pipeline',suppliers:s.tab==='suppliers',library:s.tab==='library',settings:s.tab==='settings',submission:s.tab==='submission'},
+      page:this.pageVals(s),
+      head:{title:head.title,sub:head.sub,person:role.name,initials:role.initials,roleLine:role.title},
+      profileOpen:s.profile,profileBorder:s.profile?'#C9C9D1':LINE,
+      toggleProfile:()=>self.setState({profile:!s.profile,notif:false}),
+      signOut:()=>self.toast('Session ended — sign-in required to resume',INK3),
+      query:s.query,onQuery:e=>self.setState({query:e.target.value}),
+      notifOpen:s.notif,notifs:alerts,notifCount:alerts.length,notifColor:alerts.length?RED:INK3,
+      toggleNotif:()=>self.setState({notif:!s.notif}),
+      toasts:s.toasts,
+      drawer,modal,
+      closeDrawer:()=>self.setState({drawer:null}),
+      closeModal:()=>self.setState({modal:null}),
+      role,
+      roleList:ROLES.map(r=>({initials:r.initials,title:r.title,view:r.view,name:r.name,current:r.key===s.role,
+        bg:r.key===s.role?'#F2F2F4':'transparent',fg:r.key===s.role?INK:INK2,fw:r.key===s.role?'600':'400',
+        avBg:r.key===s.role?INK:'#F2F2F4',avFg:r.key===s.role?'#fff':'#77777D',
+        dot:(r.key==='bid'&&!self.isDone('dg1'))||(r.key==='comp'&&!self.isDone('gap'))||(r.key==='exec'&&!self.isDone('dg2-047')),
+        go:()=>{self.setState({role:r.key,tab:'roles',navId:'dash',drawer:null,modal:null,notif:false,profile:false});self.toast('Now viewing as '+r.name+' · '+r.view);}})),
+
+      gates:[
+        {id:'DG1',name:'Pursue or Discard',owner:'Bid Manager',after:'After Stage 1 · decision recorded against the tender',sla:'≤ 24h',tone:INK},
+        {id:'DG2',name:'Bid / No-Bid',owner:'Bid Committee',after:'After Stage 3 · evidence pack attached',sla:'≤ 24h',tone:INK},
+        {id:'DG3',name:'Final Bid Approval',owner:'Tender Review Board',after:'After Stage 7 · no submission without this record',sla:'≤ 48h',tone:INK}
+      ],
+      stageChips:STAGES.map(x=>({n:'0'+x.n,short:x.short,tag:x.tag||'AI only',
+        bg:x.n===s.stage?'#1D1D1F':'#fff',fg:x.n===s.stage?'#fff':INK,
+        border:x.n===s.stage?'#1D1D1F':LINE,num:x.n===s.stage?'rgba(255,255,255,.55)':'#B8B8BF',
+        bar:x.n===s.stage?'rgba(255,255,255,.4)':'#EDEDF1',
+        tagColor:x.n===s.stage?'rgba(255,255,255,.7)':(x.tag?ORG:'#B8B8BF'),
+        shadow:x.n===s.stage?'0 6px 18px rgba(0,0,0,.14)':'0 1px 2px rgba(0,0,0,.03)',
+        go:()=>self.setState({stage:x.n})})),
+      stage:{n:st.n,name:st.name,agent:st.agent,owner:st.owner,control:st.control,
+        cols:[{head:'AGENT DOES (AUTONOMOUS)',tone:CY,items:st.ai.map(t=>({t}))},
+              {head:'HUMAN DOES',tone:INK,items:st.hu.map(t=>({t}))},
+              {head:'OUTPUTS',tone:INK3,items:st.out.map(t=>({t}))}],
+        kpi:st.kpi.map(t=>({t})),
+        openRole:()=>{self.go('roles',st.role);self.toast('Opened '+ROLES.find(r=>r.key===st.role).view);}},
+      raciHead:['S1','S2','S3','S4','S5','S6','S7','S8','S9'].map(t=>({t})),
+      raci:RACI.map(r=>({role:r[0],fg:r[1]===s.role?INK:INK2,fw:'500',
+        cells:r[2].map(v=>({v,fg:v==='A'?INK:(v==='R'?CY:(v==='·'?'#D4D4DA':INK3))})),
+        go:()=>{self.go('roles',r[1]);self.toast('Opened '+ROLES.find(x=>x.key===r[1]).view);}})),
+
+      agentKpis:[
+        {label:'AGENT RUNS — 24H',value:'2,853',sub:'across 18 active tenders',tone:INK},
+        {label:'EVAL PASS RATE',value:'94.6%',sub:'all agents above threshold',tone:GRN},
+        {label:'HUMAN ESCALATIONS',value:'61',sub:'2.1% of runs',tone:INK},
+        {label:'GUARDRAIL BLOCKS',value:'7',sub:'all correctly triggered',tone:ORG},
+        {label:'MODEL SPEND — MTD',value:'₹ 2.14 L',sub:'62% economy tier',tone:INK}
+      ],
+      agentHead:[{t:'AGENT',align:'left'},{t:'STAGE',align:'left'},{t:'STATE',align:'left'},{t:'RUNS 24H',align:'right'},{t:'EVAL',align:'right'}],
+      agents:AGENTS.map((a,i)=>({name:a.name,stage:a.stage,state:a.state,runs:a.runs,eval:a.eval,
+        stateColor:a.state==='Active'?GRN:(a.state==='Idle'?'#B8B8BF':CY),
+        evalColor:a.eval==='—'?INK3:(parseFloat(a.eval)<92?ORG:INK),
+        go:()=>self.openAgent(i)})),
+      routing:[{label:'Economy tier',pct:'62%',w:'62%',tone:INK},{label:'Workhorse tier',pct:'29%',w:'29%',tone:'#8C8C93'},{label:'Frontier tier',pct:'9%',w:'9%',tone:CY}],
+      guardHead:[{t:'WHEN'},{t:'AGENT'},{t:'GUARDRAIL'},{t:'ACTION TAKEN'}],
+      guardrails:[
+        {when:'11:04',agent:'Compliance Verification',rule:'Cannot clear gate with open mandatory gaps',action:'DG3 progression blocked on T-2026-041 — ISO 45001 expiry',tone:RED},
+        {when:'09:22',agent:'Intake & Extraction',rule:'Low-confidence field routed to human',action:'5 fields sent to the Tender Coordinator queue',tone:INK2},
+        {when:'-1d 17:48',agent:'Outreach & Evaluation',rule:'No commitment authority',action:'Supplier award recommendation held for buyer approval',tone:INK2},
+        {when:'-1d 14:10',agent:'Costing & Margin',rule:'No price without Commercial Manager selection',action:'Scenario set presented; no default applied',tone:INK2},
+        {when:'12 Mar',agent:'Document Assembly',rule:'No submission without DG3 record',action:'Submission attempt blocked pending gate record',tone:INK2}
+      ],
+      walk:(function(){
+        const order=['coord','bid','proc','exec','comm','prop','comp','dir'];
+        const stageOf={coord:'Stage 1 · intake',bid:'DG1 · pursue or discard',proc:'Stage 2 · vendor inputs',exec:'DG2 · bid / no-bid',comm:'Stage 5 · cost & margin',prop:'Stage 6 · proposal',comp:'Stage 7 · compliance & DG3',dir:'Stage 9 · delivery & learning'};
+        const i=order.indexOf(role.key), prev=i>0?order[i-1]:null, next=i<order.length-1?order[i+1]:null;
+        const R=k=>ROLES.find(x=>x.key===k);
+        return {
+          position:'Step '+(i+1)+' of 8 · '+stageOf[role.key],
+          hasPrev:!!prev,hasNext:!!next,
+          prevLabel:prev?'← Back to '+R(prev).title:'',
+          nextLabel:next?'Continue to '+R(next).title+' →':'Loop back to Stage 1 — Tender Coordinator ↻',
+          prev:prev?()=>self.setState({role:prev,navId:'dash',drawer:null,modal:null}):()=>{},
+          next:next?()=>{self.setState({role:next,navId:'dash',drawer:null,modal:null});self.toast('Handed over to '+R(next).name+' · '+R(next).view);}
+                    :()=>{self.setState({role:'coord',navId:'dash',drawer:null,modal:null});self.toast('Stage 9 feeds Stage 1 — models refreshed, back at intake');}
+        };
+      })(),
+      kpis:this.kpisFor(role.key),
+      showBanner:this.props.showDataBanner!==false
+    };
+    return Object.assign(base,this.roleVals(role.key));
+  }
+
+  pageVals(s){
+    const self=this, q=s.query.trim().toLowerCase(), f=s.filter||'all';
+    const toneOf=t=>t===1?GRN:(t===2?ORG:RED);
+    const AT_GATE=['T-2026-053','T-2026-056','T-2026-047','T-2026-043','T-2026-049'];
+    const rows=PIPELINE.filter(p=>{
+      if(q&&(p[0]+' '+p[1]+' '+p[2]+' '+p[5]).toLowerCase().indexOf(q)<0) return false;
+      if(f==='gate') return AT_GATE.indexOf(p[0])>-1;
+      if(f==='soon') return ['09 Mar','12 Mar','17 Mar','19 Mar'].indexOf(p[6])>-1;
+      if(f==='risk') return p[8]===3||p[8]===2;
+      return true;
+    }).map(p=>({id:p[0],name:p[1],client:p[2],value:p[3],stage:'Stage '+p[4],owner:p[5],due:p[6],win:p[7],
+      tone:toneOf(p[8]),
+      go:()=>{
+        if(TENDERS.some(t=>t.id===p[0])) return self.openTender(p[0]);
+        self.setState({drawer:{eyebrow:p[0]+' · STAGE '+p[4],title:p[1],sub:p[2]+' · '+p[3]+' · submission '+p[6],
+          hasKpis:true,kpis:[{label:'Win probability',value:p[7],tone:toneOf(p[8])},{label:'Value',value:p[3],tone:INK},{label:'Stage',value:'S'+p[4],tone:INK},{label:'Owner',value:p[5],tone:INK}],
+          hasStages:true,progress:p[4],
+          sections:[{head:'TENDER RECORD',rows:[{k:'Client',v:p[2],tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Owner',v:p[5],tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Submission',v:p[6],tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Registry',v:'Single record — same one every role reads',tone:INK3,font:"'IBM Plex Sans',sans-serif"}]}],
+          note:'This pursuit is progressing without an open human action. The agents hold it until the next gate or a threshold is crossed.',
+          foot:'Pipeline record',
+          actions:[{label:'Open evidence pack',primary:true,act:()=>self.toast(p[0]+' evidence pack opened')},{label:'Assign to me',act:()=>self.toast(p[0]+' reassigned — owner notified')}]}});
+      }}));
+    const filters=[['all','All 18'],['gate','At a gate'],['soon','Submitting this month'],['risk','Low confidence']]
+      .map(x=>({label:x[1],bg:f===x[0]?INK:'#fff',fg:f===x[0]?'#fff':INK2,border:f===x[0]?INK:LINE,
+        go:()=>self.setState({filter:x[0]})}));
+    return {
+      pipeKpis:[{label:'ACTIVE PURSUITS',value:'18',sub:'₹ 2,940 Cr weighted',tone:INK},
+                {label:'AT A GATE',value:'5',sub:'DG1 2 · DG2 2 · DG3 1',tone:ORG},
+                {label:'SUBMITTING THIS MONTH',value:'4',sub:'earliest 09 Mar',tone:INK},
+                {label:'UNASSIGNED',value:'0',sub:'every pursuit has an owner',tone:GRN}],
+      filters,rows,rowCount:rows.length+' of 18 shown',
+      subChecks:[
+        ['Volume 1 — Technical proposal','PDF/A · 214 pages · bookmarked','Packaged',GRN],
+        ['Volume 2 — Commercial proposal','XLSX + signed PDF · BOQ locked at M2',self.isDone('m2')?'Packaged':'Waiting on M2 freeze',self.isDone('m2')?GRN:ORG],
+        ['Volume 3 — Compliance pack','214 requirements, evidence index',self.isDone('gap')?'Packaged':'Blocked — 1 critical gap',self.isDone('gap')?GRN:RED],
+        ['Forms and annexures','17 forms · signature blocks placed','Packaged',GRN],
+        ['Bid security','BG ₹ 1.92 Cr · scanned original couriered','Packaged',GRN]
+      ].map(x=>({name:x[0],meta:x[1],state:x[2],tone:x[3]})),
+      subGates:[
+        ['DG3 — Final bid approval',self.isDone('gap')?'Ready to convene · pack complete':'Cannot be cleared — mandatory gap open',self.isDone('gap')?GRN:RED],
+        ['M3 — Submission authority','Bid Manager signature required at upload',ORG],
+        ['Portal window','CPPP · closes 12 Mar 15:00 IST · 4 days',INK]
+      ].map(x=>({name:x[0],state:x[1],tone:x[2]})),
+      subLog:[['Today 09:40','Integrity check','214 pages, 0 broken cross-references'],['Today 08:15','Signature placement','9 blocks positioned, 2 awaiting signatory'],['Yesterday 18:02','Format validation','Portal schema accepted the dry run'],['06 Mar 11:30','Dry-run upload','Receipt simulated — no submission recorded']]
+        .map(x=>({when:x[0],what:x[1],detail:x[2]})),
+      subBlocked:!self.isDone('gap'),
+      subAct:()=>self.isDone('gap')
+        ? self.setState({modal:{eyebrow:'MILESTONE M3 · SUBMISSION',title:'Submit T-2026-041 to CPPP',sub:'400 kV Substation & Transmission Line · ₹ 486 Cr',
+            rows:[{k:'DG3 record',v:'Present — cleared by the Review Board',tone:GRN},{k:'Volumes',v:'3 of 3 packaged'},{k:'Signatures',v:'9 of 9 placed'},{k:'Portal window',v:'Closes 12 Mar 15:00 IST'}],
+            note:'Submission is irreversible. The agent captures the portal receipt and writes the complete package to the immutable archive.',
+            foot:'No submission without a DG3 record',
+            actions:[{label:'Submit and capture receipt',primary:true,act:()=>self.markDone('submitted','T-2026-041 submitted — portal receipt captured, archive written')},{label:'Cancel',act:()=>self.setState({modal:null})}]}})
+        : self.toast('Submission blocked — DG3 cannot be cleared with an open mandatory gap',RED),
+      subActLabel:self.isDone('submitted')?'Submitted · receipt captured':(self.isDone('gap')?'Submit to portal':'Submission blocked by DG3'),
+      subActBg:self.isDone('submitted')?'#fff':(self.isDone('gap')?INK:'#fff'),
+      subActFg:self.isDone('submitted')?GRN:(self.isDone('gap')?'#fff':RED),
+      subActBorder:self.isDone('submitted')?LINE:(self.isDone('gap')?INK:'#EFD8D5'),
+      suppliers:SUPPLIERS.map(x=>({name:x[0],trade:x[1],score:x[2],projects:x[3],response:x[4],screen:x[5],status:x[6],
+        tone:x[6]==='Preferred'?GRN:(x[6]==='Watch'?ORG:INK2),
+        scoreTone:parseFloat(x[2])<7?ORG:INK,
+        go:()=>self.setState({drawer:{eyebrow:'SUPPLIER · SCREENED',title:x[0],sub:x[1],
+          hasKpis:true,hasStages:false,
+          kpis:[{label:'Performance',value:x[2]+' / 10',tone:parseFloat(x[2])<7?ORG:GRN},{label:'Projects',value:x[3],tone:INK},{label:'RFQ response',value:x[4],tone:INK},{label:'Standing',value:x[6],tone:x[6]==='Watch'?ORG:GRN}],
+          sections:[{head:'SCORING INPUTS',rows:[{k:'Delivered on programme',v:x[6]==='Watch'?'2 of 5 late':'On or ahead',tone:x[6]==='Watch'?ORG:GRN,font:"'IBM Plex Sans',sans-serif"},{k:'Quality non-conformities',v:x[6]==='Watch'?'3 open':'0 open',tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Commercial disputes',v:'None recorded',tone:INK,font:"'IBM Plex Sans',sans-serif"},{k:'Sanctions & anti-bribery',v:x[5]+' — rescreened 01 Mar',tone:GRN,font:"'IBM Plex Sans',sans-serif"}]}],
+          note:'Score is computed from delivered performance, not from bid-stage behaviour. The Outreach Agent ranks shortlists with it; the buyer still selects.',
+          foot:'214 suppliers in the database',
+          actions:[{label:'Add to next RFQ',primary:true,act:()=>self.toast(x[0]+' added to the T-2026-041 shortlist')},{label:'View delivery history',act:()=>self.toast(x[0]+' — '+x[3]+' delivered packages opened')}]}})})),
+      library:LIBRARY.map(x=>({title:x[0],kind:x[1],origin:x[2],reuse:x[3],used:x[4],
+        go:()=>self.toast(x[0]+' opened — provenance and reuse history attached')})),
+      libraryStats:[{label:'ARTEFACTS',value:'1,204',sub:'across 9 categories',tone:INK},
+                    {label:'REUSE RATE',value:'64%',sub:'of drafted content',tone:GRN},
+                    {label:'WON-BID SOURCED',value:'71%',sub:'content from won bids',tone:INK},
+                    {label:'STALE > 18 MONTHS',value:'46',sub:'flagged for refresh',tone:ORG}],
+      sources:[['Portal · CPPP','Polled every 15 min','Healthy',GRN],['Portal · GeM','Polled every 15 min','Healthy',GRN],['Portal · state utilities (7)','Polled hourly','Healthy',GRN],['Mailbox · tenders@genesis-epc.in','IMAP, attachments opened','Healthy',GRN],['Mailbox · bids@genesis-gulf.com','IMAP, attachments opened','Healthy',GRN],['Scanned drop · \\\\bidoffice\\intake','OCR on arrival','2 queued',ORG]]
+        .map(x=>({name:x[0],mode:x[1],state:x[2],tone:x[3]})),
+      gates:[['DG1 — Pursue or discard','Bid Manager','≤ 24h','Enforced'],['DG2 — Bid / No-Bid','Bid Committee','≤ 24h','Enforced'],['DG3 — Final bid approval','Tender Review Board','≤ 48h','Enforced · blocks submission'],['M2 — Cost & schedule freeze','Commercial + Planning','At Stage 5','Enforced'],['M3 — Submission authority','Bid Manager','At Stage 8','Enforced']]
+        .map(x=>({name:x[0],owner:x[1],sla:x[2],state:x[3]})),
+      users:ROLES.map(r=>({name:r.name,role:r.title,scope:r.scope,initials:r.initials,
+        go:()=>self.toast(r.name+' — role, tender scope and gate authority opened (admin only)')})),
+      settingsNote:'Role assignment is an administrator action. Users cannot change their own role; the view switcher in the profile menu is an operator convenience and every switch is written to the audit trail.'
+    };
+  }
+
+  roleVals(k){
+    const self=this, s=this.state, done=s.done, dn=x=>!!done[x];
+    const r={exec:k==='exec',bid:k==='bid',coord:k==='coord',proc:k==='proc',comm:k==='comm',prop:k==='prop',comp:k==='comp',dir:k==='dir'};
+    const d={};
+
+    if(k==='exec'){
+      const dg2=(id,name,rows,note)=>()=>self.setState({modal:{
+        eyebrow:'GATE DG2 · BID / NO-BID',title:id+' · '+name,sub:'Bid Committee decision · recorded against the tender record',
+        rows:rows.map(x=>({k:x[0],v:x[1],tone:x[2]||INK})),note,
+        foot:'Decision and rationale are written to the audit trail',
+        actions:[
+          {label:'Approve pursuit',primary:true,act:()=>self.markDone('dg2-'+id.slice(-3),id+' approved at DG2 — resource committed, Stage 4 and 5 released')},
+          {label:'Decline',danger:true,act:()=>self.markDone('dg2-'+id.slice(-3),id+' declined at DG2 — resource released back to the pipeline',ORG)},
+          {label:'Cancel',act:()=>self.setState({modal:null})}
+        ]}});
+      d.decisions=[
+        !dn('dg2-047')&&{key:'047',badge:'2',tone:ORG,title:'T-2026-047 · 250 MW Solar PV — Balance of Plant',
+          body:'Win-probability 48% (±9). Resource ask 6.5 FTE for 5 weeks. Expected margin 9.1–12.4%.',when:'DG2 · 14h left',whenTone:ORG,
+          open:()=>self.openTender('T-2026-047'),
+          decide:dg2('T-2026-047','250 MW Solar PV — BoP',[['Win probability','48% ±9',ORG],['Resource ask','6.5 FTE · 5 weeks'],['Expected margin','9.1 – 12.4%'],['Comparable bids','11 decided'],['Sector variance','−2.4 pts delivered vs bid',RED]],
+            'The Learning Loop Agent has attached solar BoP delivery variance to this pack. Approving prices the pursuit against delivered outcomes, not bid assumptions.')},
+        !dn('dg2-052')&&{key:'052',badge:'2',tone:RED,title:'T-2026-052 · Bulk Water Supply Scheme',
+          body:'Win-probability 35% (±12). Low-data confidence flagged — three comparable bids only.',when:'DG2 · 4h left',whenTone:RED,
+          open:()=>self.openTender('T-2026-052'),
+          decide:dg2('T-2026-052','Bulk Water Supply Scheme',[['Win probability','35% ±12',RED],['Resource ask','4.0 FTE · 6 weeks'],['Expected margin','8.4 – 10.2%'],['Comparable bids','3 only — low confidence',RED],['Client history','No prior award']],
+            'The agent flagged low-data confidence rather than presenting a false precision. A decline here releases the estimating team onto T-2026-049.')}
+      ].filter(Boolean);
+      d.recorded=[{title:'T-2026-049 · Refinery Piping Package 4B',body:'Approved at DG2 on 18 Feb. Now at Stage 7 — compliance verification.',open:()=>self.openTender('T-2026-049')}];
+      d.pipeline=[{label:'Stage 1–2 · Intake',n:'6',w:'100%'},{label:'Stage 3 · Bid/No-Bid',n:'4',w:'67%'},{label:'Stage 4–5 · Baselines',n:'3',w:'50%'},{label:'Stage 6–7 · Draft & verify',n:'4',w:'67%',tone:ORG},{label:'Stage 8 · Submission',n:'1',w:'17%'}].map(x=>Object.assign({tone:INK},x));
+      d.whyWin=[{label:'Technical differentiation',pct:'62%',w:'62%',tone:INK},{label:'Price competitiveness',pct:'24%',w:'24%',tone:'#8C8C93'},{label:'Delivery track record',pct:'14%',w:'14%',tone:'#C2C2C9'}];
+      d.margins=[['Vadodara Substation','Power','12.8%','11.9%','−0.9',RED],['Chennai Metro Pkg 3','Transport','10.4%','8.1%','−2.3',RED],['Dahej ETP Phase I','Water','14.1%','14.6%','+0.5',GRN],['Jaipur Solar 120 MW','Renewables','9.2%','6.4%','−2.8',RED]].map(x=>({project:x[0],sector:x[1],bid:x[2],del:x[3],delta:x[4],tone:x[5]}));
+    }
+
+    if(k==='bid'){
+      const q=s.query.trim().toLowerCase();
+      d.register=TENDERS.filter(t=>!q||(t.id+' '+t.name+' '+t.client+' '+t.stageLabel).toLowerCase().indexOf(q)>-1)
+        .map(t=>({id:t.id,name:t.name,client:t.client,value:t.value,stage:t.stageLabel,days:t.days+' d',due:t.due,status:t.status,
+          tone:t.days<=4?RED:(t.days<=11?ORG:INK3),go:()=>self.openTender(t.id)}));
+      d.registerCount=d.register.length+' of 18 assigned to you';
+      d.today=[
+        !dn('dg1')&&{tone:RED,mark:'!',title:'DG1 — Pursue or Discard',body:'T-2026-053 Dahej ETP. Fit-score 71%, coordinator validated. Comparable: Dahej Phase I delivered 14.6%.',when:'24h',label:'Decide',
+          act:()=>self.setState({modal:{eyebrow:'GATE DG1 · PURSUE OR DISCARD',title:'T-2026-053 · Effluent Treatment Plant — Dahej',sub:'Gujarat Industrial · ₹ 96 Cr · captured 06:12 today',
+            rows:[{k:'Fit-score',v:'71%'},{k:'Bid security',v:'₹ 1.92 Cr — confirmed by coordinator'},{k:'Closest comparable',v:'Dahej ETP Phase I · 14.6% delivered',tone:GRN},{k:'Submission window',v:'33 days'},{k:'Estimating load',v:'2.5 FTE · 4 weeks'}],
+            note:'The Intake Agent never discards. It screened, scored and routed — the pursue-or-discard call is yours and is recorded against the tender.',
+            foot:'SLA 24h · decision recorded at DG1',
+            actions:[{label:'Pursue — release to Stage 2',primary:true,act:()=>self.markDone('dg1','T-2026-053 pursued at DG1 — Outreach Agent issuing RFQs')},
+                     {label:'Discard',danger:true,act:()=>self.markDone('dg1','T-2026-053 discarded at DG1 — rationale recorded',ORG)},
+                     {label:'Cancel',act:()=>self.setState({modal:null})}]}})},
+        !dn('sup')&&{tone:RED,mark:'!',title:'Supplier escalation',body:'Two structural steel bidders past SLA on T-2026-041. The agent nudged at T+48h and T+96h before escalating.',when:'Now',label:'Escalate',
+          act:()=>self.markDone('sup','Escalated to both bidders · buyer notified · package coverage now 8 of 9')},
+        !dn('win')&&{tone:CY,mark:'~',title:'Win theme sign-off',body:'Executive summary draft ready for T-2026-044. Three win themes woven, one flagged as thin.',when:'2d',label:'Sign off',
+          act:()=>self.markDone('win','Win themes signed off on T-2026-044 — section locked for review')},
+        {tone:GRN,mark:'✓',title:'Schedule reconciled',body:'T-2026-044 baseline matched to the cost model at M2. No action required.',when:'Done',label:''}
+      ].filter(Boolean);
+      d.focus=[1,2,3,4,5,6,7,8].map(n=>({label:'S'+n,gate:({3:'DG2',5:'M2',7:'DG3',8:'M3'})[n]||'',
+        bar:n<6?INK:(n===6?ORG:'#E8E8ED'),fg:n<=6?INK2:'#B8B8BF'}));
+      d.focusFigures=[{label:'WIN PROBABILITY',value:'74% ±6',tone:INK},{label:'PRICED BOQ',value:'₹ 486 Cr',tone:INK},{label:'BASE MARGIN',value:'12.1%',tone:INK},{label:'COMPLIANCE COVER',value:dn('gap')?'100%':'91%',tone:dn('gap')?GRN:ORG}];
+      d.openFocus=()=>self.openTender('T-2026-041');
+    }
+
+    if(k==='coord'){
+      const item=(key,title,sub,detail,label,rows,note)=>dn(key)?null:{key,title,sub,detail,label,
+        act:()=>self.setState({modal:{eyebrow:'VALIDATION · STAGE 1',title,sub,rows:rows.map(x=>({k:x[0],v:x[1],tone:x[2]||INK})),note,
+          foot:'Nothing is silently accepted',
+          actions:[{label:'Accept and log',primary:true,act:()=>self.markDone(key,title+' — validated and written to the tender record')},
+                   {label:'Send back to agent',act:()=>self.markDone(key,title+' — returned to the Intake Agent for re-extraction',ORG)},
+                   {label:'Cancel',act:()=>self.setState({modal:null})}]}})};
+      d.queue=[
+        item('val-v1','T-2026-053 · Bid security amount','Extracted from a scanned addendum, page 44','Extracted "₹ 1.92 Cr" at 61% confidence from a scanned addendum. Source page 44.','Confirm',
+          [['Extracted value','₹ 1.92 Cr'],['Confidence','61% — below the 85% threshold',ORG],['Source','Addendum 2, page 44 (scanned)'],['Cross-check','ITB 14.1 states 2% of estimated value']],
+          'The agent will not accept a field below threshold. Confirming writes the value with your name against it, and the golden set is expanded with this example.'),
+        item('val-v2','T-2026-053 · Submission deadline','Two dates present in the document','Two dates present in the document; agent flagged the conflict rather than choosing.','Resolve',
+          [['Date A','10 Apr 2026, 15:00 — cover letter'],['Date B','12 Apr 2026, 15:00 — ITB clause 21.1',ORG],['Portal states','10 Apr 2026, 15:00'],['Agent position','Conflict — will not choose',RED]],
+          'The Intake Agent surfaces conflicts instead of resolving them silently. Your selection sets the countdown every downstream role works to.'),
+        item('val-v3','T-2026-052 · Eligibility — turnover','OCR quality poor on the qualification table','OCR quality poor on the qualification table. Manual read required.','Manual read',
+          [['Field','Average annual turnover'],['OCR output','₹ 6?0 Cr — unreadable',RED],['Confidence','34%',RED],['Source','Section III, qualification table']],
+          'Poor source quality is reported as poor source quality. The field stays open until a human reads it.'),
+        item('val-v4','T-2026-052 · Scope boundary','Ambiguous split between civil and E&M','Ambiguous split between civil and E&M packages. Coordinator judgement needed.','Review',
+          [['Ambiguity','Pump house E&M — civil or E&M package'],['Impact','2 RFQ packages, ₹ 18 Cr indicative'],['Agent position','Judgement required',ORG],['Clarification','Draft query prepared for the client']],
+          'The scope split drives the RFQ packages. Resolving it here prevents two packages being priced twice or not at all.')
+      ].filter(Boolean);
+      d.queueClean=[{title:'T-2026-049 · 38 fields',body:'All above threshold. Auto-accepted with provenance recorded.'}];
+      d.confidence=[['Deadline','99%'],['Submission format','97%'],['Scope summary','96%'],['Eligibility criteria','94%'],['Evaluation criteria','92%'],['Bond / security','88%']].map(x=>({label:x[0],pct:x[1],w:x[1],tone:parseInt(x[1])<93?ORG:INK}));
+      d.intake=[
+        ['06:12','Portal · CPPP','T-2026-053','Effluent Treatment Plant','Gujarat Industrial','71%','Shortlisted → DG1',GRN,'T-2026-053'],
+        ['06:44','Email · tenders@','T-2026-054','Township Infrastructure','Private developer','38%','Low fit — flagged',INK3,''],
+        ['07:03','Scanned · OCR','T-2026-041','Addendum 3','TN Transco','—','Linked to parent',CY,'T-2026-041'],
+        ['08:20','Portal · GeM','T-2026-055','O&M Services — 3 yr','State utility','44%','Low fit — flagged',INK3,''],
+        ['09:51','Email · client','T-2026-056','Pipeline Package 7','Jamnagar Petro','82%','Shortlisted → DG1',GRN,'']
+      ].map(x=>({time:x[0],source:x[1],id:x[2],name:x[3],client:x[4],fit:x[5],disp:x[6],tone:x[7],
+        go:x[8]?()=>self.openTender(x[8]):()=>self.toast(x[2]+' — screening rationale and provenance opened')}));
+    }
+
+    if(k==='proc'){
+      const pkg=(name,meta,note,rows,actions)=>({name,meta,note,go:()=>self.setState({drawer:{
+        eyebrow:'PACKAGE · T-2026-041 · STAGE 2',title:name,sub:meta,hasKpis:false,hasStages:false,
+        sections:[{head:'PACKAGE STATUS',rows:rows.map(x=>({k:x[0],v:x[1],tone:x[2]||INK,font:"'IBM Plex Sans',sans-serif"}))}],
+        note,foot:'Agent recommends · buyer decides',
+        actions:actions||[{label:'Nudge non-responders',primary:true,act:()=>self.toast(name+' — reminder issued to all outstanding suppliers')},{label:'Open RFQ thread',act:()=>self.toast(name+' — RFQ thread and attachments opened')}]}})});
+      d.board=[
+        {head:'RFQ ISSUED',count:'3',tone:INK3,cards:[
+          pkg('Structural steel','2 of 5 responded · escalated','Agent nudged three non-responders at T+48h and escalated to the buyer. Two bidders are now past SLA.',[['Suppliers invited','5'],['Responded','2',ORG],['Nudges sent','3'],['Status','Escalated to buyer',RED]],
+            [{label:'Escalate to buyer',primary:true,act:()=>self.markDone('sup','Structural steel escalated — both bidders contacted, coverage now 8 of 9')},{label:'Extend deadline 48h',act:()=>self.toast('Structural steel RFQ extended by 48h — suppliers notified')}]),
+          pkg('HV cabling','4 of 6 responded','Coverage already meets the three-quote threshold. Two responses outstanding but not blocking.',[['Suppliers invited','6'],['Responded','4',GRN],['Nudges sent','2'],['Status','On track',GRN]]),
+          pkg('Civil works — foundations','5 of 6 responded','Strong coverage. The agent is holding the package open for one late responder with a history of competitive pricing.',[['Suppliers invited','6'],['Responded','5',GRN],['Nudges sent','1'],['Status','On track',GRN]])]},
+        {head:'NORMALISING',count:'2',tone:CY,cards:[
+          pkg('Transformers','3 quotes parsed','One offer excludes freight — flagged for comparability before any ranking is shown.',[['Quotes parsed','3'],['Exclusion flagged','Crompton Greaves — freight',ORG],['Common schema','Price, freight, validity, lead time'],['Status','Ready for buyer review',CY]],
+            [{label:'Open comparison',primary:true,act:()=>{self.setState({drawer:null});self.toast('Normalised comparison shown below the package board');}}]),
+          pkg('Control & protection','Validity differs across 4 offers','Validity periods range from 30 to 120 days. The agent normalises to a common expiry before comparison.',[['Quotes parsed','4'],['Issue','Validity 30–120 days',ORG],['Status','Normalising',CY]])]},
+        {head:'EVALUATED',count:'3',tone:INK,cards:[
+          pkg('Earthing & lightning','Best-fit ready','Ranked against recorded criteria. The buyer selects; the agent does not commit.',[['Quotes','4'],['Recommended','Best fit on price and lead time',GRN],['Status','Awaiting buyer selection']]),
+          pkg('Site establishment','Best-fit ready','Ranked against recorded criteria.',[['Quotes','3'],['Recommended','Best fit on price',GRN],['Status','Awaiting buyer selection']]),
+          pkg('Testing & commissioning','Best-fit ready','In-house capability priced alongside the subcontract option.',[['Quotes','3'],['Recommended','In-house — differentiator',GRN],['Status','Awaiting buyer selection']])]},
+        {head:'BUYER APPROVED',count:'1',tone:GRN,cards:[
+          pkg('Switchgear','Locked to BOQ','Override recorded: rank 2 selected on delivery track record. The reason is part of the audit trail.',[['Selected','Rank 2 supplier'],['Reason','Delivery track record'],['Recorded by','V. Kulkarni'],['Status','Locked to BOQ',GRN]],
+            [{label:'View audit entry',primary:true,act:()=>self.toast('Switchgear override — audit entry 1,731 opened')}])]}
+      ];
+      d.quotes=[
+        {supplier:'Bharat Heavy Electricals',price:'₹ 41.2 Cr',freight:'Included',validity:'90 days',lead:'34 wks',note:'Normalised best fit',tone:GRN,sel:dn('q-bhel')},
+        {supplier:'Crompton Greaves',price:'₹ 39.8 Cr',freight:'Excluded',validity:'60 days',lead:'38 wks',note:'+₹ 1.6 Cr freight to compare',tone:ORG,sel:dn('q-cg')},
+        {supplier:'Toshiba T&D India',price:'₹ 43.6 Cr',freight:'Included',validity:'120 days',lead:'29 wks',note:'Fastest delivery',tone:INK3,sel:dn('q-tos')}
+      ].map(x=>Object.assign(x,{select:()=>self.markDone('q-'+x.supplier.split(' ')[0].toLowerCase().slice(0,4),x.supplier+' selected for transformers — locked to BOQ, reason recorded')}));
+      d.guards=[['Sanctions & anti-bribery','Screened before engagement. 0 flags this cycle.'],['Criteria-based shortlisting','Ranking criteria recorded per package.'],['No commitment authority','Agent cannot issue a PO or commitment.'],['Quote confidentiality','Competing quotes never disclosed across suppliers.']].map(x=>({title:x[0],body:x[1]}));
+    }
+
+    if(k==='comm'){
+      d.buildup=[['Subcontract packages','₹ 268 Cr','100%'],['Materials — direct','₹ 61 Cr','23%'],['Labour — direct','₹ 38 Cr','14%'],['Site overheads','₹ 22 Cr','8%'],['Bonds & insurances','₹ 13 Cr','5%'],['HO recovery','₹ 17 Cr','6%'],['Contingency','₹ 9 Cr','3%']]
+        .map(x=>({label:x[0],value:x[1],w:x[2],go:()=>self.toast(x[0]+' — provenance opened: source quotes and historical norms')}));
+      d.scenarios=[
+        {key:'base',name:'Base',price:'₹ 486 Cr',margin:'12.1%',win:'74%'},
+        {key:'stretch',name:'Stretch',price:'₹ 502 Cr',margin:'14.9%',win:'58%'},
+        {key:'defensive',name:'Defensive',price:'₹ 469 Cr',margin:'9.2%',win:'86%'}
+      ].map(x=>Object.assign({},x,{bg:s.scenario===x.key?'#F7F7F9':'#fff',fw:s.scenario===x.key?'600':'400',
+        mark:s.scenario===x.key?'●':'○',markColor:s.scenario===x.key?INK:'#C9C9D1',
+        pick:()=>{self.setState({scenario:x.key});self.toast(x.name+' scenario selected — recorded against T-2026-041, no default applied');}}));
+      d.freezeLabel=dn('m2')?'M2 frozen':'Freeze selection at M2';
+      d.freeze=()=>dn('m2')?self.toast('M2 already frozen — re-price events will re-open it'):self.markDone('m2','Cost model frozen at M2 — schedule reconciled, Stage 6 pricing locked');
+      d.freezeBg=dn('m2')?'#fff':INK; d.freezeFg=dn('m2')?GRN:'#fff'; d.freezeBorder=dn('m2')?LINE:INK;
+      d.reprice=[['04 Mar 09:12','Addendum 3 — scope added to civil package','+₹ 4.1 Cr',RED],['02 Mar 16:40','Transformer quote revised (BHEL)','−₹ 0.8 Cr',GRN],['28 Feb 11:05','Steel index escalation applied','+₹ 2.2 Cr',RED],['26 Feb 08:30','FX revaluation — EUR content','+₹ 1.4 Cr',RED]]
+        .map(x=>({when:x[0],trigger:x[1],impact:x[2],tone:x[3]}));
+      d.sensitivity=[['Steel price ±10%','±1.8 pts','100%'],['Schedule slip +8 wks','±1.4 pts','78%'],['Labour productivity ±10%','±1.1 pts','61%'],['FX ±5%','±0.8 pts','44%'],['Subcontract re-quote risk','±0.6 pts','33%']]
+        .map(x=>({label:x[0],value:x[1],w:x[2]}));
+    }
+
+    if(k==='prop'){
+      const sec=(name,meta,tone,act)=>({name,meta,tone,go:act||(()=>self.toast(name+' — section opened with reuse provenance'))});
+      d.sections=[
+        {head:'AGENT DRAFTED',count:'11',tone:CY,cards:[sec('Company profile & credentials','Reused 92%',GRN),sec('QHSE management plan','Reused 78%',GRN),sec('Testing & commissioning approach','Reused 61%',INK3)]},
+        {head:'SME INPUT NEEDED',count:dn('sec-1')?'8':'9',tone:ORG,cards:[
+          !dn('sec-1')&&sec('Substation protection philosophy','Overdue 2d · A. Deshpande',RED,()=>self.setState({modal:{
+            eyebrow:'SME TASK · STAGE 6',title:'Substation protection philosophy',sub:'Assigned to A. Deshpande (Electrical) · overdue by 2 days',
+            rows:[{k:'Agent pre-draft',v:'Structure and 4 of 7 sub-sections'},{k:'Source',v:'Vadodara 400 kV bid, section 4.2'},{k:'Evaluator weight',v:'Technical approach (40)'},{k:'Submission',v:'12 Mar · 4 days'}],
+            note:'The agent has pre-drafted the structure and cited its source. Only the protection philosophy itself needs the SME.',
+            foot:'Section locks on approval',
+            actions:[{label:'Approve SME draft',primary:true,act:()=>self.markDone('sec-1','Substation protection philosophy approved — 32 of 42 sections complete')},
+                     {label:'Reassign',act:()=>self.markDone('sec-1','Reassigned to S. Venkat (Electrical) — due in 24h',ORG)},
+                     {label:'Cancel',act:()=>self.setState({modal:null})}]}})),
+          sec('Key personnel CVs','Due tomorrow',ORG),sec('Local content statement','Due tomorrow',ORG)].filter(Boolean)},
+        {head:'IN REVIEW',count:'14',tone:INK,cards:[sec('Execution methodology','Pink team done',INK3),sec('Programme narrative','Tied to S4 baseline',INK3),sec('Commercial proposal','Awaiting M2 freeze',ORG)]},
+        {head:'APPROVED',count:'8',tone:GRN,cards:[sec('Executive summary','Locked',GRN),sec('Win themes','Locked',GRN),sec('Compliance Part A','Locked',GRN)]}
+      ];
+      d.scoring=[['Technical approach (40)','32.8','82%'],['Programme & method (20)','15.6','78%'],['QHSE & ESG (15)','12.9','86%'],['Key personnel (15)','9.2','61%'],['Local content (10)','7.4','74%']]
+        .map(x=>({label:x[0],value:x[1],w:x[2],tone:parseFloat(x[2])<70?ORG:INK}));
+      d.scoreNote='Key personnel is the weakest scored section. The agent recommends substituting two CVs with stronger substation-specific project history from the past-bid library.';
+      d.applyCvs=()=>self.toast('Two CVs substituted from the library — simulated score 78 → 80');
+      d.themes=[['1','Zero-outage tie-in record','Referenced in exec summary, methodology and 3 case studies.',GRN],['2','In-house HV testing capability','Differentiator vs both named competitors.',GRN],['3','Local content above threshold','Present in exec summary only — agent flags weak coverage.',ORG],['4','Delivered 4 of 6 comparable projects early','Evidence table auto-assembled from delivery records.',GRN]]
+        .map(x=>({n:x[0],title:x[1],body:x[2],tone:x[3]}));
+    }
+
+    if(k==='comp'){
+      d.matrix=[
+        ['Bid security ₹ 1.92 Cr — bank guarantee','ITB 14.1','Mandatory','Annexure C — BG issued 02 Mar','Covered',GRN],
+        ['Average annual turnover ≥ ₹ 600 Cr','ITB 6.2(a)','Mandatory','Form FIN-1, audited accounts FY23–25','Covered',GRN],
+        ['Two comparable 400 kV substations','ITB 6.2(c)','Mandatory','Form EXP-2 — Vadodara, Trichy','Covered',GRN],
+        ['ISO 45001 occupational health & safety','ITB 9.4','Mandatory',dn('gap')?'Renewed certificate uploaded 06 Mar':'Certificate expires 08 Mar — 4 days before submission',dn('gap')?'Covered':'Critical gap',dn('gap')?GRN:RED],
+        ['Local content declaration ≥ 50%','SCC 7.2','Mandatory','Form LC-1 — 58% declared','Covered',GRN],
+        ['Type test reports — 400 kV GIS','TS 3.11','Scored','Annexure F — 6 of 8 reports','Major gap',ORG]
+      ].map(x=>({req:x[0],ref:x[1],type:x[2],evidence:x[3],status:x[4],tone:x[5]}));
+      d.gaps=[{label:'Critical',n:dn('gap')?'0':'1',tone:dn('gap')?GRN:RED,w:dn('gap')?'0%':'10%'},{label:'Major',n:'3',tone:ORG,w:'30%'},{label:'Minor',n:'6',tone:INK3,w:'60%'}];
+      d.gateBlocked=!dn('gap');
+      d.gateTitle=dn('gap')?'DG3 is clear to proceed.':'DG3 is blocked.';
+      d.gateBody=dn('gap')?'The renewed ISO 45001 certificate is filed against ITB 9.4. Mandatory coverage is 100% and the Tender Review Board can be convened.':'One critical gap is open — the ISO 45001 certificate expires four days before submission. The gate cannot be cleared until it is closed. The agent detected this at Stage 6, not in the final week.';
+      d.gateTone=dn('gap')?GRN:RED;
+      d.gateBg=dn('gap')?'#F3F8F4':'#FCF4F3';
+      d.gateBorder=dn('gap')?'#CFE3D6':'#EFD8D5';
+      d.closeGap=()=>dn('gap')?self.toast('ISO 45001 already closed — DG3 pack ready for the Review Board'):self.setState({modal:{
+        eyebrow:'CRITICAL GAP · STAGE 7',title:'ISO 45001 — certificate expiry',sub:'ITB 9.4 · mandatory · blocks DG3 on T-2026-041',
+        rows:[{k:'Current certificate',v:'Expires 08 Mar 2026',tone:RED},{k:'Submission date',v:'12 Mar 2026'},{k:'Detected',v:'At Stage 6, by the Compliance Agent'},{k:'Owner',v:'QHSE Manager — notified 28 Feb'},{k:'Renewal status',v:'Audit closed, certificate issued 06 Mar',tone:GRN}],
+        note:'Closing the gap files the renewed certificate against ITB 9.4 and re-runs the mandatory coverage check across all 214 requirements.',
+        foot:'DG3 cannot be cleared with an open mandatory gap',
+        actions:[{label:'File certificate & close gap',primary:true,act:()=>self.markDone('gap','ISO 45001 closed — mandatory coverage 100%, DG3 unblocked')},
+                 {label:'Escalate to Bid Manager',act:()=>self.toast('Escalated to R. Iyer — gap remains open',ORG)},
+                 {label:'Cancel',act:()=>self.setState({modal:null})}]}});
+      d.redlines=[
+        ['GCC 26.2 — LD cap','10% of contract value','Cap at 7.5%, sub-cap per milestone','₹ 12.2 Cr','Legal','With client',ORG],
+        ['GCC 31 — Indemnity','Unlimited','Limit to contract value, carve out IP','Unquantified','Legal','Open',RED],
+        ['SCC 12 — Price variation','Fixed price, 36 months','Steel index linkage beyond 12 months','₹ 8.6 Cr','Commercial','With client',ORG],
+        ['GCC 44 — Dispute forum','Client-state courts','Arbitration, seat at Mumbai','Unquantified','Legal','Accepted',GRN]
+      ].map(x=>({clause:x[0],client:x[1],redline:x[2],exposure:x[3],owner:x[4],status:x[5],tone:x[6],
+        go:()=>self.toast(x[0]+' — clause text, recommended wording and precedent opened')}));
+    }
+
+    if(k==='dir'){
+      d.projects=[
+        ['Vadodara 400 kV Substation','68%','12.8%','11.9%','−0.9',RED],
+        ['Chennai Metro Package 3','41%','10.4%','8.1%','−2.3',RED],
+        ['Jaipur Solar 120 MW','83%','9.2%','6.4%','−2.8',RED],
+        ['Dahej ETP Phase I','22%','14.1%','14.6%','+0.5',GRN],
+        ['Trichy Transmission Line','95%','11.6%','11.4%','−0.2',INK3]
+      ].map(x=>({name:x[0],progress:x[1],w:x[1],bid:x[2],curr:x[3],delta:x[4],tone:x[5],
+        go:()=>self.toast(x[0]+' — 214 bid obligations, milestone tracker and margin bridge opened')}));
+      d.deviations=[
+        !dn('dev-1')&&{tone:RED,mark:'!',title:'Jaipur Solar — inverter delivery',body:'Supplier is 5 weeks behind the mobilisation plan committed at bid. Recommended corrective action: re-sequence civil works.',when:'Action',label:'Approve action',
+          act:()=>self.markDone('dev-1','Re-sequencing approved — programme re-baselined, supplier scoring updated')},
+        {tone:ORG,mark:'!',title:'Chennai Metro — labour productivity',body:'Running 11% below the norm used in the cost model. Margin impact projected at −1.1 pts if sustained. Fed to the learning loop as a productivity data point.',when:'Review',label:'Review',
+          act:()=>self.toast('Productivity variance opened — cost model norm flagged for the Governance Forum')},
+        {tone:ORG,mark:'!',title:'Vadodara — obligation due',body:'Monthly ESG report to client due in 3 days. Owner notified twice.',when:'3d',label:'Remind owner',
+          act:()=>self.toast('Reminder sent to the Vadodara project controls lead')},
+        {tone:GRN,mark:'✓',title:'Trichy — early completion',body:'Two milestones delivered ahead of programme. Logged against the delivery record.',when:'Logged',label:''}
+      ].filter(Boolean);
+      d.learning=[
+        {title:'Margin model',body:'Solar BoP margins have run 2.4 pts below bid across three projects. The Learning Loop Agent has proposed a sector-specific correction, pending Governance Forum approval.',status:'Pending approval',tone:ORG,act:()=>self.toast('Solar BoP margin correction — proposal and evidence set opened')},
+        {title:'Supplier scoring',body:'Two inverter suppliers have been downgraded on delivered performance. They now rank lower in shortlists generated at Stage 2.',status:'Applied',tone:GRN,act:()=>self.toast('Supplier scoring change applied — visible in Stage 2 shortlists')},
+        {title:'Win-probability calibration',body:'Trailing calibration is within ±7% of actual win rate, inside the ±10% threshold. Improving quarter on quarter.',status:'Within threshold',tone:GRN,act:()=>self.toast('Calibration curve — 15 decided bids, ±7% trailing error')}
+      ];
+    }
+    return {r,d};
+  }
+  kpisFor(k){
+    const s=this.state, done=s.done;
+    const mk=(label,value,sub,tone,subTone)=>({label,value,sub,tone:tone||INK,subTone:subTone||'#9A9AA1'});
+    if(k==='exec') return [
+      mk('ACTIVE PURSUITS','18','₹ 2,940 Cr weighted value'),
+      mk('AWAITING YOUR DECISION',done['dg2-047']?'1':'2','DG2 packs · SLA 24h',done['dg2-047']?INK:ORG,ORG),
+      mk('WIN RATE — TRAILING 12','34.2%','▲ 4.1 pts vs prior year',INK,GRN),
+      mk('AVG. BID MARGIN (BASE)','11.4%','▼ 0.6 pts vs prior year',INK,RED),
+      mk('ON-TIME SUBMISSION','100%','19 of 19 this quarter',GRN)
+    ];
+    if(k==='bid') return [
+      mk('MY LIVE PURSUITS','6','2 at a gate this week'),
+      mk('DG1 DECISIONS DUE',done['dg1']?'0':'1',done['dg1']?'cleared today':'T-2026-053 · SLA 24h',done['dg1']?GRN:RED,done['dg1']?GRN:RED),
+      mk('NEXT SUBMISSION','12 Mar','T-2026-041 · 4 days'),
+      mk('OPEN BLOCKERS',done['sup']?'2':'3',done['sup']?'1 compliance, 1 schedule':'2 supplier, 1 compliance',ORG,ORG),
+      mk('BID COVERAGE','84%','packages with ≥3 quotes')
+    ];
+    if(k==='coord'){const r=['v1','v2','v3','v4'].filter(x=>done['val-'+x]).length;return [
+      mk('CAPTURED OVERNIGHT','14','9 portals, 3 mailboxes, 2 scanned'),
+      mk('AWAITING VALIDATION',String(5-r),r?(r+' cleared this session'):'fields below confidence threshold',r===4?GRN:ORG,r===4?GRN:ORG),
+      mk('AVG. INTAKE TO LOGGED','9 min','target ≤ 15 min',INK,GRN),
+      mk('DUPLICATES RESOLVED','3','linked to parent tender'),
+      mk('MISSED TENDERS','0','daily reconciliation clean',GRN)
+    ];}
+    if(k==='proc') return [
+      mk('LIVE RFQS','47','across 9 packages'),
+      mk('RESPONSE RATE','79%','▲ 22 pts since go-live',INK,GRN),
+      mk('PACKAGES WITH ≥3 QUOTES',done['sup']?'8 / 9':'7 / 9',done['sup']?'1 needs intervention':'2 need intervention',INK,ORG),
+      mk('NUDGES SENT BY AGENT','118','no buyer time consumed'),
+      mk('OPEN CLARIFICATIONS','4','0 stale beyond SLA')
+    ];
+    if(k==='comm'){const sc={base:['₹ 486 Cr','12.1%','₹ 58.8 Cr'],stretch:['₹ 502 Cr','14.9%','₹ 74.8 Cr'],defensive:['₹ 469 Cr','9.2%','₹ 43.1 Cr']}[s.scenario];return [
+      mk('PRICED BOQ',sc[0],'T-2026-041 · '+(done['m2']?'frozen at M2':'scenario '+s.scenario)),
+      mk('BASE MARGIN',sc[1],sc[2]),
+      mk('BREAK-EVEN PRICE','₹ 427 Cr','12.1% headroom'),
+      mk('RE-PRICE EVENTS','7','auto-triggered by input change'),
+      mk('FX EXPOSURE','₹ 62 Cr','EUR/USD content')
+    ];}
+    if(k==='prop') return [
+      mk('SECTIONS COMPLETE',done['sec-1']?'32 / 42':'31 / 42',done['sec-1']?'76%':'74%'),
+      mk('SME TASKS OPEN',done['sec-1']?'8':'9',done['sec-1']?'2 overdue':'3 overdue',ORG,ORG),
+      mk('SIMULATED SCORE','78 / 100','▲ 6 after red-team',INK,GRN),
+      mk('REUSED CONTENT','64%','from past-bid library'),
+      mk('DAYS TO SUBMISSION','4','12 Mar',ORG)
+    ];
+    if(k==='comp') return [
+      mk('MANDATORY COVERAGE',done['gap']?'100%':'96%',done['gap']?'0 items open':'4 items open',done['gap']?GRN:INK),
+      mk('CRITICAL GAPS',done['gap']?'0':'1',done['gap']?'DG3 clear to proceed':'blocks DG3',done['gap']?GRN:RED,done['gap']?GRN:RED),
+      mk('REDLINES APPLIED','23','19 standard, 4 escalated'),
+      mk('RISKS WITH OWNERS','17 / 17','100% assigned',GRN),
+      mk('AUDIT ENTRIES','1,842','every action traceable')
+    ];
+    return [
+      mk('LIVE PROJECTS','7','₹ 1,840 Cr backlog'),
+      mk('MILESTONES AT RISK',done['dev-1']?'3':'4','of 62 tracked',ORG,ORG),
+      mk('MARGIN VARIANCE','−1.2 pts','vs bid commitment',RED,RED),
+      mk('OBLIGATIONS TRACKED','214','from the bid, not re-keyed'),
+      mk('AGENT ALERTS — 30D','23','18 actioned early')
+    ];
+  }
+}
+
+</script>
+</body>
+</html>

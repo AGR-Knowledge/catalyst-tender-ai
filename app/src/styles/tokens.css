@@ -1,0 +1,155 @@
+/* Design tokens. Every colour in the app resolves to one of these.
+   Light values are taken directly from the Claude Design source. */
+:root,
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --bg: #fbfbfd;
+  --surface: #ffffff;
+  --surface-2: #fdfdfe;
+  --surface-sunken: #fbfbfd;
+  --surface-hover: #fbfbfd;
+  --surface-active: #f2f2f4;
+  --glass: rgba(255, 255, 255, 0.88);
+
+  --ink: #1d1d1f;
+  --ink-2: #33333a;
+  --ink-3: #55555b;
+  --ink-4: #77777d;
+  --ink-5: #9a9aa1;
+  --ink-6: #b8b8bf;
+  --ink-7: #c9c9d1;
+  --ink-8: #d4d4da;
+
+  --line: #e8e8ed;
+  --line-2: #f2f2f4;
+  --line-3: #f5f5f7;
+  --line-strong: #c9c9d1;
+
+  --track: #f2f2f4;
+
+  --red: #c1372b;
+  --orange: #c67a17;
+  --green: #2e7d50;
+  --cyan: #0a7ea4;
+  --grey: #8c8c93;
+  --grey-2: #c2c2c9;
+
+  --red-soft: #fcf4f3;
+  --red-line: #efd8d5;
+  --orange-soft: #fbf3e7;
+  --green-soft: #eff6f1;
+  --green-panel: #f3f8f4;
+  --green-line: #cfe3d6;
+  --cyan-soft: #eaf5f9;
+
+  --link: #0a7ea4;
+  --link-hover: #065f7c;
+
+  --primary-bg: #1d1d1f;
+  --primary-fg: #ffffff;
+
+  --scrim: rgba(20, 20, 22, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-lift: 0 3px 10px rgba(0, 0, 0, 0.05);
+  --shadow-pop: 0 18px 44px rgba(0, 0, 0, 0.14);
+  --shadow-modal: 0 26px 64px rgba(0, 0, 0, 0.26);
+  --shadow-drawer: -18px 0 50px rgba(0, 0, 0, 0.16);
+  --scrollbar: #dedee4;
+
+  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  --radius-sm: 7px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  --sidebar-w: 252px;
+  --header-h: 68px;
+  --gutter: 36px;
+  --gap: 22px;
+  --content-max: 1420px;
+
+  /* Motion: strong curves, UI stays under 300ms */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 160ms;
+  --dur-fast: 150ms;
+  --dur-pop: 180ms;
+  --dur-view: 180ms;
+  --dur-overlay: 280ms;
+  --dur-exit: 180ms;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #0e0e10;
+  --surface: #161618;
+  --surface-2: #131315;
+  --surface-sunken: #121214;
+  --surface-hover: #1c1c1f;
+  --surface-active: #232327;
+  --glass: rgba(18, 18, 20, 0.82);
+
+  --ink: #f2f2f4;
+  --ink-2: #dcdce1;
+  --ink-3: #b3b3bb;
+  --ink-4: #93939b;
+  --ink-5: #7a7a83;
+  --ink-6: #5f5f67;
+  --ink-7: #4a4a52;
+  --ink-8: #3d3d44;
+
+  --line: #2a2a2f;
+  --line-2: #222226;
+  --line-3: #1f1f23;
+  --line-strong: #3d3d44;
+
+  --track: #26262b;
+
+  --red: #ec6a5d;
+  --orange: #e5a14a;
+  --green: #5cbd86;
+  --cyan: #4fb6da;
+  --grey: #85858d;
+  --grey-2: #5a5a62;
+
+  --red-soft: rgba(236, 106, 93, 0.12);
+  --red-line: rgba(236, 106, 93, 0.3);
+  --orange-soft: rgba(229, 161, 74, 0.13);
+  --green-soft: rgba(92, 189, 134, 0.13);
+  --green-panel: rgba(92, 189, 134, 0.08);
+  --green-line: rgba(92, 189, 134, 0.3);
+  --cyan-soft: rgba(79, 182, 218, 0.12);
+
+  --link: #5cbfe2;
+  --link-hover: #8ad2ec;
+
+  --primary-bg: #f2f2f4;
+  --primary-fg: #121214;
+
+  --scrim: rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-lift: 0 4px 14px rgba(0, 0, 0, 0.45);
+  --shadow-pop: 0 18px 44px rgba(0, 0, 0, 0.55);
+  --shadow-modal: 0 26px 64px rgba(0, 0, 0, 0.65);
+  --shadow-drawer: -18px 0 50px rgba(0, 0, 0, 0.55);
+  --scrollbar: #34343a;
+}
+
+/* Spacing scales down on smaller viewports, up on very large ones. */
+@media (max-width: 1280px) {
+  :root { --gutter: 28px; --gap: 18px; }
+}
+@media (max-width: 760px) {
+  :root { --gutter: 16px; --gap: 14px; --header-h: 60px; }
+}
+@media (min-width: 1920px) {
+  :root { --content-max: 1680px; --gutter: 44px; --gap: 24px; }
+}
+@media (min-width: 2400px) {
+  :root { --content-max: 1960px; }
+}

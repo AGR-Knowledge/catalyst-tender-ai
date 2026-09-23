@@ -1,0 +1,15 @@
+# Dependencies and build output
+node_modules/
+dist/
+*.tsbuildinfo
+.vite/
+
+# Local and editor files
+.DS_Store
+*.log
+.env
+.env.*
+!.env.example
+.vercel
+.idea/
+.vscode/

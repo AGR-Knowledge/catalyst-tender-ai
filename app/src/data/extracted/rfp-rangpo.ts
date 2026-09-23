@@ -1,0 +1,476 @@
+import type { ExtractedTender } from './types';
+
+export const RFP_RANGPO: ExtractedTender = {
+  key: 'rfp-rangpo',
+  fileNames: ['RFP 27042017.pdf'],
+  docType: 'Request for Proposal',
+  pages: 72,
+  language: 'English',
+  scanned: false,
+
+  title:
+    'Construction of Additional Bridge adjacent to the existing bridge at Km 52.100 on NH-10 at Rangpo at the border of West Bengal and Sikkim State on EPC mode',
+  shortName: 'NH-10 Rangpo additional bridge (EPC)',
+  refNo: 'NHIDCL/Sikkim/civil work/ Rangpo Bridge/2017',
+  issued: '2017-04-27',
+  authority: 'National Highways & Infrastructure Development Corporation Limited (NHIDCL)',
+  parent: 'Ministry of Road Transport & Highways',
+  country: 'India',
+  location: 'Km 52.100 on NH-10, Rangpo, Sevoke-Gangtok section, West Bengal and Sikkim border',
+  sector: 'Transport',
+  mode: 'EPC',
+  currency: 'INR',
+  valueDisplay: '₹ 13.01 Cr',
+  valueCr: 13.01,
+
+  summary: [
+    {
+      label: 'Estimated project cost',
+      value: '₹ 13.01 crore',
+      page: 4,
+      confidence: 'high',
+      note: 'Same figure repeated in clause 1.1.1 on page 8.',
+    },
+    {
+      label: 'Bid security',
+      value: '₹ 0.13 crore (Rupees Thirteen Lakh Only), as bank guarantee per Appendix-II',
+      page: 9,
+      confidence: 'high',
+    },
+    {
+      label: 'Cost of bid document',
+      value: '₹ 10,000 by demand draft in favour of Managing Director, NHIDCL, payable at New Delhi, or RTGS/NEFT receipt',
+      page: 11,
+      confidence: 'high',
+    },
+    {
+      label: 'Completion period',
+      value: '24 months (2 years)',
+      page: 4,
+      confidence: 'high',
+    },
+    {
+      label: 'Maintenance period',
+      value: '48 months. Defect Liability Period of 4 (four) years per clause 1.1.3',
+      page: 4,
+      confidence: 'high',
+    },
+    {
+      label: 'Bid validity',
+      value: '120 days from the bid due date',
+      page: 29,
+      confidence: 'high',
+    },
+    {
+      label: 'Project length',
+      value: '0.24 km',
+      page: 8,
+      confidence: 'high',
+    },
+    {
+      label: 'Road section',
+      value: 'Sevoke-Gangtok section, NH-10, Sikkim',
+      page: 4,
+      confidence: 'high',
+    },
+    {
+      label: 'Bidding process',
+      value: 'Single stage, two part system (technical bid, then financial bid)',
+      page: 9,
+      confidence: 'high',
+    },
+    {
+      label: 'Bid/package no.',
+      value: 'NHIDCL/Sikkim/civil work/ Rangpo Bridge/2017',
+      page: 4,
+      confidence: 'high',
+      note: 'The cover page shows "ICB NO.:" with no number, and its text layer is garbled ("DevelopmentICBCorporation NO.: Ltd."). Number taken from the Notice Inviting Bid.',
+    },
+    {
+      label: 'E-procurement portal',
+      value: 'https://eprocure.gov.in (CPPP). Document also viewable at http://www.nhidcl.com',
+      page: 27,
+      confidence: 'medium',
+      note: 'Clause 2.11.1 on page 25 names http://www.morth.eproc.in instead. Every other reference is eprocure.gov.in.',
+    },
+    {
+      label: 'Portal registration',
+      value: 'Annual registration charge of INR 2290 (inclusive of all taxes), valid 1 year. Class III DSC required',
+      page: 27,
+      confidence: 'high',
+    },
+  ],
+
+  dates: [
+    { label: 'Notice Inviting Bid dated', date: '2017-04-27', page: 4, confidence: 'high' },
+    { label: 'Bid document publishing', date: '2017-04-27', time: '17:00', page: 5, confidence: 'high' },
+    { label: 'Bid document download start', date: '2017-04-27', time: '17:00', page: 5, confidence: 'high' },
+    { label: 'Bid document download end', date: '2017-06-11', time: '17:00', page: 5, confidence: 'high' },
+    { label: 'Clarification start', date: '2017-04-27', time: '17:00', page: 5, confidence: 'high' },
+    { label: 'Clarification end', date: '2017-05-24', time: '11:00', page: 5, confidence: 'high' },
+    { label: 'Pre-bid meeting', date: '2017-05-29', time: '14:00', page: 5, confidence: 'high' },
+    { label: 'Authority response to queries latest by', date: '2017-06-02', time: '14:00', page: 5, confidence: 'high' },
+    { label: 'Bid submission start', date: '2017-06-05', time: '10:00', page: 5, confidence: 'high' },
+    { label: 'Bid submission end (online and hard copy)', date: '2017-06-12', time: '15:00', page: 5, confidence: 'high' },
+    { label: 'Technical bid opening', date: '2017-06-13', time: '15:30', page: 5, confidence: 'high' },
+  ],
+
+  eligibility: [
+    {
+      label: 'Bid capacity',
+      value: 'Assessed available bid capacity (A x N x 2.5 - B) must exceed the bid value of ₹ 13.01 crore. A is the highest annual EPC civil works value in the last 5 years, updated by factors 1.00 to 1.20',
+      page: 16,
+      confidence: 'high',
+    },
+    {
+      label: 'Threshold technical capacity',
+      value: 'Payments received for construction of eligible projects over the past 5 financial years of more than ₹ 13.01 crore',
+      page: 16,
+      confidence: 'high',
+    },
+    {
+      label: 'Mandatory experience',
+      value: 'Construction of a major bridge with minimum span of 72 m or greater in the last 5 financial years before the bid due date',
+      page: 16,
+      confidence: 'high',
+    },
+    {
+      label: 'Net worth',
+      value: 'Minimum ₹ 0.65 crore (Rupees Sixty Five Lakhs Only) at the close of the preceding financial year',
+      page: 17,
+      confidence: 'high',
+    },
+    {
+      label: 'Average annual turnover',
+      value: 'Minimum ₹ 2.60 crore for the last 5 financial years, updated to current price level',
+      page: 17,
+      confidence: 'high',
+    },
+    {
+      label: 'Eligible project categories',
+      value: 'Highways sector projects count at factor 1, core sector at 0.70. Projects in OECD countries are multiplied by 0.5',
+      page: 17,
+      confidence: 'high',
+    },
+    {
+      label: 'Minimum receipt per eligible project',
+      value: 'Receipts or work executed below ₹ 1.30 crore are not counted for categories 3 and 4',
+      page: 19,
+      confidence: 'high',
+    },
+    {
+      label: 'Excluded works',
+      value: 'Maintenance works such as PR, OR, FDR, SR, resurfacing, repair and rehabilitation, border fencing, earthwork alone and buildings are not counted as eligible projects',
+      page: 18,
+      confidence: 'high',
+    },
+    {
+      label: 'Joint ventures',
+      value: 'Joint Venture not allowed where estimated project cost is up to ₹ 100 crore. Project cost here is ₹ 13.01 crore, so sole bidders only',
+      page: 14,
+      confidence: 'medium',
+      note: 'JV rules in clauses 2.1.15 and 2.2.2.4 (lead member 60%, others 20%, up to 3 members) are still printed, but clause 2.1.15(i) on page 13 and 2.2.1(a) bar JVs at this cost.',
+    },
+    {
+      label: 'Debarment',
+      value: 'Entities barred by MoRT&H or its implementing agencies, where the bar subsists on the application date, are not eligible',
+      page: 14,
+      confidence: 'high',
+    },
+    {
+      label: 'Past performance',
+      value: 'No failure to perform on Expressways, NH, ISC and EI works, and no expulsion or termination by MoRT&H agencies, in the last 2 years',
+      page: 14,
+      confidence: 'high',
+    },
+    {
+      label: 'Foreign ownership',
+      value: 'Where 15% or more of equity is held by persons resident outside India, eligibility is subject to Authority approval on national security and public interest grounds',
+      page: 13,
+      confidence: 'high',
+    },
+  ],
+
+  scope: [
+    {
+      text: 'Construction of an additional bridge adjacent to the existing bridge at Km 52.100 on NH-10 at Rangpo, at the West Bengal and Sikkim border',
+      page: 8,
+    },
+    {
+      text: 'Project length 0.24 km on the Sevoke-Gangtok section, estimated cost ₹ 13.01 crore',
+      page: 8,
+    },
+    {
+      text: 'Contractor is responsible for design, engineering, procurement and construction under an EPC Contract',
+      page: 8,
+    },
+    {
+      text: 'Maintenance of the project during the Defect Liability Period of 4 (four) years',
+      page: 8,
+    },
+    {
+      text: 'Clause 1.1.3 lists rehabilitation and augmentation of the existing carriageway to two-lane with paved shoulders, new pavement, bridges, culverts, intersections and drains',
+      page: 8,
+    },
+    {
+      text: 'Draft EPC Agreement with schedules (Part II) and Feasibility Report / DPR (Part III) form part of the bidding documents',
+      page: 23,
+    },
+    {
+      text: 'Bidders to carry out their own surveys and investigations. The Feasibility Report / DPR is a preliminary reference only and is not binding',
+      page: 11,
+    },
+  ],
+
+  evaluation: [
+    {
+      label: 'Method',
+      value: 'Lowest BID Price among technically responsive bidders. The Lowest Bidder is generally the Selected Bidder',
+      page: 10,
+      confidence: 'high',
+    },
+    {
+      label: 'Tests of responsiveness',
+      value: 'Online Appendix-IA with Annexures I to VI, physical documents received, bid security, power of attorney, complete information, no conditions, and document fee received',
+      page: 31,
+      confidence: 'high',
+    },
+    {
+      label: 'Technical result',
+      value: 'Result of technical evaluation displayed on the web portal for 7 days with reasons for non-responsiveness. Financial bids opened after that',
+      page: 29,
+      confidence: 'high',
+    },
+    {
+      label: 'Updated bid capacity before financial opening',
+      value: 'Technically responsive bidders must email Annexure VI A with any change in bid capacity, or NIL. Failure to do so means the financial bid is not opened',
+      page: 32,
+      confidence: 'high',
+    },
+    {
+      label: 'Tie bids',
+      value: 'Selected Bidder chosen by draw of lots in the presence of tie bidders who attend',
+      page: 32,
+      confidence: 'high',
+    },
+    {
+      label: 'If lowest bidder is not selected',
+      value: 'Authority shall annul the bidding process and invite fresh bids',
+      page: 32,
+      confidence: 'high',
+    },
+    {
+      label: 'RFAQ qualified bidders',
+      value: 'Bidders whose MoRT&H RFAQ eligibility limit is not less than the estimated cost need not submit Annexures II to IV',
+      page: 25,
+      confidence: 'high',
+    },
+  ],
+
+  submission: [
+    {
+      label: 'Online bid',
+      value: 'Technical and financial bids submitted online at https://eprocure.gov.in using the class III DSC of the authorised signatory',
+      page: 27,
+      confidence: 'high',
+    },
+    {
+      label: 'Technical bid contents',
+      value: 'Appendix-IA with Annexures I to VI, power of attorney (Appendix-III), bid security BG (Appendix-II), document fee proof, signed Integrity Pact and PoA undertaking',
+      page: 25,
+      confidence: 'high',
+    },
+    {
+      label: 'Financial bid',
+      value: 'Appendix-IB, bid price in figures and words in Indian Rupees. Words prevail if they differ',
+      page: 11,
+      confidence: 'high',
+    },
+    {
+      label: 'Physical submission',
+      value: 'Original power of attorney, original bid security BG, document fee DD or RTGS/NEFT proof, Integrity Pact and PoA undertaking in a sealed envelope marked with the work name, bidder name and address, and bid due date top right',
+      page: 26,
+      confidence: 'high',
+    },
+    {
+      label: 'Physical submission address',
+      value: 'Mr. Sandeep Gupta, General Manager (Technical), NHIDCL, 3rd Floor, PTI Building, 4, Parliament Street, New Delhi-110001',
+      page: 26,
+      confidence: 'high',
+    },
+    {
+      label: 'Financial documents',
+      value: 'Audited annual reports for the last 5 financial years, and a statutory auditor certificate for net worth',
+      page: 20,
+      confidence: 'high',
+    },
+    {
+      label: 'File format',
+      value: 'Scanned PDF or JPEG files, each not more than 5 MB',
+      page: 28,
+      confidence: 'high',
+    },
+    {
+      label: 'Late or other modes',
+      value: 'Physical documents received after the due time are not considered and the bid is rejected. Bids by fax, telex, telegram or e-mail are rejected',
+      page: 27,
+      confidence: 'high',
+    },
+    {
+      label: 'Modification and withdrawal',
+      value: 'Allowed online before the bid due date. A withdrawn bid cannot be resubmitted',
+      page: 28,
+      confidence: 'high',
+    },
+  ],
+
+  contacts: [
+    {
+      name: 'Mr. Sandeep Gupta',
+      role: 'General Manager (Technical)',
+      org: 'National Highways and Infrastructure Development Corporation Limited',
+      email: 'gmtechnhidcl@gmail.com',
+      phone: '011-23461620',
+      address: '3rd Floor, PTI Building, 4, Parliament Street, New Delhi-110001',
+      page: 5,
+    },
+  ],
+
+  clauses: [
+    {
+      ref: '1.2.4',
+      title: 'Bid security',
+      summary: '₹ 0.13 crore BG, valid at least 180 days from bid due date including a 60 day claim period, sent through SFMS to NHIDCL bank IFSC SYNB0009062. Refund within 150 days except for the Selected Bidder. Bid without security is rejected.',
+      page: 9,
+    },
+    {
+      ref: '2.20.1',
+      title: 'Issuing bank',
+      summary: 'BG from a nationalised bank or a Scheduled Bank in India with net worth of at least ₹ 1,000 crore. A foreign bank BG needs confirmation by a nationalised bank in India.',
+      page: 29,
+    },
+    {
+      ref: '2.20.5',
+      title: 'Bid security forfeiture',
+      summary: 'Forfeited for corrupt or fraudulent practice, withdrawal during validity, failure to sign the LOA or Agreement or furnish Performance Security, or breach after signing but before Performance Security.',
+      page: 30,
+    },
+    {
+      ref: '2.20.6',
+      title: 'Performance security',
+      summary: 'Due within 10 days of signing the Contract Agreement. Additional Performance Security applies if the bid is more than 10% below estimated cost: 20% or 30% of the shortfall below 90% of the estimated cost.',
+      page: 30,
+    },
+    {
+      ref: '3.3.4',
+      title: 'Letter of award',
+      summary: 'Selected Bidder must sign and return the duplicate LOA within 7 days, or the bid security may be appropriated. Agreement to be signed within 15 days of LOA.',
+      page: 33,
+    },
+    {
+      ref: '2.1.10',
+      title: 'Conditional bids',
+      summary: 'Any condition or qualification in the bid makes it liable to rejection as non-responsive.',
+      page: 12,
+    },
+    {
+      ref: '2.8',
+      title: 'Clarifications',
+      summary: 'Queries by e-mail before the scheduled date. Authority to respond no later than 15 days before the bid due date. Verbal clarifications are not binding.',
+      page: 23,
+    },
+    {
+      ref: '2.9',
+      title: 'Amendment of RFP',
+      summary: 'Addenda may be issued before the bid due date and hosted on www.nhidcl.com and the CPPP portal. Bid due date may be extended.',
+      page: 24,
+    },
+    {
+      ref: 'Section 5',
+      title: 'Pre-bid conference',
+      summary: 'Held at the designated date, time and place. Up to two representatives per bidder with an authority letter.',
+      page: 36,
+    },
+    {
+      ref: '2.5',
+      title: 'Site visit',
+      summary: 'Bidders are encouraged to visit the site. Submitting a bid means accepting the risk of errors in the bidding documents, with no claim for compensation or extension of time.',
+      page: 21,
+    },
+    {
+      ref: '4.1',
+      title: 'Fraud and corrupt practices',
+      summary: 'Authority may reject the bid, withdraw the LOA or terminate the Agreement and forfeit bid or performance security for corrupt, fraudulent, coercive, undesirable or restrictive practice.',
+      page: 34,
+    },
+    {
+      ref: '4.2',
+      title: 'Debarment',
+      summary: 'A bidder found to have engaged in such practices is not eligible for any tender or RFP of the Authority for 2 years.',
+      page: 34,
+    },
+    {
+      ref: 'Appendix VI',
+      title: 'Integrity Pact',
+      summary: 'Signed Integrity Pact per MoRT&H OM dated 22.02.2016 is mandatory and part of the contract. Independent External Monitor appointed. Breach can lead to disqualification, forfeiture of EMD and security, and exclusion.',
+      page: 67,
+    },
+    {
+      ref: '6.1',
+      title: 'Governing law',
+      summary: 'Laws of India. Courts at New Delhi have exclusive jurisdiction over bidding process disputes.',
+      page: 37,
+    },
+  ],
+
+  flags: [
+    {
+      title: 'Mandatory 72 m span bridge experience',
+      detail: 'Sole bidder must show construction of a major bridge with minimum span of 72 m in the last 5 financial years. JVs are not allowed at this project cost, so this cannot be met through a partner.',
+      page: 16,
+      severity: 'high',
+    },
+    {
+      title: 'No joint ventures',
+      detail: 'JV is not allowed where estimated cost is up to ₹ 100 crore. Estimated cost is ₹ 13.01 crore. JV formats and 60/20% rules are still printed in the RFP.',
+      page: 14,
+      severity: 'medium',
+    },
+    {
+      title: 'Scope text looks like highway boilerplate',
+      detail: 'Clause 1.1.3 describes two-lane widening with paved shoulders, pavement, culverts and interchanges, which does not match a 0.24 km bridge. Confirm scope against the draft Agreement schedules and DPR.',
+      page: 8,
+      severity: 'medium',
+    },
+    {
+      title: 'Draft Agreement and DPR not in this file',
+      detail: 'Parts II (Agreement with schedules) and III (Feasibility Report / DPR) are listed as part of the RFP but are not in this 72 page document. Performance security amount and other contract terms sit there.',
+      page: 23,
+      severity: 'medium',
+    },
+    {
+      title: 'Query response window shorter than stated',
+      detail: 'Clause 2.8.1 says responses no later than 15 days before the bid due date, but the schedule allows responses up to 02/06/2017, 10 days before the 12/06/2017 due date.',
+      page: 23,
+      severity: 'low',
+    },
+    {
+      title: 'Conflicting portal names',
+      detail: 'Clause 2.11.1 refers to http://www.morth.eproc.in, while the notice and clauses 2.12 to 2.14 use https://eprocure.gov.in. Confirm the live portal before uploading.',
+      page: 25,
+      severity: 'low',
+    },
+    {
+      title: 'Pre-bid meeting venue not stated',
+      detail: 'Pre-bid meeting is set for 29/05/2017 at 1400 hrs, but no venue is given. Section 5 says only "designated date, time and place".',
+      page: 36,
+      severity: 'low',
+    },
+    {
+      title: 'Physical documents gate the technical opening',
+      detail: 'Technical bids are opened only for bidders whose original BG, PoA, fee proof and Integrity Pact reach New Delhi by 12/06/2017 at 1500 hrs. Plan courier time from site.',
+      page: 28,
+      severity: 'medium',
+    },
+  ],
+};
