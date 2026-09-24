@@ -21,7 +21,7 @@ export function CoordDashboard() {
                 <span className="item-title">{v.tender} · {v.field}</span>
                 <span className="item-text">{v.detail}</span>
               </span>
-              <button type="button" className="btn btn-invert" style={{ color: 'var(--ink)' }} onClick={() => openModal({ type: 'validation', key: v.key })}>{v.label}</button>
+              <button type="button" className="btn btn-invert" onClick={() => openModal({ type: 'validation', key: v.key })}>{v.label}</button>
             </div>
           ))}
           {open.length === 0 && (

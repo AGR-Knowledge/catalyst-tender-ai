@@ -1,7 +1,7 @@
 import type { Agent, Artefact, Supplier } from './types';
 
 export const AGENTS: Agent[] = [
-  { name: 'Intake & Extraction', stage: 'S1', state: 'Active', runs: 1284, eval: 97.2, guard: 'Holds low-fit tenders for review', remit: 'Watches nine portals, three mailboxes and a scanned-document drop. Extracts every field with page-level provenance and links addenda to the parent tender.', owner: 'Tender Coordinator', tier: 'Economy' },
+  { name: 'Intake & Extraction', stage: 'S1', state: 'Active', runs: 1284, eval: 97.2, guard: 'Holds low-fit tenders for review', remit: 'Watches nine portals, two mailboxes and a scanned-document drop. Extracts every field with page-level provenance and links addenda to the parent tender.', owner: 'Tender Coordinator', tier: 'Economy' },
   { name: 'Outreach & Evaluation', stage: 'S2', state: 'Active', runs: 642, eval: 94.8, guard: 'Recommends only; buyer commits spend', remit: 'Builds supplier shortlists from delivered performance, issues RFQs, nudges non-responders at T+48h and normalises incoming quotes to a common schema.', owner: 'Procurement / Estimation Lead', tier: 'Economy' },
   { name: 'Win-Probability & Recommendation', stage: 'S3', state: 'Active', runs: 38, eval: 91.5, guard: 'Cannot make the Bid/No-Bid call', remit: 'Models win probability with an explicit uncertainty band against the decided-bid set, and flags low-data confidence instead of presenting false precision.', owner: 'Bid Committee', tier: 'Frontier' },
   { name: 'Scheduling', stage: 'S4', state: 'Active', runs: 54, eval: 93.1, guard: 'Schedules stay draft until validated', remit: 'Generates the baseline programme and critical path from the scope split, levels resources and re-plans when scope or quotes move.', owner: 'Planning Manager', tier: 'Workhorse' },
@@ -58,7 +58,6 @@ export const SOURCES = [
   { name: 'GeM portal', mode: 'Polled every 15 min', state: 'Healthy', tone: 'green' as const },
   { name: 'State utility portals (7)', mode: 'Polled hourly', state: 'Healthy', tone: 'green' as const },
   { name: 'tenders@genesis-epc.in mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
-  { name: 'bids@genesis-gulf.com mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
   { name: 'rfp@genesis-infra.com mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
   { name: 'Scanned drop at \\\\bidoffice\\intake', mode: 'OCR on arrival', state: '2 queued', tone: 'orange' as const },
 ];

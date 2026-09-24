@@ -5,7 +5,7 @@ Front-end prototype of Catalyst Tender AI, a bid and tender workbench for EPC co
 | Folder | What it holds |
 | --- | --- |
 | `app/` | The React + Vite application. See [app/README.md](app/README.md). |
-| `data/` | Source material from the client: wireframes, workflow and dashboard mock-ups, and sample tender PDFs in `data/bids`. |
+| `data/` | Client source material (wireframes, mock-ups, sample tender PDFs). Kept locally and not in the repository. The demo PDFs the app serves are copied in `app/public/bids`. |
 | `design/` | The design export the prototype is based on. |
 
 ## Run locally

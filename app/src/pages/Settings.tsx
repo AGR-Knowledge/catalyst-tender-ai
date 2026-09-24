@@ -1,6 +1,11 @@
-import { Monitor, Moon, RotateCcw, Sun } from 'lucide-react';
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Monitor, Moon, Plus, RotateCcw, Sun } from 'lucide-react';
+import { useTenants } from '@/domain/tenants';
+import { statusTone } from '@/data/tenants';
+import { TENANT } from '@/data/roles';
 import { CONTROL_POINTS, SOURCES } from '@/data/catalog';
-import { ROLES } from '@/data/roles';
+import { WALK_ORDER, roleOf } from '@/data/roles';
 import { useDemo } from '@/state/store';
 import { useTheme, type ThemePref } from '@/state/theme';
 import { useGo } from '@/state/nav';
@@ -14,16 +19,43 @@ const THEMES: { key: ThemePref; label: string; icon: JSX.Element }[] = [
 ];
 
 export function Settings() {
-  const { state, setBanner, openModal, toast } = useDemo();
+  const { state, setBanner, openModal, openDrawer, toast } = useDemo();
+  const tenants = useTenants();
+  const loc = useLocation();
+  useEffect(() => {
+    if (!loc.hash) return;
+    const t = window.setTimeout(() => document.getElementById(loc.hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    return () => window.clearTimeout(t);
+  }, [loc.hash, loc.key]);
   const { pref, setPref } = useTheme();
   const { goRole } = useGo();
   const actions = Object.keys(state.done).length;
 
   return (
     <div className="view">
+      <Card id="tenants" style={{ marginBottom: 'var(--gap)' }}>
+        <CardHead title="Tenants" meta="Platform administrator only">
+          <button type="button" className="btn" onClick={() => openModal({ type: 'tenant-add' })}><Plus size={14} aria-hidden />Add tenant</button>
+        </CardHead>
+        <DataTable
+          rows={tenants}
+          rowKey={(t) => t.key}
+          onRowClick={(t) => openDrawer({ type: 'tenant', key: t.key })}
+          rowLabel={(t) => `Open ${t.name}`}
+          columns={[
+            { key: 'n', header: 'Tenant', width: '1.7fr', primary: true, render: (t) => (<><span className="cell-main">{t.name}{t.home && <span className="t-ink4" style={{ fontWeight: 400 }}>, current</span>}</span><span className="cell-sub">{t.country}, {t.currency}</span></>) },
+            { key: 'r', header: 'Data residency', width: '1.2fr', priority: 2, render: (t) => t.residency },
+            { key: 'a', header: 'Admin', width: '1fr', priority: 3, render: (t) => t.admin },
+            { key: 'u', header: 'Seats', width: '.5fr', align: 'right', priority: 2, render: (t) => <span className="num">{t.seats}</span> },
+            { key: 's', header: 'Status', width: '1.3fr', align: 'right', render: (t) => <span className={tc(statusTone(t.live, t.stepsDone))}>{t.status}</span> },
+          ]}
+        />
+        <CardFoot>Each tenant has its own documents, users, rate library and past bids, held in its own region. Switch tenant from the top bar.</CardFoot>
+      </Card>
+
       <div className="split" style={{ '--cols': '1fr 1fr' } as React.CSSProperties}>
         <Card>
-          <CardHead title="Sources watched" meta="Intake Agent · Stage 1" />
+          <CardHead title="Sources watched" meta={TENANT} />
           {SOURCES.map((x) => (
             <div className="item" key={x.name} style={{ alignItems: 'center', padding: '12px 22px' }}>
               <span className="item-body"><span className="item-title" style={{ fontSize: 13 }}>{x.name}</span><span className="item-text" style={{ fontSize: 11.5, marginTop: 2 }}>{x.mode}</span></span>
@@ -48,7 +80,7 @@ export function Settings() {
       <Card style={{ marginTop: 'var(--gap)' }}>
         <CardHead title="Users and roles" meta="Administrator only" />
         <div className="users">
-          {ROLES.map((r) => (
+          {WALK_ORDER.map(roleOf).map((r) => (
             <button type="button" key={r.key} className="user" onClick={() => toast(`${r.name}: role, tender scope and gate authority opened (admin only)`, 'ink3')}>
               <span className="avatar sm soft">{r.initials}</span>
               <span style={{ minWidth: 0 }}>

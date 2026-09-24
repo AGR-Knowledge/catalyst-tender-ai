@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   Bot, Briefcase, FileUp, Calculator, ChevronRight, Columns3, Factory, FileText, HardHat, Inbox, Landmark, LayoutGrid,
-  Library, PackageSearch, PanelLeftClose, PanelLeftOpen, Send, Settings as SettingsIcon, ShieldCheck, Workflow, X,
+  Library, PackageSearch, PanelLeftClose, PanelLeftOpen, Send, Settings as SettingsIcon, ShieldCheck, Table2, Workflow, X,
 } from 'lucide-react';
 import type { RoleKey, Tone } from '@/data/types';
 import { roleOf } from '@/data/roles';
@@ -21,10 +21,10 @@ const I = { size: 16, strokeWidth: 1.6, 'aria-hidden': true } as const;
 /** Icon for each page a persona can open. Sections inside a dashboard sit in the tree without one. */
 const PAGE_ICON: Record<string, ReactNode> = {
   dash: <LayoutGrid {...I} />, pipeline: <Columns3 {...I} />, workflow: <Workflow {...I} />, settings: <SettingsIcon {...I} />,
-  submission: <Send {...I} />, intake: <FileUp {...I} />, suppliers: <Factory {...I} />, library: <Library {...I} />, agents: <Bot {...I} />,
+  submission: <Send {...I} />, intake: <FileUp {...I} />, boq: <Table2 {...I} />, suppliers: <Factory {...I} />, library: <Library {...I} />, agents: <Bot {...I} />,
 };
 
-/** Icon for the persona's own stage, shown on the expandable tree group. */
+/** Icon for the persona's own dashboard, which heads the expandable tree of its sections. */
 const ROLE_ICON: Record<RoleKey, ReactNode> = {
   coord: <Inbox {...I} />, bid: <Briefcase {...I} />, proc: <PackageSearch {...I} />, exec: <Landmark {...I} />,
   comm: <Calculator {...I} />, prop: <FileText {...I} />, comp: <ShieldCheck {...I} />, dir: <HardHat {...I} />,
@@ -56,6 +56,7 @@ function badge(key: string, l: Live): Badge {
     case 'intake': return { tag: '5' };
     case 'today': { const n = l.myDg1Ready.length + l.blockers.length; return n ? { tag: String(n), tone: l.myDg1Ready.length ? 'red' : 'orange' } : { tag: 'clear', tone: 'green' }; }
     case 'register': return { tag: String(l.mine.length) };
+    case 'boq': return { tag: String(l.boqTenders) };
     case 'uploads': return l.uploadsToReview ? { tag: String(l.uploadsToReview), tone: 'orange' } : null;
     case 'resources': return l.clashesOpen ? { tag: String(l.clashesOpen), tone: 'orange' } : { tag: 'clear', tone: 'green' };
     case 'submission': return { tag: 'M3', tone: l.submitted ? 'green' : l.canSubmit ? 'orange' : 'muted' };
@@ -117,13 +118,14 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     key: i.key, label: i.label, anchor: i.anchor, path: i.page ? `/${i.page}` : undefined, icon: i.page ? PAGE_ICON[i.page] : undefined, ...badge(i.key, live),
   });
 
+  // The persona's dashboard and its sections are one tree, so the dashboard is never listed twice.
+  // Pages in the persona's own group (submission desk, uploads, BOQ) sit flat alongside Pipeline and Workflow.
+  const [own, ...rest] = ROLE_NAV[state.role];
   const top: Item[] = [
-    { key: 'dash', label: role.view, icon: PAGE_ICON.dash },
     { key: 'pipeline', label: 'Pipeline', tag: String(live.active.length), path: '/pipeline', icon: PAGE_ICON.pipeline },
     { key: 'workflow', label: 'Workflow', path: '/workflow', icon: PAGE_ICON.workflow },
+    ...own.items.filter((i) => i.page).map(toItem),
   ];
-  // The first group is the persona's own stage and renders as a tree; the rest are flat reference links.
-  const [own, ...rest] = ROLE_NAV[state.role];
   const settings: Item = { key: 'settings', label: 'Settings', path: '/settings', icon: PAGE_ICON.settings };
 
   const activate = (it: Item) => {
@@ -149,15 +151,18 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
     );
   };
 
-  const ownItems = own.items.map(toItem);
+  const ownItems = own.items.filter((i) => i.anchor).map(toItem);
+  const dashOn = current === 'dash';
   const ownOpen = !mini && !closed[own.label];
   const ownHasCurrent = ownItems.some((i) => i.key === current);
   // A folded tree keeps its links out of the tab order (React 18 has no typed `inert` prop).
   const treeBody = useRef<HTMLDivElement>(null);
   useEffect(() => { treeBody.current?.toggleAttribute('inert', !ownOpen); }, [ownOpen]);
-  const toggleOwn = () => {
-    if (mini) { setMini(false); setClosed({}); return; }
-    setClosed((c) => ({ ...c, [own.label]: !c[own.label] }));
+  const toggleOwn = () => setClosed((c) => ({ ...c, [own.label]: !c[own.label] }));
+  // The head opens the dashboard; opening it also unfolds the tree.
+  const openDash = () => {
+    setClosed((c) => ({ ...c, [own.label]: false }));
+    activate({ key: 'dash', label: role.view });
   };
 
   return (
@@ -181,18 +186,22 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           <button type="button" className="btn btn-icon sb-close" onClick={onClose} aria-label="Close navigation"><X /></button>
         </div>
         <nav className="sb-nav" key={state.role}>
-          <div className="sb-group">{top.map((it) => renderItem(it))}</div>
-
           <div className={`sb-tree ${ownOpen ? 'open' : ''} ${ownHasCurrent ? 'has-on' : ''}`}>
-            <button type="button" className="sb-item sb-tree-head" onClick={toggleOwn} aria-expanded={ownOpen} title={mini ? own.label : undefined}>
-              {ROLE_ICON[state.role]}
-              <span className="lbl">{own.label}</span>
-              <ChevronRight className="chev" size={14} strokeWidth={1.8} aria-hidden />
-            </button>
+            <div className={`sb-item sb-tree-head ${dashOn ? 'on' : ''}`}>
+              <button type="button" className="sb-tree-link" onClick={openDash} aria-current={dashOn ? 'page' : undefined} title={mini ? role.view : undefined}>
+                {ROLE_ICON[state.role]}
+                <span className="lbl">{role.view}</span>
+              </button>
+              <button type="button" className="sb-tree-chev" onClick={toggleOwn} aria-expanded={ownOpen} aria-label={ownOpen ? `Fold ${role.view} sections` : `Show ${role.view} sections`}>
+                <ChevronRight className="chev" size={14} strokeWidth={1.8} aria-hidden />
+              </button>
+            </div>
             <div className="sb-tree-body" ref={treeBody}>
               <div className="sb-tree-inner">{ownItems.map((it) => renderItem(it, true))}</div>
             </div>
           </div>
+
+          <div className="sb-group">{top.map((it) => renderItem(it))}</div>
 
           {rest.map((g) => (
             <div className="sb-group" key={g.label}>

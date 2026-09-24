@@ -76,7 +76,7 @@ export function DirDashboard() {
               <span className="item-body">
                 <span className="item-title">{x.title}</span>
                 <span className="item-text">{x.body}</span>
-                {x.label && <span className="item-actions"><button type="button" className="btn btn-invert" style={{ color: 'var(--ink)' }} onClick={x.run}>{x.label}</button></span>}
+                {x.label && <span className="item-actions"><button type="button" className="btn btn-invert" onClick={x.run}>{x.label}</button></span>}
               </span>
               <span className={`item-when ${tc(x.tone)}`}>{x.when}</span>
             </div>

@@ -12,6 +12,8 @@ import {
 import { Card, CardFoot, CardHead, tc } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 import { StepList, UploadRow } from '@/components/intake/UploadProgress';
+import { compatFor, type Compat } from '@/domain/compat';
+import { PURSUE_AT, REVIEW_AT } from '@/data/compat';
 
 const stamp = (ms: number) => new Date(ms).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 
@@ -63,6 +65,55 @@ export function IntakeList() {
         <CardFoot>Extracted values stay with their page reference, so every field can be checked against the source.</CardFoot>
       </Card>
     </div>
+  );
+}
+
+/* ───────── Compatibility: pursue or not, with the reasoning ───────── */
+
+function CompatCard({ c, passed, dated }: { c: Compat; passed: boolean; dated: boolean }) {
+  const strong = c.strengths.map((x) => x.toLowerCase());
+  const weak = c.concerns.map((x) => x.toLowerCase());
+  const join = (xs: string[]) => (xs.length > 1 ? `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}` : xs[0]);
+  const summary = [
+    c.verdict === 'pursue' ? 'The agent recommends pursuing this tender.' : c.verdict === 'review' ? 'The agent recommends pursuing only if the concerns below can be resolved.' : 'The agent recommends not pursuing this tender.',
+    strong.length ? `It scores well on ${join(strong)}.` : '',
+    weak.length ? `It is held back by ${join(weak)}.` : '',
+    passed ? (dated ? 'The bid date has passed, so this applies to a re-issue.' : 'No submission date is given, so ask the client for one first.') : '',
+  ].filter(Boolean).join(' ');
+  return (
+    <Card className="cp" style={{ marginTop: 'var(--gap)' }}>
+      <CardHead title="Compatibility" meta="Win-Probability & Recommendation Agent, against the bid office profile" />
+      <div className="cp-grid">
+        <div className="cp-sum">
+          <div className="cp-score"><b className={tc(c.tone)}>{c.score}</b><span>/100</span></div>
+          <div className={`cp-verdict ${tc(c.tone)}`}>{c.label}</div>
+          <div className="cp-scale" aria-hidden>
+            <i className="r" style={{ width: `${REVIEW_AT}%` }} /><i className="o" style={{ width: `${PURSUE_AT - REVIEW_AT}%` }} /><i className="g" style={{ width: `${100 - PURSUE_AT}%` }} />
+            <b style={{ left: `${c.score}%` }} />
+          </div>
+          <div className="cp-scale-l"><span style={{ left: 0 }}>Do not pursue</span><span style={{ left: `${REVIEW_AT}%` }}>{REVIEW_AT}</span><span style={{ left: `${PURSUE_AT}%` }}>{PURSUE_AT}</span><span style={{ right: 0 }}>Pursue</span></div>
+          <p className="cp-why">{summary}</p>
+          <div className="cp-sharpen">
+            <span>What would change this</span>
+            <ul>{c.sharpen.map((x) => <li key={x}>{x}</li>)}</ul>
+          </div>
+        </div>
+        <div className="cp-rows">
+          {c.rows.map((r) => (
+            <div className="cp-row" key={r.key}>
+              <div className="cp-row-h">
+                <span className="l">{r.label}</span>
+                <span className="w">weight {r.weight}</span>
+                <span className="p num">{r.points.toFixed(1)}</span>
+              </div>
+              <span className="ptrack cp-bar"><span className="f" style={{ width: `${r.score}%`, background: `var(--${r.score >= 70 ? 'green' : r.score >= 45 ? 'orange' : 'red'})` }} /></span>
+              <div className="cp-row-r">{r.reason}. {r.page && <Pg page={r.page} terms={termsFor(r.reason)} label={r.label} />}</div>
+            </div>
+          ))}
+          <div className="cp-total"><span>Weighted total</span><b className={`num ${tc(c.tone)}`}>{c.score}</b></div>
+        </div>
+      </div>
+    </Card>
   );
 }
 
@@ -130,6 +181,7 @@ export function IntakeReview() {
 
   const due = bidDue(d);
   const sc = screeningFor(d);
+  const cp = compatFor(d);
   const { value, converted } = valueCrOf(d);
   const doubts = doubtful(d);
   const open = doubts.filter((f) => !is(confirmKey(u.id, f.idx)));
@@ -174,8 +226,8 @@ export function IntakeReview() {
           <div className="fig"><div className="k">To check</div><div className={`v ${open.length ? 't-orange' : 't-green'}`}>{open.length}</div><div className="s">{open.length ? 'below high confidence' : 'all confirmed'}</div></div>
         </div>
         <div className="xr-screen">
-          <span className="xr-fit"><b className={sc.fit >= 60 ? 't-green' : sc.fit >= 40 ? 't-orange' : 't-red'}>{sc.fit}%</b> fit</span>
-          <span className="xr-reason">{sc.reason}. {passed ? (due ? `The bid date has passed, so it joins the register held for review.` : 'No submission date is printed, so it joins the register held for review.') : 'It joins the register at Stage 1 with DG1 open.'}</span>
+          <span className="xr-fit"><b className={tc(cp?.tone ?? 'ink')}>{sc.fit}</b>/100</span>
+          <span className="xr-reason">{cp ? <><b className={tc(cp.tone)}>{cp.label}.</b> </> : null}{passed ? (due ? `The bid date has passed, so it joins the register held for review.` : 'No submission date is printed, so it joins the register held for review.') : 'It joins the register at Stage 1 with DG1 open.'}</span>
           <span className="xr-acts">
             {registered ? (
               <>
@@ -184,13 +236,15 @@ export function IntakeReview() {
               </>
             ) : (
               <>
-                <button type="button" className="btn btn-primary" onClick={add}>Add to register as {nextId}</button>
-                <button type="button" className="btn" onClick={() => { removeUpload(u.id); navigate('/intake'); toast(`${u.file} removed`, 'ink3'); }}>Discard</button>
+                <button type="button" className={`btn ${cp?.verdict === 'decline' ? '' : 'btn-primary'}`} onClick={add}>{cp?.verdict === 'decline' ? 'Add to register anyway' : `Add to register as ${nextId}`}</button>
+                <button type="button" className={`btn ${cp?.verdict === 'decline' ? 'btn-primary' : ''}`} onClick={() => { removeUpload(u.id); navigate('/intake'); toast(`${u.file} not pursued. Reason recorded: ${cp?.concerns[0]?.toLowerCase() ?? 'screening'}`, 'ink3'); }}>{cp?.verdict === 'decline' ? 'Do not pursue' : 'Discard'}</button>
               </>
             )}
           </span>
         </div>
       </Card>
+
+      {cp && <CompatCard c={cp} passed={passed} dated={!!due} />}
 
       <div className="split" style={{ '--cols': '1.55fr 1fr', marginTop: 'var(--gap)' } as React.CSSProperties}>
         <div className="stack-gap">

@@ -4,6 +4,11 @@ import { PORTFOLIO, REPRICE_LOG, FX_EXPOSURE, REDLINES, VALIDATIONS, INTAKE_TODA
 import { useLive, FOCUS_ID, type Live } from '@/domain/live';
 import { cr, dayMonth, int, pct, plural, pts } from '@/domain/format';
 import { useGo } from '@/state/nav';
+import { useDemo } from '@/state/store';
+import { canSee } from '@/data/access';
+import { handKey, handoverFrom, prevOf, readHand } from '@/domain/handover';
+import { HAND_MARK } from '@/components/overlays/FlowModals';
+import { Card, CardFoot, CardHead } from '@/components/ui/primitives';
 import { Kpis, Pill, type KpiItem } from '@/components/ui/primitives';
 import { ExecDashboard } from './roles/Exec';
 import { BidDashboard } from './roles/Bid';
@@ -43,7 +48,7 @@ function kpisFor(role: RoleKey, l: Live): KpiItem[] {
       const open = l.validationsOpen.length;
       const cleared = VALIDATIONS.length - open;
       return [
-        { label: 'Captured since 18:00', value: '14', sub: `9 portals, 3 mailboxes, 2 scanned; ${INTAKE_TODAY.length} this morning` },
+        { label: 'Captured since 18:00', value: '14', sub: `9 portals, 2 mailboxes, 2 scanned; ${INTAKE_TODAY.length} this morning` },
         { label: 'Awaiting validation', value: String(open), sub: cleared ? `${cleared} cleared this session` : 'fields below confidence threshold', tone: open ? 'orange' : 'green', subTone: open ? 'orange' : 'green' },
         { label: 'Avg. intake to logged', value: '9 min', sub: 'target ≤ 15 min', subTone: 'green' },
         { label: 'Duplicates resolved', value: '3', sub: 'linked to parent tender' },
@@ -112,6 +117,7 @@ export function Dashboard({ role }: { role: RoleKey }) {
         <Pill>{r.scope}</Pill>
         <p>{r.blurb}</p>
       </div>
+      <Received role={role} />
       <Kpis items={kpisFor(role, live)} />
       <Body />
       <WalkBar role={role} />
@@ -119,8 +125,40 @@ export function Dashboard({ role }: { role: RoleKey }) {
   );
 }
 
+/** The package the previous owner handed over, shown until the next hand-over replaces it. */
+function Received({ role }: { role: RoleKey }) {
+  const live = useLive();
+  const { goSection, goPage } = useGo();
+  const from = prevOf(role);
+  const rec = readHand(live.done[handKey(from)]);
+  if (!rec) return null;
+  const h = handoverFrom(from, live);
+  const who = roleOf(from);
+  const at = new Date(rec.at).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const open = h.items.filter((i) => i.state === 'open').length;
+  return (
+    <Card className="recv" style={{ marginBottom: 'var(--gap)' }}>
+      <CardHead title={`Received from ${who.name}, ${who.short}`} meta={`${at}, ${open ? `${open} open` : 'all ready'}`} />
+      {rec.note && <p className="note recv-note">“{rec.note}”</p>}
+      {h.items.map((i) => {
+        const target = i.anchor ? () => goSection(i.anchor!) : i.path && canSee(role, i.path.slice(1).split(/[/?]/)[0] as never) ? () => goPage(i.path!) : null;
+        return (
+          <div className={`ho-item s-${i.state}`} key={i.key}>
+            <span className="ho-dot" aria-hidden />
+            <span className="ho-body"><b>{i.label}</b><span>{i.detail}</span></span>
+            <span className={`ho-state ${HAND_MARK[i.state].cls}`}>{HAND_MARK[i.state].t}</span>
+            {target && <button type="button" className="btn btn-sm ho-go" onClick={target}>Open</button>}
+          </div>
+        );
+      })}
+      <CardFoot>{h.what}. Figures update as the work moves on, so this reflects where things stand now.</CardFoot>
+    </Card>
+  );
+}
+
 function WalkBar({ role }: { role: RoleKey }) {
   const { goRole } = useGo();
+  const { openModal } = useDemo();
   const i = WALK_ORDER.indexOf(role);
   const prev = i > 0 ? WALK_ORDER[i - 1] : null;
   const next = i < WALK_ORDER.length - 1 ? WALK_ORDER[i + 1] : null;
@@ -131,8 +169,8 @@ function WalkBar({ role }: { role: RoleKey }) {
       <div className="btns">
         {prev && <button type="button" className="btn" onClick={() => goRole(prev)}>← {roleOf(prev).short}</button>}
         {next
-          ? <button type="button" className="btn btn-primary" onClick={() => goRole(next, { announce: `Handed over. Signed in as ${roleOf(next).name} (${roleOf(next).view})` })}>Hand over to {roleOf(next).short} →</button>
-          : <button type="button" className="btn btn-primary" onClick={() => goRole('coord', { announce: 'Stage 9 feeds Stage 1. Models refreshed, back at intake' })}>Loop back to Stage 1 ↻</button>}
+          ? <button type="button" className="btn btn-primary" onClick={() => openModal({ type: 'handover', from: role })}>Hand over to {roleOf(next).short} →</button>
+          : <button type="button" className="btn btn-primary" onClick={() => openModal({ type: 'handover', from: role })}>Loop back to Stage 1 ↻</button>}
       </div>
     </div>
   );

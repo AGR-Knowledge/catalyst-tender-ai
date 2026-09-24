@@ -5,7 +5,7 @@ import type { RoleKey } from './types';
  * cross-role actions all read from here, so there is one definition of scope.
  */
 
-export type PageKey = 'pipeline' | 'workflow' | 'agents' | 'submission' | 'suppliers' | 'library' | 'intake' | 'settings';
+export type PageKey = 'pipeline' | 'workflow' | 'agents' | 'submission' | 'suppliers' | 'library' | 'intake' | 'boq' | 'settings';
 
 export interface RoleNavItem {
   key: string;
@@ -35,6 +35,7 @@ export const ROLE_NAV: Record<RoleKey, RoleNavGroup[]> = {
       { key: 'register', label: 'Active bid register', anchor: 'sec-register' },
       { key: 'focus', label: 'T-2026-041 stage progress', anchor: 'sec-focus' },
       { key: 'resources', label: 'Resources and clashes', anchor: 'sec-resources' },
+      { key: 'boq', label: 'BOQ and rates', page: 'boq' },
       { key: 'submission', label: 'Submission desk', page: 'submission' },
       { key: 'uploads', label: 'Uploaded documents', page: 'intake' },
     ] },
@@ -47,6 +48,7 @@ export const ROLE_NAV: Record<RoleKey, RoleNavGroup[]> = {
     { label: 'Stage 2 · Source', items: [
       { key: 'board', label: 'Package board', anchor: 'sec-board' },
       { key: 'quotes', label: 'Quote comparison', anchor: 'sec-quotes' },
+      { key: 'boq', label: 'BOQ and rates', page: 'boq' },
     ] },
     { label: 'Reference', items: [
       { key: 'suppliers', label: 'Supplier database', page: 'suppliers' },
@@ -68,6 +70,7 @@ export const ROLE_NAV: Record<RoleKey, RoleNavGroup[]> = {
       { key: 'cost', label: 'Cost build-up', anchor: 'sec-cost' },
       { key: 'scenarios', label: 'Margin scenarios', anchor: 'sec-scenarios' },
       { key: 'reprice', label: 'Re-price log', anchor: 'sec-reprice' },
+      { key: 'boq', label: 'BOQ and rates', page: 'boq' },
     ] },
     { label: 'Reference', items: [
       { key: 'suppliers', label: 'Supplier database', page: 'suppliers' },
@@ -118,5 +121,5 @@ export function rolesWith(page: PageKey): RoleKey[] {
 
 export const PAGE_LABEL: Record<PageKey, string> = {
   pipeline: 'Pipeline', workflow: 'Workflow', agents: 'Agent console', submission: 'Submission desk',
-  suppliers: 'Supplier database', library: 'Artefacts library', intake: 'Uploaded documents', settings: 'Settings',
+  suppliers: 'Supplier database', library: 'Artefacts library', intake: 'Uploaded documents', boq: 'BOQ and rates', settings: 'Settings',
 };

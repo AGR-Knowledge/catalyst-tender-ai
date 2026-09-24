@@ -15,6 +15,7 @@ import { Settings } from '@/pages/Settings';
 import { NotFound } from '@/pages/NotFound';
 import { Guard } from '@/pages/Restricted';
 import { IntakeList, IntakeReview } from '@/pages/Intake';
+import { Boq } from '@/pages/Boq';
 
 function DashboardRoute() {
   const { role } = useParams();
@@ -49,6 +50,7 @@ export function App() {
               <Route path="library" element={<Guard page="library"><Library /></Guard>} />
               <Route path="intake" element={<Guard page="intake"><IntakeList /></Guard>} />
               <Route path="intake/:id" element={<Guard page="intake"><IntakeReview /></Guard>} />
+              <Route path="boq" element={<Guard page="boq"><Boq /></Guard>} />
               <Route path="settings" element={<Settings />} />
               <Route path="*" element={<NotFound />} />
             </Route>

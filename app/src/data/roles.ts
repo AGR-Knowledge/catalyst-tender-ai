@@ -31,5 +31,5 @@ export const WALK_STEP: Record<RoleKey, string> = {
   dir: 'Stage 9 · delivery & learning',
 };
 
-export const TENANT = 'Genesis Infra (Gulf JV)';
+export const TENANT = 'Genesis EPC India Ltd';
 export const TENANT_BUILD = 'tenant build 2026.03';

@@ -5,6 +5,7 @@ import type { Tender } from '@/data/types';
 import { TODAY_ISO, TENDERS } from '@/data/tenders';
 import type { Upload } from '@/state/store';
 import { longDate } from './format';
+import { compatFor } from './compat';
 
 /**
  * Mock intake service. In production the file goes to the Intake & Extraction
@@ -14,13 +15,6 @@ import { longDate } from './format';
 
 /** Rate used only to show a non-INR document in ₹ crore on the register. */
 export const USD_INR = 83;
-
-/** Screening the agent adds on top of the document itself: fit to the bid office's profile. */
-const SCREENING: Record<string, { fit: number; reason: string }> = {
-  nit: { fit: 78, reason: 'Major bridge on EPC mode, inside the transport portfolio and bonding capacity' },
-  'rfp-rangpo': { fit: 74, reason: 'Bridge on EPC mode for NHIDCL, a repeat client; smaller than the usual band' },
-  'tor-akkar': { fit: 22, reason: 'Design consultancy for a hospital in Lebanon, outside the EPC works portfolio' },
-};
 
 const norm = (s: string) => s.toLowerCase().replace(/\.pdf$/i, '').replace(/[^a-z0-9]/g, '');
 
@@ -113,8 +107,12 @@ export function bidDue(d: ExtractedTender) {
   return sub.find((x) => /end|last|closing|due|on or before/i.test(x.label)) ?? sub.filter((x) => !/start|open/i.test(x.label)).pop() ?? sub.pop() ?? null;
 }
 
+/** Fit-score and the one-line reason the register shows. The score is the weighted compatibility total. */
 export function screeningFor(d: ExtractedTender) {
-  return SCREENING[d.key] ?? { fit: 50, reason: 'Screened against the bid office profile' };
+  const c = compatFor(d);
+  if (!c) return { fit: 50, reason: 'Screened against the bid office profile' };
+  const lead = c.rows.slice().sort((a, b) => (c.verdict === 'decline' ? a.score - b.score : b.score - a.score))[0];
+  return { fit: c.score, reason: `${c.label}. ${lead.reason}` };
 }
 
 export function valueCrOf(d: ExtractedTender): { value: number; converted: boolean } {

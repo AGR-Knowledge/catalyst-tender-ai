@@ -8,6 +8,7 @@ import { CALIBRATION, EFFORT } from '@/data/impact';
 import { CLASHES, RESOURCE_PLAN } from '@/data/resources';
 import { PORTFOLIO } from '@/data/workspace';
 import { slipFor } from './programme';
+import { boqFor, type Boq } from './boq';
 import { confirmKey, docFor, doubtful, tenderFromUpload } from './intake';
 import type { Upload } from '@/state/store';
 import { useMemo } from 'react';
@@ -269,6 +270,11 @@ export function computeLive(done: Record<string, string>, scenarioKey: ScenarioK
   const crewOver = crewMonths.filter((m) => m.over);
   const crewShort = Math.max(0, ...RESOURCE_PLAN.months.map((m) => m.v)) - RESOURCE_PLAN.capacity;
   const contingency = COST_LINES.find((c) => c.key === 'cont')?.value ?? 0;
+  // Bills of quantities for every live bid that has one (uploads get theirs with the full RFP).
+  const boqs = active.map(boqFor).filter((b): b is Boq => !!b);
+  const boqOf = (id: string) => boqs.find((b) => b.tender.id === id) ?? null;
+  const boqTenders = boqs.length;
+
   const clashesOpen = (crewOver.length && !crewHired ? 1 : 0) + CLASHES.filter((c) => !is('clash-' + c.key)).length;
 
   return {
@@ -285,6 +291,7 @@ export function computeLive(done: Record<string, string>, scenarioKey: ScenarioK
     agentEsc, totalRuns,
     alerts, alertsFor, roleAttention,
     uploadsToReview,
+    boqs, boqOf, boqTenders,
     crewHired, crewCapacity, crewMonths, crewOver, crewShort, contingency, clashesOpen,
     effort, effortBefore, effortNow, submittedQuarter, hoursReturned, calibration, decidedBids, calibrationError,
   };

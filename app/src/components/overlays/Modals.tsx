@@ -1,4 +1,5 @@
 import { UploadModal } from '@/components/intake/UploadModal';
+import { HandoverModal, TenantAddModal } from './FlowModals';
 import { VALIDATIONS, REDLINES } from '@/data/workspace';
 import { useDemo, type ModalSpec } from '@/state/store';
 import { ClosingContext, usePresence } from '@/state/presence';
@@ -24,6 +25,8 @@ function ModalSwitch({ spec }: { spec: ModalSpec }) {
     case 'sme': return <SmeModal />;
     case 'reset': return <ResetModal />;
     case 'upload': return <UploadModal />;
+    case 'handover': return <HandoverModal from={spec.from} />;
+    case 'tenant-add': return <TenantAddModal />;
   }
 }
 

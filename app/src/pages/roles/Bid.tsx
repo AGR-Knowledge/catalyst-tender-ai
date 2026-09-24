@@ -63,7 +63,7 @@ export function BidDashboard() {
               <span className="item-body">
                 <span className="item-title">{x.title}</span>
                 <span className="item-text">{x.body}</span>
-                {x.action && <span className="item-actions"><button type="button" className="btn btn-invert" onClick={x.action.run} style={{ color: 'var(--ink)' }}>{x.action.label}</button></span>}
+                {x.action && <span className="item-actions"><button type="button" className="btn btn-invert" onClick={x.action.run}>{x.action.label}</button></span>}
               </span>
               <span className={`item-when ${tc(x.tone)}`}>{x.when}</span>
             </div>

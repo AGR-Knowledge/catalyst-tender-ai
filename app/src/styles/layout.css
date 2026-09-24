@@ -51,9 +51,16 @@
 
 /* The persona's own stage: a folding tree with a guide line, like a file browser. */
 .sb-tree { margin: 2px 0 14px; }
-.sb-tree-head { color: var(--ink-2); }
-.sb-tree.has-on .sb-tree-head > svg:first-child { color: var(--ink); }
-.sb-tree-head .chev { width: 14px; margin-right: 1px; color: var(--ink-5); transition: transform 180ms var(--ease-out); }
+/* The head is two targets: the label opens the dashboard, the chevron folds the tree. */
+.sb-tree-head { color: var(--ink-2); padding: 0; gap: 0; }
+.sb-tree-head .lbl { font-size: 13px; letter-spacing: -0.1px; }
+.sb-tree-link { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 11px; padding: 0 4px 0 12px; text-align: left; color: inherit; font: inherit; border-radius: var(--radius-sm); }
+.sb-tree-link > svg { flex: none; width: 16px; color: var(--ink-4); transition: color var(--dur-fast) ease; }
+.sb-tree-head:hover .sb-tree-link > svg, .sb-tree-head.on .sb-tree-link > svg, .sb-tree.has-on .sb-tree-link > svg { color: var(--ink); }
+.sb-tree-chev { flex: none; width: 30px; height: 100%; display: grid; place-items: center; border-radius: var(--radius-sm); color: var(--ink-5); }
+.sb-tree-chev:hover { background: var(--surface-active); color: var(--ink); }
+.sb-tree-link:focus-visible, .sb-tree-chev:focus-visible { outline-offset: -2px; }
+.sb-tree-head .chev { width: 14px; transition: transform 180ms var(--ease-out); }
 .sb-tree.open .sb-tree-head .chev { transform: rotate(90deg); }
 .sb-tree-body { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 200ms var(--ease-out); }
 .sb-tree.open .sb-tree-body { grid-template-rows: 1fr; }
@@ -76,6 +83,7 @@
 .sidebar.mini .sb-item .tag, .sidebar.mini .chev { display: none; }
 .sidebar.mini .sb-group-label::after { opacity: 1; }
 .sidebar.mini .sb-tree.has-on .sb-tree-head { background: var(--surface-active); }
+.sidebar.mini .sb-tree-chev { display: none; }
 .sb-scrim { display: none; }
 
 .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }

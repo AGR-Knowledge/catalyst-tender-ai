@@ -13,3 +13,6 @@ dist/
 .vercel
 .idea/
 .vscode/
+
+# Client reference material, kept local only
+data/

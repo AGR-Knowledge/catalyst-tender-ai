@@ -42,3 +42,10 @@ Replacing the mock layer with an API later means swapping `src/data` for fetches
   - Low and medium confidence fields can be confirmed there.
   - "Add to register" creates the next T-2026 number at Stage 1. A document whose bid date has passed, or that gives no date, is held instead of opening DG1.
 - **Adding a new demo document:** add a record to `src/data/extracted/` and list it in `index.ts`.
+
+## Compatibility, BOQ, hand-over and tenants
+
+- **Compatibility** (`src/data/compat.ts`, `src/domain/compat.ts`): each uploaded tender is scored on seven weighted criteria against the bid office profile. The weighted total is the fit-score on the register, and it sets the recommendation: pursue at 65 or above, pursue with conditions from 45, otherwise do not pursue.
+- **BOQ and rates** (`/boq`; `src/data/boq.ts`, `src/domain/boq.ts`): every live bid gets a bill built from a shared item catalogue, so the same item can be compared across bids. The bill always totals to the tender value. Quantities stay fixed and rates move with the price, so a Stretch scenario on T-2026-041 raises its rates. Rates more than 8% from the median of other bids are flagged.
+- **Hand-over** (`src/domain/handover.ts`): "Hand over to…" opens the package the next owner receives, derived from live state, with an optional note. The next role sees it as "Received from…" at the top of their dashboard.
+- **Tenants** (`src/data/tenants.ts`, `src/domain/tenants.ts`): these are the switcher in the top bar, the Tenants card in Settings, the tenant drawer with its onboarding checklist, and "Add tenant". The demo register belongs to Genesis EPC India Ltd. Other tenants stay in onboarding until go-live is booked.

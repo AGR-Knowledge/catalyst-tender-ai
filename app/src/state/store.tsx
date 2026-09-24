@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef, type ReactNode } from 'react';
 import type { RoleKey, Tone } from '@/data/types';
 import type { ScenarioKey } from '@/data/workspace';
+import type { Tenant } from '@/data/tenants';
 import { isRoleKey } from '@/data/roles';
 import { EXIT_MS } from './presence';
 
@@ -13,7 +14,8 @@ export type DrawerSpec =
   | { type: 'artefact'; index: number }
   | { type: 'project'; key: string }
   | { type: 'redline'; key: string }
-  | { type: 'cost'; key: string };
+  | { type: 'cost'; key: string }
+  | { type: 'tenant'; key: string };
 
 export type ModalSpec =
   | { type: 'dg1'; id: string }
@@ -24,7 +26,9 @@ export type ModalSpec =
   | { type: 'submit' }
   | { type: 'sme' }
   | { type: 'reset' }
-  | { type: 'upload' };
+  | { type: 'upload' }
+  | { type: 'tenant-add' }
+  | { type: 'handover'; from: RoleKey };
 
 export interface Toast { id: number; msg: string; tone: Tone; leaving?: boolean }
 
@@ -44,6 +48,8 @@ interface Persisted {
   /** Actions taken during the demo. Value records the outcome (e.g. 'approved', 'declined'). */
   done: Record<string, string>;
   uploads: Upload[];
+  /** Tenants created during the demo, on top of the seeded ones. */
+  tenants: Tenant[];
   scenario: ScenarioKey;
   role: RoleKey;
   showBanner: boolean;
@@ -68,10 +74,11 @@ type Action =
   | { type: 'addUpload'; value: Upload }
   | { type: 'registerUpload'; id: string; tenderId: string }
   | { type: 'removeUpload'; id: string }
+  | { type: 'addTenant'; value: Tenant }
   | { type: 'reset' };
 
 const STORAGE_KEY = 'ctai.demo.v1';
-const DEFAULTS: Persisted = { done: {}, uploads: [], scenario: 'base', role: 'bid', showBanner: true };
+const DEFAULTS: Persisted = { done: {}, uploads: [], tenants: [], scenario: 'base', role: 'bid', showBanner: true };
 
 function load(): Persisted {
   try {
@@ -81,6 +88,7 @@ function load(): Persisted {
     return {
       done: p.done && typeof p.done === 'object' ? p.done : {},
       uploads: Array.isArray(p.uploads) ? p.uploads.filter((u) => u && typeof u.id === 'string' && typeof u.file === 'string') : [],
+      tenants: Array.isArray(p.tenants) ? p.tenants.filter((t) => t && typeof t.key === 'string' && typeof t.name === 'string') : [],
       scenario: p.scenario === 'stretch' || p.scenario === 'defensive' ? p.scenario : 'base',
       role: isRoleKey(p.role) ? p.role : 'bid',
       showBanner: p.showBanner !== false,
@@ -104,6 +112,7 @@ function reducer(s: State, a: Action): State {
     case 'addUpload': return { ...s, uploads: [...s.uploads, a.value] };
     case 'registerUpload': return { ...s, uploads: s.uploads.map((u) => (u.id === a.id ? { ...u, tenderId: a.tenderId } : u)) };
     case 'removeUpload': return { ...s, uploads: s.uploads.filter((u) => u.id !== a.id) };
+    case 'addTenant': return { ...s, tenants: [...s.tenants, a.value] };
     case 'reset': return { ...s, ...DEFAULTS, role: s.role, showBanner: s.showBanner, drawer: null, modal: null };
   }
 }
@@ -125,6 +134,7 @@ interface Api {
   addUpload: (u: Upload) => void;
   registerUpload: (id: string, tenderId: string) => void;
   removeUpload: (id: string) => void;
+  addTenant: (t: Tenant) => void;
 }
 
 const Ctx = createContext<Api | null>(null);
@@ -135,10 +145,10 @@ export function DemoProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     try {
-      const { done, uploads, scenario, role, showBanner } = state;
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ done, uploads, scenario, role, showBanner }));
+      const { done, uploads, tenants, scenario, role, showBanner } = state;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ done, uploads, tenants, scenario, role, showBanner }));
     } catch { /* storage unavailable; the demo still works in memory */ }
-  }, [state.done, state.uploads, state.scenario, state.role, state.showBanner]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [state.done, state.uploads, state.tenants, state.scenario, state.role, state.showBanner]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toast = useCallback((msg: string, tone: Tone = 'green') => {
     const id = ++seq.current;
@@ -166,6 +176,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     addUpload: (u) => dispatch({ type: 'addUpload', value: u }),
     registerUpload: (id, tenderId) => dispatch({ type: 'registerUpload', id, tenderId }),
     removeUpload: (id) => dispatch({ type: 'removeUpload', id }),
+    addTenant: (t) => dispatch({ type: 'addTenant', value: t }),
     reset: () => { dispatch({ type: 'reset' }); toast('Demo reset. Tenders are back at their starting positions', 'ink3'); },
   }), [state, toast]);
 

@@ -9,6 +9,8 @@ import { canSee } from '@/data/access';
 import { useLive, FOCUS_ID, ME_BID_MANAGER, type Live } from '@/domain/live';
 import { cr, dayMonth, longDate, pct, pts } from '@/domain/format';
 import { DrawerFrame, type OverlayAction, type OverlaySection } from './Frames';
+import { goLiveKey, stepKey, useTenants } from '@/domain/tenants';
+import { statusTone } from '@/data/tenants';
 
 export function DrawerHost() {
   const { state } = useDemo();
@@ -27,6 +29,7 @@ function DrawerSwitch({ spec }: { spec: DrawerSpec }) {
     case 'project': return <ProjectDrawer pkey={spec.key} />;
     case 'redline': return <RedlineDrawer rkey={spec.key} />;
     case 'cost': return <CostDrawer ckey={spec.key} />;
+    case 'tenant': return <TenantDrawer tkey={spec.key} />;
   }
 }
 
@@ -107,6 +110,7 @@ function TenderDrawer({ id }: { id: string }) {
   } else {
     actions.push({ label: 'Open evidence pack', primary: true, onClick: () => toast(`${t.id} evidence pack opened: ${t.detail ? 14 : 9} documents, provenance intact`) });
   }
+  if (!t.closed && live.boqOf(t.id) && canSee(me, 'boq')) actions.push({ label: 'Open BOQ', onClick: () => goPage(`/boq?t=${t.id}`) });
   if (t.closed) { /* no owner action on a closed pursuit */ }
   else if (ownerRole === me) actions.push({ label: 'Go to my dashboard', onClick: () => goRole(me) });
   else actions.push({ label: `Notify ${t.owner}`, onClick: () => nudge(ownerRole, `${t.id} at Stage ${t.stage}`, t.owner) });
@@ -375,3 +379,70 @@ function CostDrawer({ ckey }: { ckey: string }) {
     />
   );
 }
+
+/* ───────── Tenant: profile, onboarding and sources ───────── */
+
+function TenantDrawer({ tkey }: { tkey: string }) {
+  const { closeDrawer, mark, toast } = useDemo();
+  const { goPage } = useGo();
+  const live = useLive();
+  const t = useTenants().find((x) => x.key === tkey);
+  if (!t) return null;
+  const next = t.steps.find((s) => !s.done);
+  const ready = !t.live && t.stepsDone === t.steps.length;
+  const actions: OverlayAction[] = t.home
+    ? [{ label: 'Open settings', primary: true, onClick: () => goPage('/settings#tenants') }]
+    : t.scheduled
+      ? [{ label: `Remind ${t.admin}`, onClick: () => toast(`Go-live checklist sent to ${t.adminEmail}`, 'ink3') }]
+      : ready
+        ? [{ label: `Book go-live for ${t.goLive === 'to be set' ? 'next month' : t.goLive}`, primary: true, onClick: () => mark(goLiveKey(t.key), `${t.name} go-live booked. First intake runs on the go-live date`, 'green') }]
+        : [
+            { label: `Mark "${next!.label}" done`, primary: true, onClick: () => mark(stepKey(t.key, next!.key), `${t.name}: ${next!.label.toLowerCase()} complete`, 'green') },
+            { label: `Remind ${t.admin}`, onClick: () => toast(`Reminder sent to ${t.adminEmail}: ${next!.label.toLowerCase()}`, 'ink3') },
+          ];
+  return (
+    <DrawerFrame
+      onClose={closeDrawer}
+      eyebrow={t.home ? 'Tenant, you are working here' : 'Tenant'}
+      title={t.name}
+      sub={t.legal}
+      kpis={[
+        { label: 'Status', value: t.live ? 'Live' : t.scheduled ? 'Booked' : 'Onboarding', tone: statusTone(t.live, t.stepsDone) },
+        { label: 'Setup', value: `${t.stepsDone} / ${t.steps.length}` },
+        { label: 'Seats', value: String(t.seats) },
+        { label: 'Tenders', value: t.home ? String(live.active.length) : '0' },
+      ]}
+      sections={[{ head: 'Profile', rows: [
+        { k: 'Country', v: t.country },
+        { k: 'Bid currency', v: t.currency },
+        { k: 'Data residency', v: t.residency },
+        { k: 'Single sign-on', v: t.sso, tone: t.sso === 'Not connected' ? 'orange' : undefined },
+        { k: 'Tenant admin', v: `${t.admin}, ${t.adminEmail}` },
+        { k: 'Created', v: longDate(t.created) },
+        { k: t.live ? 'Live since' : 'Planned go-live', v: t.goLive },
+      ] }]}
+      actions={actions}
+      foot={t.home ? 'Demo data belongs to this tenant' : 'Tenders are read only once the tenant is live'}
+    >
+      <div className="drawer-sec">
+        <div className="eyebrow">Onboarding</div>
+        <ol className="tn-steps">
+          {t.steps.map((s) => (
+            <li key={s.key} className={s.done ? 'done' : s === next ? 'next' : ''}>
+              <span className="mk" aria-hidden>{s.done ? '✓' : ''}</span>
+              <span><b>{s.label}</b><small>{s.detail}</small></span>
+            </li>
+          ))}
+        </ol>
+      </div>
+      <div className="drawer-sec">
+        <div className="eyebrow">Tender sources</div>
+        {t.sources.length ? t.sources.map((x) => <KVRow key={x.name} k={x.name} v={x.mode} />) : <div className="t-ink4" style={{ fontSize: 12.5 }}>None connected yet.</div>}
+      </div>
+    </DrawerFrame>
+  );
+}
+
+const KVRow = ({ k, v }: { k: string; v: string }) => (
+  <div className="kv"><span className="k">{k}</span><span className={`v ${/pending/i.test(v) ? 't-orange' : ''}`}>{v}</span></div>
+);

@@ -14,6 +14,7 @@ import './styles/components.css';
 import './styles/pages.css';
 import './styles/charts.css';
 import './styles/intake.css';
+import './styles/boq.css';
 import { App } from './App';
 
 createRoot(document.getElementById('root')!).render(
