@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
-import { TENANT, TENANT_BUILD } from '@/data/roles';
+import { TENANT_BUILD } from '@/data/roles';
 import { useDemo } from '@/state/store';
+import { useTenant } from '@/domain/tenancy';
 import { Sidebar } from './Sidebar';
 import { Header } from './Header';
+import { ViewAsBanner } from './ViewAsBanner';
 import { DrawerHost } from '@/components/overlays/Drawers';
 import { ModalHost } from '@/components/overlays/Modals';
 import { Toasts } from '@/components/overlays/Toasts';
@@ -11,6 +13,7 @@ import { IntakeWatcher } from '@/components/intake/UploadButton';
 
 export function AppShell() {
   const { state } = useDemo();
+  const tenant = useTenant();
   const [navOpen, setNavOpen] = useState(false);
   const loc = useLocation();
 
@@ -29,11 +32,12 @@ export function AppShell() {
       <div className="main-col">
         <Header onMenu={() => setNavOpen(true)} />
         <main className="content" id="main">
+          <ViewAsBanner />
           <Outlet />
           {state.showBanner && (
             <div className="footer-note">
               <span>Prototype: indicative UI, illustrative data</span>
-              <span className="r">Catalyst Tender AI for {TENANT}, {TENANT_BUILD}</span>
+              <span className="r">Catalyst Tender AI for {tenant.name}, {TENANT_BUILD}</span>
             </div>
           )}
         </main>

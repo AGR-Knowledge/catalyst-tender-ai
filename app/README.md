@@ -35,7 +35,7 @@ Replacing the mock layer with an API later means swapping `src/data` for fetches
 
 "Upload tender" (header, Tender Coordinator and Bid Manager) accepts PDFs by drag and drop or file picker.
 
-- **Recognised files:** the three documents in `data/bids` are matched by file name. Their pre-extracted records live in `src/data/extracted/`, the stand-in for a backend. Every value carries its source page and a confidence level.
+- **Recognised files:** the three documents in `public/bids/` are matched by file name. Their pre-extracted records live in `src/data/extracted/`, the stand-in for a backend. Every value carries its source page and a confidence level.
 - **Processing:** `src/domain/intake.ts` is the mock intake service. It runs timed steps (upload, page read, text, classification, fields, register check, screening) from the upload's start time, so processing carries on when the modal is closed or the page reloads.
 - **Unknown files and duplicates:** an unknown file stops after the page read and is queued for the coordinator. Uploading the same document twice is flagged as a duplicate.
 - **Review page:** `/intake/:id` shows every extracted field with a link to its page in `public/bids/`.

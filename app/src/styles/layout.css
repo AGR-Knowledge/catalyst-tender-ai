@@ -48,6 +48,9 @@
 .sb-item .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; transition: opacity 160ms var(--ease-out); }
 .sb-item .tag { font-size: 11px; font-family: var(--font-mono); color: var(--ink-5); flex: none; }
 .sb-item.on { background: var(--surface-active); color: var(--ink); font-weight: 600; }
+/* GCC tenants: the active item carries the tenant's brand rule. */
+.sidebar.branded .sb-item.on { position: relative; }
+.sidebar.branded .sb-item.on::before { content: ''; position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px; border-radius: 2px; background: var(--brand); }
 
 /* The persona's own stage: a folding tree with a guide line, like a file browser. */
 .sb-tree { margin: 2px 0 14px; }
@@ -73,6 +76,21 @@
 .sb-foot { flex: none; height: 40px; padding: 0 16px 6px 27px; display: flex; align-items: center; gap: 10px; font-size: 11.5px; color: var(--ink-4); white-space: nowrap; }
 .sb-foot .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
 .sb-foot .lbl { transition: opacity 160ms var(--ease-out); }
+
+/* GCC rail (plan 006, dashboards.md §8.3): numbered stages, home-stage labels, gate chips, the pinned bottom group. */
+.sb-num {
+  flex: none; width: 18px; height: 18px; margin: 0 -1px; border-radius: 50%; border: 1px solid var(--line-strong);
+  display: grid; place-items: center; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; line-height: 1; color: var(--ink-4);
+  transition: color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+.sb-item:hover .sb-num, .sb-item.on .sb-num, .sb-tree.has-on .sb-num { color: var(--ink); border-color: var(--ink-4); }
+.sb-tree.sb-stage { margin: 0 0 1px; }
+.sb-pinned .sb-tree { margin: 0 0 1px; }
+.sb-item.sb-plain { cursor: default; }
+.sb-item.sb-plain:not(.sb-tree-head):hover { background: transparent; color: var(--ink-3); }
+.sb-item.sb-plain .sb-tree-link { cursor: default; }
+.sb-item .gate-chip { margin-left: auto; }
+.sidebar.mini .sb-item .gate-chip { display: none; }
 
 /* Collapsed: a 60px icon rail. Labels fade out in place rather than jumping. */
 .sidebar.mini { width: 60px; }

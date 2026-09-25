@@ -6,11 +6,12 @@ import { useDemo, type DrawerSpec } from '@/state/store';
 import { ClosingContext, usePresence } from '@/state/presence';
 import { useGo, useNudge } from '@/state/nav';
 import { canSee } from '@/data/access';
-import { useLive, FOCUS_ID, ME_BID_MANAGER, type Live } from '@/domain/live';
+import { computeLive, useLive, FOCUS_ID, ME_BID_MANAGER, type Live } from '@/domain/live';
 import { cr, dayMonth, longDate, pct, pts } from '@/domain/format';
 import { DrawerFrame, type OverlayAction, type OverlaySection } from './Frames';
 import { goLiveKey, stepKey, useTenants } from '@/domain/tenants';
-import { statusTone } from '@/data/tenants';
+import { useSwitchTenant } from '@/domain/tenancy';
+import { LEGACY_TENANT, statusTone } from '@/data/tenants';
 
 export function DrawerHost() {
   const { state } = useDemo();
@@ -383,15 +384,21 @@ function CostDrawer({ ckey }: { ckey: string }) {
 /* ───────── Tenant: profile, onboarding and sources ───────── */
 
 function TenantDrawer({ tkey }: { tkey: string }) {
-  const { closeDrawer, mark, toast } = useDemo();
+  const { state, closeDrawer, mark, toast } = useDemo();
   const { goPage } = useGo();
-  const live = useLive();
+  const switchTo = useSwitchTenant();
   const t = useTenants().find((x) => x.key === tkey);
   if (!t) return null;
   const next = t.steps.find((s) => !s.done);
   const ready = !t.live && t.stepsDone === t.steps.length;
+  // Only the Indian preview has a register until plan 004 seeds the GCC ones. Read it from its own bucket, whichever tenant is active.
+  const tenders = t.key === LEGACY_TENANT
+    ? String(computeLive(state.doneBy[LEGACY_TENANT] ?? {}, state.scenario, state.uploadsAll.filter((u) => u.tenant === LEGACY_TENANT)).active.length)
+    : '—';
   const actions: OverlayAction[] = t.home
     ? [{ label: 'Open settings', primary: true, onClick: () => goPage('/settings#tenants') }]
+    : t.switchable
+      ? [{ label: 'Switch to this company · Demo', primary: true, onClick: () => switchTo(t.key) }]
     : t.scheduled
       ? [{ label: `Remind ${t.admin}`, onClick: () => toast(`Go-live checklist sent to ${t.adminEmail}`, 'ink3') }]
       : ready
@@ -410,10 +417,12 @@ function TenantDrawer({ tkey }: { tkey: string }) {
         { label: 'Status', value: t.live ? 'Live' : t.scheduled ? 'Booked' : 'Onboarding', tone: statusTone(t.live, t.stepsDone) },
         { label: 'Setup', value: `${t.stepsDone} / ${t.steps.length}` },
         { label: 'Seats', value: String(t.seats) },
-        { label: 'Tenders', value: t.home ? String(live.active.length) : '0' },
+        { label: 'Tenders', value: tenders },
       ]}
       sections={[{ head: 'Profile', rows: [
         { k: 'Country', v: t.country },
+        { k: 'Head office', v: t.hqCity },
+        { k: 'Time zone', v: `${t.tzLabel} (${t.timeZone})` },
         { k: 'Bid currency', v: t.currency },
         { k: 'Data residency', v: t.residency },
         { k: 'Single sign-on', v: t.sso, tone: t.sso === 'Not connected' ? 'orange' : undefined },
@@ -422,7 +431,7 @@ function TenantDrawer({ tkey }: { tkey: string }) {
         { k: t.live ? 'Live since' : 'Planned go-live', v: t.goLive },
       ] }]}
       actions={actions}
-      foot={t.home ? 'Demo data belongs to this tenant' : 'Tenders are read only once the tenant is live'}
+      foot={t.home ? 'You are working in this company' : t.switchable ? 'Switching company is a demo control. Each real user belongs to one tenant' : 'Tenders are read only once the tenant is live'}
     >
       <div className="drawer-sec">
         <div className="eyebrow">Onboarding</div>
@@ -444,5 +453,5 @@ function TenantDrawer({ tkey }: { tkey: string }) {
 }
 
 const KVRow = ({ k, v }: { k: string; v: string }) => (
-  <div className="kv"><span className="k">{k}</span><span className={`v ${/pending/i.test(v) ? 't-orange' : ''}`}>{v}</span></div>
+  <div className="kv"><span className="k">{k}</span><span className={`v ${/pending|expiring/i.test(v) ? 't-orange' : ''}`}>{v}</span></div>
 );

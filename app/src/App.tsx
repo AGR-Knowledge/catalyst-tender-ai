@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+/// <reference types="vite/client" />
+import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
 import { DemoProvider, useDemo } from '@/state/store';
 import { ThemeProvider } from '@/state/theme';
@@ -16,8 +17,57 @@ import { NotFound } from '@/pages/NotFound';
 import { Guard } from '@/pages/Restricted';
 import { IntakeList, IntakeReview } from '@/pages/Intake';
 import { Boq } from '@/pages/Boq';
+import { ComingNext } from '@/pages/gcc/ComingNext';
+import { LEGACY_TENANT, TENANTS } from '@/data/tenants';
+import { useWorld } from '@/domain/tenancy';
 
-function DashboardRoute() {
+/*
+ * GCC dashboards, the tender summary and the dev pages load on demand, so AG
+ * Grid and Recharts sit in their own chunks and the Indian preview never loads
+ * them. The dev pages exist only in development builds.
+ */
+const DashboardRoute = lazy(() => import('@/pages/gcc/DashboardRoute'));
+const StageRoute = lazy(() => import('@/pages/gcc/StageRoute'));
+const TenderSummary = lazy(() => import('@/pages/gcc/TenderSummary'));
+const GccPending = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/GccPending').then((m) => ({ default: m.GccPending }))) : null;
+const KitPreview = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/dev/KitPreview')) : null;
+
+function Loading() {
+  return <div className="view" aria-busy="true"><p className="eyebrow">Loading…</p></div>;
+}
+
+const lazyEl = (el: ReactNode) => <Suspense fallback={<Loading />}>{el}</Suspense>;
+
+/** Legacy screens read Indian data, so they never render for a GCC tenant. */
+function LegacyOnly({ children }: { children: ReactNode }) {
+  const gcc = useWorld() === 'gcc';
+  const { toast } = useDemo();
+  const told = useRef(false);
+  useEffect(() => {
+    if (!gcc || told.current) return;
+    told.current = true;
+    toast(`That screen belongs to the full-lifecycle preview (${TENANTS.find((t) => t.key === LEGACY_TENANT)!.name})`, 'ink3');
+  }, [gcc, toast]);
+  return gcc ? <Navigate to="/" replace /> : <>{children}</>;
+}
+
+/** GCC screens read GCC data, so they never render for the Indian preview. */
+function GccOnly({ children }: { children: ReactNode }) {
+  return useWorld() === 'gcc' ? <>{children}</> : <NotFound />;
+}
+
+/** One path, two worlds (the legacy supplier database and the GCC supplier screen). */
+function ByWorld({ legacy, gcc }: { legacy: ReactNode; gcc: ReactNode }) {
+  return <>{useWorld() === 'gcc' ? gcc : legacy}</>;
+}
+
+/** `/dashboard/:role` is the Indian preview's; a GCC tenant has one dashboard route, `/`. */
+function LegacyDashboardRoute() {
+  const gcc = useWorld() === 'gcc';
+  return gcc ? <Navigate to="/" replace /> : <LegacyDashboard />;
+}
+
+function LegacyDashboard() {
   const { role } = useParams();
   const { state, setRole } = useDemo();
   useEffect(() => {
@@ -29,8 +79,12 @@ function DashboardRoute() {
 
 function Home() {
   const { state } = useDemo();
-  return <Navigate to={`/dashboard/${state.role}`} replace />;
+  const gcc = useWorld() === 'gcc';
+  return gcc ? lazyEl(<DashboardRoute />) : <Navigate to={`/dashboard/${state.role}`} replace />;
 }
+
+/** GCC working screens that aren't built yet (`pages/gcc/screens.ts`). */
+const GCC_SCREENS = ['calendar', 'radar', 'intake-queue', 'screening', 'dg1', 'sourcing', 'levelling', 'packs', 'dg2', 'dg3', 'company'];
 
 export function App() {
   return (
@@ -41,17 +95,27 @@ export function App() {
             <Route element={<AppShell />}>
               <Route index element={<Home />} />
               <Route path="dashboard" element={<Home />} />
-              <Route path="dashboard/:role" element={<DashboardRoute />} />
-              <Route path="pipeline" element={<Pipeline />} />
-              <Route path="workflow" element={<Workflow />} />
-              <Route path="agents" element={<Guard page="agents"><Agents /></Guard>} />
-              <Route path="submission" element={<Guard page="submission"><Submission /></Guard>} />
-              <Route path="suppliers" element={<Guard page="suppliers"><Suppliers /></Guard>} />
-              <Route path="library" element={<Guard page="library"><Library /></Guard>} />
-              <Route path="intake" element={<Guard page="intake"><IntakeList /></Guard>} />
-              <Route path="intake/:id" element={<Guard page="intake"><IntakeReview /></Guard>} />
-              <Route path="boq" element={<Guard page="boq"><Boq /></Guard>} />
+              <Route path="dashboard/:role" element={<LegacyDashboardRoute />} />
+              <Route path="pipeline" element={<LegacyOnly><Pipeline /></LegacyOnly>} />
+              <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
+              <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
+              <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
+              <Route path="suppliers" element={<ByWorld legacy={<LegacyOnly><Guard page="suppliers"><Suppliers /></Guard></LegacyOnly>} gcc={<ComingNext />} />} />
+              <Route path="library" element={<LegacyOnly><Guard page="library"><Library /></Guard></LegacyOnly>} />
+              <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />
+              <Route path="intake/:id" element={<LegacyOnly><Guard page="intake"><IntakeReview /></Guard></LegacyOnly>} />
+              <Route path="boq" element={<LegacyOnly><Guard page="boq"><Boq /></Guard></LegacyOnly>} />
               <Route path="settings" element={<Settings />} />
+
+              {/* GCC (dashboards.md §8) */}
+              <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
+              <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
+              <Route path="tenders/:id" element={<GccOnly>{lazyEl(<TenderSummary />)}</GccOnly>} />
+              {GCC_SCREENS.map((p) => <Route key={p} path={p} element={<GccOnly><ComingNext /></GccOnly>} />)}
+              <Route path="admin/*" element={<GccOnly><ComingNext /></GccOnly>} />
+              {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
+              {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}
+
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>

@@ -1,0 +1,64 @@
+/* ───────── Tender kit (plan 006): Money, When, SlaClock, GateChip, StatusPill, Masked, EmptyState, Tip ───────── */
+
+/* Popover on hover, focus and tap. Positioned by `usePop` (fixed, in document.body). */
+.popover.tip-pop { z-index: 80; padding: 12px 14px; transform-origin: top left; box-shadow: var(--shadow-pop); }
+.tip-body { display: grid; gap: 4px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.tip-body b { font-weight: 600; color: var(--ink); }
+.tip-trigger { cursor: help; border-radius: 4px; }
+.tip-trigger:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+
+/* Money: a converted amount is underlined dotted, because it has an original. */
+.money { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.money.conv { text-decoration: underline dotted var(--ink-5); text-underline-offset: 3px; }
+
+/* When: the date, and under it the countdown. */
+.when { display: inline-flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+.when > .num { white-space: nowrap; }
+.when-cd { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+
+/* SlaClock */
+.sla { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; white-space: nowrap; }
+.sla svg { flex: none; }
+
+/* Gate chips: outline, orange when waiting on the viewer, red when breached, green when decided. */
+.gate-chip {
+  display: inline-flex; align-items: center; gap: 2px; flex: none;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; line-height: 16px; letter-spacing: 0.2px;
+  padding: 0 5px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-3); background: var(--surface);
+}
+.gate-chip .gl { font-size: 10px; margin-left: 1px; }
+.gate-chip.s-waiting-on-me { border-color: var(--orange); background: var(--orange-soft); color: var(--ink); }
+.gate-chip.s-waiting-on-me .gl { color: var(--orange); }
+.gate-chip.s-breached { border-color: var(--red); background: var(--red-soft); color: var(--ink); }
+.gate-chip.s-breached .gl { color: var(--red); }
+.gate-chip.s-decided { border-color: var(--green-line); color: var(--ink-3); }
+.gate-chip.s-decided .gl { color: var(--green); }
+
+/* Status pill: a soft tint, a coloured glyph and ink text, so the word stays readable in both themes. */
+.status-pill {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 11.5px; font-weight: 500; line-height: 18px; padding: 0 8px 0 7px;
+  border-radius: var(--radius-pill); color: var(--ink-2); background: var(--surface-active); border: 1px solid transparent;
+}
+.status-pill .ic { font-size: 11px; font-weight: 700; width: 10px; text-align: center; }
+.status-pill.tone-green { background: var(--green-soft); }
+.status-pill.tone-green .ic { color: var(--green); }
+.status-pill.tone-orange { background: var(--orange-soft); }
+.status-pill.tone-orange .ic { color: var(--orange); }
+.status-pill.tone-red { background: var(--red-soft); border-color: var(--red-line); }
+.status-pill.tone-red .ic { color: var(--red); }
+.status-pill.tone-cyan { background: var(--cyan-soft); }
+.status-pill.tone-cyan .ic { color: var(--cyan); }
+.status-pill.tone-grey, .status-pill.tone-muted { background: var(--surface-active); color: var(--ink-3); }
+.status-pill.tone-grey .ic, .status-pill.tone-muted .ic { color: var(--grey); }
+
+/* Masked value: a lock and the words, never a blank. */
+.masked { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.masked svg { flex: none; color: var(--ink-4); }
+
+/* Empty state */
+.empty-state { padding: 36px 22px; text-align: center; }
+.empty-state.compact { padding: 22px 16px; }
+.empty-state .es-t { font-size: 13.5px; font-weight: 600; color: var(--ink-2); }
+.empty-state .es-b { font-size: 12.5px; color: var(--ink-3); margin-top: 5px; line-height: 1.5; max-width: 520px; margin-inline: auto; }
+.empty-state .es-a { margin-top: 12px; display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }

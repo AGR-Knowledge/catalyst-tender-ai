@@ -126,6 +126,8 @@ export function handoverFrom(from: RoleKey, l: Live): Handover {
     prop: 'Drafted sections for verification',
     comp: 'Verified bid, DG3 record and contract positions',
     dir: 'Delivery lessons for the next intake',
+    // GCC role keys (plan 003) are not in the legacy hand-over chain.
+    hot: '', member: '', plan: '', fin: '', hr: '', supplier: '', platform: '',
   };
   return { from, to, what: WHAT[from], items };
 }

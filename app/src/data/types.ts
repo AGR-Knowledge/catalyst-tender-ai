@@ -1,6 +1,12 @@
 export type Tone = 'ink' | 'ink2' | 'ink3' | 'muted' | 'faint' | 'red' | 'orange' | 'green' | 'cyan' | 'grey';
 
-export type RoleKey = 'exec' | 'bid' | 'coord' | 'proc' | 'comm' | 'prop' | 'comp' | 'dir';
+/**
+ * The eight original keys run the full-lifecycle preview. The GCC build adds the
+ * Head of Tendering, committee members, contributors, the supplier and the
+ * Catalyst operator (plan 003). `dir` doubles as the Project Director (designate).
+ */
+export type RoleKey = 'exec' | 'bid' | 'coord' | 'proc' | 'comm' | 'prop' | 'comp' | 'dir'
+  | 'hot' | 'member' | 'plan' | 'fin' | 'hr' | 'supplier' | 'platform';
 
 export interface Role {
   key: RoleKey;

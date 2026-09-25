@@ -11,10 +11,12 @@ export const ROLES: Role[] = [
   { key: 'dir', name: 'M. Rao', initials: 'MR', title: 'Project Director', short: 'Project Director', view: 'Delivery Oversight', scope: 'Accountable for Stage 9a', blurb: 'Won projects tracked against the commitments made in the bid, with margin variance in view.' },
 ];
 
+/** The eight legacy personas' keys. The GCC-only keys (plan 003) live in `data/people.ts`. */
 export const ROLE_KEYS = ROLES.map((r) => r.key);
 
 export const roleOf = (k: RoleKey): Role => ROLES.find((r) => r.key === k) ?? ROLES[1];
 
+/** True for the eight legacy keys only, so `/dashboard/:role` never opens for a GCC-only role. */
 export const isRoleKey = (v: string | undefined): v is RoleKey => !!v && (ROLE_KEYS as string[]).includes(v);
 
 /** The order a tender is handed between roles in the guided walk-through. */
@@ -29,6 +31,8 @@ export const WALK_STEP: Record<RoleKey, string> = {
   prop: 'Stage 6 · proposal',
   comp: 'Stage 7 · compliance & DG3',
   dir: 'Stage 9 · delivery & learning',
+  // GCC role keys (plan 003) are not in the legacy walk-through.
+  hot: '', member: '', plan: '', fin: '', hr: '', supplier: '', platform: '',
 };
 
 export const TENANT = 'Genesis EPC India Ltd';

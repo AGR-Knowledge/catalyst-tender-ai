@@ -99,12 +99,19 @@ function kpisFor(role: RoleKey, l: Live): KpiItem[] {
         { label: 'Obligations tracked', value: String(l.obligations), sub: 'imported from the bid' },
         { label: 'Agent alerts (30d)', value: '23', sub: '18 actioned early' },
       ];
+    // The GCC role keys (plan 003) have no legacy dashboard.
+    default:
+      return [];
   }
 }
+
+const NO_BODY = () => <></>;
 
 const BODIES: Record<RoleKey, () => JSX.Element> = {
   exec: ExecDashboard, bid: BidDashboard, coord: CoordDashboard, proc: ProcDashboard,
   comm: CommDashboard, prop: PropDashboard, comp: CompDashboard, dir: DirDashboard,
+  // GCC role keys (plan 003) never open a legacy dashboard.
+  hot: NO_BODY, member: NO_BODY, plan: NO_BODY, fin: NO_BODY, hr: NO_BODY, supplier: NO_BODY, platform: NO_BODY,
 };
 
 export function Dashboard({ role }: { role: RoleKey }) {

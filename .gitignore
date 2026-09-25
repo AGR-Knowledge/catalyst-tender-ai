@@ -14,5 +14,13 @@ dist/
 .idea/
 .vscode/
 
-# Client reference material, kept local only
+# Engagement documents are local only: the repository is public and docs/ holds
+# proposals, costs and staff CVs. Only the product design set is tracked.
+/docs/*
+!/docs/07-product-design/
+
+# Former location of client material, superseded by docs/
 /data/
+
+# Claude Code local settings (never commit)
+.claude/settings.local.json

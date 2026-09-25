@@ -4,6 +4,8 @@ import { VALIDATIONS, REDLINES } from '@/data/workspace';
 import { useDemo, type ModalSpec } from '@/state/store';
 import { ClosingContext, usePresence } from '@/state/presence';
 import { useLive, FOCUS_ID } from '@/domain/live';
+import { useTenant } from '@/domain/tenancy';
+import { nameStop } from '@/data/tenants';
 import { cr, dayMonth, pct } from '@/domain/format';
 import { ModalFrame } from './Frames';
 
@@ -225,14 +227,17 @@ function SmeModal() {
 
 function ResetModal() {
   const { closeModal, reset } = useDemo();
+  const tenant = useTenant();
   return (
     <ModalFrame
       onClose={closeModal}
       eyebrow="Demo controls"
       title="Reset the demo?"
-      sub="Clears the decisions, validations and submission from this session."
+      sub={`Re-opens every gate, validation and decision for ${nameStop(tenant.name)} Theme and current view are kept.`}
+      note="Reset all companies also clears tenant onboarding progress and any tenant added in this session."
       actions={[
-        { label: 'Reset demo', primary: true, onClick: () => { reset(); } },
+        { label: 'Reset this company', primary: true, onClick: () => reset('tenant') },
+        { label: 'Reset all companies', onClick: () => reset('all') },
         { label: 'Cancel', onClick: closeModal },
       ]}
     />

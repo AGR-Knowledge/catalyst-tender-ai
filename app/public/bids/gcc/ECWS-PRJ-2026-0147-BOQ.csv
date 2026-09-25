@@ -1,0 +1,75 @@
+item,bill,description,unit,qty
+Bill 1,1,General and preliminaries,,
+1.01,1,"Mobilisation, site establishment and temporary facilities",item,1
+1.04,1,"Engineer’s site offices, furnished and serviced for the contract period",month,30
+1.07,1,"Design of process, mechanical, electrical and ICA works, with approvals",item,1
+1.10,1,Temporary flow management and bypass works at the operating Phase 1 plant,item,1
+1.13,1,Insurances required under clause 63,item,1
+1.16,1,"As-built documents, O&M manuals and operator training",item,1
+1.x,1,Remaining items in bill 1 (12 lines),,
+Bill 2,2,"Civil and structural (bioreactors, clarifiers, buildings)",,
+2.04,2,"Excavation in all materials for tanks and channels, depth 0–7.5 m",m3,186000
+2.09,2,Sulphate-resisting concrete C40 for water-retaining structures,m3,64500
+2.11,2,"High-yield reinforcement grade 60, cut, bent and fixed",t,9850
+2.17,2,"PVC waterstops, 230 mm, in construction and movement joints",m,18400
+2.26,2,Epoxy protective coating to internal surfaces of tanks and channels,m2,72000
+2.41,2,"Blower building, reinforced concrete frame and blockwork, complete",m2,2150
+2.x,2,Remaining items in bill 2 (46 lines),,
+Bill 3,3,"Process mechanical equipment (screens, grit, blowers, clarifier mechanisms)",,
+3.02,3,"Fine screens, 6 mm, 2,600 m3/h each, with washer-compactors",nr,6
+3.06,3,Vortex grit removal units with grit classifiers,nr,4
+3.10,3,"Aeration blowers, high-speed turbo type, 750 kW, with enclosures",nr,6
+3.14,3,"Fine-bubble membrane diffusers, EPDM, with pipework grids",nr,28800
+3.21,3,"Clarifier scraper mechanisms, 52 m diameter, half-bridge type",nr,6
+3.27,3,"Return and waste activated sludge pumps, with variable speed drives",nr,14
+3.x,3,Remaining items in bill 3 (28 lines),,
+Bill 4,4,Tertiary filtration and UV disinfection,,
+4.02,4,"Cloth disc filter units, 1,750 m3/h each, with backwash system",nr,6
+4.06,4,"UV disinfection channels, low-pressure high-output lamps",nr,3
+4.09,4,Filter backwash and filtrate return pumps,nr,6
+4.12,4,Sodium hypochlorite dosing system for the TSE chlorine residual,item,1
+4.x,4,Remaining items in bill 4 (10 lines),,
+Bill 5,5,Sludge thickening and dewatering,,
+5.02,5,"Gravity belt thickeners, 60 m3/h",nr,4
+5.05,5,"Dewatering centrifuges, 45 m3/h, with cake pumps",nr,4
+5.09,5,Polymer preparation and dosing units,nr,2
+5.12,5,"Dewatered cake silos, 200 m3, with truck loading",nr,2
+5.x,5,Remaining items in bill 5 (11 lines),,
+Bill 6,6,Odour control,,
+6.02,6,"Biotrickling filter odour control units, 45,000 m3/h",nr,3
+6.04,6,Activated carbon polishing units,nr,3
+6.06,6,"GRP odour extraction ductwork, DN300–DN1200",m,1850
+6.x,6,Remaining items in bill 6 (6 lines),,
+Bill 7,7,"Electrical: 33/11 kV substation, transformers, MCCs, cabling",,
+7.01,7,"33/11 kV substation, gas-insulated switchgear, protection and control",item,1
+7.03,7,"Power transformers 33/11 kV, 20 MVA, ONAN",nr,2
+7.07,7,"Distribution transformers 11/0.4 kV, 2,500 kVA",nr,6
+7.12,7,"Motor control centres, form 4b, with variable speed drive sections",nr,14
+7.19,7,"LV power and control cables, XLPE/SWA (mandatory list)",m,96000
+7.24,7,"Standby diesel generator sets, 2,000 kVA, with fuel system",nr,2
+7.x,7,Remaining items in bill 7 (24 lines),,
+Bill 8,8,"Instrumentation, control and SCADA",,
+8.02,8,"Electromagnetic flowmeters, DN200–DN1200",nr,38
+8.05,8,"Online analysers: DO, ammonium, nitrate, TSS, turbidity",nr,64
+8.09,8,PLC control panels with redundant processors,nr,12
+8.13,8,"SCADA servers, workstations and software, with central control centre link",item,1
+8.16,8,"Fibre-optic network, single-mode, 24-core",m,14500
+8.x,8,Remaining items in bill 8 (15 lines),,
+Bill 9,9,"Yard piping, valves and penstocks",,
+9.03,9,"Ductile iron pipes and fittings, DN300–DN1400",m,7200
+9.08,9,"Butterfly valves, DN400–DN1400, electrically actuated (mandatory list)",nr,96
+9.12,9,Stainless steel penstocks and weir gates,nr,74
+9.17,9,"Pipe supports, thrust blocks and wall sleeves",nr,410
+9.x,9,Remaining items in bill 9 (18 lines),,
+Bill 10,10,"TSE pipeline (DN1000 GRP, 16 km) and TSE pump station",,
+10.02,10,"GRP pipes, DN1000, PN16, supplied to site (mandatory list)",m,16050
+10.04,10,"Trench excavation, bedding, laying and backfill for DN1000 pipe",m,16050
+10.07,10,"Air valve, washout and isolating valve chambers",nr,42
+10.10,10,"TSE pump station, 4 duty and 1 standby pumps, 450 kW, with surge vessels",item,1
+10.12,10,Hydrostatic testing and flushing of the TSE pipeline,m,16050
+10.x,10,Remaining items in bill 10 (9 lines),,
+Bill 11,11,"Piling, dewatering and shoring",,
+11.02,11,"Bored cast-in-place piles, 800 mm diameter, average length 18 m",nr,1240
+11.05,11,"Deep-well and wellpoint dewatering, installed, operated and removed",month,14
+11.07,11,"Steel sheet piling for temporary shoring, installed and extracted",m2,9800
+11.x,11,Remaining items in bill 11 (5 lines),,

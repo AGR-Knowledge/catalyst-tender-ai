@@ -1,17 +1,23 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  Bot, Briefcase, FileUp, Calculator, ChevronRight, Columns3, Factory, FileText, HardHat, Inbox, Landmark, LayoutGrid,
-  Library, PackageSearch, PanelLeftClose, PanelLeftOpen, Send, Settings as SettingsIcon, ShieldCheck, Table2, Workflow, X,
+  Bot, Briefcase, Building2, CalendarDays, FileUp, Calculator, ChevronRight, Columns3, Factory, FileText, HardHat, Inbox, Landmark, LayoutGrid,
+  Library, PackageSearch, PanelLeftClose, PanelLeftOpen, Send, Settings as SettingsIcon, ShieldCheck, SlidersHorizontal, Table2, Workflow, X,
 } from 'lucide-react';
 import type { RoleKey, Tone } from '@/data/types';
 import { roleOf } from '@/data/roles';
-import { ROLE_NAV, type RoleNavItem } from '@/data/access';
+import { ROLE_NAV, navFor, type GccNavItem, type RoleNavItem } from '@/data/access';
+import { stageOf } from '@/data/gcc/stages';
+import { homeDashboardKey, stageDashboardKey } from '@/domain/gcc/dashboards/home';
+import { useGateChipState } from '@/domain/gcc/gateChips';
+import type { GateKey } from '@/domain/gcc/viewmodels';
+import { GateChip } from '@/components/tender/GateChip';
 import { AGENTS, LIBRARY_STATS, SUPPLIER_TOTAL } from '@/data/catalog';
 import { PROJECTS, REDLINES, REPRICE_LOG } from '@/data/workspace';
 import { useDemo } from '@/state/store';
 import { useLive, type Live } from '@/domain/live';
 import { useGo } from '@/state/nav';
+import { useWorld } from '@/domain/tenancy';
 import { tc } from '@/components/ui/primitives';
 
 interface Item { key: string; label: string; tag?: string; tone?: Tone; path?: string; anchor?: string; icon?: ReactNode }
@@ -28,6 +34,9 @@ const PAGE_ICON: Record<string, ReactNode> = {
 const ROLE_ICON: Record<RoleKey, ReactNode> = {
   coord: <Inbox {...I} />, bid: <Briefcase {...I} />, proc: <PackageSearch {...I} />, exec: <Landmark {...I} />,
   comm: <Calculator {...I} />, prop: <FileText {...I} />, comp: <ShieldCheck {...I} />, dir: <HardHat {...I} />,
+  // GCC role keys (plan 003): the legacy tree never renders for them; plan 006 builds the GCC sidebar.
+  hot: <LayoutGrid {...I} />, member: <LayoutGrid {...I} />, plan: <LayoutGrid {...I} />, fin: <LayoutGrid {...I} />,
+  hr: <LayoutGrid {...I} />, supplier: <LayoutGrid {...I} />, platform: <LayoutGrid {...I} />,
 };
 
 const MINI_KEY = 'ctai.sidebar.mini';
@@ -78,12 +87,162 @@ function badge(key: string, l: Live): Badge {
   }
 }
 
+/* ------------------------------------------------------------------ GCC navigation */
+
+/** Icons for the GCC entries that aren't stages; stages show their number in a circle. */
+const GCC_ICON: Record<string, ReactNode> = {
+  dashboard: <LayoutGrid {...I} />, calendar: <CalendarDays {...I} />, requests: <Inbox {...I} />,
+  company: <Building2 {...I} />, admin: <SlidersHorizontal {...I} />, settings: <SettingsIcon {...I} />,
+};
+
+/** Which trees each viewer has folded or unfolded: `{ personId: { itemKey: open } }`. A convenience only. */
+const NAV_OPEN_KEY = 'ctai.nav.open';
+type OpenPrefs = Record<string, boolean>;
+function readOpenAll(): Record<string, OpenPrefs> {
+  try {
+    const v: unknown = JSON.parse(localStorage.getItem(NAV_OPEN_KEY) ?? '{}');
+    return v && typeof v === 'object' ? (v as Record<string, OpenPrefs>) : {};
+  } catch { return {}; }
+}
+function writeOpen(personId: string, prefs: OpenPrefs) {
+  try { localStorage.setItem(NAV_OPEN_KEY, JSON.stringify({ ...readOpenAll(), [personId]: prefs })); } catch { /* the rail still works */ }
+}
+
+const onPath = (path: string, pathname: string) =>
+  path === '/' ? pathname === '/' || pathname === '/dashboard' : pathname === path || pathname.startsWith(`${path}/`);
+
+function LiveGateChip({ gate }: { gate: GateKey }) {
+  return <GateChip gate={gate} state={useGateChipState(gate)} />;
+}
+
+/**
+ * The GCC rail (dashboards.md §8.3): Dashboard, Calendar and My requests; the
+ * stages the person may open, each header opening its stage dashboard and a
+ * chevron unfolding its screens; Company; Administration and Settings pinned
+ * at the bottom. Entries come from `navFor`, so access stays in access.ts.
+ */
+function GccNav({ mini, onClose }: { mini: boolean; onClose(): void }) {
+  const { state } = useDemo();
+  const person = state.person;
+  const { goPage } = useGo();
+  const { pathname } = useLocation();
+  const home = homeDashboardKey(person);
+
+  // My requests is hidden where it is already the home (Finance, HR), as a home stage is a plain label.
+  const groups = useMemo(() => navFor(person, !!state.viewAs).map((g) => (
+    home === 'requests' ? { ...g, items: g.items.filter((it) => it.key !== 'requests') } : g
+  )), [person, state.viewAs, home]);
+
+  const isHomeStage = (it: GccNavItem) => it.stage !== undefined && stageDashboardKey(it.stage) === home;
+
+  // The entry for this route is the longest path that matches it.
+  const entries = groups.flatMap((g) => g.items.flatMap((it) => [
+    { it, parent: null as GccNavItem | null }, ...(it.children ?? []).map((c) => ({ it: c, parent: it })),
+  ]));
+  const hit = entries.filter((e) => onPath(e.it.path, pathname)).sort((a, b) => b.it.path.length - a.it.path.length)[0];
+  const current = hit?.it.key ?? (home === 'requests' && pathname === '/requests' ? 'dashboard' : null);
+  const currentTree = hit ? (hit.parent?.key ?? (hit.it.children?.length ? hit.it.key : null)) : null;
+
+  const [prefs, setPrefs] = useState<OpenPrefs>(() => readOpenAll()[person.id] ?? {});
+  useEffect(() => setPrefs(readOpenAll()[person.id] ?? {}), [person.id]);
+  // Arriving on a screen unfolds the group that holds it.
+  useEffect(() => {
+    if (currentTree) setPrefs((p) => (p[currentTree] ? p : { ...p, [currentTree]: true }));
+  }, [currentTree]);
+
+  const setOpen = (key: string, open: boolean) => {
+    const next = { ...prefs, [key]: open };
+    setPrefs(next);
+    writeOpen(person.id, next);
+  };
+
+  const go = (it: GccNavItem) => {
+    onClose();
+    // Re-selecting the page you are on takes you back to its top.
+    if (current === it.key) return window.scrollTo({ top: 0, behavior: 'smooth' });
+    goPage(it.path);
+  };
+
+  const icon = (it: GccNavItem) => (it.stage ? <span className="sb-num">{it.stage}</span> : GCC_ICON[it.key] ?? <span className="sb-ic-gap" />);
+  const text = (it: GccNavItem) => (it.stage ? stageOf(it.stage)?.short ?? it.label : it.label);
+
+  const leaf = (it: GccNavItem, child = false) => {
+    const on = current === it.key;
+    return (
+      <button
+        type="button" key={it.key} className={`sb-item ${child ? 'child' : ''} ${on ? 'on' : ''}`}
+        onClick={() => go(it)} aria-current={on ? 'page' : undefined} title={mini ? it.label : undefined}
+      >
+        {!child && icon(it)}
+        <span className="lbl">{text(it)}</span>
+        {it.gate && <LiveGateChip gate={it.gate} />}
+      </button>
+    );
+  };
+
+  // A home stage without screens: its Dashboard item already opens it.
+  const plain = (it: GccNavItem) => (
+    <div key={it.key} className="sb-item sb-plain" title={mini ? it.label : undefined}>
+      {icon(it)}
+      <span className="lbl">{text(it)}</span>
+    </div>
+  );
+
+  const tree = (it: GccNavItem) => {
+    const isHome = isHomeStage(it);
+    const on = current === it.key;
+    const hasOn = !!it.children?.some((c) => c.key === current);
+    const open = !mini && (prefs[it.key] ?? isHome);
+    const name = text(it);
+    return (
+      <div key={it.key} className={`sb-tree sb-stage ${open ? 'open' : ''} ${hasOn ? 'has-on' : ''}`}>
+        <div className={`sb-item sb-tree-head ${on ? 'on' : ''} ${isHome ? 'sb-plain' : ''}`}>
+          {isHome ? (
+            <span className="sb-tree-link" title={mini ? it.label : undefined}>{icon(it)}<span className="lbl">{name}</span></span>
+          ) : (
+            <button type="button" className="sb-tree-link" onClick={() => go(it)} aria-current={on ? 'page' : undefined} title={mini ? it.label : undefined}>
+              {icon(it)}<span className="lbl">{name}</span>
+            </button>
+          )}
+          <button type="button" className="sb-tree-chev" onClick={() => setOpen(it.key, !open)} aria-expanded={open} aria-label={open ? `Fold ${name} screens` : `Show ${name} screens`}>
+            <ChevronRight className="chev" size={14} strokeWidth={1.8} aria-hidden />
+          </button>
+        </div>
+        {/* A folded tree keeps its links out of the tab order (React 18 has no typed `inert` prop). */}
+        <div className="sb-tree-body" ref={(el) => el?.toggleAttribute('inert', !open)}>
+          <div className="sb-tree-inner">{it.children!.map((c) => leaf(c, true))}</div>
+        </div>
+      </div>
+    );
+  };
+
+  const entry = (it: GccNavItem) => (it.children?.length ? tree(it) : isHomeStage(it) ? plain(it) : leaf(it));
+  const bottom = groups.find((g) => g.pinned === 'bottom');
+
+  return (
+    <>
+      <nav className="sb-nav" key={`${state.tenant}:${person.id}`}>
+        {groups.filter((g) => g !== bottom).map((g) => (
+          <div className="sb-group" key={g.key}>
+            {g.label && <div className="sb-group-label"><span>{g.label}</span></div>}
+            {g.items.map(entry)}
+          </div>
+        ))}
+      </nav>
+      {bottom && <div className="sb-pinned">{bottom.items.map(entry)}</div>}
+    </>
+  );
+}
+
+/* --------------------------------------------------------------------- the rail */
+
 export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { state } = useDemo();
   const live = useLive();
   const { goRole, goSection, goPage } = useGo();
   const loc = useLocation();
   const role = roleOf(state.role);
+  const gcc = useWorld() === 'gcc';
   const wide = useWide();
   const [miniPref, setMiniPref] = useState(readMini);
   const mini = wide && miniPref;
@@ -157,7 +316,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   const ownHasCurrent = ownItems.some((i) => i.key === current);
   // A folded tree keeps its links out of the tab order (React 18 has no typed `inert` prop).
   const treeBody = useRef<HTMLDivElement>(null);
-  useEffect(() => { treeBody.current?.toggleAttribute('inert', !ownOpen); }, [ownOpen]);
+  useEffect(() => { treeBody.current?.toggleAttribute('inert', !ownOpen); }, [ownOpen, gcc]);
   const toggleOwn = () => setClosed((c) => ({ ...c, [own.label]: !c[own.label] }));
   // The head opens the dashboard; opening it also unfolds the tree.
   const openDash = () => {
@@ -168,7 +327,7 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
   return (
     <>
       {open && <div className="sb-scrim" onClick={onClose} aria-hidden />}
-      <aside className={`sidebar ${open ? 'open' : ''} ${mini ? 'mini' : ''}`} aria-label="Primary navigation">
+      <aside className={`sidebar ${open ? 'open' : ''} ${mini ? 'mini' : ''} ${gcc ? 'branded' : ''}`} aria-label="Primary navigation">
         <div className="sb-brand">
           <div className="sb-logo" aria-hidden>C</div>
           <div className="sb-brand-tx">
@@ -185,6 +344,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           )}
           <button type="button" className="btn btn-icon sb-close" onClick={onClose} aria-label="Close navigation"><X /></button>
         </div>
+        {gcc ? <GccNav mini={mini} onClose={onClose} /> : (
+        <>
         <nav className="sb-nav" key={state.role}>
           <div className={`sb-tree ${ownOpen ? 'open' : ''} ${ownHasCurrent ? 'has-on' : ''}`}>
             <div className={`sb-item sb-tree-head ${dashOn ? 'on' : ''}`}>
@@ -211,6 +372,8 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
           ))}
         </nav>
         <div className="sb-pinned">{renderItem(settings)}</div>
+        </>
+        )}
         <div className="sb-foot" title={mini ? `${AGENTS.length} agents, orchestrator healthy` : undefined}>
           <span className="dot" aria-hidden />
           <span className="lbl">{AGENTS.length} agents running, all healthy</span>

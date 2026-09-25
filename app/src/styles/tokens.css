@@ -140,6 +140,66 @@
   --scrollbar: #34343a;
 }
 
+/* Tenant brand (gcc-demo-data §2). Used only for the tenant monogram, the active
+   nav indicator and the focus ring. Status colours never change with the tenant. */
+:root,
+:root[data-theme='light'] {
+  --acc-najd: #0e7c72;
+  --acc-najd-soft: #e6f3f1;
+  --acc-najd-ink: #0a5f57;
+  --acc-corniche: #6a4fcf;
+  --acc-corniche-soft: #f0edfb;
+  --acc-corniche-ink: #4f35ad;
+  --acc-dafna: #9a6a00;
+  --acc-dafna-soft: #fbf4e1;
+  --acc-dafna-ink: #7a5300;
+  --acc-batinah: #4a6192;
+  --acc-batinah-soft: #edf1f7;
+  --acc-batinah-ink: #374b76;
+  --acc-qurain: #a8193f;
+  --acc-qurain-soft: #fbedf1;
+  --acc-qurain-ink: #871232;
+}
+
+:root[data-theme='dark'] {
+  --acc-najd: #43c3b4;
+  --acc-najd-soft: rgba(67, 195, 180, 0.15);
+  --acc-najd-ink: #7fd9ce;
+  --acc-corniche: #a893f4;
+  --acc-corniche-soft: rgba(168, 147, 244, 0.15);
+  --acc-corniche-ink: #c7b9f8;
+  --acc-dafna: #e2b54a;
+  --acc-dafna-soft: rgba(226, 181, 74, 0.15);
+  --acc-dafna-ink: #efcd7a;
+  --acc-batinah: #93a8d8;
+  --acc-batinah-soft: rgba(147, 168, 216, 0.15);
+  --acc-batinah-ink: #b8c7e8;
+  --acc-qurain: #f07296;
+  --acc-qurain-soft: rgba(240, 114, 150, 0.15);
+  --acc-qurain-ink: #f6a2b9;
+}
+
+/* The active tenant (`data-tenant`, set by the demo store) brands the root.
+   An `.accent-*` mark carries its own tenant's colours, e.g. in the tenant switcher.
+   Genesis EPC India keeps the neutral ink mark and the cyan focus ring. */
+:root,
+.accent-ink {
+  --brand: var(--ink);
+  --brand-soft: var(--surface-sunken);
+  --brand-ink: var(--ink-3);
+}
+:root { --focus-ring: var(--cyan); }
+:root[data-tenant='najd'], .accent-najd { --brand: var(--acc-najd); --brand-soft: var(--acc-najd-soft); --brand-ink: var(--acc-najd-ink); }
+:root[data-tenant='corniche'], .accent-corniche { --brand: var(--acc-corniche); --brand-soft: var(--acc-corniche-soft); --brand-ink: var(--acc-corniche-ink); }
+:root[data-tenant='dafna'], .accent-dafna { --brand: var(--acc-dafna); --brand-soft: var(--acc-dafna-soft); --brand-ink: var(--acc-dafna-ink); }
+:root[data-tenant='batinah'], .accent-batinah { --brand: var(--acc-batinah); --brand-soft: var(--acc-batinah-soft); --brand-ink: var(--acc-batinah-ink); }
+:root[data-tenant='qurain'], .accent-qurain { --brand: var(--acc-qurain); --brand-soft: var(--acc-qurain-soft); --brand-ink: var(--acc-qurain-ink); }
+:root[data-tenant='najd'],
+:root[data-tenant='corniche'],
+:root[data-tenant='dafna'],
+:root[data-tenant='batinah'],
+:root[data-tenant='qurain'] { --focus-ring: var(--brand); }
+
 /* Spacing scales down on smaller viewports, up on very large ones. */
 @media (max-width: 1280px) {
   :root { --gutter: 28px; --gap: 18px; }

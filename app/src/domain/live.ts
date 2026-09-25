@@ -251,6 +251,8 @@ export function computeLive(done: Record<string, string>, scenarioKey: ScenarioK
     prop: smeOverdue > 0,
     comp: dg3 !== 'recorded',
     dir: !is('dev-1'),
+    // GCC role keys (plan 003) have no legacy alerts.
+    hot: false, member: false, plan: false, fin: false, hr: false, supplier: false, platform: false,
   };
 
   // Effort and impact. Submissions this quarter are the same count the dashboards quote.
