@@ -119,8 +119,10 @@ export interface Rfq {
   supplierId: string;
   sentAt: string;
   replyBy: string;
-  /** The reply date before an extension the supplier asked for. */
+  /** The reply date before an extension. */
   extendedFrom?: string;
+  /** Why the reply date was extended (an addendum, a clarification, the supplier's request). Set with `extendedFrom`. */
+  extensionReason?: string;
   openedAt?: string;
   acknowledgedAt?: string;
   declined?: { at: string; reason: string };

@@ -46,7 +46,8 @@ export function kickoffFor(tenant: string, tenderId: string, done: Done): Kickof
   const p = pursueOf(tenant, tenderId, done);
   if (!p) return null;
   const cc = tenantOf(tenant).cc;
-  const proc = `${tenant}.proc`;
+  // The Procurement owner named at DG1, else the tenant's Procurement Lead.
+  const proc = p.procId ?? `${tenant}.proc`;
   const name = (id: string) => personById(id)?.name ?? id;
   const packaging = packagingFor(tenant, tenderId, done);
   const pkgs = packaging.packages;

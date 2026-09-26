@@ -2,7 +2,7 @@ import { gccData, isGccTenantKey } from '@/data/gcc';
 import { personById, SEAT_LABEL, type Seat } from '@/data/people';
 import { readDone, type Done } from '@/domain/gcc/s3/done';
 import { packVersionsFor } from '@/domain/gcc/s3/versions';
-import { activeDecision, type Dg2Decision, type LetterValue } from './keys';
+import { activeDecision, letterKey, roundOf, type Dg2Decision, type LetterValue } from './keys';
 import { positionsFor, STANCE_LABEL, SECRETARY_TEXT } from './positions';
 import { conditionsFor, type ConditionVM } from './conditions';
 import { AGAINST_MAJORITY_TEXT, DECISION_LABEL, reasonLabel } from './decision';
@@ -12,6 +12,8 @@ import { reopenState, triggerLabel } from './reopen';
  * The DG2 record (spec §10 "Record written"): each position with its comment
  * and time, conflicts declared, the decision with its reason, the pack
  * version and snapshot reference, the conditions, and the re-open history.
+ * Conditions and the decline letter belong to a decision round, so a re-open
+ * leaves the earlier round's with its entry in `reopens`.
  */
 
 export interface DecisionRecordVM {
@@ -43,7 +45,8 @@ export interface Dg2RecordVM {
   decision: DecisionRecordVM | null;
   pack: { version: number; generatedAt?: string; issuedAt?: string; snapshotRef: string } | null;
   conditions: ConditionVM[];
-  reopens: { decision: DecisionRecordVM }[];
+  /** Every re-open, oldest first: the decision it took out of force, why, and that round's letter. */
+  reopens: { decision: DecisionRecordVM; reason: string; trigger: string; requestedBy: string; requestedAt: string; by: string; at: string; letter?: LetterValue }[];
   previous: DecisionRecordVM | null;
   reopenText?: string;
   lastReopen?: { at: string; by: string; requestedBy: string; reason: string; trigger: string };
@@ -77,7 +80,7 @@ export function dg2RecordFor(tenant: string, tenderId: string, done: Done): Dg2R
   const re = reopenState(tenant, tenderId, done);
   const packVersion = active?.packVersion ?? pv.issued?.version ?? pv.current?.version;
   const version = pv.versions.find((v) => v.version === packVersion);
-  const letter = readDone<LetterValue>(done, `dg2-letter:${tenderId}`);
+  const letter = readDone<LetterValue>(done, letterKey(tenderId, roundOf(done, tenderId)));
 
   return {
     tenderId,
@@ -100,8 +103,15 @@ export function dg2RecordFor(tenant: string, tenderId: string, done: Done): Dg2R
       snapshotRef: `${tenderId}/pack/v${packVersion}`,
     } : null,
     conditions: conditionsFor(tenant, tenderId, done),
-    reopens: re.previous.map((d) => ({ decision: decisionVM(d) })),
-    previous: re.previous.length ? decisionVM(re.previous[re.previous.length - 1]) : null,
+    reopens: re.previous.map((e) => {
+      const old = readDone<LetterValue>(done, letterKey(tenderId, e.decision.round ?? 1));
+      return {
+        decision: decisionVM(e.decision), reason: e.reason, trigger: triggerLabel(e.trigger),
+        requestedBy: nameOf(e.requestedById), requestedAt: e.requestedAt, by: nameOf(e.byId), at: e.at,
+        ...(old ? { letter: old } : {}),
+      };
+    }),
+    previous: re.previous.length ? decisionVM(re.previous[re.previous.length - 1].decision) : null,
     ...(re.text ? { reopenText: re.text } : {}),
     ...(re.last ? { lastReopen: { at: re.last.at, by: nameOf(re.last.byId), requestedBy: nameOf(re.last.requestedById), reason: re.last.reason, trigger: triggerLabel(re.last.trigger) } } : {}),
     ...(letter ? { letter } : {}),

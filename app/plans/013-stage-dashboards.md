@@ -1,6 +1,18 @@
 # 013 — Stage dashboards (Stages 1–9) and My requests
 
-Status: READY after 006 and 017 are DONE · Depends on: 006 (kit, registries, routes), 017 (lifecycles, facts, port) · Can run in parallel with: 015
+Status: READY (2026-09-26) · Depends on: 006 (kit, registries, routes), 017 (lifecycles, facts, port) · Can run in parallel with: 015, 019, 021
+
+## Review notes (2026-09-26)
+- **Starts only after plan 020 lanes A and B are DONE.**
+- **Depends on 020 lane A3** (stage owners get `tender.view` at tenant scope). Without it, the Stage 4–9 tables are empty for Planning, Commercial, Compliance and the Project Director.
+- **Stage 8's owner** is the Bid Manager (`bid`).
+- **`/requests`** needs columns with `appliesTo: 'request'`, and rows with `requestedAt` and `due`.
+- **Stage 8 in Corniche and Batinah:** neither has a pre-submission Stage 8 row, so SUB-1, SUB-3, SUB-4 and SUB-6 read 0 on their Stage 8 dashboards. This is accepted.
+- **Counts:** every count goes through `visibleOf` (from `domain/gcc/lifecycle.port.ts`), so people not cleared never count restricted tenders. For discard reasons, use 007a's `rollupReason`: the `pq-fail-*` sub-codes roll up to `pq-fail`.
+- **New screen paths:** once 020 lane A7 lands (routes built from `SCREENS`), add them in `pages/gcc/screens.ts` only. Until then, add them in both `App.tsx` and `screens.ts`.
+- **(added 2026-09-26, after plan 020)** Plan 020 is DONE and committed. **Call every lifecycle query through `queriesFor({ tenant: ctx.tenant, viewer: ctx.viewer, done: ctx.done })`** (exported from `domain/gcc/lifecycle.port.ts`), never unbound: it always passes the viewer (so restricted T-2026-121 never leaks into a count) and the demo state. Plan 021, running in parallel, makes demo actions (DG1 Pursue, RFQs sent, DG2 approval …) flow through it, so your tiles move when the presenter clicks, with no change on your side. Pass `ctx.done` to `port.rows(...)` too. Dev-check rows that assert seed targets pass `done: {}`.
+- **(added 2026-09-26)** Plans 019 (Tender Workspace) and 021 (demo state, rule fixes) run in parallel with this one. Don't edit `domain/gcc/lifecycle*.ts`, `dashboards/build.ts`, `DashboardRoute.tsx`, `App.tsx` or `components/tender/**`. If you need a change there, write a Blocker.
+- **(added 2026-09-26) Demo-grade:** this is a sales demo. Hit the target readings exactly, but keep the dev check to the targets and a few masking and visibility rows, not an exhaustive suite. Spend the time on what the prospect sees: the ⓘ texts, the tile subs, the action rows' wording.
 
 ## Goal
 Every stage has **one dashboard**, used by its owner as their home and opened by the Head of Tendering from the graph. It is the same page for both: "if the tender committee is looking at Stage 3, and the Head of Tendering clicks Stage 3, they both see the same dashboard". The same page also serves the CEO and the Bid Manager where their rights allow.
@@ -43,7 +55,7 @@ Finance and HR get **My requests** in the same layout (four tiles, no graph).
 - **Requests:** `src/domain/gcc/requests.ts` (requests to a person, derived; see Phase 5).
 - **Dev check:** `src/pages/gcc/dev-checks/60-stages.tsx`.
 
-**Files to change:** none outside the list.
+**Files to change:** none outside the list, except `src/App.tsx` to add new routes if plan 020 lane A7 (routes built from `SCREENS`) has not landed when you start.
 
 **Out of scope** (stop and ask):
 - Portfolio dashboards (015).
@@ -216,6 +228,7 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
     - section: "Company credentials";
     - requested by the Head of Tendering;
     - due: 10 working days before the affected bid's opening.
+  - *(added 2026-09-26)* requests made during the demo with plan 019's `RequestButton`: `requestsTo(done, personId)` from `src/domain/gcc/requestKeys.ts` (the key contract the orchestrator wrote; import it, don't parse `request:` keys yourself). `open`, or `late` when `due` is before the demo clock. Plan 019 runs in parallel, so on `/dev/kit` or in your dev check write one with `requestWrite(...)` on an in-memory `done` to test.
 - [ ] 5.2 **`requests.kpi.ts`:** REQ-1 open (open + late); REQ-2 due in 48 h; REQ-3 late; REQ-4 submitted in the window (flow).
 - [ ] 5.3 **`requests.flow.ts` part of `stages.flow.ts`:** Requested → Submitted → Accepted, in the window.
 - [ ] 5.4 **`requests.actions.ts`:** each open request is a row: "{what} for {TID}" · due · "Open tender". It becomes "Open form" when plan 009 builds the forms.

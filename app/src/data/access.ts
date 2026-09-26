@@ -190,9 +190,14 @@ const ALL_VIEWS: Capability[] = [
   'supplier.view', 'pack.view', 'dg2.view', 'company.view', 'audit.view', 'admin.view',
 ];
 const ADMIN: Capability[] = ['admin.users', 'admin.gates', 'admin.sources', 'admin.fit', 'admin.targets', 'admin.branding'];
-/** Contributors: the invited tender and their own inputs. Stage owners add their stage dashboard (`STAGE_ACCESS`). */
+/** Contributors: the invited tender and their own inputs. */
 const CONTRIBUTOR: Grants = { ...all(['tender.view', 'pack.view'], 'invited'), 'input.respond': 'own' };
-const STAGE_OWNER: Grants = { ...CONTRIBUTOR, 'stage.view': 'tenant' };
+/**
+ * Stage owners add their stage dashboard (`STAGE_ACCESS`) and see every tender
+ * in the company, masked as usual (dashboards.md §8.3, decided 2026-09-26). The
+ * Bid / No-Bid pack stays invited.
+ */
+const STAGE_OWNER: Grants = { ...CONTRIBUTOR, 'tender.view': 'tenant', 'stage.view': 'tenant' };
 
 /**
  * Which stage dashboards each role opens (dashboards.md §8.3). `stage.view` is
@@ -243,11 +248,13 @@ export const GRANTS: Record<RoleKey, Grants> = {
     // Tenant-configurable later (catalogue §C.5); default yes for committee members.
     ...all(['see.margin', 'see.positions', 'see.quotes.summary'], 'tenant'),
   },
+  // A stage owner (Pricing) who also keeps Stage 2's levelling screen, and sees margin and quotes on every tender.
   comm: {
-    ...all(['tender.view', 'levelling.view', 'pack.view'], 'invited'),
+    ...all(['tender.view', 'levelling.view'], 'tenant'),
+    'pack.view': 'invited',
     'input.respond': 'own',
     'stage.view': 'tenant',
-    ...all(['see.margin', 'see.quotes'], 'invited'),
+    ...all(['see.margin', 'see.quotes'], 'tenant'),
   },
   plan: STAGE_OWNER,
   comp: { ...STAGE_OWNER, ...all(['dg3.view', 'dg3.issue'], 'tenant') },
@@ -413,6 +420,11 @@ export interface GccNavItem {
   stage?: StageN;
   /** Working screens under a stage, or Administration's pages. */
   children?: GccNavItem[];
+  /**
+   * Set by `navFor`: the stage's dashboard is outside the person's role but one
+   * of its screens isn't, so the header is a plain label over that screen.
+   */
+  labelOnly?: boolean;
 }
 
 export interface GccNavGroup {
@@ -477,7 +489,11 @@ export const NAV_GCC: GccNavGroup[] = [
 /**
  * The navigation a person gets: `NAV_GCC` filtered by `can`. Stage entries need
  * `stage.view` for their stage; every other entry and child needs its own
- * capability; empty groups are dropped.
+ * capability; empty groups are dropped. A stage outside the role still shows
+ * when one of its screens is granted to the person company-wide, with a header
+ * that isn't a link (`labelOnly`): the Commercial Manager's Stage 2 levelling.
+ * Screens a person reaches only by invitation (a contributor's Bid packs) open
+ * from the tender, not from the rail.
  *
  * Self-check against dashboards.md §8.3 (every role also gets Dashboard and Settings):
  *
@@ -489,7 +505,8 @@ export const NAV_GCC: GccNavGroup[] = [
  * | coord                | yes      | no          | 1 · radar, queue, screening, DG1                                                 | yes     | no             |
  * | proc                 | yes      | no          | 2 · packages, levelling, suppliers                                               | yes     | no             |
  * | member               | yes      | no          | 3 · packs, DG2                                                                   | yes     | no             |
- * | plan, comm, prop, dir| yes      | yes         | their own stage (4, 5, 6, 9), no screens                                         | no      | no             |
+ * | comm                 | yes      | yes         | 2 as a label over levelling · 5, no screens                                      | no      | no             |
+ * | plan, prop, dir      | yes      | yes         | their own stage (4, 6, 9), no screens                                            | no      | no             |
  * | comp                 | yes      | yes         | 7 · DG3                                                                          | no      | no             |
  * | fin                  | yes      | home        | none                                                                             | yes     | no             |
  * | hr                   | no       | home        | none                                                                             | yes     | no             |
@@ -497,10 +514,16 @@ export const NAV_GCC: GccNavGroup[] = [
  *
  * The supplier gets the Supplier Portal (plan 008) and the operator the Platform Console (plan 011), each in its own shell.
  */
-export function navFor(person: Person, viewAs = false): GccNavGroup[] {
-  const ok = (it: GccNavItem) => !it.cap || can(person, it.cap, { viewAs, stage: it.stage }).ok;
-  const keep = (it: GccNavItem): GccNavItem | null =>
-    ok(it) ? { ...it, children: it.children?.filter(ok) } : null;
+export function navFor(person: Person): GccNavGroup[] {
+  // During View as the rail is the viewed person's: it lists what they can open, including
+  // write-capability entries such as My requests. The pages themselves stay read only.
+  const ok = (it: GccNavItem) => !it.cap || can(person, it.cap, { stage: it.stage }).ok;
+  const companyWide = (it: GccNavItem) => !!it.cap && GRANTS[person.role][it.cap] === 'tenant' && ok(it);
+  const keep = (it: GccNavItem): GccNavItem | null => {
+    if (ok(it)) return { ...it, children: it.children?.filter(ok) };
+    const children = it.stage !== undefined ? it.children?.filter(companyWide) : undefined;
+    return children?.length ? { ...it, children, labelOnly: true } : null;
+  };
   return NAV_GCC
     .map((g) => ({ ...g, items: g.items.map(keep).filter((it): it is GccNavItem => it !== null) }))
     .filter((g) => g.items.length > 0);

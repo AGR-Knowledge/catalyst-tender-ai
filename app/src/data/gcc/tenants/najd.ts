@@ -109,7 +109,7 @@ const T109_REQUIREMENTS: PqRequirement[] = [
 
 const OUTCOMES: OutcomeTuple[] = [
   ['O-25-30', 'Al-Ula visitor access road', 'Roads', 'government', 199_000_000, '2025-03-09', '2025-05-18', 'lost', 'technical', 19],
-  ['O-25-20', 'Madinah district water reservoirs', 'Water and wastewater', 'government', 123_000_000, '2025-03-12', '2025-05-28', 'lost', 'local-content', 21],
+  ['O-25-20', 'Jazan district water reservoirs', 'Water and wastewater', 'government', 123_000_000, '2025-03-12', '2025-05-28', 'lost', 'local-content', 21],
   ['O-25-06', 'Arar treated water storage tanks', 'Water and wastewater', 'government', 88_000_000, '2025-03-16', '2025-06-08', 'won', null, 42],
   ['O-25-11', 'Yanbu desalinated water transmission line', 'Water and wastewater', 'semi-government', 357_000_000, '2025-03-18', '2025-06-17', 'lost', 'price', 66],
   ['O-25-03', 'Khamis Mushait sewer network, Phase 3', 'Water and wastewater', 'government', 141_000_000, '2025-04-07', '2025-06-18', 'won', null, 72],
@@ -532,7 +532,8 @@ const REGISTER: GccTender[] = [
     id: 'T-2026-128', title: 'Rehabilitation of rural water reservoirs, Al-Aflaj (hand-delivered invitation)', shortTitle: 'Al-Aflaj rural reservoirs', issuer: 'Southern Riyadh Rural Water Directorate',
     city: 'Al-Aflaj', sector: 'Water and wastewater', sourceId: 'scan', sourceDetail: 'Scanned invitation letter, in Arabic',
     value: { amount: 18_000_000, ccy: 'SAR', basis: 'estimate' },
-    keyDates: [{ kind: 'published', date: '2026-03-05' }, { kind: 'submission', date: '2026-03-26', time: '12:00' }],
+    // Submission on the first working day after the expected Eid al-Fitr closure (19–28 Mar).
+    keyDates: [{ kind: 'published', date: '2026-03-05' }, { kind: 'submission', date: '2026-03-29', time: '12:00' }],
     fit: fit([
       [5, 'Small reservoir repairs: in sector but minor works', 'Capability profile'],
       [0, 'Far below the value band', 'Platform estimate'],
@@ -636,7 +637,7 @@ const REGISTER: GccTender[] = [
     ],
     fit: fit([
       [10, 'STP upgrade: core business', 'Capability profile'],
-      [8, 'Inside the value band', 'Platform estimate; Fit model & rules'],
+      [8, 'Just below the value band', 'Platform estimate; Fit model & rules'],
       [9, 'Meets the PQ lines', 'Eligibility check against the credential vault'],
       [6, 'Abha: no office in the south-west', 'Company profile: offices'],
       [7, 'SCWS: payments sometimes late', 'Client history'],
@@ -700,11 +701,11 @@ const REGISTER: GccTender[] = [
     id: 'T-2026-079', title: 'Qassim water networks', shortTitle: 'Qassim water networks', issuer: CCWS, issuerIsReal: false,
     country: 'Saudi Arabia', city: 'Buraydah', sector: 'Utility networks', sourceId: 'etimad', sourceDetail: 'Etimad', procurement: 'open',
     value: { amount: 310_000_000, ccy: 'SAR', basis: 'estimate', band: [280_000_000, 340_000_000] },
-    stage: 'later', stageNote: 'Submitted 22 Feb; awaiting award', bidManagerId: 'najd.bid', invited: [],
+    stage: 'later', stageNote: 'Submitted 19 Feb; awaiting award', bidManagerId: 'najd.bid', invited: [],
     keyDates: [
-      { kind: 'submission', date: '2026-02-22', time: '10:00' },
-      { kind: 'opening', date: '2026-02-22', time: '10:30' },
-      { kind: 'validity-end', date: '2026-05-23' },
+      { kind: 'submission', date: '2026-02-19', time: '10:00' },
+      { kind: 'opening', date: '2026-02-19', time: '10:30' },
+      { kind: 'validity-end', date: '2026-05-20' },
     ],
     fit: fit([
       [9, 'Water networks: core networks capability', 'Capability profile'],
@@ -743,7 +744,8 @@ const REGISTER: GccTender[] = [
     dg1: dg1Of('T-2025-412'),
   },
   {
-    id: 'T-2025-438', title: 'Yanbu STP rehabilitation', shortTitle: 'Yanbu STP rehabilitation', issuer: WCWS, issuerIsReal: false,
+    // Not WCWS: Najd's bids to WCWS are plan 009a's client history (2 awards from 3 bids since 2022).
+    id: 'T-2025-438', title: 'Yanbu STP rehabilitation', shortTitle: 'Yanbu STP rehabilitation', issuer: 'Western Region Municipal Projects Office', issuerIsReal: false,
     country: 'Saudi Arabia', city: 'Yanbu', sector: 'Water and wastewater', sourceId: 'etimad', sourceDetail: 'Etimad', procurement: 'two-file',
     value: { amount: 470_000_000, ccy: 'SAR', basis: 'estimate' },
     stage: 'closed', stageNote: 'Submitted 8 Dec; the employer cancelled the tender when its budget was withdrawn', bidManagerId: 'najd.bid', invited: [],
@@ -753,7 +755,7 @@ const REGISTER: GccTender[] = [
       [8, 'Inside the value band', 'Platform estimate; Fit model & rules'],
       [9, 'Met every PQ line', 'Eligibility check'],
       [7, 'Yanbu: served from the Jeddah office', 'Company profile: offices'],
-      [8, 'WCWS: good payment record', 'Client history'],
+      [8, 'Municipal client; payments on time', 'Client history'],
       [6, 'Works in a live plant', 'Extraction'],
       [6, 'Water team could absorb it', 'Capacity: Water tendering team'],
       [8, 'Bid bond inside headroom', 'Bank guarantee facility'],
@@ -816,7 +818,7 @@ const TEAMS: Team[] = [
       { tenderId: 'T-2026-104', hoursPerWeek: 75, from: '2026-02-26', to: '2026-04-19', note: 'Sourcing and levelling' },
       { tenderId: 'T-2026-101', hoursPerWeek: 64, from: '2026-02-12', to: '2026-04-16', note: 'Stage 3 pack, then pricing' },
       { tenderId: 'T-2026-097', hoursPerWeek: 55, from: '2026-01-11', to: '2026-04-26', note: 'Committee, then proposal' },
-      { tenderId: 'T-2026-079', hoursPerWeek: 7, from: '2026-02-22', to: '2026-04-30', note: 'Post-submission clarifications' },
+      { tenderId: 'T-2026-079', hoursPerWeek: 7, from: '2026-02-19', to: '2026-04-30', note: 'Post-submission clarifications' },
     ],
   },
   {
@@ -854,12 +856,14 @@ export const NAJD: TenantSeed = {
   partners: [RAFID, TIHAMA],
   teams: TEAMS,
   facility: {
-    limit: SAR(600_000_000),
+    // The limit carries T-2025-298's issued bid bond, so headroom stays SAR 96.0 M (plan 020 B11).
+    limit: SAR(602_300_000),
     utilised: SAR(410_000_000),
     committed: [
-      { label: 'Bid bond: Qassim water networks (submitted 22 Feb)', tenderId: 'T-2026-079', kind: 'bid bond', amount: SAR(8_400_000) },
+      { label: 'Bid bond: Qassim water networks (submitted 19 Feb)', tenderId: 'T-2026-079', kind: 'bid bond', amount: SAR(8_400_000) },
       { label: 'Bid bond: Dammam water network (submitted 15 Feb)', tenderId: 'T-2025-284', kind: 'bid bond', amount: SAR(6_200_000) },
       { label: 'Bid bond: Riyadh sewage network extension (submitted 3 Mar)', tenderId: 'T-2025-291', kind: 'bid bond', amount: SAR(9_400_000) },
+      { label: 'Bid bond: Makkah water distribution network (issued; submission 12 Mar)', tenderId: 'T-2025-298', kind: 'bid bond', amount: SAR(2_300_000) },
       { label: 'Performance bond reserved: Al-Kharj water transmission main (awarded 3 Feb, awaiting signature)', kind: 'performance', amount: SAR(70_000_000) },
     ],
     asOf: '2026-03-05',

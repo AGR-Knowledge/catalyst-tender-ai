@@ -129,9 +129,9 @@ function GccNav({ mini, onClose }: { mini: boolean; onClose(): void }) {
   const home = homeDashboardKey(person);
 
   // My requests is hidden where it is already the home (Finance, HR), as a home stage is a plain label.
-  const groups = useMemo(() => navFor(person, !!state.viewAs).map((g) => (
+  const groups = useMemo(() => navFor(person).map((g) => (
     home === 'requests' ? { ...g, items: g.items.filter((it) => it.key !== 'requests') } : g
-  )), [person, state.viewAs, home]);
+  )), [person, home]);
 
   const isHomeStage = (it: GccNavItem) => it.stage !== undefined && stageDashboardKey(it.stage) === home;
 
@@ -190,14 +190,16 @@ function GccNav({ mini, onClose }: { mini: boolean; onClose(): void }) {
 
   const tree = (it: GccNavItem) => {
     const isHome = isHomeStage(it);
+    // A home stage, or a stage outside the role that holds one of the person's screens: the header is a label.
+    const plainHead = isHome || !!it.labelOnly;
     const on = current === it.key;
     const hasOn = !!it.children?.some((c) => c.key === current);
-    const open = !mini && (prefs[it.key] ?? isHome);
+    const open = !mini && (prefs[it.key] ?? plainHead);
     const name = text(it);
     return (
       <div key={it.key} className={`sb-tree sb-stage ${open ? 'open' : ''} ${hasOn ? 'has-on' : ''}`}>
-        <div className={`sb-item sb-tree-head ${on ? 'on' : ''} ${isHome ? 'sb-plain' : ''}`}>
-          {isHome ? (
+        <div className={`sb-item sb-tree-head ${on ? 'on' : ''} ${plainHead ? 'sb-plain' : ''}`}>
+          {plainHead ? (
             <span className="sb-tree-link" title={mini ? it.label : undefined}>{icon(it)}<span className="lbl">{name}</span></span>
           ) : (
             <button type="button" className="sb-tree-link" onClick={() => go(it)} aria-current={on ? 'page' : undefined} title={mini ? it.label : undefined}>

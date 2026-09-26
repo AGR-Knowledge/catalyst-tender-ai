@@ -8,7 +8,8 @@ import {
   type S2Tender, type Supplier, type TenderPackage,
 } from '@/data/gcc/s2';
 import { addDays, calendarDaysBetween, isWorkingDay } from '@/domain/calendar';
-import { K, keysWithPrefix, NOW, readDone, type Dg1DecisionRead, type Done, type RfqSentValue } from './done';
+import { dg1RecordFor } from '@/domain/gcc/dg1';
+import { K, keysWithPrefix, NOW, readDone, type Done, type RfqSentValue } from './done';
 
 /**
  * Shared lookups for the Stage 2 rules: the tenant, its supplier master, a
@@ -111,26 +112,37 @@ export function sentSupplierIds(tenant: string, tenderId: string, pkgId: string,
 // ---------------------------------------------------------------------------
 // DG1 pursue: the start of Stage 2
 
-export interface Pursue { at: string; byId: string; source: 'demo' | 'seed' }
-
-/** The pursue that starts sourcing: plan 007a's `dg1:{TID}` in the demo, else the seeded DG1 record. */
-export function pursueOf(tenant: string, tenderId: string, done: Done): Pursue | null {
-  const d = readDone<Dg1DecisionRead>(done, K.dg1(tenderId));
-  if (d) return d.decision === 'pursue' ? { at: d.at, byId: d.byId, source: 'demo' } : null;
-  const row = registerRow(tenant, tenderId);
-  const rec = row?.dg1 ?? (gccData(tenant).history?.dg1 ?? []).find((r) => r.tenderId === tenderId);
-  return rec?.decision === 'pursue' ? { at: rec.at, byId: rec.byId, source: 'seed' } : null;
+export interface Pursue {
+  at: string;
+  byId: string;
+  source: 'demo' | 'seed';
+  /** The Procurement owner the DG1 decision named in its team, when it named one. */
+  procId?: string;
 }
 
-/** Tenders being sourced now: Stage 2 in the register, or pursued in the demo, with a Stage 2 record. */
+/**
+ * The pursue that starts sourcing: plan 007a's standing DG1 decision (the
+ * seed's record, or `dg1:{TID}` in the demo). A DG1 re-open clears it.
+ */
+export function pursueOf(tenant: string, tenderId: string, done: Done): Pursue | null {
+  const { current, source } = dg1RecordFor(tenant, tenderId, done);
+  if (!current || current.decision !== 'pursue' || !source) return null;
+  const procId = 'team' in current ? current.team?.proc : undefined;
+  return { at: current.at, byId: current.byId, source, ...(procId ? { procId } : {}) };
+}
+
+/**
+ * Tenders being sourced now, with a Stage 2 record: Stage 2 in the register,
+ * or pursued in the demo, while the pursue stands. A DG1 re-open takes a
+ * tender out of Stage 2.
+ */
 export function liveS2Tenders(tenant: string, done: Done): S2Tender[] {
   const out: S2Tender[] = [];
-  const d = gccData(tenant);
-  for (const row of d.register) {
+  for (const row of gccData(tenant).register) {
     const rec = s2TenderOf(tenant, row.id);
     if (!rec) continue;
-    const demoPursue = readDone<Dg1DecisionRead>(done, K.dg1(row.id))?.decision === 'pursue';
-    if (row.stage === 'S2' || demoPursue) out.push(rec);
+    const p = pursueOf(tenant, row.id, done);
+    if (p && (row.stage === 'S2' || p.source === 'demo')) out.push(rec);
   }
   return out;
 }

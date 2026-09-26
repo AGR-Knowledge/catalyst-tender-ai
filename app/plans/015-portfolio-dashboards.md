@@ -1,6 +1,19 @@
 # 015 — Portfolio dashboards: Head of Tendering, CEO, Bid Manager
 
-Status: READY after 006 and 017 are DONE · Depends on: 006 (kit, registries, routes), 017 (lifecycles, port) · Can run in parallel with: 013
+Status: READY (2026-09-26) · Depends on: 006 (kit, registries, routes), 017 (lifecycles, port) · Can run in parallel with: 013, 019, 021
+
+## Review notes (2026-09-26)
+- **Starts only after plan 020 lanes A and B are DONE.**
+- **Delivery load (Phase 1, DEC-5):**
+  - Corniche is pinned at 55% now, +7 if its Stage 3 tender is won; Qurain at 66%, +12. 009a's pack uses the same figures.
+  - 015's dev check must assert that its delivery-load figures equal 009a's `PackSnapshot.portfolio`.
+  - The safe level (Najd 70%) is read from the tenant seed (`fit.safeDeliveryPct`), not typed again.
+- **Restricted tenders:** tiles, flows and graph counts hide restricted tenders from people not cleared. Najd Stage 1 reads 12 for Faisal and 11 for Aisha. Use `visibleOf` and `visible` from `domain/gcc/lifecycle.port.ts` (added by 020 lane B) for every count, not only table rows.
+- **Action sources:** until 020 lane A1 is in, give each action source a view capability as its `cap`. Once A1 is in, write capabilities work under View as.
+- **Average days in stage:** don't quote targets for Stage 2. Najd's Stage 2 runs long by design (dashboards.md §12.2).
+- **(added 2026-09-26, after plan 020)** Plan 020 is DONE and committed. **Call every lifecycle query through `queriesFor({ tenant: ctx.tenant, viewer: ctx.viewer, done: ctx.done })`** (exported from `domain/gcc/lifecycle.port.ts`), never unbound: it always passes the viewer (so restricted T-2026-121 never leaks into a count) and the demo state. Plan 021, running in parallel, makes demo actions (DG1 Pursue, RFQs sent, DG2 approval …) flow through it, so your tiles move when the presenter clicks, with no change on your side. Pass `ctx.done` to `port.rows(...)` too. Dev-check rows that assert seed targets pass `done: {}`.
+- **(added 2026-09-26)** Plans 019 (Tender Workspace) and 021 (demo state, rule fixes) run in parallel with this one. Don't edit `domain/gcc/lifecycle*.ts`, `dashboards/build.ts`, `DashboardRoute.tsx`, `App.tsx` or `components/tender/**`. If you need a change there, write a Blocker.
+- **(added 2026-09-26) Demo-grade:** this is a sales demo. Hit the target readings exactly, but keep the dev check to the targets and a few masking and visibility rows, not an exhaustive suite. Spend the time on what the prospect sees: the ⓘ texts, the tile subs, the action rows' wording.
 
 ## Goal
 The Head of Tendering opens the app on **their dashboard**. It has:

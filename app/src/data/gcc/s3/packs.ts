@@ -1,3 +1,6 @@
+import { NAJD } from '../tenants/najd';
+import { CORNICHE } from '../tenants/corniche';
+import { QURAIN } from '../tenants/qurain';
 import type { PackVersion, RerunEffect } from './types';
 
 /**
@@ -5,6 +8,9 @@ import type { PackVersion, RerunEffect } from './types';
  * authored differences a re-run produces. A re-run in the demo (`pack-rerun:`)
  * creates the next version from the previous one plus these effects; the
  * previous version is kept for comparison.
+ *
+ * The safe delivery level is each tenant's fit model's, and the guarantee
+ * terms are plan 007a's bond terms; the pack keeps only the retention.
  */
 
 const SAR = (amount: number) => ({ amount, ccy: 'SAR' as const });
@@ -14,10 +20,10 @@ const NAJD_PORTFOLIO = {
   asOf: '2026-03-05',
   currentPct: 58,
   ifWon: [{ tenderId: 'T-2026-097', addPct: 9 }, { tenderId: 'T-2026-101', addPct: 4 }],
-  safePct: 70,
+  safePct: NAJD.fit.safeDeliveryPct,
 };
 
-const KSA_GOVT_BONDS = { bidPct: 2, bidValidityDays: 120, performancePct: 5, advancePct: 10, retentionPct: 10 };
+const RETENTION_10 = { retentionPct: 10 };
 const AED = (amount: number) => ({ amount, ccy: 'AED' as const });
 const KWD = (amount: number) => ({ amount, ccy: 'KWD' as const });
 
@@ -32,13 +38,13 @@ const NAJD_PACKS: PackVersion[] = [
       sourcing: { packages: 9, levelled: 7 },
       portfolio: NAJD_PORTFOLIO,
       effort: { toDateWeeks: 14, toGoWeeks: 9, externalCost: SAR(180_000) },
-      bonds: { ...KSA_GOVT_BONDS, source: 'Instructions to Bidders cl. 17; Conditions of Contract cl. 4.2, 14.2 and 14.3' },
+      bonds: RETENTION_10,
       recommendation: {
         recommendation: 'bid-with-conditions',
         rationale: 'Core water treatment work for a repeat client with a good payment record. Local content and a competitive price position put the win probability well above the water hit rate. Bid on condition that the bid bond stays inside the facility and the delivery load is managed if the Abha STP is also won.',
         winThemes: [
           'Local content above the minimum, with Saudi suppliers on the main packages',
-          'Delivery record with WCWS on water treatment',
+          { text: 'Delivery record with WCWS on water treatment', cites: ['najd-wcws-2022', 'najd-wcws-2024'] },
           'Price position in the lower quartile of past awards, on levelled quotes',
         ],
         resourceAsk: 'Keep the Water tendering team on the bid through to submission, and confirm the Project Director designate and the process lead now',
@@ -55,7 +61,7 @@ const NAJD_PACKS: PackVersion[] = [
       sourcing: { packages: 8, levelled: 5 },
       portfolio: NAJD_PORTFOLIO,
       effort: { toDateWeeks: 8, toGoWeeks: 12, externalCost: SAR(140_000) },
-      bonds: { ...KSA_GOVT_BONDS, source: 'Instructions to Bidders cl. 16; Conditions of Contract cl. 4.2, 14.2 and 14.3' },
+      bonds: RETENTION_10,
       recommendation: {
         recommendation: 'bid',
         rationale: 'An STP upgrade in the lead sector that builds the treatment-plant record in the south-west. The bond and contract-risk sections wait for the Finance and Legal inputs.',
@@ -73,9 +79,9 @@ const OTHER_PACKS: PackVersion[] = [
     snapshot: {
       eligibility: { met: 11, of: 11, credentialIds: ['corniche-licence', 'corniche-class-dm', 'corniche-chamber', 'corniche-vat', 'corniche-icv', 'corniche-iso', 'corniche-civil-defence'] },
       sourcing: { packages: 8, levelled: 7 },
-      portfolio: { asOf: '2026-03-05', currentPct: 55, ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }], safePct: 75 },
+      portfolio: { asOf: '2026-03-05', currentPct: 55, ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }], safePct: CORNICHE.fit.safeDeliveryPct },
       effort: { toDateWeeks: 6, toGoWeeks: 7, externalCost: AED(95_000) },
-      bonds: { bidPct: 2, bidValidityDays: 90, performancePct: 10, advancePct: 10, retentionPct: 10, source: 'Invitation to tender cl. 12; Conditions of Contract cl. 4.2 and 14.2' },
+      bonds: RETENTION_10,
       recommendation: {
         recommendation: 'bid',
         rationale: 'University MEP works in the lead sector, for a government-backed developer that pays on time. The programme fits with room to spare. The bond section waits for the Finance input.',
@@ -89,9 +95,9 @@ const OTHER_PACKS: PackVersion[] = [
     snapshot: {
       eligibility: { met: 10, of: 10, credentialIds: ['qurain-cr-kw', 'qurain-capt', 'qurain-chamber-kw', 'qurain-iso'] },
       sourcing: { packages: 7, levelled: 6 },
-      portfolio: { asOf: '2026-03-05', currentPct: 66, ifWon: [{ tenderId: 'T-2026-049', addPct: 12 }], safePct: 75 },
+      portfolio: { asOf: '2026-03-05', currentPct: 66, ifWon: [{ tenderId: 'T-2026-049', addPct: 12 }], safePct: QURAIN.fit.safeDeliveryPct },
       effort: { toDateWeeks: 5, toGoWeeks: 8, externalCost: KWD(12_000) },
-      bonds: { bidPct: 2, bidValidityDays: 90, performancePct: 10, advancePct: 5, retentionPct: 10, source: 'CAPT tender documents: Instructions to Tenderers cl. 9; Conditions of Contract cl. 10 and 14' },
+      bonds: RETENTION_10,
       recommendation: {
         recommendation: 'bid-with-conditions',
         rationale: 'A routine STP rehabilitation in the home market for a reliable payer. The bid bond would use most of the facility headroom and the Water team is over capacity in April, so bid only with both managed.',

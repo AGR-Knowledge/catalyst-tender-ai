@@ -2,7 +2,7 @@ import { peopleOf, personById } from '@/data/people';
 import { addDays } from '@/domain/calendar';
 import { addHours } from '@/domain/gcc/clock';
 import { DONE_KEY, json, nowIso, type AuditDraft, type Done, type DoneWrite } from '@/domain/gcc/s1/done';
-import { addWorkingDays, authorityCalendar, keyDate, listText, profileOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
+import { addWorkingDays, authorityCalendar, dataOf, keyDate, listText, plural, profileOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
 import type { Verdict } from '@/domain/gcc/s1/fit';
 import type { Dg1Pack } from './pack';
 import { dg1RecordFor, DG1_SLA_HOURS, type AnyDg1, type Dg1HoldValue, type Dg1ReopenValue } from './record';
@@ -32,7 +32,11 @@ export interface Dg1Decision {
   team?: Dg1Team;
   strategy?: { kind: 'prime' | 'jv'; partnerId?: string; shares?: [number, number] };
   milestones?: Dg1Milestone[];
-  snapshot: { weighted: number; eligibilityText: string | null; bond: string; validationsOpen: 0 };
+  /**
+   * What the pack showed. `validationsOpen` counts the fields still blocking
+   * DG1: 0, except for a PQ-fail discard recorded while they were open.
+   */
+  snapshot: { weighted: number; eligibilityText: string | null; bond: string; validationsOpen: number };
 }
 
 // ---------------------------------------------------------------------------
@@ -66,6 +70,12 @@ const HISTORY_REASONS: ReasonCode[] = [
 
 export const reasonLabel = (code: string) => [...DISCARD_REASONS, ...HISTORY_REASONS].find((r) => r.code === code)?.label ?? code;
 
+/**
+ * The code a reason counts under in roll-ups (DEC-10, plan 017's targets): the
+ * four PQ sub-codes are one "PQ fail", as the seed history records it.
+ */
+export const rollupReason = (code: string) => (code.startsWith('pq-fail-') ? 'pq-fail' : code);
+
 // ---------------------------------------------------------------------------
 // Input and validation (step 9.3.3)
 
@@ -84,14 +94,24 @@ export interface Dg1Input {
 
 export function validateDg1(input: Dg1Input, pack: Dg1Pack): { ok: boolean; errors: string[] } {
   const errors: string[] = [];
-  if (input.decision !== 'hold' && pack.locked) errors.push(`${pack.locked.reason}. DG1 can be recorded once they are resolved.`);
+  const note = input.note?.trim();
+  // Hold is how the missing fields are asked for; a PQ-fail discard can't be changed by them.
+  const lockApplies = input.decision === 'pursue' || (input.decision === 'discard' && !pack.locked?.discardAllowed);
+  if (pack.locked && lockApplies) errors.push(`${pack.locked.reason}. DG1 can be recorded once they are resolved.`);
   if (input.decision === 'discard' && !input.reasonCodes?.length) errors.push('Choose at least one reason for Discard.');
   const unknown = (input.reasonCodes ?? []).filter((c) => !DISCARD_REASONS.some((r) => r.code === c) && !HISTORY_REASONS.some((r) => r.code === c));
   if (unknown.length) errors.push(`Unknown reason code: ${unknown.join(', ')}.`);
-  if (input.decision === 'pursue' && pack.recommendation.verdict === 'discard' && !input.note?.trim()) {
-    errors.push('Add a note: Pursue overrides a Recommend discard.');
+  const overridesDiscard = input.decision === 'pursue' && pack.recommendation.verdict === 'discard';
+  if (overridesDiscard && !note) errors.push('Add a note: Pursue overrides a Recommend discard.');
+  if (input.decision === 'pursue' && input.strategy?.kind === 'jv') {
+    if (!input.strategy.partnerId) errors.push('Name the JV partner.');
+    else if (!dataOf(pack.tenant).partners.some((p) => p.id === input.strategy!.partnerId)) errors.push(`No partner "${input.strategy.partnerId}" on the partner list.`);
   }
-  if (input.decision === 'pursue' && input.strategy?.kind === 'jv' && !input.strategy.partnerId) errors.push('Name the JV partner.');
+  // The recommendation needs a JV: bidding alone fails the PQ. A prime bid needs the reason on record.
+  const elig = pack.eligibility?.result;
+  if (input.decision === 'pursue' && elig?.verdict === 'eligible-with-jv' && input.strategy?.kind !== 'jv' && !note && !overridesDiscard) {
+    errors.push(`Record the JV with ${elig.jvPartner?.name ?? 'the partner'} as the submission strategy, or add a note on why the company bids alone (it fails ${plural(elig.counts.fail, 'PQ line')} on its own).`);
+  }
   if (input.decision === 'hold' && (!input.request?.toId || !input.request.what?.trim() || !input.request.due)) {
     errors.push('Say who is asked, for what, and by when.');
   }
@@ -174,7 +194,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
       weighted: pack.fit.result.weighted,
       eligibilityText: pack.eligibility?.result.text ?? null,
       bond: pack.bond?.bond.text ?? 'No bid bond stated',
-      validationsOpen: 0,
+      validationsOpen: pack.open.validations.filter((q) => q.item.blocksDg1).length,
     },
   };
   const override = pursue ? rec.verdict === 'discard' : rec.verdict !== 'discard';
@@ -206,6 +226,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
         decision.note ? `note: ${decision.note}` : '',
         decision.delegate ? `recorded by ${by} as delegate` : '',
         override ? 'overrides the recommendation' : '',
+        decision.snapshot.validationsOpen ? `${plural(decision.snapshot.validationsOpen, 'field')} still open, which cannot change a PQ fail` : '',
       ].filter(Boolean).join('; '),
     }],
     effects,

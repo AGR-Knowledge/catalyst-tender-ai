@@ -70,8 +70,8 @@ JSON values, read with a local `readDone<T>` in `domain/gcc/s3/done.ts`. Every v
 | `dg2:{TID}` | `Dg2Decision` (Phase 5) |
 | `dg2-reopen-req:{TID}` | `{ reason; trigger: 'competitor-withdrew' \| 'employer-signal' \| 'jv-offer' \| 'other'; at; byId }` |
 | `dg2-reopen:{TID}` | `{ approved: true; at; byId }` (the Head of Tendering) |
-| `dg2-letter:{TID}` | `{ text: string; sent: boolean; at; byId }` |
-| `cond:{conditionId}` | `{ state: 'closed'; note?: string; at; byId }` |
+| `dg2-letter:{TID}:R{round}` | `{ text: string; sent: boolean; round: number; at; byId }` (round-scoped since plan 020 E4; build it with `letterKey()`) |
+| `cond:{TID}-R{round}-C{n}` | `{ state: 'closed'; note?: string; at; byId }` (round-scoped since plan 020 E3; build the id with `conditionId()`) |
 | `pack-rerun:{TID}` | `{ version: number; at; byId }` |
 | `pack-issue:{TID}` | `{ version: number; at; byId }` |
 | `pack-note:{TID}` | `{ text: string; at; byId }` (the Bid Manager's presenter note; numbers stay locked) |
@@ -373,9 +373,12 @@ Model it on `30-seed.tsx`. It reads the active tenant; Najd shows the full set.
   - **Win bands (for the orchestrator; the user chose to leave this to you, 2026-09-26).** 017's interim facts give T-2026-101 **47 ± 10**, T-2026-029 **44 ± 9** and T-2026-049 **52 ± 9**. This plan's band rule (step 3.1) produces only ±6, ±8, ±12 or ±15, so 009a derives 47 ± 12 (8 comparables), 44 ± 8 (11) and 52 ± 8 (12). Those three rows fail. Two ways to close it:
     - **(a)** edit 017's three `band` values in `lifecycle/live/{najd,corniche,qurain}.ts` to 12, 8 and 8 (the executor's recommendation: the plan's rule stays);
     - **(b)** replace the step table with `band = round(30 ÷ √comparables)`. That keeps ±8 at 14 comparables and ±15 under 5, and gives ±10, ±9 and ±9 at 9, 11 and 12 comparables. I would then set those comparables.
+    - **Answer:** Decided 2026-09-26: 009a's rule stands (band from the comparable count); 017's three bands were changed to 47 ± 12, 44 ± 8, 52 ± 8.
 - **Follow-ups noticed (not done):**
   - **T-2026-097's employer reference disagrees between plans.** The lifecycle (017's `refFor`) says `WCWSC/PRJ/2026/0097`, but 004's intake event IN-0308-09 and 007a's Addendum 2 say `WCWS/PRJ/2026/0009, Addendum 2`. The letter follows the lifecycle; 004 and 017 should agree on one.
+    - Decided 2026-09-26: `WCWS/PRJ/2026/0009`, 004's reference. Plan 020 lane B (B4) makes the lifecycle agree.
   - The decline letter signs "For and on behalf of" the tenant's `legal` string ("Najd Arcline Contracting Company, closed joint stock company, Riyadh"). A shorter signature name on the tenant profile would read better.
+    - Decided 2026-09-26: sign with the tenant's display name ("For and on behalf of Najd Arcline Contracting Co."). Plan 020 lane E (E15) makes the change.
   - 017's `withDemoState` still returns the seed. 009b plugs in `dg2Overlay`, and replaces the interim `s3` facts with these derivations (the agreement rows are in place).
   - 015's `DELIVERY_LOAD`: check it against `PackSnapshot.portfolio` once 015 exists.
   - `myRequests` and plan 013's Finance/HR requests source: 009b reconciles them, as planned.

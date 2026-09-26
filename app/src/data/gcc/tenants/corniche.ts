@@ -126,7 +126,8 @@ const REGISTER: GccTender[] = [
     country: 'United Arab Emirates', city: 'Dubai', sector: 'Fit-out', sourceId: 'mail', sourceDetail: 'Email from a developer\'s project manager', procurement: 'limited',
     value: { amount: 42_000_000, ccy: 'AED', basis: 'estimate' },
     stage: 'S1', stageNote: 'Low fit: flagged for a person to decide', bidManagerId: 'corniche.bid', invited: [],
-    keyDates: [{ kind: 'published', date: '2026-03-07' }, { kind: 'submission', date: '2026-03-22', time: '12:00' }],
+    // Submission on the first working day after the expected Eid al-Fitr closure (20–23 Mar).
+    keyDates: [{ kind: 'published', date: '2026-03-07' }, { kind: 'submission', date: '2026-03-24', time: '12:00' }],
     fit: fit([
       [4, 'Interior fit-out with light MEP', 'Capability profile'],
       [2, 'Near the bottom of the value band', 'Platform estimate'],
@@ -195,7 +196,8 @@ export const CORNICHE: TenantSeed = {
       { fy: 2022, turnover: AED(1_020_000_000), audited: true },
       { fy: 2023, turnover: AED(1_100_000_000), audited: true },
       { fy: 2024, turnover: AED(1_180_000_000), audited: true, netWorth: AED(380_000_000), currentRatio: 1.29 },
-      { fy: 2025, turnover: AED(1_240_000_000), audited: false, auditDate: '2026-04-20' },
+      // Audited after the hero opens on 10 May, so PQ-11 reads the FY2022–FY2024 accounts only.
+      { fy: 2025, turnover: AED(1_240_000_000), audited: false, auditDate: '2026-05-19' },
     ],
   },
   fit: {
@@ -233,8 +235,8 @@ export const CORNICHE: TenantSeed = {
     limit: AED(380_000_000),
     utilised: AED(196_000_000),
     committed: [
-      { label: 'Bid bond: Abu Dhabi clinic MEP (submitted)', kind: 'bid bond', amount: AED(12_000_000) },
-      { label: 'Bid bond: Dubai hotel tower MEP (submitted)', kind: 'bid bond', amount: AED(12_400_000) },
+      { label: 'Bid bond: Abu Dhabi clinic MEP (submitted)', tenderId: 'T-2025-402', kind: 'bid bond', amount: AED(12_000_000) },
+      { label: 'Bid bond: Dubai hotel tower MEP (submitted)', tenderId: 'T-2025-406', kind: 'bid bond', amount: AED(12_400_000) },
     ],
     asOf: '2026-03-04',
     confirmedById: 'corniche.fin',

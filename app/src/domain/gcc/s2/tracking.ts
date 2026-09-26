@@ -13,8 +13,9 @@ import { mixFor } from './bestfit';
 
 /**
  * Tracking and nudges (spec §8.5). Reminders follow the one rule of
- * ui-direction §7.3: 3 days before the reply date, then daily; escalation to
- * the Procurement Lead when the reply date has passed (the next working day).
+ * ui-direction §7.3: 3 days before the reply date, then daily. Escalation
+ * (§7.3, decided 2026-09-26): overdue at the reply time, reminder sent; escalated
+ * to the Procurement Lead at 08:00 on the next working day if still unanswered.
  * Nothing is sent from here: the plan is shown, and counted.
  */
 
@@ -174,11 +175,18 @@ export function overdue(tenant: string, done: Done, now = NOW): { count: number;
 
 /** Per tender: what 017's interim `s2` facts state. */
 export function rfqCounts(tenant: string, tenderId: string, done: Done, now = NOW) {
-  const rfqs = rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= now);
+  const all = rfqsFor(tenant, tenderId, done);
+  const rfqs = all.filter((r) => r.sentAt <= now);
   const due = rfqs.filter((r) => r.replyBy <= now);
   const od = rfqs.filter((r) => isOverdue(r, now));
+  /** The reply date the RFQs were issued with, before any extension; the latest when batches differ. */
+  const issuedReplyBy = rfqs.map((r) => r.extendedFrom ?? r.replyBy).sort().pop();
+  /** The next reply date still ahead, after extensions, among RFQs not yet answered. */
+  const nextReplyBy = rfqs.filter((r) => !r.repliedAt && r.replyBy > now).map((r) => r.replyBy).sort()[0];
   return {
     sent: rfqs.length,
+    /** Every RFQ the tender has, seeded or sent in the demo, including any dated after `now`. */
+    total: all.length,
     dueSoFar: due.length,
     answeredOnTime: due.filter((r) => r.repliedAt && r.repliedAt <= r.replyBy).length,
     overdue: od.length,
@@ -187,13 +195,13 @@ export function rfqCounts(tenant: string, tenderId: string, done: Done, now = NO
     quotes: rfqs.filter((r) => r.quoteId).length,
     declines: rfqs.filter((r) => r.declined).length,
     /**
-     * The reply date the RFQs were issued with, before any extension; the
-     * latest when batches differ. T-2026-109: Sun 15 Mar. Extended RFQs keep
-     * their own `replyBy`, which the tracking views show.
+     * "Replies due": the next reply date still ahead, after extensions; the
+     * issued reply date when none is ahead. T-2026-104: Tue 10 Mar (two
+     * suppliers extended); T-2026-109: Sun 15 Mar.
      */
-    repliesDue: rfqs.map((r) => r.extendedFrom ?? r.replyBy).sort().pop(),
-    /** The next reply date still ahead, for "next replies due". */
-    nextReplyBy: rfqs.filter((r) => !r.repliedAt && r.replyBy > now).map((r) => r.replyBy).sort()[0],
+    repliesDue: nextReplyBy ?? issuedReplyBy,
+    issuedReplyBy,
+    nextReplyBy,
   };
 }
 

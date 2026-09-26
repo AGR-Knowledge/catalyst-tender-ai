@@ -149,9 +149,19 @@
 /*
  * Z5: one box for Table and Graph. The grid body is a 40 px header plus ten 40 px
  * rows (and the table's own horizontal scrollbar); the toolbar and filter chips sit
- * above it, so a wrapped toolbar grows the box instead of hiding rows.
+ * above it, so a wrapped toolbar grows the box instead of hiding rows. The table
+ * stays mounted under the graph and sets the box's height, and the graph fills it,
+ * so toggling never moves the page. The minimum fits the graph alone: its 48 px
+ * toolbar and rule, a 440 px plot and the card's borders.
  */
-.db-main { min-height: 488px; display: flex; flex-direction: column; margin-bottom: var(--gap); scroll-margin-top: calc(var(--header-h) + 16px); }
+.db-main {
+  position: relative; min-height: calc(48px + 1px + 440px + 2px); display: flex; flex-direction: column;
+  margin-bottom: var(--gap); scroll-margin-top: calc(var(--header-h) + 16px);
+}
+.db-table { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* Hidden, not unmounted: the table keeps its search, filters and columns, and can't be reached by tab or pointer. */
+.db-main.on-graph > .db-table { visibility: hidden; }
+.db-graph { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; border-radius: inherit; background: var(--surface); overflow: hidden; }
 .db-box-wait { flex: 1; display: grid; place-items: center; font-size: 12.5px; color: var(--ink-3); }
 .db-nodata { display: flex; flex-direction: column; flex: 1; }
 .db-nodata > .empty-state { flex: 1; display: grid; align-content: center; }
@@ -249,7 +259,7 @@
 .sc-legend .k { width: 18px; height: 0; border-top: 2px solid var(--brand); flex: none; }
 .sc-legend .k.cmp { border-top-style: dashed; opacity: 0.55; margin-left: 8px; }
 .sc-fig { flex: 1; min-height: 0; margin: 0; position: relative; }
-.sc-plot { height: 440px; }
+.sc-plot { height: 100%; min-height: 440px; }
 .sc-empty { height: 100%; display: grid; place-items: center; }
 .sc-tip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-pop); padding: 10px 12px; display: grid; gap: 3px; font-size: 12.5px; color: var(--ink-2); max-width: 280px; }
 .sc-tip b { font-size: 13px; color: var(--ink); }

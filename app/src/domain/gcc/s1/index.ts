@@ -20,5 +20,5 @@ export {
   pipelineFor, radarFor, recogniseUpload, fieldCounts, INTAKE_TARGET_MIN, ASSISTED_TEXT, DISPOSITION_LABEL,
   type Pipeline, type PipelineStep, type Radar, type Connector, type Capture,
 } from './intake';
-export { teamLoad, peakMonth, triageFor, asCommitment, CAPACITY_WINDOW_DAYS, type TriageResult, type TriageRow, type TriageTeam, type PeakMonth, type Commitment } from './triage';
+export { teamLoad, peakMonth, triageFor, asCommitment, CAPACITY_WINDOW_DAYS, nextWeeksLabel, toSubmissionLabel, type TriageResult, type TriageRow, type TriageTeam, type PeakMonth, type Commitment } from './triage';
 export { queriesFor, queryAction, type QueriesVM, type QueryVM, type QueryValue } from './queries';

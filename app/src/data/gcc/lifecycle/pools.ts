@@ -27,6 +27,12 @@ export interface TenantPool {
   hosts: Record<string, string>;
   /** Source ids with their share of new tenders. */
   sourceMix: [string, number][];
+  /**
+   * Issuers whose bid history with the tenant is authored elsewhere, so folded
+   * and generated tenders never submit a bid to them (Najd's WCWS: 2 awards
+   * from 3 bids since 2022, plan 009a).
+   */
+  authoredClients?: string[];
 }
 
 const M = 1_000_000;
@@ -63,6 +69,7 @@ export const POOLS: Record<GccTenantKey, TenantPool> = {
     hosts: { etimad: 'etimad.example', 'nwu-portal': 'nwu-suppliers.example', 'industrial-portal': 'industrial-utilities.example',
       'og-portal': 'og-vendors.example', 'municipal-listing': 'ep-municipal.example' },
     sourceMix: [['etimad', 70], ['nwu-portal', 8], ['industrial-portal', 5], ['municipal-listing', 5], ['mail-tenders', 8], ['mail-bids', 3], ['scan', 1]],
+    authoredClients: ['Western Cities Water Services Company'],
   },
   corniche: {
     ccy: 'AED',
@@ -180,9 +187,13 @@ export const POOLS: Record<GccTenantKey, TenantPool> = {
   },
 };
 
-/** "ECWS" from "Eastern Cities Water Services Company (ECWS)", else the initials: "CCWSC" → trimmed to four letters. */
+/**
+ * "ECWS" from "Eastern Cities Water Services Company (ECWS)", else the
+ * initials without "Company" or "Co.": "Western Cities Water Services
+ * Company" → "WCWS", at most five letters.
+ */
 export function acronymOf(issuer: string): string {
   const paren = issuer.match(/\(([A-Z]{2,6})\)/);
   if (paren) return paren[1];
-  return issuer.split(/\s+/).filter((w) => /^[A-Z]/.test(w)).map((w) => w[0]).join('').slice(0, 5);
+  return issuer.split(/\s+/).filter((w) => /^[A-Z]/.test(w) && !/^(Company|Co\.?)$/.test(w)).map((w) => w[0]).join('').slice(0, 5);
 }

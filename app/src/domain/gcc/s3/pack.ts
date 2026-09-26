@@ -1,30 +1,41 @@
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import type { GccTender, Money } from '@/data/gcc/types';
 import type { Seat } from '@/data/people';
-import type { PackInputKey, PackRecommendation, PackSectionId, RiskRating } from '@/data/gcc/s3';
+import { INPUT_SPECS, type PackInputKey, type PackRecommendation, type PackSectionId, type RerunEffect, type RiskRating } from '@/data/gcc/s3';
 import { GATE_SLA_HOURS } from '@/data/gcc/targets';
 import { money } from '@/domain/money';
-import { eligibilityFor } from '@/domain/gcc/s1';
+import { s1Data } from '@/data/gcc/s1';
+import { bidBondFor, eligibilityFor, validationsOf } from '@/domain/gcc/s1';
 import { decisionState } from '@/domain/gcc/dg2/decision';
 import { dayText, nowIso, readDone, stampText, type Done, type WriteError, type WriteResult } from './done';
-import { WIN_AGENT, winFor, type WinVM } from './win';
+import { clientBidsOf, WIN_AGENT, winFor, type ClientBidVM, type WinVM } from './win';
 import { competitorsFor, type CompetitorsVM } from './competitors';
-import { inputsFor, type InputItem, type InputsVM } from './inputs';
+import { inputFields, inputsFor, type InputItem, type InputsVM } from './inputs';
 import { freshnessFor, type FreshnessVM } from './freshness';
 import { compareVersions, marginRangeText, packVersionsFor, SECTION_TITLES, type PackIssueValue, type VersionCompare } from './versions';
 
 /**
  * The Bid / No-Bid pack (spec §9): a sticky summary and sections 9.1–9.10,
  * each with its source and freshness ('current', 'stale' after a change the
- * pack hasn't absorbed, or 'waiting' for a contributor's input). The page
- * supplies whether the viewer may see margin; nothing here checks roles.
+ * pack hasn't absorbed, 'waiting' for a contributor's input, or
+ * 'not-requested' when nobody asked for the input it is built on). The page
+ * supplies what the viewer may see; nothing here checks roles.
  */
 
-export interface PackViewer { canSeeMargin: boolean }
+/**
+ * From `can()`: `see.margin` and `see.positions`. Win probability and the
+ * committee's positions follow `canSeeMargin` unless `canSeePositions` is
+ * given, because everyone masked from margin is masked from them too
+ * (roles-and-access §9); the Commercial Manager sees margin but not positions.
+ */
+export interface PackViewer { canSeeMargin: boolean; canSeePositions?: boolean }
 
-export type SectionFreshness = 'current' | 'stale' | 'waiting';
+export type SectionFreshness = 'current' | 'stale' | 'waiting' | 'not-requested';
 
 export interface WaitingFor { inputKey: PackInputKey; label: string; ownerId: string; ownerName: string; due: string; dueText: string; state: InputItem['state'] }
+
+/** An input the section is built on that nobody has requested. */
+export interface NotRequested { inputKey: PackInputKey; label: string }
 
 export interface PackSection<B> {
   id: PackSectionId;
@@ -32,10 +43,19 @@ export interface PackSection<B> {
   source: string;
   freshness: SectionFreshness;
   waitingFor?: WaitingFor;
+  /** Inputs this section reads that were never requested; 'not-requested' when that is all of them. */
+  notRequested?: NotRequested[];
+  /** "No input requested: Top five contract risks". */
+  notRequestedText?: string;
   body: B;
 }
 
 export const MASKED_TEXT = 'Masked for your role';
+export const PROVISIONAL_FACILITY_TEXT = 'Provisional: Finance has not confirmed headroom for this bid yet';
+
+/** A section body the viewer may not see. */
+export interface MaskedBody { masked: true; text: string }
+export const isMasked = (b: unknown): b is MaskedBody => !!b && typeof b === 'object' && (b as { masked?: unknown }).masked === true;
 export const RECOMMENDATION_NOTE = 'Recommendation, not a decision';
 
 export const RECOMMENDATION_LABEL: Record<PackRecommendation, string> = { bid: 'Bid', 'bid-with-conditions': 'Bid with conditions', 'no-bid': 'No-Bid' };
@@ -51,6 +71,8 @@ const CONFIDENCE_LABEL: Record<string, string> = { low: 'Low', medium: 'Medium',
 export interface RiskVM {
   clause: string; page?: number; risk: string; stance?: string; category?: string; rating: RiskRating;
   mitigation?: string; source: string; changed: boolean; kind: 'contract' | 'extraction-flag';
+  /** Extraction flags: still open, or sent back to the agent (plan 007a's queue state). */
+  flagState?: 'open' | 'sent-back';
 }
 
 export interface Section93 {
@@ -71,7 +93,8 @@ export interface Section94 {
   hr: null | { availability: { name: string; role: string; status: string }[]; nationalisation: string };
   portfolio: {
     asOf: string; currentPct: number; safePct: number; totalPct: number; ofSafePct: number;
-    ifWon: { tenderId: string; title: string; addPct: number; win?: string }[];
+    /** `estimate`: the tender has no Planning input, so its added load is the agent's estimate. `win` only for viewers who may see it. */
+    ifWon: { tenderId: string; title: string; addPct: number; estimate: boolean; addText: string; win?: string }[];
     tone: 'green' | 'orange' | 'red';
     text: string;
   };
@@ -79,8 +102,10 @@ export interface Section94 {
 
 export interface Section95 {
   tenderValue: Money;
-  bidBond: { amount: Money; text: string; pct: number; validityDays: number; charges: string; leadTime: string; alreadyCommitted: boolean };
-  ifWon: { performance: { pct: number; amount: Money; text: string }; advanceGuarantee: { pct: number; amount: Money; text: string }; retentionPct: number };
+  /** Rate and validity from plan 007a's `bidBondFor`; `validityDays` is null without an opening date. */
+  bidBond: { amount: Money; text: string; pct: number; validityDays: number | null; validityText: string; charges: string; leadTime: string; alreadyCommitted: boolean };
+  /** `advanceGuarantee` only when the tender offers an advance. */
+  ifWon: { performance: { pct: number; amount: Money; text: string }; advanceGuarantee?: { pct: number; amount: Money; text: string }; retentionPct: number };
   facility: { limit: Money; utilised: Money; committed: Money; headroom: Money; after: Money; afterText: string; asOf: string; confirmedBy: string };
   workingCapital: string;
   fx: string;
@@ -88,14 +113,15 @@ export interface Section95 {
 }
 
 export type Section97 =
-  | { masked: true; text: string }
+  | MaskedBody
   | { masked: false; low: number; high: number; range: string; text: string; basis: string; note?: string; confidence: string; costRisks: string[] };
 
 export interface Section98 {
   recommendation: PackRecommendation;
   label: string;
   rationale: string;
-  winThemes: string[];
+  /** Each theme with the client records it rests on, if any. */
+  winThemes: { text: string; cites: ClientBidVM[] }[];
   resourceAsk: string;
   topRisks: RiskVM[];
   presenterNote?: { text: string; byId: string; at: string };
@@ -107,10 +133,16 @@ export interface Section910 { freshness: FreshnessVM; compare?: VersionCompare }
 
 export interface PackSummary {
   recommendation: string;
+  /** "58 ± 8", `MASKED_TEXT`, or null with no win model. */
   win: string | null;
   value: string;
   margin: string | null;
   facilityAfter: string;
+  /** 'finance': this bid's Finance input; 'bank-facility': the company facility as Finance last confirmed it, so provisional. */
+  facilityAfterBasis: FacilityAfterBasis;
+  /** `PROVISIONAL_FACILITY_TEXT` while the basis is 'bank-facility'. */
+  facilityAfterNote?: string;
+  /** "2 of 5 · quorum needs 3", or `MASKED_TEXT`. */
   positions: string;
   sla: string;
   stale: boolean;
@@ -126,14 +158,16 @@ export interface PackVM {
   generatedAt: string;
   issued: boolean;
   issuedAt?: string;
-  /** DEC-4: value × win probability, once the pack is issued. */
+  /** DEC-4: value × win probability, once the pack is issued; null before, and for viewers masked from win probability. */
   weightedValue: Money | null;
   /** Bank guarantee headroom after this bid's bond. */
   facilityAfter: Money;
-  facilityAfterBasis: string;
+  facilityAfterBasis: FacilityAfterBasis;
+  /** Where the headroom figure comes from, in words. */
+  facilityAfterSource: string;
   summary: PackSummary;
   sections: {
-    '9.1': PackSection<WinVM | null>;
+    '9.1': PackSection<WinVM | MaskedBody | null>;
     '9.2': PackSection<CompetitorsVM | null>;
     '9.3': PackSection<Section93 | null>;
     '9.4': PackSection<Section94>;
@@ -145,6 +179,8 @@ export interface PackVM {
     '9.10': PackSection<Section910>;
   };
 }
+
+export type FacilityAfterBasis = 'finance' | 'bank-facility';
 
 // ---------------------------------------------------------------------------
 
@@ -162,22 +198,41 @@ function submitted(inputs: InputsVM, key: PackInputKey): Fields | null {
   return i?.state === 'submitted' && i.fields ? i.fields : null;
 }
 
-/** The first requested input among `keys` still missing. */
-function waitingOn(inputs: InputsVM, keys: PackInputKey[]): WaitingFor | undefined {
+interface InputState { waitingFor?: WaitingFor; notRequested: NotRequested[]; noneRequested: boolean }
+
+/** Where the inputs among `keys` stand: the first requested one still missing, and those nobody requested. */
+function inputState(inputs: InputsVM, keys: PackInputKey[]): InputState {
   const i = inputs.items.find((x) => keys.includes(x.key as PackInputKey) && x.state !== 'submitted');
-  return i ? { inputKey: i.key as PackInputKey, label: i.label, ownerId: i.ownerId, ownerName: i.ownerName, due: i.due, dueText: i.dueText, state: i.state } : undefined;
+  const notRequested = keys.filter((k) => !inputs.items.some((x) => x.key === k)).map((k) => ({ inputKey: k, label: INPUT_SPECS[k].label }));
+  return {
+    ...(i ? { waitingFor: { inputKey: i.key as PackInputKey, label: i.label, ownerId: i.ownerId, ownerName: i.ownerName, due: i.due, dueText: i.dueText, state: i.state } } : {}),
+    notRequested,
+    noneRequested: notRequested.length === keys.length,
+  };
 }
 
-function section<B>(id: PackSectionId, source: string, body: B, stale: PackSectionId[], waitingFor?: WaitingFor): PackSection<B> {
+/** Freshness, in order: waiting for an input, no input requested at all, stale, current. */
+function section<B>(id: PackSectionId, source: string, body: B, stale: PackSectionId[], inp?: InputState): PackSection<B> {
+  const waitingFor = inp?.waitingFor;
+  const notRequested = inp?.notRequested ?? [];
   return {
     id, title: SECTION_TITLES[id], source,
-    freshness: waitingFor ? 'waiting' : stale.includes(id) ? 'stale' : 'current',
+    freshness: waitingFor ? 'waiting' : inp?.noneRequested ? 'not-requested' : stale.includes(id) ? 'stale' : 'current',
     ...(waitingFor ? { waitingFor } : {}),
+    ...(notRequested.length ? { notRequested, notRequestedText: `No input requested: ${notRequested.map((n) => n.label).join(', ')}` } : {}),
     body,
   };
 }
 
-function risksOf(t: GccTender, legal: Fields | null, patches: { clause: string; rating: RiskRating; risk: string; source: string }[], done: Done): RiskVM[] | null {
+/** Extraction flags still open in plan 007a's queue, a sent-back one included, as pack risks. */
+export function extractionFlagsFor(tenant: string, tenderId: string, done: Done): RiskVM[] {
+  return validationsOf(tenant, tenderId, done).filter((q) => q.state !== 'resolved').map(({ item: v, state }): RiskVM => ({
+    kind: 'extraction-flag', clause: v.field, page: v.page, risk: `${v.field}: ${v.reason}`, rating: v.blocksDg1 ? 'high' : 'medium',
+    source: `Extraction flag, p. ${v.page}`, changed: false, flagState: state === 'sent-back' ? 'sent-back' : 'open',
+  }));
+}
+
+function risksOf(tenant: string, t: GccTender, legal: Fields | null, patches: { clause: string; rating: RiskRating; risk: string; source: string }[], done: Done): RiskVM[] | null {
   if (!legal) return null;
   const contract = arr<Fields>(legal.risks).slice(0, 5).map((r): RiskVM => {
     const patch = patches.find((p) => p.clause === txt(r.clause));
@@ -192,13 +247,17 @@ function risksOf(t: GccTender, legal: Fields | null, patches: { clause: string; 
       changed: !!patch,
     };
   });
-  // Extraction flags the coordinator hasn't resolved yet (plan 007a's `val:` keys).
-  const flags = t.validations.filter((v) => !done[`val:${v.id}`]).map((v): RiskVM => ({
-    kind: 'extraction-flag', clause: v.field, page: v.page, risk: `${v.field}: ${v.reason}`, rating: v.blocksDg1 ? 'high' : 'medium',
-    source: `Extraction flag, p. ${v.page}`, changed: false,
-  }));
-  return [...contract, ...flags];
+  return [...contract, ...extractionFlagsFor(tenant, t.id, done)];
 }
+
+/** Re-run effects without their margin figures, for viewers masked from margin. */
+function maskEffect(e: RerunEffect): RerunEffect {
+  if (!e.patch || (e.patch.margin === undefined && e.patch.marginNote === undefined)) return e;
+  const { patch: { margin: _m, marginNote: _n, ...patch }, ...rest } = e;
+  return Object.keys(patch).length ? { ...rest, patch } : rest;
+}
+
+const maskFreshness = (f: FreshnessVM): FreshnessVM => ({ ...f, versions: f.versions.map((v) => ({ ...v, effects: v.effects.map(maskEffect) })) });
 
 export function packFor(tenant: string, tenderId: string, done: Done, viewer: PackViewer): PackVM | null {
   if (!isGccTenantKey(tenant)) return null;
@@ -215,10 +274,14 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const inputs = inputsFor(tenant, tenderId, done);
   const value: Money = { amount: t.value.amount, ccy: t.value.ccy };
 
+  const seeMargin = viewer.canSeeMargin;
+  const seeWin = viewer.canSeePositions ?? viewer.canSeeMargin;
+  const masked: MaskedBody = { masked: true, text: MASKED_TEXT };
+
   // 9.1, 9.2
   const win = winFor(tenant, tenderId);
   const comps = competitorsFor(tenant, tenderId);
-  const s91 = section('9.1', win ? `${WIN_AGENT}; ${plural(win.comparables, 'comparable bid')}` : 'No win model yet', win, staleAll);
+  const s91 = section('9.1', win ? `${WIN_AGENT}; ${plural(win.comparables, 'comparable bid')}` : 'No win model yet', win && !seeWin ? masked : win, staleAll);
   const s92 = section('9.2', comps ? 'Prequalified list, award notices, opening reports and market intelligence (synthetic records)' : 'No competitor intelligence on record yet', comps, staleAll);
 
   // 9.3
@@ -242,7 +305,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   }
   const s93 = section('9.3', s93source, s93body, staleAll);
 
-  // 9.4
+  // 9.4. A tender's added delivery load is the Planning input's; without one it is the agent's estimate.
   const plan = submitted(inputs, 'planning');
   const pd = submitted(inputs, 'pd');
   const hr = submitted(inputs, 'hr');
@@ -250,6 +313,16 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const totalPct = port.currentPct + port.ifWon.reduce((s, x) => s + x.addPct, 0);
   const ofSafePct = Math.round((totalPct / port.safePct) * 100);
   const n = port.ifWon.length;
+  const ifWon = port.ifWon.map((x) => {
+    const estimate = !inputFields(tenant, x.tenderId, 'planning', done);
+    const w = seeWin ? winFor(tenant, x.tenderId) : null;
+    return {
+      tenderId: x.tenderId, title: d.register.find((r) => r.id === x.tenderId)?.title ?? x.tenderId, addPct: x.addPct, estimate,
+      addText: `+${x.addPct}${estimate ? ' (estimate)' : ''}`,
+      ...(w ? { win: w.text } : {}),
+    };
+  });
+  const estimates = ifWon.filter((x) => x.estimate).map((x) => `+${x.addPct} for ${x.tenderId === tenderId ? 'this bid' : x.title}`);
   const s94: Section94 = {
     effort: { ...snap.effort, text: `${snap.effort.toDateWeeks} people-weeks to date, ${snap.effort.toGoWeeks} to go; external cost ${mText(snap.effort.externalCost)}` },
     planning: plan ? {
@@ -264,46 +337,52 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
     hr: hr ? { availability: arr<{ name: string; role: string; status: string }>(hr.availability), nationalisation: txt(hr.nationalisation) } : null,
     portfolio: {
       asOf: port.asOf, currentPct: port.currentPct, safePct: port.safePct, totalPct, ofSafePct,
-      ifWon: port.ifWon.map((x) => ({
-        tenderId: x.tenderId, title: d.register.find((r) => r.id === x.tenderId)?.title ?? x.tenderId, addPct: x.addPct,
-        ...(winFor(tenant, x.tenderId) ? { win: winFor(tenant, x.tenderId)!.text } : {}),
-      })),
+      ifWon,
       tone: ofSafePct <= 100 ? 'green' : ofSafePct <= 115 ? 'orange' : 'red',
-      text: `${totalPct}% of delivery capacity if ${n === 1 ? 'this bid wins' : n === 2 ? 'both bids win' : `all ${n} bids win`}, against a safe level of ${port.safePct}% (${ofSafePct}%)`,
+      text: `${totalPct}% of delivery capacity if ${n === 1 ? 'this bid wins' : n === 2 ? 'both bids win' : `all ${n} bids win`}, against a safe level of ${port.safePct}% (${ofSafePct}%)`
+        + (estimates.length ? `. ${estimates.join(' and ')} ${estimates.length === 1 ? 'is an estimate' : 'are estimates'}: no Planning input` : ''),
     },
   };
-  const s94sec = section('9.4', `Planning, Project Director and HR inputs; delivery load as of ${dayText(port.asOf)}`, s94, staleAll, waitingOn(inputs, ['planning', 'pd', 'hr']));
+  const s94sec = section('9.4', `Planning, Project Director and HR inputs; delivery load as of ${dayText(port.asOf)}`, s94, staleAll, inputState(inputs, ['planning', 'pd', 'hr']));
 
-  // 9.5. Headroom after the bond reads the Finance input once it is in; until
-  // then the company facility Finance last confirmed (the DEC-6 figure).
+  // 9.5. The bid bond's rate, validity and the tender's guarantee terms are
+  // plan 007a's (`bidBondFor`, the bond terms). Headroom after the bond reads
+  // the Finance input once it is in; until then the company facility Finance
+  // last confirmed (the DEC-6 figure), which is provisional for this bid.
   const fin = submitted(inputs, 'finance');
-  const b = snap.bonds;
-  const bond = pctOf(value, b.bidPct);
+  const bb = bidBondFor(tenant, tenderId, done);
+  const terms = s1Data(tenant).bonds.find((x) => x.tenderId === tenderId);
+  const rate = bb?.rate ?? 0;
+  const bond = pctOf(value, rate);
   const alreadyCommitted = d.facility.committed.some((c) => c.tenderId === tenderId && c.kind === 'bid bond');
   const companyHeadroom = d.facility.limit.amount - d.facility.utilised.amount - d.facility.committed.reduce((s, c) => s + c.amount.amount, 0);
   const headroomBase: Money = fin ? mon(fin.headroom, { amount: 0, ccy: value.ccy }) : { amount: companyHeadroom, ccy: d.facility.limit.ccy };
   const facilityAfter: Money = { amount: headroomBase.amount - (alreadyCommitted ? 0 : bond.amount), ccy: headroomBase.ccy };
-  const facilityAfterBasis = fin
+  const facilityAfterBasis: FacilityAfterBasis = fin ? 'finance' : 'bank-facility';
+  const facilityAfterSource = fin
     ? `Finance / Treasury input, as of ${dayText(txt(fin.asOf))}`
     : `Company facility as confirmed by Finance on ${dayText(d.facility.asOf)}; this bid's Finance input is still due`;
   let s95: Section95 | null = null;
   if (fin) {
     const zero: Money = { amount: 0, ccy: value.ccy };
     const headroom = mon(fin.headroom, zero);
-    const perf = pctOf(value, b.performancePct);
-    const apg = pctOf(value, b.advancePct);
+    const perfPct = terms?.performancePct ?? 0;
+    const advPct = terms?.advancePct;
+    const perf = pctOf(value, perfPct);
+    const apg = advPct ? pctOf(value, advPct) : null;
+    const validity = bb?.validityDays != null ? `valid ${bb.validityDays} days` : bb?.validityText.toLowerCase() ?? 'validity not stated';
     s95 = {
       tenderValue: value,
       bidBond: {
-        amount: bond, pct: b.bidPct, validityDays: b.bidValidityDays, alreadyCommitted,
-        text: `${mText(bond)} (${b.bidPct}% of the estimate), valid ${b.bidValidityDays} days`,
+        amount: bond, pct: rate, validityDays: bb?.validityDays ?? null, validityText: bb?.validityText ?? 'Validity not stated', alreadyCommitted,
+        text: bb?.rate == null ? 'No bid bond stated' : `${mText(bond)} (${rate}% of the estimate), ${validity}`,
         charges: `Bank charges ${num(fin.bondCharges)}% a year`,
         leadTime: `Bank lead time ${plural(num(fin.bankLeadDays), 'working day')}`,
       },
       ifWon: {
-        performance: { pct: b.performancePct, amount: perf, text: `Performance bond ${mText(perf)} (${b.performancePct}%)` },
-        advanceGuarantee: { pct: b.advancePct, amount: apg, text: `Advance payment guarantee ${mText(apg)}, equal to the ${b.advancePct}% advance` },
-        retentionPct: b.retentionPct,
+        performance: { pct: perfPct, amount: perf, text: `Performance bond ${mText(perf)} (${perfPct}%)` },
+        ...(apg && advPct ? { advanceGuarantee: { pct: advPct, amount: apg, text: `Advance payment guarantee ${mText(apg)}, equal to the ${advPct}% advance` } } : {}),
+        retentionPct: snap.bonds.retentionPct,
       },
       facility: {
         limit: mon(fin.limit, zero), utilised: mon(fin.utilised, zero), committed: mon(fin.committed, zero), headroom,
@@ -312,22 +391,22 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
       },
       workingCapital: txt(fin.workingCapital),
       fx: txt(fin.fx),
-      bondTermsSource: b.source,
+      bondTermsSource: terms?.source ?? 'Tender documents',
     };
   }
-  const s95sec = section('9.5', fin ? `Finance / Treasury input, as of ${dayText(txt(fin.asOf))}` : 'Finance / Treasury input', s95, staleAll, waitingOn(inputs, ['finance']));
+  const s95sec = section('9.5', fin ? `Finance / Treasury input, as of ${dayText(txt(fin.asOf))}` : 'Finance / Treasury input', s95, staleAll, inputState(inputs, ['finance']));
 
   // 9.6
   const patches = cur.effects.flatMap((e) => (e.patch?.risk ? [e.patch.risk] : []));
-  const risks = risksOf(t, submitted(inputs, 'legal'), patches, done);
-  const s96 = section('9.6', patches.length ? 'Compliance / Legal input, with Addendum changes; extraction flags' : 'Compliance / Legal input; extraction flags', risks, staleAll, waitingOn(inputs, ['legal']));
+  const risks = risksOf(tenant, t, submitted(inputs, 'legal'), patches, done);
+  const s96 = section('9.6', patches.length ? 'Compliance / Legal input, with Addendum changes; extraction flags' : 'Compliance / Legal input; extraction flags', risks, staleAll, inputState(inputs, ['legal']));
 
   // 9.7
   const comm = submitted(inputs, 'commercial');
   let s97: Section97 | null = null;
   if (comm) {
-    if (!viewer.canSeeMargin) {
-      s97 = { masked: true, text: MASKED_TEXT };
+    if (!seeMargin) {
+      s97 = masked;
     } else {
       const marginPatch = [...cur.effects].reverse().find((e) => e.patch?.margin)?.patch;
       const [low, high] = marginPatch?.margin ?? (arr<number>(comm.margin) as [number, number]);
@@ -342,38 +421,43 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
       };
     }
   }
-  const s97sec = section('9.7', "Commercial Manager's preliminary estimate: a range, not a price", s97, staleAll, waitingOn(inputs, ['commercial']));
+  const s97sec = section('9.7', "Commercial Manager's preliminary estimate: a range, not a price", s97, staleAll, inputState(inputs, ['commercial']));
 
   // 9.8
   const note = readDone<{ text: string; at: string; byId: string }>(done, `pack-note:${tenderId}`);
   const rec = snap.recommendation;
   const s98 = section<Section98>('9.8', `${WIN_AGENT}; presenter's note by the Bid Manager`, {
     recommendation: rec.recommendation, label: RECOMMENDATION_LABEL[rec.recommendation],
-    rationale: rec.rationale, winThemes: rec.winThemes, resourceAsk: rec.resourceAsk,
+    rationale: rec.rationale,
+    winThemes: rec.winThemes.map((w) => (typeof w === 'string' ? { text: w, cites: [] } : { text: w.text, cites: clientBidsOf(w.cites) })),
+    resourceAsk: rec.resourceAsk,
     topRisks: [...(risks ?? [])].sort((a, b) => RATING_ORDER[a.rating] - RATING_ORDER[b.rating]).slice(0, 3),
     ...(note ? { presenterNote: note } : {}),
     agent: WIN_AGENT, note: RECOMMENDATION_NOTE,
   }, staleAll);
 
-  // 9.9, 9.10
-  const s99 = section('9.9', 'Input requests and submissions', inputs, staleAll);
+  // 9.9, 9.10. Viewers masked from margin get the input status without the submitted fields,
+  // and the versions without their margin figures (the sections above already show what they may see).
+  const s99 = section('9.9', 'Input requests and submissions', seeMargin ? inputs : { ...inputs, items: inputs.items.map(({ fields: _f, ...i }) => i) }, staleAll);
   const first = pv.versions[0];
   const s910 = section<Section910>('9.10', 'Pack versions, addenda and credential renewals', {
-    freshness: fresh,
+    freshness: seeMargin ? fresh : maskFreshness(fresh),
     ...(cur.version > first.version ? { compare: compareVersions(tenant, tenderId, first.version, cur.version, viewer) } : {}),
   }, staleAll);
 
   // Sticky summary
   const ds = decisionState(tenant, tenderId, done);
   // DEC-4 counts a tender once its pack is with the committee (as plan 017's step facts do).
-  const weightedValue = win && pv.issued ? { amount: Math.round((value.amount * win.p) / 100), ccy: value.ccy } : null;
+  const weightedValue = win && seeWin && pv.issued ? { amount: Math.round((value.amount * win.p) / 100), ccy: value.ccy } : null;
   const summary: PackSummary = {
     recommendation: RECOMMENDATION_LABEL[rec.recommendation],
-    win: win?.text ?? null,
+    win: win ? (seeWin ? win.text : MASKED_TEXT) : null,
     value: mText(value),
     margin: s97 ? (s97.masked ? MASKED_TEXT : s97.range) : null,
     facilityAfter: mText(facilityAfter),
-    positions: ds.positions.quorum.short,
+    facilityAfterBasis,
+    ...(facilityAfterBasis === 'bank-facility' ? { facilityAfterNote: PROVISIONAL_FACILITY_TEXT } : {}),
+    positions: seeWin ? ds.positions.quorum.short : MASKED_TEXT,
     sla: ds.slaText,
     stale: !!fresh.stale,
     ...(fresh.stale ? { staleBadge: 'Stale' } : {}),
@@ -383,7 +467,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
     tenderId, title: t.title, value, valueText: mText(value),
     version: cur.version, generatedAt: cur.generatedAt,
     issued: !!cur.issuedAt, ...(cur.issuedAt ? { issuedAt: cur.issuedAt } : {}),
-    weightedValue, facilityAfter, facilityAfterBasis, summary,
+    weightedValue, facilityAfter, facilityAfterBasis, facilityAfterSource, summary,
     sections: { '9.1': s91, '9.2': s92, '9.3': s93, '9.4': s94sec, '9.5': s95sec, '9.6': s96, '9.7': s97sec, '9.8': s98, '9.9': s99, '9.10': s910 },
   };
 }

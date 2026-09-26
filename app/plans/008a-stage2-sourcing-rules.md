@@ -23,9 +23,9 @@ Najd's live Stage 2 tenders reproduce the target readings in gcc-demo-data §5.3
   - product-foundation rule 8: the agent proposes, the buyer confirms. The agent **never** issues a commitment or purchase order.
 - **What exists (plan 004, DONE):**
   - `src/data/gcc/hero.ts`: `HERO_BILLS`, `HERO_LINES` (item, bill, description, unit, qty, rate, lines), `HERO_PACKAGES` (P-01 … P-11 with `lineItems`, `kind`, `longLeadWeeks`, `mandatoryList`, `note`), `HERO_NOT_COVERED` (`['8.13']`), `HERO_KEY_DATES`.
-  - `src/data/gcc/tenants/najd.ts` register:
-    - T-2026-104 (Jubail industrial WWTP upgrade, SAR 310 M, S2, pursued 26 Feb, validation `VAL-104-1` on sludge dewatering capacity 120 vs 150 m³/h);
-    - T-2026-109 (Tabuk water transmission, SAR 420 M, S2, pursued Wed 4 Mar 11:20).
+  - `src/data/gcc/tenants/najd.ts` register (register values; were 310/420 in the first draft):
+    - T-2026-104 (Jubail industrial WWTP upgrade, SAR 175 M, S2, pursued 26 Feb, validation `VAL-104-1` on sludge dewatering capacity 120 vs 150 m³/h);
+    - T-2026-109 (Tabuk water transmission, SAR 260 M, S2, pursued Wed 4 Mar 11:20).
   - The DG1 records are in `history.dg1` via `dg1Of()`.
   - **B–E Stage 2 tenders:** Corniche T-2026-044 (Dubai district cooling), Dafna T-2026-019 (Al Wakra sewer rehab), Batinah T-2026-027 (Muscat interchange), Qurain T-2026-058 and T-2026-062.
   - People: `najd.proc` (Procurement Lead), `najd.bid`, `najd.comm`. The supplier persona is `{tenant}.supplier`: Ahmed Saleh, Gulf Process Systems Co. (`src/data/people.ts`).
@@ -124,7 +124,7 @@ Values are JSON, read with a local `readDone<T>(done, key)` in `domain/gcc/s2/do
 - [x] 2.2 `suppliers/<tenant>.ts` for B–E: 12–16 suppliers each, enough for their Stage 2 tender's packages, with at least one screening `due`. Corniche's trades are MEP and district cooling. Dafna's are sewer rehabilitation. Batinah's are roads and structures. Qurain's are tunnelling and large pipelines.
 
 ### Phase 3 — Najd's live Stage 2 tenders (`tenders/najd.ts`)
-- [x] 3.1 **T-2026-104** (Jubail industrial WWTP upgrade, SAR 310 M), **11 packages:**
+- [x] 3.1 **T-2026-104** (Jubail industrial WWTP upgrade, SAR 175 M), **11 packages:**
   - P-01 Piling and dewatering (subcontract);
   - P-02 Process mechanical equipment (supply, long lead 40 weeks, need-by 28);
   - P-03 Dissolved-air flotation and tertiary filters (supply);
@@ -138,7 +138,7 @@ Values are JSON, read with a local `readDone<T>(done, key)` in `domain/gcc/s2/do
   - P-11 Steel structures and covers (subcontract).
 
   Give each package a value.
-  - [x] 3.1.1 **BOQ summary:** package values, self-performed lines and one not-covered line, "Integration with the existing plant control system", at **3.1%** of SAR 310 M. The package, self and not-covered values sum to exactly SAR 310,000,000.
+  - [x] 3.1.1 **BOQ summary:** package values, self-performed lines and one not-covered line, "Integration with the existing plant control system", at **3.1%** of SAR 175 M. The package, self and not-covered values sum to exactly SAR 175,000,000.
   - [x] 3.1.2 **RFQs: 3 per package, 33 in all.** Sent 26–27 Feb (within 24 h of the DG1 pursue, which is in history). Reply dates are spread so that **31 are due** by 8 Mar 10:00 and **2 aren't yet due**.
   - [x] 3.1.3 **Replies, exactly:**
 
@@ -161,7 +161,7 @@ Values are JSON, read with a local `readDone<T>(done, key)` in `domain/gcc/s2/do
     - validity 60 days (required 120);
     - lead time 34 weeks (need-by 28).
   - [x] 3.1.5 **Clarifications:** 4 open, none stale (due dates after today); plus 3 answered ones for history. One open clarification is `commercial: true` (payment terms), so it goes to a human buyer.
-- [x] 3.2 **T-2026-109** (Tabuk water transmission, SAR 420 M), **9 packages:** pipes (national, mandatory list), valves, pump stations mechanical, surge protection, cathodic protection, SCADA and telemetry, electrical, trenchless crossings, and testing and disinfection.
+- [x] 3.2 **T-2026-109** (Tabuk water transmission, SAR 260 M), **9 packages:** pipes (national, mandatory list), valves, pump stations mechanical, surge protection, cathodic protection, SCADA and telemetry, electrical, trenchless crossings, and testing and disinfection.
   - [x] 3.2.1 27 RFQs (3 per package), all sent **Thu 5 Mar 10:05**. That is 22 h 45 m after the DG1 pursue on Wed 4 Mar 11:20.
   - [x] 3.2.2 Replies are due **Sun 15 Mar**; 0 are due so far. Spread the opened and acknowledged states: some opened, some acknowledged, none quoted yet.
   - [x] 3.2.3 2 open clarifications, none stale.
@@ -323,7 +323,7 @@ Model it on `30-seed.tsx` (target / got / result). It reads the active tenant; N
   6. Approve the Balanced mix with one override → the audit text includes the reason.
 - [x] 10.5 **Supplier view masking:** serialise `supplierView` for T-104 P-02 and assert that it contains none of:
   - any other supplier's name;
-  - "310,000,000" or "SAR 310";
+  - "175,000,000" or "SAR 175";
   - any line rate;
   - the word "estimate".
 - [x] 10.6 **Determinism:** equal JSON on a second call. Grep your folders for `Date.now` and `Math.random`: none.
@@ -397,7 +397,7 @@ Executor, 2026-09-25 (Phases 1–7, 9, 10 for Najd) and 2026-09-26 (Phase 8, 10.
 15. Mandatory-list packages recommend national suppliers only.
 16. The kick-off reads the owner and due date from 009a's `input-req:` value when present (`toId`, `due`, as 009a's key table documents); otherwise the role's person and my benchmark due dates.
 17. Gulf Process Systems Co. is in every B–E master with `contactPersonId: '{tenant}.supplier'`, and has RFQs in every B–E Stage 2 tender, so the portal persona has something to open in each tenant.
-18. **`rfqCounts().repliesDue` is the reply date the RFQs were issued with** (before any extension; the latest batch). 017 does not define "Replies due", and only this reading reproduces all seven of its values: T-104 and Batinah read Thu 5 Mar although some of their RFQs were extended past today. `nextReplyBy` (the next reply date still ahead) is also returned. If you prefer "next reply date ahead" for the dashboard column, 017's T-104 value becomes Sun 8 Mar and Batinah's Sun 8 Mar.
+18. *(Superseded by plan 020 D3: replies due is now the next reply date still ahead; see the review note below.)* **`rfqCounts().repliesDue` is the reply date the RFQs were issued with** (before any extension; the latest batch). 017 does not define "Replies due", and only this reading reproduces all seven of its values: T-104 and Batinah read Thu 5 Mar although some of their RFQs were extended past today. `nextReplyBy` (the next reply date still ahead) is also returned. If you prefer "next reply date ahead" for the dashboard column, 017's T-104 value becomes Sun 8 Mar and Batinah's Sun 8 Mar.
 19. **T-104 re-timed to 017's step log:** packaging approved 12:30 (017 `2:shortlisting`), last RFQ 16:40 (`2:rfqs-out`, so RFQs issued 6 h 50 m after DG1, was 5 h 55 m), first quote Mon 2 Mar 09:00 (`2:quotes-in`), reply date as issued Thu 5 Mar 17:00. Four late replies moved after 17:00 on 5 Mar so that 22 of 31 stays on time. T-109's packaging approved 14:20 (017 `2:shortlisting`). The same rule sets B–E: packaging at `2:shortlisting`, last RFQ at `2:rfqs-out`.
 20. **T-104 is SAR 175 M and T-109 SAR 260 M** in the register (and dashboards.md §12.2), not the plan's 310 and 420. Their BOQ summaries, package values and quotes are scaled to the register, so the coverage bar and the register agree; every share is unchanged (T-104 not covered 3.1%).
 21. **B–E masters:** Corniche, Dafna and Batinah have 16 suppliers each (new suppliers and a few extra trades, so each package has three sendable suppliers in its trade). **Qurain has 33, above the plan's 12–16**: its two Stage 2 tenders have 22 packages between them. Dafna's screening-due supplier moved from Shamal to Zubarah, and Qurain's Hokuriku is now current (Garda stays due), so the RFQ'd suppliers are all sendable.
@@ -406,6 +406,11 @@ Executor, 2026-09-25 (Phases 1–7, 9, 10 for Najd) and 2026-09-26 (Phase 8, 10.
 24. The panel's B–E rows "Supplier master size 12–16" and "Stage 2 tenders authored" became "Seeded RFQs to sendable, trade-matched suppliers" and "Supplier master has screening due", plus one 017 comparison row per tender.
 
 **Blockers / questions:** none open. Questions for review: deviations 18 (definition of "Replies due"), 20 (tender values) and 21 (Qurain's master size).
+
+**Answers (2026-09-26 review):**
+- **Replies due (18):** Decided 2026-09-26: the next reply date still ahead, after any extensions; when none is ahead, the original reply date. T-104 reads Tue 10 Mar and Batinah T-2026-027 Thu 12 Mar (plan 020 B15 and D3).
+- **Tender values (20):** the register values stand: T-104 SAR 175 M, T-109 SAR 260 M. The plan text above now says so.
+- **Qurain's master (21):** 33 suppliers accepted.
 
 **Follow-ups noticed (not done):**
 - B–E hero shortlists are thin (0–3 candidates per package): their masters are sized for their own Stage 2 tenders. No script takes a B–E hero into Stage 2, but a presenter who pursues it in Dafna or Qurain would find few suppliers.

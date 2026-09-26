@@ -63,6 +63,11 @@ export interface EligibilityResult {
   renewBefore?: string;
   /** The tender's stored eligibility criterion score (0–10), for `eligibilityScore`. */
   storedScore: number;
+  /**
+   * Set when the check could not run as asked (a JV scenario naming a partner
+   * the tenant does not have). The lines are then empty and `text` repeats it.
+   */
+  error?: string;
 }
 
 /** Written by the vault (plan 010) or presenter (014). */
@@ -530,14 +535,20 @@ function personnelLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLin
 function lcLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
   const min = r.threshold?.value ?? 0;
   const commitment = 'A target LC% commitment must be stated in the bid (§51-4)';
+  // A local content certificate counts only in the country that issued it: the tender's, unless the requirement names one.
+  const cc = r.country ?? countryCodeOf(ctx.t.country);
   const evals = ctx.members.map((m) => {
-    const certs = m.credentials.filter((c) => c.kind === 'lc-baseline' && (!r.country || c.country === r.country)).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    const all = m.credentials.filter((c) => c.kind === 'lc-baseline');
+    const certs = all.filter((c) => !cc || c.country === cc).sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+    const elsewhere = all.filter((c) => !certs.includes(c));
     const ok = certs.find((c) => (c.score ?? 0) >= min && isValidOn(c, check.date));
     const risk = !ok ? certs.find((c) => (c.score ?? 0) >= min && isValidOn(c, DEMO_TODAY)) : undefined;
     const best = ok ?? risk ?? certs[0];
     const state: LineState = ok ? 'pass' : risk ? 'at-risk' : 'fail';
     const text = !best
-      ? 'No local content baseline certificate on record'
+      ? elsewhere.length && cc
+        ? `${listText(elsewhere.map((c) => `${c.label} (${c.country ? countryAdjective(c.country) : 'no country'})`))} ${elsewhere.length === 1 ? 'does' : 'do'} not count in ${countryShort(cc)}; a ${countryAdjective(cc)} local content baseline certificate is required`
+        : `No ${cc ? `${countryAdjective(cc)} ` : ''}local content baseline certificate on record`
       : state === 'at-risk' ? `${best.label}: ${best.score}%, but it expires ${dateText(best.validTo!)}, before ${check.name}`
       : `${best.label}: ${best.score}%, ${state === 'pass' ? 'above' : 'below'} the ${min}% minimum`;
     return { m, best, state, text };
@@ -625,20 +636,26 @@ export function eligibilityFor(tenant: string, tenderId: string, done: Done, sce
 
   if (scenario) {
     const partner = d.partners.find((p) => p.id === scenario.partnerId);
-    if (partner) {
-      const { lines, me } = linesFor(tenant, t, done, { ...scenario, partner });
-      const counts = countsOf(lines);
-      const ok = counts.fail === 0;
-      const how = scenario.lead === 'partner'
-        ? `a JV with ${partner.name} as lead (${scenario.shares[0]}/${scenario.shares[1]})`
-        : `a JV led by ${me.name}, with ${partner.name} (${scenario.shares[0]}/${scenario.shares[1]})`;
+    if (!partner) {
+      // Never fall back to bidding alone: the caller asked about a JV and would read the wrong answer.
+      const error = `No partner "${scenario.partnerId}" on ${profileOf(tenant).name}'s partner list: the JV scenario was not checked`;
       return {
-        tenderId, lines, counts, asJv: true, jv: scenario, jvPartner: { id: partner.id, name: partner.name }, storedScore,
-        verdict: ok ? 'eligible-with-jv' : 'not-eligible',
-        ...(me.id !== tenant ? { entity: { id: me.id, name: me.name } } : {}),
-        text: `${countsText(counts)} → ${ok ? `eligible as ${how}` : `not eligible as ${how}`}`,
+        tenderId, lines: [], counts: { met: 0, atRisk: 0, interpretation: 0, fail: 0, na: 0 }, asJv: true, jv: scenario, storedScore,
+        verdict: 'not-eligible', text: error, error,
       };
     }
+    const { lines, me } = linesFor(tenant, t, done, { ...scenario, partner });
+    const counts = countsOf(lines);
+    const ok = counts.fail === 0;
+    const how = scenario.lead === 'partner'
+      ? `a JV with ${partner.name} as lead (${scenario.shares[0]}/${scenario.shares[1]})`
+      : `a JV led by ${me.name}, with ${partner.name} (${scenario.shares[0]}/${scenario.shares[1]})`;
+    return {
+      tenderId, lines, counts, asJv: true, jv: scenario, jvPartner: { id: partner.id, name: partner.name }, storedScore,
+      verdict: ok ? 'eligible-with-jv' : 'not-eligible',
+      ...(me.id !== tenant ? { entity: { id: me.id, name: me.name } } : {}),
+      text: `${countsText(counts)} → ${ok ? `eligible as ${how}` : `not eligible as ${how}`}`,
+    };
   }
 
   const { lines, me } = linesFor(tenant, t, done);

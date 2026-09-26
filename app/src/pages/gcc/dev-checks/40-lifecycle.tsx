@@ -1,17 +1,25 @@
 import { useMemo } from 'react';
 import { useTenantKey } from '@/domain/tenancy';
 import { money } from '@/domain/money';
+import { dayFlags, isWorkingDay } from '@/domain/calendar';
 import { windowOf, PERIODS, type PeriodKey } from '@/domain/gcc/period';
 import { GCC_DATA, isGccTenantKey, type GccTenantKey } from '@/data/gcc';
-import { GENERATION, LIFECYCLES, LIFECYCLE_LOAD_MS, buildLifecycles } from '@/data/gcc/lifecycle';
+import { HERO_ID, HERO_REF } from '@/data/gcc/hero';
+import { TENANTS } from '@/data/tenants';
+import { GENERATION, LIFECYCLES, LIFECYCLE_LOAD_MS, LIFECYCLE_SEEDS, buildLifecycles } from '@/data/gcc/lifecycle';
 import { FLOW_TARGETS, LIVE_TARGETS, NAJD_PIPELINE, RESULT_SPLITS, WINDOW_FROM, WINDOW_KEYS } from '@/data/gcc/lifecycle/targets';
 import { hash32 } from '@/data/gcc/lifecycle/rng';
 import { hoursBetween } from '@/data/gcc/lifecycle/chain';
-import { personById } from '@/data/people';
+import { POOLS } from '@/data/gcc/lifecycle/pools';
+import { authoredRef } from '@/data/gcc/lifecycle/live/common';
+import { personById, type Person } from '@/data/people';
 import {
-  capturesIn, currentOf, gateEventsIn, healthOf, lifecyclesOf, liveOf, openGate, resultsIn, submissionsIn,
+  capturesIn, currentOf, eligibilityOf, gateEventsIn, healthOf, lifecycle, lifecyclesOf, liveOf, openGate, resultsIn, staleOf, submissionsIn, visibleOf,
 } from '@/domain/gcc/lifecycle';
 import { port } from '@/domain/gcc/lifecycle.port';
+import { eligibilityFor } from '@/domain/gcc/s1';
+import { freshnessFor } from '@/domain/gcc/s3';
+import { column } from '@/components/dashboard/columns';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 import { TenderTracker } from '@/components/dashboard/TenderTracker';
@@ -95,6 +103,155 @@ function splitChecks(key: GccTenantKey): Check[] {
   return out;
 }
 
+/* ---------------------------------------------------------- plan 020 lane B */
+
+const WIN_KEYS = ['winP', 'winBand', 'positionsRecorded', 'quorum', 'weightedValue'];
+
+/** B1 and B2 (Najd): what a viewer sees of T-2026-097's win and positions and T-2025-322's price, through the rows and the tracker. */
+function maskingChecks(key: GccTenantKey): Check[] {
+  if (key !== 'najd') return [];
+  const S3 = 'T-2026-097';
+  const S5 = 'T-2025-322';
+  const sight = (p: Person) => {
+    const rows = port.rows(key, { kind: 'all' }, p, 'live');
+    const r3 = rows.find((r) => r.id === S3);
+    const r5 = rows.find((r) => r.id === S5);
+    const t3 = port.tracker(key, S3, p)?.now?.status ?? '';
+    const t5 = port.tracker(key, S5, p)?.now?.status ?? '';
+    const shown: string[] = [];
+    const hidden: string[] = [];
+    const put = (ok: boolean, what: string) => (ok ? shown : hidden).push(what);
+    if (r3) {
+      put(r3.win !== null, 'win');
+      for (const k of WIN_KEYS) put(r3.facts[k] !== null, k);
+      put(/win \d+ ± \d+/.test(t3), 'tracker win');
+      put(/\d+ of \d+ positions/.test(t3), 'tracker positions');
+    }
+    if (r5) {
+      put(r5.facts.estPrice !== null, 'estPrice');
+      put(/Estimated price [A-Z]{3} /.test(t5), 'tracker price');
+    }
+    return { shown, hidden, visible: `${r3 ? 'T-2026-097' : ''}${r5 ? ' T-2025-322' : ''}`.trim() || 'neither' };
+  };
+  const out: Check[] = [];
+  for (const role of ['coord', 'proc', 'prop', 'plan']) {
+    const p = personById(`${key}.${role}`);
+    if (!p) continue;
+    const s = sight(p);
+    out.push({ name: `B1/B2 · ${p.name} (${role}) sees no win, positions or price (rows visible: ${s.visible})`, expected: 'none shown', got: s.shown.length ? `shown: ${s.shown.join(', ')}` : 'none shown' });
+  }
+  for (const role of ['hot', 'bid']) {
+    const p = personById(`${key}.${role}`);
+    if (!p) continue;
+    const s = sight(p);
+    out.push({ name: `B1/B2 · ${p.name} (${role}) sees win, positions and price`, expected: 'all shown', got: s.hidden.length ? `hidden: ${s.hidden.join(', ')}` : s.shown.length ? 'all shown' : 'not visible' });
+  }
+  return out;
+}
+
+/** B3 (Najd): the restricted lane is left out for people not cleared through every query, not only the table rows. */
+function visibilityChecks(key: GccTenantKey): Check[] {
+  if (key !== 'najd') return [];
+  const out: Check[] = [];
+  const today = windowOf('today', key);
+  const all = capturesIn(key, today).captured;
+  for (const [role, restricted] of [['hot', 0], ['coord', 1]] as const) {
+    const p = personById(`${key}.${role}`);
+    if (!p) continue;
+    const n = LIVE_TARGETS[key][1] - restricted;
+    const s1 = [
+      liveOf(key, p).filter((l) => currentOf(l).stage === 1).length,
+      port.rows(key, { kind: 'stage', stage: 1 }, p, 'live').length,
+      visibleOf(key, p).filter((l) => !l.closedAt && currentOf(l).stage === 1).length,
+    ].join(' · ');
+    out.push({ name: `B3 · Stage 1 now for ${p.name} (liveOf · port rows · visibleOf)`, expected: `${n} · ${n} · ${n}`, got: s1 });
+    out.push({ name: `B3 · Captured today for ${p.name}`, expected: String(all - restricted), got: String(capturesIn(key, today, p).captured) });
+  }
+  return out;
+}
+
+/** B4, B6, B7, B8, B11, B13, B17: references, dates, the facility and the WCWS history, every tenant. */
+function dataChecks(key: GccTenantKey): Check[] {
+  const out: Check[] = [];
+  const lcs = lifecyclesOf(key);
+  const seed = LIFECYCLE_SEEDS[key];
+  const cc = TENANTS.find((t) => t.key === key)!.countryCode;
+
+  // B4: references.
+  const authored = lcs.filter((l) => l.tenderId === HERO_ID || authoredRef(seed, l.tenderId));
+  const changed = authored.filter((l) => l.source.ref !== (l.tenderId === HERO_ID ? HERO_REF : authoredRef(seed, l.tenderId)));
+  out.push({ name: `B4 · References plan 004 authored, kept (${authored.length})`, expected: 'all kept', got: changed.length ? `changed: ${changed.map((l) => `${l.tenderId} ${l.source.ref}`).join(', ')}` : 'all kept' });
+  const reused = lcs.filter((l) => !authored.includes(l)).filter((l) => {
+    const m = l.source.ref.match(/\/(\d{4})\/(\d{4})$/);
+    return m && Number(m[2]) === Number(l.tenderId.slice(7));
+  });
+  out.push({ name: 'B4 · Generated references never repeat the TID number', expected: '0', got: reused.length ? `${reused.length}: ${reused.slice(0, 3).map((l) => `${l.tenderId} ${l.source.ref}`).join(', ')}` : '0' });
+  if (key === 'najd') {
+    out.push({ name: 'B4 · T-2026-097 reference (Addendum 2 base)', expected: 'WCWS/PRJ/2026/0009', got: lifecycle(key, 'T-2026-097')?.source.ref ?? '—' });
+    // B6: the hero's documents arrived with the intake event, not at the purchase approval.
+    const hero = lifecycle(key, HERO_ID);
+    const ev = seed.intakeToday.find((e) => e.tenderId === HERO_ID && e.docType !== 'Addendum');
+    out.push({ name: 'B6 · Hero documents in (intake event)', expected: ev?.receivedAt ?? '—', got: hero?.log.find((e) => e.step === 'documents-in')?.at ?? '—' });
+    // B7: T-2026-079 before Founding Day.
+    const t079 = lifecycle(key, 'T-2026-079');
+    const dg3 = t079?.gates.find((g) => g.gate === 'DG3');
+    out.push({ name: 'B7 · T-2026-079 submitted · days after DG3', expected: '2026-02-19 · 3', got: t079?.submission && dg3 ? `${t079.submission.at.slice(0, 10)} · ${Math.round(hoursBetween(dg3.at, t079.submission.at) / 24)}` : '—' });
+    // B13: the WCWS client history belongs to plan 009a.
+    const clients = POOLS[key].authoredClients ?? [];
+    const wcws = lcs.filter((l) => clients.includes(l.issuer) && (l.submission || l.result));
+    out.push({ name: 'B13 · WCWS lifecycles with a submission or result (009a holds the history)', expected: 'none', got: wcws.map((l) => l.tenderId).join(', ') || 'none' });
+  }
+  const offDay = lcs.filter((l) => l.submission && !isWorkingDay(l.submission.at.slice(0, 10), cc));
+  out.push({ name: 'B7 · Every submission on a working day', expected: 'yes', got: offDay.length ? `no: ${offDay.map((l) => `${l.tenderId} ${l.submission!.at.slice(0, 10)}`).join(', ')}` : 'yes' });
+  // B8: no live deadline inside an expected closure.
+  const closed = lcs.filter((l) => !l.closedAt && l.submissionDeadline && dayFlags(l.submissionDeadline.date, cc).some((f) => f.key === 'closure-expected' || f.key === 'closure'));
+  out.push({ name: 'B8 · Live submission deadlines inside a closure', expected: 'none', got: closed.map((l) => `${l.tenderId} ${l.submissionDeadline!.date}`).join(', ') || 'none' });
+  // B11: every issued Stage 8 bid bond is committed on the facility.
+  const committed = seed.facility.committed;
+  const bondOf = (l: typeof lcs[number]) => (l.facts?.stage === 8 && l.facts.bond.issued ? l.facts.bond : null);
+  const bonds = lcs.filter((l) => !l.closedAt && bondOf(l));
+  const missing = bonds.filter((l) => !committed.some((c) => c.tenderId === l.tenderId && c.amount.amount === bondOf(l)!.amount.amount));
+  out.push({ name: `B11 · Issued Stage 8 bid bonds on the facility (${bonds.length})`, expected: 'all', got: missing.length ? `missing: ${missing.map((l) => l.tenderId).join(', ')}` : 'all' });
+  // B17: the stale sentence is 009a's.
+  for (const l of lcs.filter((x) => !x.closedAt && x.facts?.stage === 3)) {
+    const f = freshnessFor(key, l.tenderId, {});
+    const st = staleOf(key, l);
+    out.push({ name: `B17 · ${l.tenderId} · stale text`, expected: f ? (f.stale ? `009a: ${f.stale.reason}` : 'fresh') : 'no 009a pack', got: st ? `${st.from}: ${st.text}` : f ? 'fresh' : 'no 009a pack' });
+  }
+  return out;
+}
+
+/** B12: every Stage 1 tender with requirements shows 007a's counts, and keeps no copy of its own. */
+function eligibilityChecks(key: GccTenantKey): Check[] {
+  const viewer = personById(`${key}.hot`);
+  if (!viewer) return [];
+  const rows = port.rows(key, { kind: 'stage', stage: 1 }, viewer, 'live');
+  const out: Check[] = [];
+  for (const l of liveOf(key).filter((x) => x.facts?.stage === 1)) {
+    const e = eligibilityFor(key, l.tenderId, {});
+    if (!e) continue;
+    const r = rows.find((x) => x.id === l.tenderId);
+    const f = r?.facts ?? {};
+    const derived = eligibilityOf(key, l);
+    const copy = l.facts?.stage === 1 && l.facts.eligibility ? ' · stored copy' : '';
+    out.push({
+      name: `B12 · ${l.tenderId} eligibility = 007a (pass · at risk · interpretation · fail)`,
+      expected: `${e.counts.met} · ${e.counts.atRisk} · ${e.counts.interpretation} · ${e.counts.fail}`,
+      got: `${f.eligPass} · ${f.eligAtRisk} · ${f.eligInterpretation} · ${f.eligFail}${derived?.from === '007a' ? '' : ' · interim'}${copy}`,
+    });
+  }
+  return out;
+}
+
+/** B18: every step-fact key the port emits has a column header. */
+function headerChecks(key: GccTenantKey): Check[] {
+  const viewer = personById(`${key}.hot`);
+  if (!viewer) return [];
+  const keys = new Set(port.rows(key, { kind: 'all' }, viewer, 'all').flatMap((r) => Object.keys(r.facts).filter((k) => !k.endsWith('.masked'))));
+  const missing = [...keys].filter((k) => !column(k));
+  return [{ name: `B18 · Step-fact keys with a column header (${keys.size})`, expected: 'all', got: missing.length ? `missing: ${missing.join(', ')}` : 'all' }];
+}
+
 function compute(key: GccTenantKey) {
   const lcs = lifecyclesOf(key);
   const live = liveOf(key);
@@ -104,11 +261,10 @@ function compute(key: GccTenantKey) {
   if (key === 'najd') {
     const pf1 = live.filter((l) => currentOf(l).stage >= 2 && currentOf(l).stage <= 8);
     checks.push({ name: 'PF-1 · Stages 2–8', expected: `${NAJD_PIPELINE.tenders} · ${money(NAJD_PIPELINE.valueM * 1_000_000, 'SAR')}`, got: `${pf1.length} · ${money(pf1.reduce((s, l) => s + l.value.amount, 0), 'SAR')}` });
-    const coord = personById('najd.coord');
-    if (coord) checks.push({ name: 'Stage 1 for people not cleared (Tender Coordinator)', expected: '11', got: String(port.rows(key, { kind: 'stage', stage: 1 }, coord, 'live').length) });
   }
   for (const k of WINDOW_KEYS) checks.push(...flowChecks(key, k));
   checks.push(...splitChecks(key));
+  checks.push(...maskingChecks(key), ...visibilityChecks(key), ...dataChecks(key), ...eligibilityChecks(key), ...headerChecks(key));
 
   // §12.5 for every tenant.
   const s7 = byStage(7);

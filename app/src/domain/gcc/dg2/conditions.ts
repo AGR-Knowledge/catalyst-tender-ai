@@ -1,12 +1,14 @@
 import type { Seat } from '@/data/people';
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { nowIso, readDone, type Done, type WriteError, type WriteResult } from '@/domain/gcc/s3/done';
-import { activeDecision, type ConditionValue, type Dg2Decision } from './keys';
+import { activeDecision, conditionId, type ConditionValue, type Dg2Decision } from './keys';
 
 /**
  * DG2 conditions (spec §10, DEC-9). A Bid decision carries the members'
  * conditions plus the approver's own; each becomes a tracked item on the bid
- * workspace, `{TID}-C{n}`, open until someone closes it (`cond:`).
+ * workspace, `{TID}-R{round}-C{n}`, open until someone closes it (`cond:`).
+ * The round keeps a closed condition of an earlier decision from closing the
+ * same number after a re-open.
  */
 
 /** One member's condition text as separate conditions: split on ";", first letter capitalised. */
@@ -30,7 +32,7 @@ export function conditionsFor(tenant: string, tenderId: string, done: Done): Con
   const d = activeDecision(done, tenderId);
   if (!d || d.decision !== 'bid') return [];
   return d.conditions.map((text, i) => {
-    const id = `${tenderId}-C${i + 1}`;
+    const id = conditionId(tenderId, d.round ?? 1, i + 1);
     const closed = readDone<ConditionValue>(done, `cond:${id}`);
     const fromSeat = seatOf(d, text);
     return {
@@ -49,12 +51,13 @@ export function conditionsOpen(tenant: string, done: Done): { count: number; ite
   return { count: items.length, items };
 }
 
-export function conditionCloseWrite(conditionId: string, byId: string, note?: string): WriteResult | WriteError {
-  if (!/^.+-C\d+$/.test(conditionId)) return { error: `No condition called "${conditionId}"` };
+export function conditionCloseWrite(id: string, byId: string, note?: string): WriteResult | WriteError {
+  const m = /^(.+)-R\d+-C\d+$/.exec(id);
+  if (!m) return { error: `No condition called "${id}"` };
   const value: ConditionValue = { state: 'closed', ...(note?.trim() ? { note: note.trim() } : {}), at: nowIso(), byId };
   return {
-    key: `cond:${conditionId}`,
+    key: `cond:${id}`,
     value: JSON.stringify(value),
-    audit: { actorId: byId, action: 'DG2 condition closed', target: conditionId.replace(/-C\d+$/, ''), detail: `${conditionId}${value.note ? `: ${value.note}` : ''}` },
+    audit: { actorId: byId, action: 'DG2 condition closed', target: m[1], detail: `${id}${value.note ? `: ${value.note}` : ''}` },
   };
 }

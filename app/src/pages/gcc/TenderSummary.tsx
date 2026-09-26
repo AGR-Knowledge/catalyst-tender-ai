@@ -13,7 +13,24 @@ import { StatusPill } from '@/components/tender/StatusPill';
 import { Masked } from '@/components/tender/Masked';
 import { TenderTracker } from '@/components/dashboard/TenderTracker';
 import { column } from '@/components/dashboard/columns';
+import { WinCell } from '@/components/dashboard/columns/base.cols';
 import '@/components/dashboard/dashboard.css';
+
+/** Words for the parts of a fact key; a unit at the end goes in brackets. */
+const WORD: Record<string, string> = { rfqs: 'RFQs', rfq: 'RFQ', dg1: 'DG1', dg2: 'DG2', dg3: 'DG3', m2: 'M2', m3: 'M3', elig: 'eligibility', est: 'estimated', boq: 'BOQ' };
+const UNIT: Record<string, string> = { pct: '(%)', wd: '(working days)', m: '(months)' };
+
+/**
+ * A fact key without a registered column header, in words: "prepWd" → "Prep
+ * (working days)", "rfqsAnsweredOnTime" → "RFQs answered on time". Never the raw key.
+ */
+function factLabel(key: string): string {
+  const parts = key.replace(/\./g, ' ').replace(/([a-z0-9])([A-Z])/g, '$1 $2').toLowerCase().split(/\s+/).filter(Boolean);
+  const last = parts.length > 1 ? UNIT[parts[parts.length - 1]] : undefined;
+  const words = (last ? parts.slice(0, -1) : parts).map((w) => WORD[w] ?? w);
+  const text = [...words, ...(last ? [last] : [])].join(' ');
+  return text ? text[0].toUpperCase() + text.slice(1) : 'Fact';
+}
 
 /**
  * `/tenders/:id`: the tender summary, where "Open tender" lands until the
@@ -81,14 +98,14 @@ export function TenderSummary() {
             <KV k="Next gate" v={row.nextGate ? row.nextGate.label : 'None ahead'} />
             <KV k="Source" v={`${row.source.name} · ${row.source.ref}`} />
             <KV k="Fit" v={row.fit === null ? 'Not scored' : String(row.fit)} />
-            <KV k="Win" v={row.win ? `${Math.round(row.win.p <= 1 ? row.win.p * 100 : row.win.p)}% ± ${row.win.band}` : 'From Stage 3'} />
+            <KV k="Win" v={<WinCell row={row} />} />
           </div>
         </Card>
         <Card>
           <CardHead title="Where it stands" meta={stepLabel(row.stage, row.step)} />
           <div style={{ padding: '6px 22px 14px' }}>
             {facts.length === 0 && <KV k="Step facts" v="None recorded for this step." />}
-            {facts.map(([k, v]) => <KV key={k} k={column(k)?.header ?? k} v={factText(k, v)} />)}
+            {facts.map(([k, v]) => <KV key={k} k={column(k)?.header ?? factLabel(k)} v={factText(k, v)} />)}
           </div>
         </Card>
       </div>

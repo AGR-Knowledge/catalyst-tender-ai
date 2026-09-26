@@ -92,7 +92,7 @@ The same page, top to bottom, at 1440 px:
 
 ### Z5 · Main view
 - **A segmented control, `Table | Graph`.** The choice is remembered per viewer in `localStorage` (`ctai.mainview`), in a try/catch, defaulting to Table. My requests has no graph, so the toggle is hidden there.
-- **Both views sit in the same box at the same height**: toolbar 48 px plus 440 px, so the page doesn't jump when toggling.
+- **Both views sit in the same box at the same height**, so the page doesn't jump when toggling. The table stays mounted under the graph and sets the box's height (its toolbar wraps to two rows on a stage table); the graph fills the box, with a plot of at least 440 px (plan 020 A6.3).
 - The Table is described in §5, the Graph in §6.
 
 ### Z6 · Tender tracker
@@ -333,7 +333,7 @@ T-2026-109 · Tabuk water transmission pipeline, Phase 1 · SAR 260.0 M · [On t
 ┌ Now: 2 · Sourcing · RFQs out ──────────────────────────────────────────────────────────┐
 │ With     Joseph Mathew, Procurement Lead                                               │
 │ Team     Water team: Omar Siddiqui (Bid Manager), 4 engineers, 2 estimators            │
-│ Status   9 of 9 RFQs sent Thu 5 Mar 10:05 · replies due Sun 15 Mar                     │
+│ Status   9 of 9 packages issued · 27 RFQs · Thu 5 Mar 10:05 · replies due Sun 15 Mar   │
 │ Next     Quotes in → levelling → Bid / No-Bid pack · Submission Sun 10 May (39 wd)     │
 │ Blocker  None                                                                          │
 └──────────────────────────────────────────────────────────────── [Open tender] ────────┘
@@ -448,6 +448,11 @@ Settings
 | Supplier, Catalyst operator | none | Their own shells (plans 008, 011) |
 
 Stage owners see **every tender in their stage** in the tenant (tenant scope). It is their function's queue. Masking still applies.
+
+**Decided 2026-09-26:** the stage owners (Planning, Commercial for Pricing, Compliance, Project Director) see every tender in the company, not only their stage's.
+- Margin, quotes, win probability and positions stay masked per [roles-and-access.md](roles-and-access.md) §9.
+- Restricted tenders show only to cleared people.
+- The Commercial Manager sees margin and quotes.
 
 ---
 
@@ -603,7 +608,8 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
 - **Flow strip** (tenders entering each step): Packaging → Shortlisting → RFQs out → Quotes in → Levelling → Best-fit approved → Moved on · Stopped.
 - **Needs your action:** packaging to approve · shortlists · RFQs to send (clock) · non-responder escalations · adjustments to confirm · best-fit to approve · supplier commercial questions.
 - **Table:**
-  - columns: `tid` · `tender` · `stage` (step) · **Packages covered** (7 / 11) · **RFQs sent** (9 / 9) · **Overdue RFQs** (n, escalated) · **To level** · **Not covered** (% of BOQ value) · **Replies due** · **Bid Manager** · `due`;
+  - columns: `tid` · `tender` · `stage` (step) · **Packages covered** (7 / 11) · **Packages issued** (9 / 9, with the RFQ count, e.g. "27 RFQs") · **Overdue RFQs** (n, escalated) · **To level** · **Not covered** (% of BOQ value) · **Replies due** · **Bid Manager** · `due`;
+  - **Replies due** is the next reply date still ahead, after any extensions. When none is ahead, it falls back to the original reply date. (Decided 2026-09-26.)
   - default sort: Due soonest.
 - **Graph:**
   - x = Stage 2 steps;
@@ -882,16 +888,18 @@ The Stage 1–3 rows exist already (gcc-demo-data §5.1). New rows are marked **
 | Stage | TID · tender (fictional) | Value (SAR M) | Step and facts | With |
 | --- | --- | --- | --- | --- |
 | 1 | T-2026-118 hero · T-2026-117 · T-2026-119 · T-2026-122 · T-2026-120 | as §5.1 | as §5.1 | Aisha Al-Qahtani / Omar Siddiqui |
-| 2 | T-2026-109 Tabuk transmission · T-2026-104 Jubail IWTP | 260 · 175 | RFQs out (9 / 9) · Levelling (7 of 11 covered; 4 overdue, 2 escalated; 5 to level) | Joseph Mathew |
+| 2 | T-2026-109 Tabuk transmission · T-2026-104 Jubail IWTP | 260 · 175 | RFQs out (9 of 9 packages issued · 27 RFQs) · Levelling (7 of 11 covered; 4 overdue, 2 escalated; 5 to level) | Joseph Mathew |
 | 3 | T-2026-101 Abha STP · T-2026-097 Madinah WTP | 140 · 355 | Pack in preparation (2 inputs outstanding, 1 late) · Positions in (2 of 5; stale after Addendum 2) | Omar Siddiqui · the committee |
 | 4 **new** | T-2025-341 Jeddah industrial wastewater network · T-2025-336 Riyadh stormwater pumping stations | 120 · 88 | Baseline drafting (due Wed 11 Mar) · Resource loading (planned 20 vs required 18 months) | Arjun Pillai |
 | 5 **new** | T-2025-322 Al-Ahsa water treatment plant · T-2025-329 Buraydah sewer lift stations | 210 · 64 | Finance check (base margin 10.2% vs 9.0%; sourced 93%; estimated 4%) · Scenarios (7.8% vs 9.0% → PRC-3; sourced 81%; estimated 11%) | Tarek Haddad |
 | 6 | T-2026-088 Dammam stormwater tunnels · **new** T-2025-317 Taif water reservoirs | 420 · 96 | Review (11 / 18 locked; 1 late; score 76 vs 70; red team Tue 10 Mar) · Drafting (3 / 12; 2 late; 3 SME tasks overdue; score 68 vs 70 → PRP-3) | Rami Aziz |
 | 7 **new** | T-2025-305 Yanbu STP expansion | 150 | DG3 pack issued Sat 7 Mar 16:00 (100% evidenced; 0 gaps; 0 redlines open) | Faisal Al-Harbi (DG3) |
-| 8 | **new** T-2025-298 Makkah water distribution · **new** T-2025-291 Riyadh sewage network extension · **new** T-2025-284 Dammam water network · T-2026-079 Qassim water networks | 230 · 290 · 186 · 310 | Signatures (deadline Thu 12 Mar 10:00; 2 signatures pending; bond SAR 2.3 M valid to 10 Jun) · Awaiting result (submitted 3 Mar) · Awaiting result (15 Feb) · Awaiting result (22 Feb) | Omar Siddiqui |
+| 8 | **new** T-2025-298 Makkah water distribution · **new** T-2025-291 Riyadh sewage network extension · **new** T-2025-284 Dammam water network · T-2026-079 Qassim water networks | 230 · 290 · 186 · 310 | Signatures (deadline Thu 12 Mar 10:00; 2 signatures pending; bond SAR 2.3 M valid to 10 Jun) · Awaiting result (submitted 3 Mar) · Awaiting result (15 Feb) · Awaiting result (Thu 19 Feb) | Omar Siddiqui |
 | 9 **new** | T-2025-262 Unaizah STP (won 24 Feb) · T-2025-270 Hail water transmission (lost 5 Mar: price, 2nd of 6, 6.8% above the winner) | 142 · 205 | Handover (kick-off Sun 15 Mar) · Debrief | Mohammed Al-Ghamdi |
 
 Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9 2 = **29**. **PF-1 = 15 tenders, SAR 3.09 bn** (Stages 2–8).
+
+**Stage 2 runs long, by design.** Najd's Stage 2 durations run 29–77 days, because §12.3 fixes the 90-day DG1 total and the DG2 anchors. The "average days in stage" graph shows Stage 2 long; that is expected (accepted 2026-09-26).
 
 **Stage 1 is 12, decided 2026-09-25 (plan 017 question).** It is the 5 rows above plus plan 004's seven other Stage 1 register rows: T-2026-121 (restricted lane) and T-2026-123 … 128 (six low-fit notices captured this morning, at step "Screened", flagged for a person). Every register row has a lifecycle, so the intake screens, the table and the graph agree. People not cleared for the restricted lane see 11 in Stage 1 and 28 live. SCR-1 stays "DG1 due 2" and PF-1 is unchanged, because it counts Stages 2–8 only.
 
@@ -931,13 +939,13 @@ Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9
   - Bid T-2025-341 (Tue 3 Mar), T-2025-336 (26 Feb), T-2025-329 (18 Feb) and T-2025-322 (10 Feb);
   - No-bid T-2026-099 (1 Mar).
 - **DG3, 30 days:** approved T-2025-298 (Wed 4 Mar), T-2025-291 (25 Feb), T-2026-079 (16 Feb) and T-2025-284 (10 Feb).
-- **Submitted, 30 days:** T-2025-291 (Tue 3 Mar, SAR 290 M), T-2026-079 (22 Feb, SAR 310 M) and T-2025-284 (15 Feb, SAR 186 M). Their average is SAR 262.0 M.
+- **Submitted, 30 days:** T-2025-291 (Tue 3 Mar, SAR 290 M), T-2026-079 (Thu 19 Feb, SAR 310 M) and T-2025-284 (15 Feb, SAR 186 M). Their average is SAR 262.0 M.
 - **Results, 30 days:**
   - won T-2025-262 (24 Feb, SAR 142 M);
   - lost T-2025-255 (17 Feb) and T-2025-270 (Thu 5 Mar).
 - **90-day and 12-month totals:** keep plan 004's 46 DG1 records and 33 outcomes (re-dated where needed to fit the windows above). The other history is generated around them.
 
-**Correction to gcc-demo-data §5.1:**
+**Correction to gcc-demo-data §5.1** (applied there on 2026-09-26):
 - "DG2, last 12 months: 18 decisions" was too few for 38 submissions a year. It becomes **54 (40 bid, 14 no-bid), 51 on time**.
 - "Chair differed from the majority: 1" becomes **approval against the majority: 2**.
 - Re-opened: 2, unchanged.
@@ -962,6 +970,8 @@ Titles and values are fictional; the generator fills the history.
 | Dafna (C) | 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 95 (30 · 61 · 4) | 28 (21 · 7) | 21 (20 · 1) | 20 | 18 (5 · 13) |
 | Batinah (D) | 4 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 130 (40 · 85 · 5) | 36 (28 · 8) | 28 (27 · 1) | 27 | 25 (8 · 17) |
 | Qurain (E) | 3 · 2 · 1 · 1 · 1 · 1 · 1 · 3 · 1 | 160 (52 · 100 · 8) | 45 (35 · 10) | 35 (34 · 1) | 34 | 30 (8 · 22) |
+
+**Batinah's Stage 1 shows 3, not 4,** until plan 012 adds the scanned Arabic roads tender (noted 2026-09-26).
 
 **Every tenant has, now:**
 - one DG3 approval waiting for its Head of Tendering (the Stage 7 tender);

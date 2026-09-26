@@ -10,13 +10,15 @@ import { boq, packages, rfqs, type PackageInput, type RfqRow } from './build';
  * | ---------- | ------------------ | ---------- | ------- | -------------- | -------- | ----------- | ----------- | -------------- |
  * | T-2026-044 | 8 · 0              | 24 · 0     | 0       | 0 (0)          | 0        | 0%          | Thu 12 Mar  | 1 open         |
  * | T-2026-019 | 10 · 0             | 30 · 18    | 14      | 2 (0)          | 0        | 0%          | Tue 10 Mar  | 3 open, 1 stale|
- * | T-2026-027 | 7 · 3              | 21 · 12    | 9       | 1 (0)          | 2        | 4.5%        | Thu 5 Mar   | 2 open         |
+ * | T-2026-027 | 7 · 3              | 21 · 12    | 9       | 1 (0)          | 2        | 4.5%        | Thu 12 Mar  | 2 open         |
  * | T-2026-058 | 12 · 5             | 36 · 24    | 20      | 2 (0)          | 4        | 2.2%        | Tue 10 Mar  | 3 open         |
  * | T-2026-062 | 10 · 0             | 30 · 0     | 0       | 0 (0)          | 0        | 0%          | Thu 12 Mar  | 1 open         |
  *
- * "Replies due" is the reply date the RFQs were issued with. An overdue RFQ
- * that is not yet escalated fell due this morning (Sun 8 Mar 09:00, after an
- * extension): escalation by rule is the next working day at 08:00. Packaging
+ * "Replies due" is the next reply date still ahead, after extensions (the
+ * issued date when none is ahead). An overdue RFQ that is not yet escalated
+ * fell due this morning (Sun 8 Mar, before 10:00, after an extension), each at
+ * its own time: escalation by rule is the next working day at 08:00. Every
+ * extension states its reason (`extensionReason`). Packaging
  * is approved at 017's `2:shortlisting` time and the last RFQ goes out at its
  * `2:rfqs-out` time. Each company's Procurement Lead set the reply windows.
  */
@@ -32,7 +34,7 @@ const DOCUMENTS = [
   { title: 'Drawings for the package', ref: 'Tender Vol. 4' },
 ];
 
-type Reply = Pick<RfqRow, 'replyBy' | 'extendedFrom'>;
+type Reply = Pick<RfqRow, 'replyBy' | 'extendedFrom' | 'extensionReason'>;
 
 /** RFQs to several suppliers for one package, sent together; `rest` adds each supplier's state. */
 const send = (pkg: string, sentAt: string, reply: Reply, rows: [string, Omit<RfqRow, 'pkg' | 'sup' | 'sentAt' | 'replyBy'>?][]): RfqRow[] =>
@@ -287,7 +289,7 @@ const P019: PackageInput[] = [
 ];
 
 const DA_DUE_5: Reply = { replyBy: '2026-03-05T17:00' };
-const DA_EXT_8: Reply = { replyBy: '2026-03-08T09:00', extendedFrom: '2026-03-05T17:00' };
+const DA_EXT_8: Reply = { replyBy: '2026-03-08T08:30', extendedFrom: '2026-03-05T17:00', extensionReason: 'Lateral connection schedule reissued with the RFQ documents on Tue 3 Mar' };
 const DA_DUE_10: Reply = { replyBy: '2026-03-10T17:00' };
 
 const R019: RfqRow[] = [
@@ -305,7 +307,7 @@ const R019: RfqRow[] = [
     ['oder-liner', { openedAt: '2026-02-19T15:42', acknowledgedAt: '2026-02-22T09:17' }],
     ['simaisma-manhole', { openedAt: '2026-02-22T10:05' }],
   ]),
-  // P-03: extended to Sun 8 Mar 09:00; one quote, two overdue (escalation due Mon 9 Mar)
+  // P-03: extended to Sun 8 Mar 08:30; one quote, two overdue (escalation due Mon 9 Mar)
   ...send('P-03', '2026-02-19T14:30', DA_EXT_8, [
     ['oder-liner', { openedAt: '2026-02-19T15:44', acknowledgedAt: '2026-02-22T09:19',
       quote: { receivedAt: '2026-03-05T10:30', amount: 1_590_000, ccy: 'EUR', validityDays: 120, leadTimeWeeks: 4, page: 2, seededDecisions: { currency: 'confirmed' } } }],
@@ -421,8 +423,9 @@ export const DAFNA_T019: S2Tender = {
 // Batinah · T-2026-027 Muscat interchange upgrade (OMR 24 M)
 // DG1 pursue Thu 12 Feb 10:15. Packaging approved 12:30, shortlists 14:30,
 // 21 RFQs sent 15:20–16:00 with replies due Thu 5 Mar. Addendum 1 (3 Mar)
-// revised the underpass: P-03, P-06 and P-07 extended to Thu 12 Mar. Karst
-// asked for the weekend and was extended to Sun 8 Mar 09:00; no reply yet.
+// revised the underpass: P-03, P-06 and P-07 extended to Thu 12 Mar, the next
+// replies due. Karst asked for the weekend and was extended to Sun 8 Mar 09:00;
+// no reply yet.
 
 const T027 = 'T-2026-027';
 const D027 = 'CARD-MIU';
@@ -486,8 +489,9 @@ const P027: PackageInput[] = [
 ];
 
 const BA_DUE_5: Reply = { replyBy: '2026-03-05T17:00' };
-const BA_EXT_8: Reply = { replyBy: '2026-03-08T09:00', extendedFrom: '2026-03-05T17:00' };
-const BA_EXT_12: Reply = { replyBy: '2026-03-12T17:00', extendedFrom: '2026-03-05T17:00' };
+const BA_EXT_8: Reply = { replyBy: '2026-03-08T09:00', extendedFrom: '2026-03-05T17:00', extensionReason: 'The supplier asked for the weekend to finish its price' };
+/** Addendum 1 (Tue 3 Mar) revised the underpass; each package's reply date moved to Thu 12 Mar. */
+const addendum1 = (what: string): Reply => ({ replyBy: '2026-03-12T17:00', extendedFrom: '2026-03-05T17:00', extensionReason: `Addendum 1 (Tue 3 Mar) revised ${what}` });
 
 const R027: RfqRow[] = [
   // P-01: three compliant quotes (Khabourah late)
@@ -509,7 +513,7 @@ const R027: RfqRow[] = [
       quote: { receivedAt: '2026-03-05T16:10', amount: 3_380_000, ccy: 'OMR', validityDays: 120, leadTimeWeeks: 2, page: 3 } }],
   ]),
   // P-03: extended by Addendum 1
-  ...send('P-03', '2026-02-12T15:35', BA_EXT_12, [
+  ...send('P-03', '2026-02-12T15:35', addendum1('the pile layout at the underpass'), [
     ['seeb-piling', { openedAt: '2026-02-12T16:10', acknowledgedAt: '2026-02-15T09:00' }],
     ['bidbid-foundations', { openedAt: '2026-02-12T17:42', acknowledgedAt: '2026-02-15T11:22' }],
     ['amerat-foundations', { openedAt: '2026-02-15T10:30' }],
@@ -534,13 +538,13 @@ const R027: RfqRow[] = [
     ['karst-bearings', { openedAt: '2026-02-16T11:20', acknowledgedAt: '2026-02-18T09:30' }],
   ]),
   // P-06: extended by Addendum 1; Ibri held on the shortlist
-  ...send('P-06', '2026-02-12T15:50', BA_EXT_12, [
+  ...send('P-06', '2026-02-12T15:50', addendum1('the signage schedule'), [
     ['sur-precast', { openedAt: '2026-02-15T08:47', acknowledgedAt: '2026-02-15T12:02' }],
     ['rustaq-barriers', { openedAt: '2026-02-16T09:32' }],
     ['barka-precast', { openedAt: '2026-02-12T16:22', acknowledgedAt: '2026-02-15T08:12' }],
   ]),
   // P-07: extended by Addendum 1
-  ...send('P-07', '2026-02-12T16:00', BA_EXT_12, [
+  ...send('P-07', '2026-02-12T16:00', addendum1('the underpass drainage'), [
     ['samail-lighting', { openedAt: '2026-02-12T16:40', acknowledgedAt: '2026-02-15T09:20' }],
     ['luminara', { openedAt: '2026-02-13T10:00' }],
     ['gulf-process', { openedAt: '2026-02-15T12:05', acknowledgedAt: '2026-02-16T09:45' }],
@@ -688,7 +692,8 @@ const P058: PackageInput[] = [
 ];
 
 const QU_DUE_5: Reply = { replyBy: '2026-03-05T17:00' };
-const QU_EXT_8: Reply = { replyBy: '2026-03-08T09:00', extendedFrom: '2026-03-05T17:00' };
+const QU_EXT_TBM: Reply = { replyBy: '2026-03-08T08:00', extendedFrom: '2026-03-05T17:00', extensionReason: 'The supplier asked for the weekend to check its cutterhead design against the ground classes' };
+const QU_EXT_VENT: Reply = { replyBy: '2026-03-08T09:30', extendedFrom: '2026-03-05T17:00', extensionReason: 'The supplier asked for the weekend to confirm fan lead times with its factory' };
 const QU_DUE_10: Reply = { replyBy: '2026-03-10T17:00' };
 
 const R058: RfqRow[] = [
@@ -699,7 +704,7 @@ const R058: RfqRow[] = [
     ['hokuriku-shield', { openedAt: '2026-02-11T03:10', acknowledgedAt: '2026-02-12T02:30',
       quote: { receivedAt: '2026-03-05T08:20', amount: 24_900_000, ccy: 'USD', incoterm: 'FCA', origin: 'Kanazawa, JP', validityDays: 120, leadTimeWeeks: 34, page: 4 } }],
   ]),
-  ...send('P-01', '2026-02-10T16:00', QU_EXT_8, [
+  ...send('P-01', '2026-02-10T16:00', QU_EXT_TBM, [
     ['taihu-shield', { openedAt: '2026-02-11T05:40', acknowledgedAt: '2026-02-15T06:10' }],
   ]),
   // P-02: three compliant quotes
@@ -733,7 +738,7 @@ const R058: RfqRow[] = [
     ['rhone-ventilation', { openedAt: '2026-02-11T10:20', acknowledgedAt: '2026-02-15T09:10',
       quote: { receivedAt: '2026-03-04T16:30', amount: 2_610_000, ccy: 'EUR', validityDays: 90, leadTimeWeeks: 20, page: 2 } }],
   ]),
-  ...send('P-05', '2026-02-10T16:25', QU_EXT_8, [
+  ...send('P-05', '2026-02-10T16:25', QU_EXT_VENT, [
     ['fahaheel-air', { openedAt: '2026-02-16T12:00', acknowledgedAt: '2026-02-19T10:00' }],
   ]),
   // P-06: three compliant quotes (Bubiyan late)

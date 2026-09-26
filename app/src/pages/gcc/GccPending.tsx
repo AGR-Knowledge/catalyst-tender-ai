@@ -1,5 +1,5 @@
 /// <reference types="vite/client" />
-import type { ComponentType } from 'react';
+import { Component, type ComponentType, type ReactNode } from 'react';
 import { useTenant } from '@/domain/tenancy';
 import { DEMO_TIME, DEMO_TODAY, weekendText, whenText } from '@/domain/calendar';
 import { Card, CardFoot, CardHead, KV } from '@/components/ui/primitives';
@@ -12,6 +12,21 @@ import { Card, CardFoot, CardHead, KV } from '@/components/ui/primitives';
 const PANELS = Object.entries(import.meta.glob<{ default: ComponentType }>('./dev-checks/*.tsx', { eager: true }))
   .sort(([a], [b]) => a.localeCompare(b))
   .map(([path, mod]) => ({ path, Panel: mod.default }));
+
+/** One panel's crash shows in that panel only, so a panel mid-edit doesn't blank the others. */
+class PanelBoundary extends Component<{ path: string; children: ReactNode }, { error: Error | null }> {
+  state: { error: Error | null } = { error: null };
+  static getDerivedStateFromError(error: Error) { return { error }; }
+  render() {
+    if (!this.state.error) return this.props.children;
+    return (
+      <>
+        <CardHead title={this.props.path.replace('./dev-checks/', '')} meta={<span className="t-red">Panel crashed</span>} />
+        <div style={{ padding: '6px 22px 14px' }} className="t-red mono">{this.state.error.message}</div>
+      </>
+    );
+  }
+}
 
 export function GccPending() {
   const t = useTenant();
@@ -33,7 +48,7 @@ export function GccPending() {
         <CardFoot>Dev checks, development builds only. Each panel below checks one plan's data or rules; the demo itself starts at the dashboard.</CardFoot>
       </Card>
       {PANELS.map(({ path, Panel }) => (
-        <Card key={path} style={{ marginBottom: 'var(--gap)' }}><Panel /></Card>
+        <Card key={path} style={{ marginBottom: 'var(--gap)' }}><PanelBoundary path={path}><Panel /></PanelBoundary></Card>
       ))}
     </div>
   );

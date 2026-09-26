@@ -2,18 +2,22 @@
 import { useTenantKey } from '@/domain/tenancy';
 import { money } from '@/domain/money';
 import { gccData, isGccTenantKey, GCC_DATA, type GccTenantKey } from '@/data/gcc';
-import { COMPETITORS, EVIDENCE, PACK_VERSIONS, SEEDED_INPUTS, WIN_MODELS, type PackSectionId } from '@/data/gcc/s3';
+import { CLIENT_BIDS, COMPETITORS, EVIDENCE, INPUT_SPECS, PACK_VERSIONS, SEEDED_INPUTS, WIN_MODELS, type PackSectionId } from '@/data/gcc/s3';
+import { KEY_PERSONNEL } from '@/data/gcc/s1';
+import type { Money } from '@/data/gcc/types';
 import { SEAT_LABEL, SEATS } from '@/data/people';
 import type { S3Facts } from '@/data/gcc/lifecycle';
 import { lifecyclesOf } from '@/domain/gcc/lifecycle';
 import {
-  applyWrites, competitorsFor, compareVersions, freshnessFor, inputsFor, isWriteError, issueBlockers, lensFor, packFor,
-  packIssueWrite, packRerunWrite, packVersionsFor, winFor, type Done, type Write,
+  applyWrites, clientHistoryText, competitorsFor, compareVersions, extractionFlagsFor, freshnessFor, inputsFor, isMasked, isWriteError, issueBlockers, lensFor,
+  marginRangeText, packFor, packIssueWrite, packRerunWrite, packVersionsFor, winFor, type Done, type PackVM, type PackViewer, type Write,
 } from '@/domain/gcc/s3';
 import {
-  conditionsFor, decisionState, declineLetter, dg2Overlay, dg2RecordFor, dg2Write, NO_BID_REASONS, positionsFor, positionWrite,
-  reopenApproveWrite, reopenRequestWrite,
+  conditionCloseWrite, conditionsFor, decisionState, declineLetter, dg2Overlay, dg2RecordFor, dg2Write, NO_BID_REASONS, positionsFor, positionWrite,
+  reopenApproveWrite, reopenRequestWrite, STALE_ACK_LABEL, STALE_WARNING,
 } from '@/domain/gcc/dg2';
+import { bidBondFor, validationAction } from '@/domain/gcc/s1';
+import { KICKOFF_INPUTS } from '@/domain/gcc/s2';
 import { DISCARD_REASONS } from '@/domain/gcc/dg1';
 import { DG1_DISCARD_REASONS } from '@/domain/gcc/dg2';
 import { CardHead, KV } from '@/components/ui/primitives';
@@ -22,8 +26,10 @@ import { DataTable } from '@/components/ui/DataTable';
 /**
  * Dev check for plan 009a: the Stage 3 pack and DG2 rules for the active
  * tenant, read through the domain functions only. Najd runs the Script C
- * targets, T-2026-101's preparation state and eight simulated DG2 flows on an
- * in-memory `done`. Nothing is written to the store.
+ * targets, T-2026-101's preparation state and nine simulated DG2 flows on an
+ * in-memory `done`. Plan 020 lane E adds the masked-pack search, the rows
+ * that tie the pack to 007a and 008a, and round-scoped conditions and letters.
+ * Nothing is written to the store.
  */
 
 // Plan 009a acceptance values (the only numbers typed here).
@@ -74,6 +80,27 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     'Flow 6 · Issue v2': '4 h 10 m left · CFO on v1, Technical Director on v1',
     'Flow 7 · Re-open after a No-Bid': 'back at DG2 · previous No-Bid · approval enabled',
     'Flow 8 · Oppose with no comment': 'Add a comment: it is needed for any position other than Support',
+    // Plan 020 lane E
+    '097 · Margin but not positions (Commercial Manager)': '8.5–11.5% · win Masked for your role · positions Masked for your role · weighted none',
+    '097 · Facility basis': 'finance · confirmed',
+    '101 · Facility after bond': 'SAR 93.2 M · bank-facility · Provisional: Finance has not confirmed headroom for this bid yet',
+    '097 · Bid bond (007a)': 'SAR 7.1 M (2% of the estimate), valid 120 days',
+    '097 · Win theme citing WCWS': 'Delivery record with WCWS on water treatment (2022 won, 2024 won)',
+    'T-2026-097 · Sections with no input requested': 'none',
+    'T-2026-101 · Sections with no input requested': 'none',
+    'Flow 2 · Letter signature': 'For and on behalf of Najd Arcline Contracting Co.',
+    'Flow 7 · Letter after re-open': 'none · kept with its re-open: yes',
+    'Flow 7 · Bid after re-open: letter': 'none',
+    'Flow 7 · Two re-opens keep their own reasons': 'No-Bid · A competitor withdrew: Hijr Al-Watan Contracting withdrew from the tender | Bid · A partner offered a JV: Tihama Hydro Works offered a JV on the process package',
+    'Flow 9 · Conditions after a re-open': 'T-2026-097-R1-C1 closed · then T-2026-097-R2-C1 open, T-2026-097-R2-C2 open',
+    'Sent-back flag stays in the pack risks (T-2026-104)': 'open 1 · sent back 1 (sent-back) · resolved 0',
+  },
+  corniche: {
+    'T-2026-029 · Sections with no input requested': '9.6',
+  },
+  qurain: {
+    'T-2026-049 · Sections with no input requested': '9.4, 9.6',
+    'T-2026-049 · Delivery load': '78% of delivery capacity if this bid wins, against a safe level of 75% (104%). +12 for this bid is an estimate: no Planning input',
   },
 };
 
@@ -85,8 +112,10 @@ const ALWAYS: Record<string, string> = {
 // Raw sources of this plan's folders, for the determinism grep (dev builds only).
 const SOURCES = import.meta.glob<string>(['/src/data/gcc/s3/*.ts', '/src/domain/gcc/s3/*.ts', '/src/domain/gcc/dg2/*.ts'], { query: '?raw', import: 'default', eager: true });
 
-const ALL: { canSeeMargin: boolean } = { canSeeMargin: true };
-const MASKED: { canSeeMargin: boolean } = { canSeeMargin: false };
+const ALL: PackViewer = { canSeeMargin: true };
+const MASKED: PackViewer = { canSeeMargin: false };
+/** The Commercial Manager: margin, but not win probability or positions. */
+const MARGIN_ONLY: PackViewer = { canSeeMargin: true, canSeePositions: false };
 const SECTION_ORDER: PackSectionId[] = ['9.1', '9.2', '9.3', '9.4', '9.5', '9.6', '9.7', '9.8', '9.9', '9.10'];
 
 const signed = (n: number) => (n > 0 ? `+${n}` : String(n));
@@ -96,6 +125,56 @@ const totals = (t: { requested: number; outstanding: number; late: number }) => 
 const agree = (ok: boolean, why = '') => (ok ? 'Agrees' : `Differs${why ? `: ${why}` : ''}`);
 
 interface Check { name: string; expected?: string; got: string }
+
+const arrOf = <T,>(v: unknown): T[] => (Array.isArray(v) ? (v as T[]) : []);
+
+/**
+ * Plan 020 E1.3: the margin, win and price values of the unmasked pack that
+ * still appear anywhere in the masked one, serialised whole.
+ */
+function leaksOf(tenant: string, full: PackVM, masked: PackVM, done: Done): string[] {
+  // Section ids ("9.5", "§9.5") aren't values: blank them so a margin of 9.5 isn't mistaken for one.
+  const json = JSON.stringify(masked).replace(/"9\.(?:10|[1-9])"/g, '"§"').replace(/§9\.(?:10|[1-9])/g, '§');
+  const found: string[] = [];
+  const has = (label: string, needle: string | RegExp) => { if (typeof needle === 'string' ? json.includes(needle) : needle.test(json)) found.push(label); };
+  const decimal = (n: number) => new RegExp(`(?<![\\d.])${String(n).replace('.', '\\.')}(?!\\d)`);
+  const inputs = inputsFor(tenant, full.tenderId, done).items;
+
+  // Margin: the range the pack shows, the Commercial input's, and every re-run patch.
+  const ranges: [number, number][] = [];
+  const m = full.sections['9.7'].body;
+  if (m && !m.masked) ranges.push([m.low, m.high]);
+  const raw = inputs.find((i) => i.key === 'commercial')?.fields?.margin;
+  if (Array.isArray(raw)) ranges.push(raw as [number, number]);
+  for (const v of full.sections['9.10'].body.freshness.versions) for (const e of v.effects) if (e.patch?.margin) ranges.push(e.patch.margin);
+  for (const r of ranges) {
+    has(`margin ${marginRangeText(r)}`, marginRangeText(r));
+    has(`margin ${JSON.stringify(r)}`, JSON.stringify(r));
+    for (const x of r) if (!Number.isInteger(x)) has(`margin ${x}`, decimal(x));
+  }
+  has('a margin field', /"margin":\[/);
+
+  // Win probability and positions (one capability, see.positions), and the weighted value built on win.
+  const w = full.sections['9.1'].body;
+  if (w && !isMasked(w)) {
+    has(`win ${w.text}`, w.text);
+    has(`win p ${w.p}`, `"p":${w.p}`);
+    has('win drivers', '"drivers":');
+  }
+  has(`positions ${full.summary.positions}`, full.summary.positions);
+  if (full.weightedValue) {
+    has('weighted value', String(full.weightedValue.amount));
+    has('weighted value text', money(full.weightedValue.amount, full.weightedValue.ccy));
+  }
+
+  // Price: a Commercial estimate, when one was submitted.
+  const cost = inputs.find((i) => i.key === 'estimate')?.fields?.cost as Money | undefined;
+  if (cost) has('estimate', String(cost.amount));
+  return found;
+}
+
+/** Sections whose inputs nobody requested (E9). */
+const notRequestedOf = (p: PackVM) => SECTION_ORDER.filter((s) => p.sections[s].freshness === 'not-requested').join(', ') || 'none';
 
 function najdRows(): Record<string, string> {
   const T = 'najd';
@@ -136,6 +215,23 @@ function najdRows(): Record<string, string> {
   got['097 · Margin range'] = pack.summary.margin ?? '—';
   const maskedSection = JSON.stringify({ ...masked.sections['9.7'], id: undefined });
   got['097 · Margin masked'] = `${masked.summary.margin} · ${/\d/.test(maskedSection) ? 'digits present' : 'no digits'}`;
+  const comm = packFor(T, A, seed, MARGIN_ONLY);
+  got['097 · Margin but not positions (Commercial Manager)'] = comm
+    ? `${comm.summary.margin} · win ${comm.summary.win} · positions ${comm.summary.positions} · weighted ${comm.weightedValue ? 'shown' : 'none'}`
+    : 'no pack';
+  got['097 · Facility basis'] = `${pack.summary.facilityAfterBasis} · ${pack.summary.facilityAfterNote ?? 'confirmed'}`;
+  const s95 = pack.sections['9.5'].body;
+  got['097 · Bid bond (007a)'] = s95?.bidBond.text ?? 'no 9.5';
+  const theme = pack.sections['9.8'].body.winThemes.find((x) => x.cites.length);
+  got['097 · Win theme citing WCWS'] = theme ? `${theme.text} (${theme.cites.map((c) => `${c.year} ${c.result}`).join(', ')})` : 'none';
+  const clientDriver = win.drivers.find((x) => x.key === 'client');
+  got['097 · Client driver agrees with the WCWS award records'] = agree(!!clientDriver?.cites.length && clientDriver.why === clientHistoryText(clientDriver.cites), `${clientDriver?.why} · records: ${clientHistoryText(clientDriver?.cites ?? [])}`);
+  const issuer = d.register.find((t) => t.id === A)?.issuer;
+  const wcws = CLIENT_BIDS.filter((b) => b.tenant === T);
+  got['WCWS award records name the register issuer'] = agree(wcws.length > 0 && wcws.every((b) => b.client === issuer), issuer);
+  // After plan 020 B13: no lifecycle in the window adds a WCWS bid (submitted or decided) to the "2 awards from 3 bids" story.
+  const extra = lifecyclesOf(T).filter((l) => l.issuer === issuer && (l.submission || l.result?.result === 'won' || l.result?.result === 'lost'));
+  got['No WCWS bid in the window contradicts the award records'] = agree(!extra.length, extra.map((l) => `${l.tenderId} ${l.result?.result ?? 'submitted'}`).join(', '));
   got['097 · Positions'] = pack.summary.positions;
   got['097 · Majority'] = `${pos.majority.for} for · ${pos.majority.against} against`;
   got['097 · Decision'] = ds.enabled ? 'Enabled' : `Disabled: ${ds.disabledReason}`;
@@ -150,15 +246,8 @@ function najdRows(): Record<string, string> {
   got['097 · Lens (CFO · TD · OD · Sector · HoT)'] = [lensFor('cfo'), lensFor('technical'), lensFor('operations'), lensFor('sector'), lensFor('hot')].join(' · ');
 
   // Cross-checks against other plans' facts.
-  const finance = SEEDED_INPUTS.find((i) => i.tenant === T && i.tenderId === A && i.key === 'finance')?.fields ?? {};
-  const amt = (v: unknown) => (v as { amount?: number } | undefined)?.amount;
-  const committed = d.facility.committed.reduce((s, c) => s + c.amount.amount, 0);
-  const headroom = d.facility.limit.amount - d.facility.utilised.amount - committed;
-  got['097 · Finance input equals 004 facility'] = agree(amt(finance.limit) === d.facility.limit.amount && amt(finance.utilised) === d.facility.utilised.amount
-    && amt(finance.committed) === committed && amt(finance.headroom) === headroom && finance.asOf === d.facility.asOf);
   const v1 = PACK_VERSIONS.find((p) => p.tenant === T && p.tenderId === A && p.version === 1);
   got['097 · Pack issued equals register packIssuedAt'] = agree(v1?.issuedAt === d.register.find((t) => t.id === A)?.packIssuedAt);
-  got['Safe delivery level equals the fit model'] = agree(PACK_VERSIONS.filter((p) => p.tenant === T).every((p) => p.snapshot.portfolio.safePct === d.fit.safeDeliveryPct));
   got['Planning delivery impact equals the pack roll-up'] = agree([A, B].every((tid) => {
     const plan = SEEDED_INPUTS.find((i) => i.tenant === T && i.tenderId === tid && i.key === 'planning')?.fields;
     return PACK_VERSIONS.filter((p) => p.tenant === T).every((p) => p.snapshot.portfolio.ifWon.find((x) => x.tenderId === tid)?.addPct === plan?.deliveryImpact);
@@ -183,6 +272,16 @@ function najdRows(): Record<string, string> {
     got['101 · Issue without a reason'] = errOf(packIssueWrite(T, B, seed, 'najd.bid'));
     const issued = applyWrites(seed, writesOf(packIssueWrite(T, B, seed, 'najd.bid', 'Committee meets tomorrow; Finance confirms headroom by then')));
     got['101 · Issue with a reason'] = `${freshnessFor(T, B, issued)?.issueNote ?? 'no note'} · ${decisionState(T, B, issued).slaText}`;
+    got['101 · Facility after bond'] = `${p101.summary.facilityAfter} · ${p101.summary.facilityAfterBasis} · ${p101.summary.facilityAfterNote ?? 'confirmed'}`;
+  }
+
+  // E10: a flag sent back to the agent stays in the pack's risks until it is resolved (plan 007a's queue state).
+  const val = d.register.find((t) => t.id === 'T-2026-104')?.validations[0];
+  if (val) {
+    const flags = (dn: Done) => extractionFlagsFor(T, val.tenderId, dn);
+    const sentBack = flags(applyWrites(seed, [validationAction(val, 'send-back', { hint: 'Check the equipment schedule' }, 'najd.coord')]));
+    const resolved = flags(applyWrites(seed, [validationAction(val, 'pick', { pick: 'alt' }, 'najd.coord')]));
+    got['Sent-back flag stays in the pack risks (T-2026-104)'] = `open ${flags(seed).length} · sent back ${sentBack.length} (${sentBack.map((f) => f.flagState).join(', ')}) · resolved ${resolved.length}`;
   }
 
   // --- Simulated flows (8.3), each on an in-memory done
@@ -204,6 +303,7 @@ function najdRows(): Record<string, string> {
     const internal = [...NO_BID_REASONS.map((r) => r.label.toLowerCase()), 'margin', 'probability', 'stale', 'capacity', 'facility'];
     const leaks = letter ? internal.filter((w) => letter.text.toLowerCase().includes(w)) : ['no letter'];
     got['Flow 2 · Letter'] = `${letter?.text.includes('Thank you') && letter.text.includes('future tenders') ? 'Courteous' : 'Not courteous'} · ${leaks.length ? `mentions ${leaks.join(', ')}` : 'no internal reasons'} · signed by ${letter?.text.split('\n').slice(-3)[0]}`;
+    got['Flow 2 · Letter signature'] = letter?.text.split('\n').slice(-1)[0] ?? 'no letter';
   } else {
     got['Flow 2 · No-Bid with a reason'] = nb.error;
   }
@@ -225,6 +325,12 @@ function najdRows(): Record<string, string> {
   const fr6 = freshnessFor(T, A, f6);
   got['Flow 6 · Re-run'] = `v${fr6?.version} · ${fr6?.stale ? 'stale' : 'fresh'} · changed ${compareVersions(T, A, 1, fr6?.version ?? 1).changed.join(', ')}`;
   got['Flow 6 · Margin after re-run'] = packFor(T, A, f6, ALL)?.summary.margin ?? '—';
+  const full6 = packFor(T, A, f6, ALL);
+  const masked6 = packFor(T, A, f6, MASKED);
+  if (full6 && masked6) {
+    const found = leaksOf(T, full6, masked6, f6);
+    got['Flow 6 · Masked pack after re-run: no margin, win or price values'] = agree(!found.length, found.join(', '));
+  }
   const f6opd = applyWrites(f6, writesOf(positionWrite(A, 'operations', { stance: 'support', packVersion: version }, 'najd.member.operations')));
   got['Flow 6 · Re-run not issued yet'] = decisionState(T, A, f6opd).staleAck ? 'stale acknowledgement required' : 'no acknowledgement';
   const f6b = applyWrites(f6, writesOf(packIssueWrite(T, A, f6, 'najd.bid')));
@@ -235,6 +341,24 @@ function najdRows(): Record<string, string> {
   const f7 = applyWrites(f7a, writesOf(reopenApproveWrite(T, A, f7a, 'najd.hot')));
   const s7 = decisionState(T, A, f7);
   got['Flow 7 · Re-open after a No-Bid'] = `${dg2Overlay(T, A, f7) ? 'still decided' : 'back at DG2'} · previous ${dg2RecordFor(T, A, f7)?.previous?.label ?? 'none'} · approval ${s7.enabled ? 'enabled' : `disabled (${s7.disabledReason})`}`;
+  const rec7 = dg2RecordFor(T, A, f7);
+  got['Flow 7 · Letter after re-open'] = `${rec7?.letter ? 'shown' : 'none'} · kept with its re-open: ${rec7?.reopens[0]?.letter ? 'yes' : 'no'}`;
+  const f7bid = applyWrites(f7, writesOf(dg2Write({ tenderId: A, decision: 'bid', staleAcknowledged: true }, 'najd.hot', s7)));
+  got['Flow 7 · Bid after re-open: letter'] = dg2RecordFor(T, A, f7bid)?.letter ? 'shown' : 'none';
+  const f7c = applyWrites(f7bid, writesOf(reopenRequestWrite(T, A, f7bid, { reason: 'Tihama Hydro Works offered a JV on the process package', trigger: 'jv-offer' }, 'najd.bid')));
+  const f7d = applyWrites(f7c, writesOf(reopenApproveWrite(T, A, f7c, 'najd.hot')));
+  got['Flow 7 · Two re-opens keep their own reasons'] = (dg2RecordFor(T, A, f7d)?.reopens ?? []).map((r) => `${r.decision.label} · ${r.trigger}: ${r.reason}`).join(' | ') || 'none';
+
+  // Flow 9 (E3): conditions are round-scoped, so closing round 1's C1 doesn't close round 2's.
+  const c1 = conditionsFor(T, A, f3)[0];
+  if (c1) {
+    const f9a = applyWrites(f3, writesOf(conditionCloseWrite(c1.id, 'najd.bid', 'Bond confirmed inside the facility')));
+    const closed = conditionsFor(T, A, f9a)[0];
+    const f9b = applyWrites(f9a, writesOf(reopenRequestWrite(T, A, f9a, { reason: 'The employer extended the deadline', trigger: 'employer-signal' }, 'najd.bid')));
+    const f9c = applyWrites(f9b, writesOf(reopenApproveWrite(T, A, f9b, 'najd.hot')));
+    const f9 = applyWrites(f9c, writesOf(dg2Write({ tenderId: A, decision: 'bid', staleAcknowledged: true }, 'najd.hot', decisionState(T, A, f9c))));
+    got['Flow 9 · Conditions after a re-open'] = `${closed.id} ${closed.state} · then ${conditionsFor(T, A, f9).map((c) => `${c.id} ${c.state}`).join(', ') || 'none'}`;
+  }
 
   got['Flow 8 · Oppose with no comment'] = errOf(positionWrite(A, 'operations', { stance: 'oppose', packVersion: version }, 'najd.member.operations'));
   return got;
@@ -249,7 +373,43 @@ function tenderRows(tenant: GccTenantKey): Record<string, string> {
     rows[`${t.id} · Pack`] = p
       ? `v${p.version} ${p.issued ? 'issued' : 'draft'} · ${p.summary.recommendation} · win ${p.summary.win ?? '—'} · margin ${p.summary.margin ?? '—'} · ${p.summary.positions} · ${p.summary.sla}`
       : `No 009a pack (register: ${t.stage}${t.packIssuedAt ? `, issued ${t.packIssuedAt}` : ''})`;
-    if (p) rows[`${t.id} · Decision`] = ds.enabled ? 'Enabled' : `Disabled: ${ds.disabledReason}`;
+    if (!p) continue;
+    rows[`${t.id} · Decision`] = ds.enabled ? 'Enabled' : `Disabled: ${ds.disabledReason}`;
+    const masked = packFor(tenant, t.id, {}, MASKED);
+    const found = masked ? leaksOf(tenant, p, masked, {}) : ['no masked pack'];
+    rows[`${t.id} · Masked pack: no margin, win or price values`] = agree(!found.length, found.join(', '));
+    rows[`${t.id} · Sections with no input requested`] = notRequestedOf(p);
+    rows[`${t.id} · Delivery load`] = p.sections['9.4'].body.portfolio.text;
+    const bb = bidBondFor(tenant, t.id, {});
+    const s95 = p.sections['9.5'].body;
+    rows[`${t.id} · Bid bond agrees with 007a`] = agree(!!bb && (!s95 || (s95.bidBond.pct === bb.rate && s95.bidBond.validityDays === bb.validityDays)),
+      bb ? `007a ${bb.rate}%, ${bb.validityDays} days${s95 ? ` · pack ${s95.bidBond.pct}%, ${s95.bidBond.validityDays} days` : ''}` : 'no 007a bond');
+  }
+  return rows;
+}
+
+/** Plan 020 lane E rows that tie Stage 3's seed to other plans' facts, for any tenant. */
+function tieRows(tenant: GccTenantKey): Record<string, string> {
+  const d = gccData(tenant);
+  const rows: Record<string, string> = {};
+  const amt = (v: unknown) => (v as { amount?: number } | undefined)?.amount;
+  const committed = d.facility.committed.reduce((s, c) => s + c.amount.amount, 0);
+  const headroom = d.facility.limit.amount - d.facility.utilised.amount - committed;
+  for (const i of SEEDED_INPUTS.filter((x) => x.tenant === tenant && x.key === 'finance' && x.fields)) {
+    const f = i.fields!;
+    rows[`${i.tenderId} · Finance input equals 004 facility`] = agree(amt(f.limit) === d.facility.limit.amount && amt(f.utilised) === d.facility.utilised.amount
+      && amt(f.committed) === committed && amt(f.headroom) === headroom && f.asOf === d.facility.asOf);
+  }
+  const packs = PACK_VERSIONS.filter((p) => p.tenant === tenant);
+  if (packs.length) rows['Safe delivery level equals the fit model'] = agree(packs.every((p) => p.snapshot.portfolio.safePct === d.fit.safeDeliveryPct));
+  const people = SEEDED_INPUTS.filter((i) => i.tenant === tenant).flatMap((i) => [...arrOf<{ name: string; availableFrom?: string }>(i.fields?.keyStaff), ...arrOf<{ name: string }>(i.fields?.availability)]
+    .map((x) => ({ tid: i.tenderId, name: x.name, availableFrom: 'availableFrom' in x ? x.availableFrom : undefined })));
+  if (people.length) {
+    const off = people.filter((x) => {
+      const k = KEY_PERSONNEL.find((kp) => kp.tenant === tenant && kp.name === x.name);
+      return !k || (x.availableFrom !== undefined && x.availableFrom !== k.availableFrom);
+    });
+    rows["Key staff are on 007a's personnel record"] = agree(!off.length, off.map((x) => `${x.tid} ${x.name}`).join(', '));
   }
   return rows;
 }
@@ -292,16 +452,19 @@ function agreementRows(tenant: GccTenantKey): Record<string, string> {
 
 function stableJson(tenant: GccTenantKey): string {
   const ids = gccData(tenant).register.filter((x) => x.stage === 'S3' || x.stage === 'DG2').map((t) => t.id);
-  return JSON.stringify(ids.map((id) => [packFor(tenant, id, {}, ALL), packFor(tenant, id, {}, MASKED), decisionState(tenant, id, {}), dg2RecordFor(tenant, id, {})]));
+  return JSON.stringify(ids.map((id) => [packFor(tenant, id, {}, ALL), packFor(tenant, id, {}, MASKED), packFor(tenant, id, {}, MARGIN_ONLY), decisionState(tenant, id, {}), dg2RecordFor(tenant, id, {})]));
 }
 
 export default function Stage3Check() {
   const key = useTenantKey();
   if (!isGccTenantKey(key)) return <CardHead title="Stage 3 and DG2 rules" meta="No GCC seed for this tenant" />;
 
-  const got: Record<string, string> = { ...(key === 'najd' ? najdRows() : {}), ...tenderRows(key), ...agreementRows(key) };
+  const got: Record<string, string> = { ...(key === 'najd' ? najdRows() : {}), ...tenderRows(key), ...tieRows(key), ...agreementRows(key) };
+  const labelsOff = KICKOFF_INPUTS.filter((k) => INPUT_SPECS[k.inputKey].label !== k.label);
+  got['Kick-off input labels match 008a'] = agree(!labelsOff.length, labelsOff.map((k) => `${k.inputKey}: "${INPUT_SPECS[k.inputKey].label}" vs "${k.label}"`).join('; '));
+  got['Stale warning asks only for the acknowledgement'] = agree(STALE_WARNING.includes(STALE_ACK_LABEL) && !/reason/i.test(STALE_WARNING), STALE_WARNING);
   got['Determinism'] = stableJson(key) === stableJson(key) ? 'Equal JSON on a second call' : 'Differs between calls';
-  const offenders = Object.entries(SOURCES).filter(([, src]) => /Date\.now|Math\.random/.test(src)).map(([p]) => p.split('/').pop());
+  const offenders = Object.entries(SOURCES).filter(([, src]) => /Date\.now|Math\.random|new Date\(\)/.test(src)).map(([p]) => p.split('/').pop());
   got['Date.now and Math.random'] = offenders.length ? `Found in ${offenders.join(', ')}` : 'None';
 
   const exp = { ...ALWAYS, ...(EXPECT[key] ?? {}) };

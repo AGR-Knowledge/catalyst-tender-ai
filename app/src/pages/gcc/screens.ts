@@ -1,12 +1,14 @@
 /// <reference types="vite/client" />
+import type { ComponentType } from 'react';
 import type { Capability } from '@/data/access';
 import { stageOf } from '@/data/gcc/stages';
 
 /**
  * The GCC screen map: every working screen the sidebar links to, whether it is
- * built yet, and what it will do. Until a screen is built its route shows
- * `ComingNext`, and action rows say "Open tender" instead of "Open DG3"
- * (dashboards.md §4). Each plan that builds a screen flips its `built` to true.
+ * built yet, and what it will do. `App.tsx` makes one route per entry. Until a
+ * screen is built its route shows `ComingNext`, and action rows say "Open
+ * tender" instead of "Open DG3" (dashboards.md §4). Each plan that builds a
+ * screen flips its `built` to true and adds its `page`, here and nowhere else.
  */
 export interface ScreenInfo {
   name: string;
@@ -15,8 +17,10 @@ export interface ScreenInfo {
   /** The plan that builds it. */
   plan: string;
   built: boolean;
-  /** Who may open it (the same capability as its sidebar entry). */
+  /** Who may open it (the same capability as its sidebar entry). The route guards it. */
   cap?: Capability;
+  /** The page, loaded on demand once `built`: `page: () => import('./s1/Radar')` (a default export). */
+  page?: () => Promise<{ default: ComponentType }>;
 }
 
 export const SCREENS: Record<string, ScreenInfo> = {

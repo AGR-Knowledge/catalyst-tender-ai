@@ -6,7 +6,7 @@ import { boq, packages, rfqs, type PackageInput, type RfqRow } from './build';
  * Sun 8 Mar 2026 at 10:00 AST the rules derive:
  * - T-2026-104: 7 of 11 packages covered; 33 RFQs, 31 due, 22 answered on
  *   time (71%); 4 overdue (2 escalated); 5 quotes to level; 4 open
- *   clarifications, none stale; 3.1% not covered.
+ *   clarifications, none stale; 3.1% not covered; next replies due Tue 10 Mar.
  * - T-2026-109: 9 packages, 27 RFQs sent 22 h 45 m after the DG1 pursue;
  *   replies due Sun 15 Mar; 2 open clarifications.
  *
@@ -20,9 +20,10 @@ const BID = 'najd.bid';
 // ===========================================================================
 // T-2026-104 Jubail industrial wastewater treatment upgrade (SAR 175 M)
 // DG1 pursue Thu 26 Feb 09:50. Packaging approved 12:30, shortlists 13:30,
-// RFQs sent 14:10–16:40, with replies due Thu 5 Mar 17:00. P-03 and P-04 were
-// extended to Sun 8 Mar 09:00 after the capacity question (VAL-104-1), and
-// two of their suppliers to Tue 10 Mar.
+// RFQs sent 14:10–16:40, with replies due Thu 5 Mar 17:00. Two packages were
+// extended on Thu 5 Mar: P-03 to Sun 8 Mar 09:30 after the filter design-flow
+// question (CL-104-04), and P-04 to Sun 8 Mar 08:00 after the capacity question
+// (VAL-104-1). Tamarisk (P-03) and Salwa (P-04) have until Tue 10 Mar.
 
 const T104 = 'T-2026-104';
 const D104 = 'GCIU-104';
@@ -133,11 +134,14 @@ const P104: PackageInput[] = [
 // Replies (plan 008a §3.1.3). Late replies: Sadeem, Odrana, Hafar, Sudair, Ula.
 const SENT = '2026-02-26T';
 const DUE_5 = '2026-03-05T17:00';
-const DUE_8 = '2026-03-08T09:00';
 const DUE_10 = '2026-03-10T17:00';
-/** Extended from the reply date as issued. */
-const EXT_8 = { replyBy: DUE_8, extendedFrom: DUE_5 };
-const EXT_10 = { replyBy: DUE_10, extendedFrom: DUE_5 };
+/** Extended from the reply date as issued, with the reason. */
+const P03_WHY = 'Tertiary filter design flow queried (CL-104-04): average or peak flow';
+const P04_WHY = 'Dewatering capacity queried (VAL-104-1): price both 120 and 150 m³/h';
+const EXT_P03 = { replyBy: '2026-03-08T09:30', extendedFrom: DUE_5, extensionReason: P03_WHY };
+const EXT_P04 = { replyBy: '2026-03-08T08:00', extendedFrom: DUE_5, extensionReason: P04_WHY };
+const EXT_P03_10 = { replyBy: DUE_10, extendedFrom: DUE_5, extensionReason: `${P03_WHY}; Tamarisk asked the question and replies after the answer` };
+const EXT_P04_10 = { replyBy: DUE_10, extendedFrom: DUE_5, extensionReason: `${P04_WHY}; Salwa asked for two more working days to price both` };
 
 const R104: RfqRow[] = [
   // P-01 Piling: three compliant quotes
@@ -148,24 +152,24 @@ const R104: RfqRow[] = [
   { pkg: 'P-01', sup: 'jibal', sentAt: `${SENT}14:10`, replyBy: DUE_5, openedAt: '2026-02-26T14:58', acknowledgedAt: '2026-02-26T17:20',
     quote: { receivedAt: '2026-03-04T15:30', amount: 5_350_000, ccy: 'SAR', validityDays: 90, leadTimeWeeks: 4, page: 2, seededDecisions: { validity: 'confirmed' } } },
 
-  // P-02 Process mechanical: two quotes to level; Gulf Process overdue since 4 Mar, escalated
+  // P-02 Process mechanical: two quotes to level; Gulf Process overdue since Thu 5 Mar 17:00, escalated Sun 8 Mar 08:00
   { pkg: 'P-02', sup: 'rhein-aqua', sentAt: `${SENT}14:25`, replyBy: DUE_5, openedAt: '2026-02-26T15:40', acknowledgedAt: '2026-02-27T09:15',
     quote: { receivedAt: '2026-03-04T11:30', amount: 4_770_000, ccy: 'EUR', incoterm: 'EXW', origin: 'Duisburg, DE', validityDays: 60, leadTimeWeeks: 34, page: 4 } },
   { pkg: 'P-02', sup: 'hanseong', sentAt: `${SENT}14:25`, replyBy: DUE_5, openedAt: '2026-02-26T19:10', acknowledgedAt: '2026-03-01T07:30',
     quote: { receivedAt: '2026-03-04T16:10', amount: 5_350_000, ccy: 'USD', incoterm: 'FCA', origin: 'Busan, KR', validityDays: 120, leadTimeWeeks: 26, page: 3 } },
   { pkg: 'P-02', sup: 'gulf-process', sentAt: `${SENT}14:25`, replyBy: DUE_5, openedAt: '2026-02-26T16:30', acknowledgedAt: '2026-03-01T09:10' },
 
-  // P-03 DAF and filters: Nordklar to level; Sahara overdue; Tamarisk extended to 10 Mar
-  { pkg: 'P-03', sup: 'nordklar', sentAt: `${SENT}14:40`, ...EXT_8, openedAt: '2026-02-26T15:05', acknowledgedAt: '2026-02-27T08:50',
+  // P-03 DAF and filters: Nordklar to level; Sahara overdue since 09:30 today; Tamarisk extended to 10 Mar
+  { pkg: 'P-03', sup: 'nordklar', sentAt: `${SENT}14:40`, ...EXT_P03, openedAt: '2026-02-26T15:05', acknowledgedAt: '2026-02-27T08:50',
     quote: { receivedAt: '2026-03-05T09:40', amount: 8_980_000, ccy: 'SAR', validityDays: 120, leadTimeWeeks: 24, exclusions: ['Excludes installation supervision'], page: 5 } },
-  { pkg: 'P-03', sup: 'sahara-clearwater', sentAt: `${SENT}14:40`, ...EXT_8, openedAt: '2026-03-01T11:20', acknowledgedAt: '2026-03-02T10:00' },
-  { pkg: 'P-03', sup: 'tamarisk', sentAt: `${SENT}14:40`, ...EXT_10, openedAt: '2026-02-26T15:30', acknowledgedAt: '2026-03-01T09:00' },
+  { pkg: 'P-03', sup: 'sahara-clearwater', sentAt: `${SENT}14:40`, ...EXT_P03, openedAt: '2026-03-01T11:20', acknowledgedAt: '2026-03-02T10:00' },
+  { pkg: 'P-03', sup: 'tamarisk', sentAt: `${SENT}14:40`, ...EXT_P03_10, openedAt: '2026-02-26T15:30', acknowledgedAt: '2026-03-01T09:00' },
 
-  // P-04 Sludge: Castellan to level; Gulf Process overdue; Salwa extended to 10 Mar
-  { pkg: 'P-04', sup: 'castellan', sentAt: `${SENT}14:55`, ...EXT_8, openedAt: '2026-02-26T15:20', acknowledgedAt: '2026-02-27T10:30',
+  // P-04 Sludge: Castellan to level; Gulf Process overdue since 08:00 today; Salwa extended to 10 Mar
+  { pkg: 'P-04', sup: 'castellan', sentAt: `${SENT}14:55`, ...EXT_P04, openedAt: '2026-02-26T15:20', acknowledgedAt: '2026-02-27T10:30',
     quote: { receivedAt: '2026-03-05T14:20', amount: 1_795_000, ccy: 'EUR', validityDays: 120, leadTimeWeeks: 22, paymentAdvancePct: 30, page: 2 } },
-  { pkg: 'P-04', sup: 'gulf-process', sentAt: `${SENT}14:55`, ...EXT_8, openedAt: '2026-02-26T16:32', acknowledgedAt: '2026-03-01T09:12' },
-  { pkg: 'P-04', sup: 'salwa', sentAt: `${SENT}14:55`, ...EXT_10, openedAt: '2026-02-26T17:05', acknowledgedAt: '2026-03-01T08:15' },
+  { pkg: 'P-04', sup: 'gulf-process', sentAt: `${SENT}14:55`, ...EXT_P04, openedAt: '2026-02-26T16:32', acknowledgedAt: '2026-03-01T09:12' },
+  { pkg: 'P-04', sup: 'salwa', sentAt: `${SENT}14:55`, ...EXT_P04_10, openedAt: '2026-02-26T17:05', acknowledgedAt: '2026-03-01T08:15' },
 
   // P-05 Odour: three compliant quotes
   { pkg: 'P-05', sup: 'khuzama', sentAt: `${SENT}15:05`, replyBy: DUE_5, openedAt: '2026-02-26T15:30', acknowledgedAt: '2026-02-26T16:10',
@@ -176,7 +180,7 @@ const R104: RfqRow[] = [
   { pkg: 'P-05', sup: 'odrana', sentAt: `${SENT}15:05`, replyBy: DUE_5, openedAt: '2026-02-27T09:40', acknowledgedAt: '2026-03-02T11:00',
     quote: { receivedAt: '2026-03-05T19:30', amount: 3_420_000, ccy: 'AED', validityDays: 120, leadTimeWeeks: 16, page: 2, seededDecisions: { currency: 'confirmed' } } },
 
-  // P-06 Substation: Hijaz to level; Levant overdue since 4 Mar, escalated; Weser declined
+  // P-06 Substation: Hijaz to level; Levant overdue since Thu 5 Mar 17:00, escalated Sun 8 Mar 08:00; Weser declined
   { pkg: 'P-06', sup: 'hijaz-power', sentAt: `${SENT}15:15`, replyBy: DUE_5, openedAt: '2026-02-26T15:40', acknowledgedAt: '2026-02-26T16:20',
     quote: { receivedAt: '2026-03-03T15:00', amount: 13_110_000, ccy: 'SAR', vatInclusive: true, validityDays: 120, leadTimeWeeks: 36, page: 6 } },
   { pkg: 'P-06', sup: 'levant-switchgear', sentAt: `${SENT}15:15`, replyBy: DUE_5, openedAt: '2026-02-27T12:30' },

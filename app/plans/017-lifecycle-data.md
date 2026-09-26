@@ -117,6 +117,7 @@ The plan ends with the **data port**. It implements `DataPort` from plan 006: th
     - Stage 1 1–5 days; DG1 within 24 h (except T-2026-107, 27 h);
     - Stage 2 10–20 days; Stage 3 3–8 days;
     - Stages 4–7 20–45 days in total; DG3 1–3 days before submission.
+    - Note (2026-09-26): Stage 2 runs 29–77 days on ten Najd rows, and DG3 comes 4–6 days before submission on six. Both were accepted on 2026-09-26 as forced by dashboards.md §12.3's anchors (deviation 5). T-2026-079 drops to 3 days once plan 020 B7 moves its submission to Thu 19 Feb.
 
     **Owners are the stage owners from dashboards.md §8.1** (people ids from plan 003 and 006: `najd.coord`, `najd.proc`, `najd.plan`, `najd.comm`, `najd.prop`, `najd.comp`, `najd.bid`, `najd.dir`). At DG2 and DG3 the owner is `najd.hot`.
   - [x] 2.1.3 **Step facts** for every live row, as in §12.2. T-2026-101's inputs are two items: "Facility headroom and bond capacity" (owner `najd.fin`, due Sat 7 Mar 17:00, not submitted: **late**) and "Top five contract risks" (owner `najd.comp`, due today 17:00). T-2026-097's inputs are all submitted, Finance's on Thu 5 Mar 15:20. **Stage 2 facts** (they give the catalogue's §5.3 readings):
@@ -516,7 +517,8 @@ The generator moved one derived DG2 (O-25-14's) to before 9 Mar 2025.
    - Stage 2 is 29–77 days on 341, 336, 329, 322, 317, 305, 298, 291, 284 and 097. Plan 004's DG1 dates in Nov–Jan sit against §12.3's DG2 anchors in Jan–Mar.
    - Stage 3 is 9 days on several rows.
    - DG3 is 4–6 days before submission on 079, 284, 291, 270, 412 and 438 (the §12.3 DG3 and submission anchors).
-6. **T-2026-079 is submitted on 22 Feb**, which is Founding Day (an SA closure), because §12.3 anchors it there.
+6. *(Fixed by plan 020 B7: now submitted Thu 19 Feb.)* **T-2026-079 is submitted on 22 Feb**, which is Founding Day (an SA closure), because §12.3 anchors it there.
+   - Decided 2026-09-26: it is submitted on Thu 19 Feb 2026 (plan 020 B7); dashboards.md §12.3 now says so.
 7. **Other tenants:** some new rows were renamed for plausibility, and their Stage 8 rows reuse plan 004's register rows rather than the plan's titles.
 8. **Health working days:** counted in the tender's country's calendar, falling back to the tenant's.
 

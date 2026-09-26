@@ -13,9 +13,8 @@ export function FlowStrip({ flow, onDrill }: { flow: FlowZoneVM; onDrill(d: Dril
         <h3 className="card-title fs-title">{flow.label}{!flow.missing && <InfoTip info={flow.info} />}</h3>
         {!flow.missing && flow.info.period && <span className="card-meta">{flow.info.period.split(' · ')[0]}</span>}
       </header>
-      {flow.missing ? (
-        <div className="fs-miss">{flow.label}</div>
-      ) : flow.steps.length === 0 ? (
+      {/* Not registered yet: the header already reads "Not available yet" (dev builds name the id). */}
+      {flow.missing ? null : flow.steps.length === 0 ? (
         <div className="fs-miss">Nothing moved in this period.</div>
       ) : (
         <ol className="fs-steps">

@@ -1,6 +1,6 @@
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import type { BidOutcome } from '@/data/gcc/types';
-import { WIN_MODELS, type WinModel } from '@/data/gcc/s3';
+import { CLIENT_BIDS, WIN_MODELS, type ClientBid, type WinModel } from '@/data/gcc/s3';
 import { MIN_N } from '@/data/gcc/targets';
 
 /**
@@ -84,8 +84,27 @@ export function calibrationFor(outcomes: BidOutcome[]): Calibration {
 }
 
 // ---------------------------------------------------------------------------
+// Client history the model cites (E13): decided bids before the lifecycles' window.
 
-export interface WinDriverVM { key: string; label: string; points: number; pointsText: string; why: string; source: string }
+export interface ClientBidVM { id: string; client: string; title: string; year: number; result: ClientBid['result'] }
+
+/** The client records behind `ids`, oldest first; unknown ids are dropped. */
+export function clientBidsOf(ids: string[] = []): ClientBidVM[] {
+  return CLIENT_BIDS.filter((b) => ids.includes(b.id))
+    .sort((a, b) => a.year - b.year)
+    .map((b) => ({ id: b.id, client: b.clientShort, title: b.title, year: b.year, result: b.result }));
+}
+
+/** "WCWS: 2 awards from 3 bids since 2022", from the records. */
+export function clientHistoryText(bids: ClientBidVM[]): string {
+  if (!bids.length) return 'No client history on record';
+  const won = bids.filter((b) => b.result === 'won').length;
+  return `${bids[0].client}: ${won} award${won === 1 ? '' : 's'} from ${bids.length} bid${bids.length === 1 ? '' : 's'} since ${bids[0].year}`;
+}
+
+// ---------------------------------------------------------------------------
+
+export interface WinDriverVM { key: string; label: string; points: number; pointsText: string; why: string; source: string; cites: ClientBidVM[] }
 
 export interface WinVM {
   tenderId: string;
@@ -123,7 +142,7 @@ export function winFor(tenant: string, tenderId: string): WinVM | null {
   const drivers = m.drivers
     .map((d, i) => ({ d, i }))
     .sort((a, b) => Math.abs(b.d.points) - Math.abs(a.d.points) || a.i - b.i)
-    .map(({ d }) => ({ key: d.key, label: d.label, points: d.points, pointsText: `${signed(d.points)} pts`, why: d.why, source: d.source }));
+    .map(({ d }) => ({ key: d.key, label: d.label, points: d.points, pointsText: `${signed(d.points)} pts`, why: d.why, source: d.source, cites: clientBidsOf(d.cites) }));
   return {
     tenderId,
     p,

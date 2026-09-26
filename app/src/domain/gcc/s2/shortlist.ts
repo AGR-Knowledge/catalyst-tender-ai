@@ -184,20 +184,27 @@ export function heldByScreening(tenant: string, done: Done): { rows: HeldRow[]; 
 
 /**
  * Approve a shortlist. Adding a supplier the agent did not recommend, or
- * removing one it did, needs an override with a reason.
+ * removing a sendable one it did, needs an override with a reason. Leaving out
+ * a greyed supplier needs none, and a blocked supplier (sanctions match or
+ * anti-bribery flag) can never be on an approved shortlist.
  */
 export function shortlistWrite(
   tenant: string, tenderId: string, pkgId: string, supplierIds: string[], overrides: ShortlistOverride[], byId: string, done: Done, at = NOW,
 ): S2WriteResult<ShortlistValue> {
   if (!supplierIds.length) return { error: 'Choose at least one supplier for the shortlist.' };
-  const recommended = recommendedShortlist(tenant, tenderId, pkgId, done).items.map((x) => x.supplierId);
+  const recommended = recommendedShortlist(tenant, tenderId, pkgId, done).items;
   const reasonOf = (id: string, action: 'add' | 'remove') => overrides.find((o) => o.supplierId === id && o.action === action)?.reason.trim();
   for (const id of supplierIds) {
-    if (!suppliersOf(tenant).some((s) => s.id === id)) return { error: `${id} is not in the supplier master.` };
-    if (!recommended.includes(id) && !reasonOf(id, 'add')) return { error: `Give a reason for adding ${supplierName(tenant, id)}: the agent did not recommend it.` };
+    const s = suppliersOf(tenant).find((x) => x.id === id);
+    if (!s) return { error: `${id} is not in the supplier master.` };
+    const sc = screeningOf(s);
+    if (sc.state === 'blocked') return { error: `${s.name} cannot be shortlisted: ${sc.label.toLowerCase()}.` };
+    if (!recommended.some((x) => x.supplierId === id) && !reasonOf(id, 'add')) return { error: `Give a reason for adding ${s.name}: the agent did not recommend it.` };
   }
-  for (const id of recommended) {
-    if (!supplierIds.includes(id) && !reasonOf(id, 'remove')) return { error: `Give a reason for removing ${supplierName(tenant, id)}: the agent recommended it.` };
+  for (const x of recommended) {
+    if (x.sendable && !supplierIds.includes(x.supplierId) && !reasonOf(x.supplierId, 'remove')) {
+      return { error: `Give a reason for removing ${x.name}: the agent recommended it.` };
+    }
   }
   const record: ShortlistValue = { supplierIds, overrides: overrides.filter((o) => o.reason.trim()), at, byId };
   const changes = record.overrides.map((o) => `${o.action === 'add' ? 'Added' : 'Removed'} ${supplierName(tenant, o.supplierId)}: ${o.reason}`);

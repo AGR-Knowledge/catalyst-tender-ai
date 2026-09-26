@@ -122,9 +122,9 @@ Nine criteria (spec §6.6). Weights sum to 100. The Head of Tendering edits them
 - **Water tendering team:** 6 tendering engineers, 2 estimators, 1 planner.
   - Committed load for the next 4 weeks is **78%**; with the hero tender it is **96%** (CAP-1 orange).
 - **Bank guarantee facility:**
-  - limit SAR 600 M;
+  - limit SAR 602.3 M;
   - utilised on contracts SAR 410 M;
-  - committed by live bids SAR 94 M;
+  - committed SAR 96.3 M: SAR 94 M by live bids, plus the SAR 2.3 M bid bond issued for submitted T-2025-298 (plan 020 B11);
   - **headroom SAR 96 M**, as of Thu 5 Mar, confirmed by Finance.
 
 **Sources:**
@@ -179,7 +179,7 @@ The reconciliation card counts **9 sources** (with the other portals it watches)
   - two KSA STPs over 100,000 m³/day, one tertiary, plus 3 years of O&M;
   - turnover of SAR 1.35 bn.
 - **Facility** (group level, in KWD):
-  - limit KWD 28 M; used KWD 22.8 M; committed by two live Kuwait bids KWD 2.1 M;
+  - limit KWD 28.56 M; used KWD 22.8 M; committed KWD 2.66 M: KWD 2.1 M by two live Kuwait bids, plus the bid bonds issued for submitted T-2025-418 (KWD 0.32 M) and T-2025-431 (KWD 0.24 M) (plan 020 B11);
   - **headroom KWD 3.1 M** (about SAR 37.9 M).
 - **Team:** the water tendering team is at **118%** in April, because two large Kuwait bids are due in the same weeks.
 - **Hero result:** Pursue with conditions or Hold, on capacity and facility (§4.7).
@@ -324,10 +324,10 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 | PQ-05 Classification | Pass (G1) | **Fail** | **Fail** alone (G2) → **Pass** in JV (Art. 9) | **Fail** | Pass |
 | PQ-09 STP experience | Pass (150k tertiary; 120k) | **Fail** (MEP subcontracts only) | **Fail** alone (one STP) → **Pass** combined | **Fail** | Pass |
 | PQ-10 O&M | Pass | **Fail** | **Fail** alone → **Pass** (partner) | **Fail** | Pass |
-| PQ-11 Turnover | **Interpretation** (both pass) | Pass in AED terms, but the entity isn't eligible | **Fail** alone (SAR 845 M) → **Pass** (lead 1.10 bn ≥ 60%; combined 1.95 bn) | **Fail** (SAR 371 M) | Pass (SAR 1.35 bn) |
+| PQ-11 Turnover | **Interpretation** (both pass) | **Fail** (SAR 1.12 bn) | **Fail** alone (SAR 845 M) → **Pass** (lead 1.10 bn ≥ 60%; combined 1.94 bn) | **Fail** (SAR 371 M) | Pass (SAR 1.35 bn) |
 | PQ-12 to PQ-15 | Pass | n/a | Pass | n/a | Pass |
 | **Weighted fit** | **82** | 63 | 71 | 38 | 78 |
-| **Recommendation** | **Pursue**: renew Zakat and GOSI before 10 May; confirm turnover years | **Recommend discard** (PQ-fail cap). *What would change it:* join a Grade 1 bidder as MEP subcontractor (inside the 30% cap) | **Pursue with conditions (JV needed)**: Tihama Hydro as lead, 60/40 | **Recommend discard**: size, geography and eligibility. Flagged for a person; never auto-discarded | **Pursue with conditions**: team at 118% in April; facility headroom KWD 3.1 M against bid bond KWD 0.79 M, and a performance bond of about KWD 1.97 M if won. Hold until Finance confirms the facility or a bid is released |
+| **Recommendation** | **Pursue**: renew Zakat and GOSI before 10 May; confirm turnover years | **Recommend discard** (PQ-fail cap). *What would change it:* join a Grade 1 bidder as MEP subcontractor (inside the 30% cap) | **Pursue with conditions (JV needed)**: Tihama Hydro as lead, 60/40 | **Recommend discard**: size, geography and eligibility. Flagged for a person; never auto-discarded | **Pursue with conditions**: team at 118% in April; facility headroom KWD 3.1 M covers the bid bond (about KWD 0.79 M), but not the performance bond (about KWD 1.96 M) plus the 10% advance-payment guarantee, if won and the 10% advance is taken. Hold until Finance confirms the facility or a bid is released |
 | DG1 path in the demo | Pursue, with team assigned; RFQ clock starts | Discard (reason codes: PQ fail, geography), or re-routed as a subcontract opportunity | Pursue with the JV scenario recorded | Discard (size, PQ fail, geography) | Hold: request to Finance; SLA keeps running |
 
 **Money shown per tenant** (hero estimate SAR 480 M at demo rates):
@@ -338,6 +338,12 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 - E: KWD 39.3 M.
 
 The original SAR always shows beside the converted value (spec §5.6).
+
+**Decided 2026-09-26** (plan 007a review):
+- Corniche's PQ-11 reads one fail: average AED 1.10 bn ≈ SAR 1.12 bn against SAR 1.2 bn (§2 figures).
+- Qurain's PQ-11 is a clean pass with no interpretation line. Spec §11 gives the turnover interpretation to Najd only.
+- Dafna's joint-venture turnover is SAR 1.94 bn (1.10 + 0.8448).
+- The facility check compares headroom with the performance guarantee plus the 10% advance-payment guarantee if won. The tender offers a 10% advance against an equal guarantee (booklet p. 36).
 
 ### 4.8 BOQ bills and procurement packages (A's view)
 BOQ: 236 lines, 11 bills. Shares of the estimated value:
@@ -401,12 +407,12 @@ Exact pages of other facts the seed data cites (from plans 004 and 005, 2026-09-
 | T-2026-122 | Dammam lift stations rehabilitation | S1, **notice only**: booklet not yet bought (SAR 3,000, purchase closes Tue 10 Mar) | INT-10 "Documents to buy 1" |
 | T-2026-120 | Wadi Zarqa WWTP Phase I DBO, PQ (real document, Jordan) | S1; received by email from a consultant; PQ stage; geography outside | Real-document variety; "Treat as newly published" |
 | T-2026-112 | Hofuf water network extension | Discarded at DG1, 3 Mar (below the value band) | History |
-| T-2026-109 | Tabuk water transmission pipeline, Phase 1 | S2. Pursued Wed 4 Mar 11:20; 9 of 9 RFQs sent Thu 5 Mar 10:05 (within 24 h); replies due Sun 15 Mar | SRC-1 trailing 100% |
+| T-2026-109 | Tabuk water transmission pipeline, Phase 1 | S2. Pursued Wed 4 Mar 11:20; 9 of 9 packages issued · 27 RFQs sent Thu 5 Mar 10:05 (within 24 h); replies due Sun 15 Mar | SRC-1 trailing 100% |
 | T-2026-104 | Jubail industrial wastewater treatment upgrade | S2. Pursued 26 Feb; **7 of 11 packages covered**; 4 overdue RFQs (2 escalated); 5 adjustments to confirm | Script B levelling |
 | T-2026-101 | Abha STP upgrade | S3, pack in preparation. **Inputs outstanding:** Finance facility (late), Legal risks (due today) | DEC-7 |
-| T-2026-097 | Madinah WTP expansion (SAR 355 M) | **At DG2.** Pack issued Sat 7 Mar 14:10 (SLA to Sun 8 Mar 14:10); positions recorded 2 of 5 (CFO: support with conditions; Technical Director: support). Win probability **58 ± 8**; margin range **8.5–11.5%**. **Stale:** Addendum 2 received today 09:12, changing 2 packages | Script C |
+| T-2026-097 | Madinah WTP expansion (SAR 355 M), reference WCWS/PRJ/2026/0009 | **At DG2.** Pack issued Sat 7 Mar 14:10 (SLA to Sun 8 Mar 14:10); positions recorded 2 of 5 (CFO: support with conditions; Technical Director: support). Win probability **58 ± 8**; margin range **8.5–11.5%**. **Stale:** Addendum 2 received today 09:12, changing 2 packages | Script C |
 | T-2026-088 | Dammam stormwater tunnels | Later stage (S6), "Current stage" only | Realistic register |
-| T-2026-079 | Qassim water networks | Submitted 22 Feb; awaiting award | Realistic register |
+| T-2026-079 | Qassim water networks | Submitted Thu 19 Feb 2026 (not Sun 22 Feb, Founding Day, a KSA closure); awaiting award | Realistic register |
 
 **History** (drives OUT-1 … OUT-7, SCR-2 … SCR-4, DEC-2, DEC-10):
 - **Trailing 12 months:** 33 decided submitted bids; **9 won, 24 lost → hit rate 27%**.
@@ -416,8 +422,8 @@ Exact pages of other facts the seed data cites (from plans 004 and 005, 2026-09-
   - On time: 44 of 46 (96%).
   - Overrides: 4; top reason "client relationship".
   - Discard reasons: out of scope 11, below value band 6, PQ fail 5, insufficient time 4, capacity 3.
-- **DG2, last 12 months:** 18 decisions, 17 on time; 1 where the chair differed from the majority; 2 re-opened (JV offer, competitor withdrew).
-  - **Corrected 2026-09-25** ([dashboards.md](dashboards.md) §12.3): 18 is too few for 38 submissions a year. Plan 004 seeds 18; **plan 017 replaces it with 54 (40 bid, 14 no-bid), 51 on time, 2 approvals against the majority, 2 re-opened**, and adds DG3, submissions, stage logs and the Stage 4–9 register.
+- **DG2, last 12 months:** 54 decisions (40 bid · 14 no-bid), 51 on time; 2 approvals against the majority; 2 re-opened (JV offer, competitor withdrew).
+  - Plan 017 seeds these ([dashboards.md](dashboards.md) §12.3) and adds DG3, submissions, stage logs and the Stage 4–9 register.
 - **Calibration** (OUT-4): n = 33 is enough to show bands. Won ÷ bids per predicted band:
   - > 70%: 2 of 3;
   - 50–70%: 4 of 7;

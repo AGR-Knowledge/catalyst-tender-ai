@@ -44,7 +44,7 @@ const SEEDS: RowSeed[] = [
   ['T-2025-298', 'Makkah water distribution', 'Makkah Region water utility', 'Makkah', 8, 'signatures', 'bid', 230, '2026-03-12T10:00', 'at-risk', 'water', null, 0.49],
   ['T-2025-291', 'Riyadh sewage network extension', 'Riyadh municipal water authority', 'Riyadh', 8, 'awaiting-result', 'bid', 290, '2026-03-03T10:00', 'on-track', 'networks', null, 0.43],
   ['T-2025-284', 'Dammam water network', 'Eastern Province water utility', 'Dammam', 8, 'awaiting-result', 'bid', 186, '2026-02-15T10:00', 'on-track', 'water', null, 0.47],
-  ['T-2026-079', 'Qassim water networks', 'Qassim water utility', 'Buraydah', 8, 'awaiting-result', 'bid', 310, '2026-02-22T10:00', 'on-track', 'networks', null, 0.51],
+  ['T-2026-079', 'Qassim water networks', 'Qassim water utility', 'Buraydah', 8, 'awaiting-result', 'bid', 310, '2026-02-19T09:10', 'on-track', 'networks', null, 0.51],
   ['T-2025-262', 'Unaizah STP', 'Qassim water utility', 'Unaizah', 9, 'handover-or-debrief', 'dir', 142, '2026-01-18T10:00', 'on-track', 'water', null, 0.61],
   ['T-2025-270', 'Hail water transmission', 'Hail Region water utility', 'Hail', 9, 'handover-or-debrief', 'dir', 205, '2026-01-25T10:00', 'on-track', 'water', null, 0.48],
   // Closed in the last 30 days, and two older results, so every health state appears.

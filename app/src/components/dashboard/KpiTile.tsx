@@ -22,10 +22,10 @@ function sizeOf(s: string): string {
  * look it.
  */
 export function KpiTile({ tile, onDrill, index = 0 }: { tile: TileVM; onDrill(d: DrillVM): void; index?: number }) {
+  // Not registered yet: one line, "Not available yet" (dev builds name the id).
   if (tile.missing) {
     return (
       <div className="kt missing" style={{ animationDelay: `${index * 30}ms` }}>
-        <div className="kt-head"><span className="kt-label">{tile.label}</span></div>
         <div className="kt-miss">{tile.display}</div>
       </div>
     );

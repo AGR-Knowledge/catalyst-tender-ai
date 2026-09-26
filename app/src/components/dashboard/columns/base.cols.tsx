@@ -10,6 +10,7 @@ import { DEMO_TODAY, workingDaysBetween } from '@/domain/calendar';
 import { addHours, agoText, DEMO_NOW } from '@/domain/gcc/clock';
 import { useTenant, useTenantKey } from '@/domain/tenancy';
 import { Money } from '@/components/tender/Money';
+import { Masked } from '@/components/tender/Masked';
 import { When, whenLabel } from '@/components/tender/When';
 import { SlaClock } from '@/components/tender/SlaClock';
 import { GateChip } from '@/components/tender/GateChip';
@@ -102,6 +103,19 @@ function FitCell({ row }: { row: TenderRowVM }) {
 
 /** Win is a share (0–1) with a band in points; shown from Stage 3, when the pack builds it. */
 const winText = (w: TenderRowVM['win']) => (w ? `${Math.round(w.p <= 1 ? w.p * 100 : w.p)}% ± ${w.band}` : null);
+
+/**
+ * The Win cell: the probability with its band; "Masked for your role" when the viewer may not see it
+ * (plan 020 lane B); "From Stage 3" before the pack exists; "Recorded at DG2" once the tender is past Stage 3.
+ */
+export function WinCell({ row }: { row: TenderRowVM }) {
+  const text = winText(row.win);
+  if (text) return <span className="num">{text}</span>;
+  if (row.facts['winP.masked']) return <Masked />;
+  return row.stage < 3
+    ? <span className="tk-sub" title="Win probability is estimated in Stage 3, when the Bid / No-Bid pack is built">From Stage 3</span>
+    : <span className="tk-sub" title="Win probability was estimated for the DG2 decision and is kept in the tender's record">Recorded at DG2</span>;
+}
 
 const nullsLast = (v: string | null | undefined) => v ?? '9999';
 
@@ -198,9 +212,7 @@ export const COLUMNS: ColumnDef[] = [
   }) },
   { id: 'win', header: 'Win', build: () => ({
     headerName: 'Win', width: 110, type: 'rightAligned', valueGetter: (p) => p.data?.win?.p ?? null,
-    cellRenderer: (p: P) => p.data && (winText(p.data.win)
-      ? <span className="num">{winText(p.data.win)}</span>
-      : <span className="tk-sub" title="Win probability is estimated in Stage 3, when the Bid / No-Bid pack is built">From Stage 3</span>),
+    cellRenderer: (p: P) => p.data && <WinCell row={p.data} />,
   }) },
   { id: 'lastActivity', header: 'Last activity', build: () => ({
     headerName: 'Last activity', width: 140, valueGetter: (p) => p.data?.lastActivityAt ?? null,

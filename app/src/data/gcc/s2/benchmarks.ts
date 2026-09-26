@@ -43,7 +43,12 @@ export const RFQ_REPLY_TIME = '17:00';
 export const REMINDER_DAYS_BEFORE = 3;
 /** Time of day the agent sends reminders, local. */
 export const REMINDER_TIME = '09:00';
-/** Escalation to the Procurement Lead when the reply date has passed: the next working day, at this time (ui-direction §7.3). */
+/**
+ * Escalation rule (ui-direction §7.3, "Escalation", decided 2026-09-26): an RFQ
+ * with no reply at its reply time is "Overdue, reminder sent"; still unanswered,
+ * it becomes "No response, escalated" to the Procurement Lead at this time on
+ * the next working day of the tenant's calendar.
+ */
 export const ESCALATION_TIME = '08:00';
 
 /** DG1 pursue to every package issued (spec KPI, SRC-1), hours. */

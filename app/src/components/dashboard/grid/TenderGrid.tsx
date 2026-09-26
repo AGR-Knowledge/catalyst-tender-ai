@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { AgGridReact } from 'ag-grid-react';
 import type {
-  CellKeyDownEvent, ColDef, GridApi, GridReadyEvent, IRowNode, RowClassRules, RowClickedEvent, RowDoubleClickedEvent,
-  SelectionChangedEvent,
+  CellKeyDownEvent, ColDef, GetRowIdParams, GridApi, GridReadyEvent, IRowNode, RowClassRules, RowClickedEvent, RowDoubleClickedEvent,
+  RowSelectionOptions, SelectionChangedEvent,
 } from 'ag-grid-community';
 import { ChevronDown, Columns3, Search, X } from 'lucide-react';
 import type { FilterKey, Health, SortPreset, TableFilterVM, TableStatus, TenderRowVM } from '@/domain/gcc/viewmodels';
@@ -96,6 +96,16 @@ const STATUS_LABEL: Record<TableStatus, string> = { live: 'Live', closed: 'Close
 
 type Sel = Partial<Record<Facet['key'], string[]>>;
 
+/*
+ * Grid options that never change live outside the component. AG Grid rebuilds
+ * every column when it is handed a new `defaultColDef`, which re-hid the columns
+ * ticked in the Columns menu and reset widths on each re-render.
+ */
+const DEFAULT_COL_DEF: ColDef = { sortable: true, resizable: true, suppressHeaderMenuButton: true, unSortIcon: false };
+const ROW_SELECTION: RowSelectionOptions = { mode: 'singleRow', checkboxes: false, enableClickSelection: false };
+const CONTAINER_STYLE = { height: '100%', width: '100%' };
+const always = () => true;
+
 /* ----------------------------------------------------------------- the grid */
 
 export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R>) {
@@ -112,8 +122,10 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
   const [sel, setSel] = useState<Sel>({});
   const [shown, setShown] = useState<string[]>([]);
 
-  // A new dashboard (another stage, another tenant) starts from its own defaults.
-  useEffect(() => { setPreset(defaultSort); setStatus(statusDefault); setSel({}); setSearch(''); setShown([]); }, [defaultSort, statusDefault, columns]);
+  // A new dashboard (another stage, another tenant) starts from its own defaults. Keyed by the ids, not the array.
+  const colKey = columns.join('|');
+  const optKey = optional.join('|');
+  useEffect(() => { setPreset(defaultSort); setStatus(statusDefault); setSel({}); setSearch(''); setShown([]); }, [defaultSort, statusDefault, colKey]);
 
   const presets = (Object.keys(PRESET_LABEL) as SortPreset[]).filter((p) => tenders || p !== 'value');
   const facets = useMemo(() => {
@@ -186,21 +198,30 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
 
   const choosePreset = (p: SortPreset) => { setPreset(p); setHeaderSort(null); applyPreset(p); };
 
-  /* ---------- columns */
+  /* ---------- columns
+   * Visibility is always the spec's columns plus the ones ticked in the Columns
+   * menu. Widths and flex are given as initial values, so a column the viewer
+   * resized keeps its width when the definitions are handed over again.
+   */
 
   const colDefs = useMemo<ColDef<R>[]>(() => {
     const want = [...columns, ...optional.filter((o) => !columns.includes(o))];
+    const hide = (id: string) => !columns.includes(id) && !shown.includes(id);
     const defs: ColDef<R>[] = [];
     for (const id of want) {
       const c = column(id);
       if (!c) {
         if (import.meta.env.DEV) console.warn(`Column "${id}" is not registered yet.`);
-        defs.push({ colId: id, headerName: notDefinedText(id), valueGetter: () => '', width: 170, hide: !columns.includes(id) });
+        defs.push({ colId: id, headerName: notDefinedText(id), valueGetter: () => '', initialWidth: 170, hide: hide(id) });
         continue;
       }
       if ((c.appliesTo ?? 'tender') !== (tenders ? 'tender' : 'request')) continue;
-      const d = c.build() as ColDef<R>;
-      defs.push({ ...d, colId: id, headerName: d.headerName ?? c.header, hide: !columns.includes(id) });
+      const { width, flex, ...d } = c.build() as ColDef<R>;
+      defs.push({
+        ...d, colId: id, headerName: d.headerName ?? c.header, hide: hide(id),
+        ...(width !== undefined ? { initialWidth: d.initialWidth ?? width } : {}),
+        ...(flex !== undefined ? { initialFlex: d.initialFlex ?? flex ?? undefined } : {}),
+      });
     }
     // The presets sort on hidden columns; a drill's `order` puts its tenders first.
     for (const p of presets) {
@@ -219,14 +240,10 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
       });
     }
     return defs;
-  }, [columns, optional, tenders, kind]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [colKey, optKey, shown, tenders, kind]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const optionalCols = useMemo(() => optional.map((id) => ({ id, header: column(id)?.header ?? id })), [optional]);
-  const toggleCol = (id: string) => {
-    const on = !shown.includes(id);
-    setShown((s) => (on ? [...s, id] : s.filter((x) => x !== id)));
-    apiRef.current?.setColumnsVisible([id], on);
-  };
+  const optionalCols = useMemo(() => optional.map((id) => ({ id, header: column(id)?.header ?? notDefinedText(id) })), [optKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const toggleCol = (id: string) => setShown((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
 
   /* ---------- selection */
 
@@ -268,6 +285,9 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
   const rowClassRules = useMemo<RowClassRules<R>>(() => ({
     'row-closed': (p) => tenders && !!p.data && !(p.data as unknown as TenderRowVM).live,
   }), [tenders]);
+
+  const getRowId = useCallback((p: GetRowIdParams<R>) => p.data.id, []);
+  const doesExternalFilterPass = useCallback((node: IRowNode<R>) => !!node.data && passRef.current(node.data), []);
 
   const onGridReady = (e: GridReadyEvent<R>) => {
     apiRef.current = e.api;
@@ -343,14 +363,15 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
       <div className="tg-grid">
         <AgGridReact<R>
           theme={gridTheme}
-          containerStyle={{ height: '100%', width: '100%' }}
+          containerStyle={CONTAINER_STYLE}
           rowData={rows}
           columnDefs={colDefs}
-          defaultColDef={{ sortable: true, resizable: true, suppressHeaderMenuButton: true, unSortIcon: false }}
-          getRowId={(p) => p.data.id}
-          rowSelection={{ mode: 'singleRow', checkboxes: false, enableClickSelection: false }}
-          isExternalFilterPresent={() => true}
-          doesExternalFilterPass={(node) => !!node.data && passRef.current(node.data)}
+          defaultColDef={DEFAULT_COL_DEF as ColDef<R>}
+          maintainColumnOrder
+          getRowId={getRowId}
+          rowSelection={ROW_SELECTION}
+          isExternalFilterPresent={always}
+          doesExternalFilterPass={doesExternalFilterPass}
           rowClassRules={rowClassRules}
           onGridReady={onGridReady}
           onSortChanged={onSortChanged}

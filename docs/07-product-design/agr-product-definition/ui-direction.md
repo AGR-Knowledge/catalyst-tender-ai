@@ -226,6 +226,7 @@ A single-column, phone-friendly page with the tenant's branding. It is the only 
 ### 7.1 Money
 - Tenant currency first: `SAR 482.6 M`, `AED 1.24 bn`, `QAR 96.0 M`, `OMR 12.4 M`, `KWD 18.3 M`.
   - One decimal for millions, two for billions, in every currency, OMR and KWD included (`KWD 39.3 M`). The exact amount shows on hover. (Decided 2026-09-25 at the plan 002 review.)
+  - Amounts compared in one sentence share one unit and one precision: when one decimal would hide the comparison, both use two (`KWD 0.79 M` bid bond, `KWD 1.96 M` performance bond), never `KWD 785,920` beside `KWD 1.96 M`. (Decided 2026-09-26.)
   - Full amounts in tables where precision matters (`SAR 12,064,000`).
 - **Foreign-currency quotes** keep their original: `EUR 2.84 M → SAR 11.6 M` (rate and date on hover). Never convert silently.
 - **VAT is always explicit:** `excl. VAT` by default in levelling; the rate and treatment appear on the quote.
@@ -245,6 +246,7 @@ A single-column, phone-friendly page with the tenant's branding. It is the only 
   - Reminder sent, {n} days to reply date · Overdue, reminder sent · No response, escalated
   - Declined, {reason}
 - **Reminders rule (one version only):** 3 days before the reply date, then daily; escalate to the Procurement Lead when the reply date passes. The Workbench stated three different rules; this is the one.
+  - **Escalation (Decided 2026-09-26):** an RFQ with no reply at its reply time is "Overdue, reminder sent". If it is still unanswered, it becomes "No response, escalated" at 08:00 on the next working day of the tenant's calendar.
 - **Supplier screening:** Screened {date} · Screening due · Blocked, sanctions match · Blocked, anti-bribery. Re-screen interval 180 days.
 - **Validation:** Needs check · Conflict · Accepted · Corrected · Not stated · Sent back.
 - **Eligibility:** Pass · At risk · Interpretation · Fail · Not stated.

@@ -427,7 +427,8 @@ It also applies the gate-authority change: the Head of Tendering approves DG2 an
 - **No numbers are typed into pages.** Tiles show what registries compute; the kit preview uses a fixture file.
 
 ## Acceptance checks
-- [ ] typecheck and build pass. Record the chunk sizes: the legacy entry chunk grows by < 10 kB, and AG Grid and Recharts sit in a lazy chunk.
+- [ ] typecheck and build pass. Record the chunk sizes: the legacy preview loads neither AG Grid nor Recharts (they sit in lazy chunks).
+  - Decided 2026-09-26: the entry chunk size is accepted; Najd is the default tenant, so a split would slow the prospect's first paint.
 - [x] `/dev/kit` in light and dark, at 1440 and 1280, for Najd and Qurain:
   - every zone renders;
   - the ⓘ opens on hover and keyboard focus and closes on Esc;
@@ -544,7 +545,9 @@ It also applies the gate-authority change: the Head of Tendering approves DG2 an
      - **Option B:** lazy-load the GCC rail and header titles behind the world check (saves most of it, at the cost of a one-frame rail swap on the first GCC load).
      - **Option C:** accept the size.
      - Which do you want?
+     - **Answer (2026-09-26):** Option C. The entry chunk size is accepted; Najd is the default tenant, so a split would slow the prospect's first paint. The acceptance check now reads "the legacy preview loads neither AG Grid nor Recharts".
   2. **Stage owners' row scope.** plan, comm, comp and dir have `tender.view` at `invited` scope, but dashboards.md §8.3 says a stage owner sees every tender in their stage. 017's port filters rows by `tender.view`, so their stage tables may show only tenders they were invited to. I suggest `tender.view: 'tenant'` for them (as for prop). Not changed.
+     - **Answer (2026-09-26):** yes. Stage owners get tenant-wide `tender.view`, with masking per roles-and-access §9 and restricted tenders only for cleared people. Fixed in plan 020 lane A (A3).
 - **Follow-ups noticed (not done):**
   - `--orange` as text on `--orange-soft` is below 4.5:1 in light mode (SLA "4 h 10 m left", tile values). A darker `--orange-ink` token for text would fix it.
   - GCC search and upload are still hidden in the Header (plans 007 and 019).

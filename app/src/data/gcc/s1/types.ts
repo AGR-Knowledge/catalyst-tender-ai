@@ -117,9 +117,16 @@ export interface BondTerms {
   bidPage?: number;
   /** Validation item that holds the rate while it is in conflict (the hero: VAL-118-1). */
   bidRateValidationId?: string;
+  /**
+   * How long the bid bond must stay valid, in calendar days from bid opening,
+   * when the tender states it in days rather than as a key date.
+   */
+  bidValidityDays?: number;
   performancePct: number;
   performancePage?: number;
   /** Advance payment guarantee, as % of contract value, when the tender offers an advance. */
   advancePct?: number;
   advancePage?: number;
+  /** Where the tender states these terms, when no single page is given. */
+  source?: string;
 }

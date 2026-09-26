@@ -1,10 +1,10 @@
-import type { Money } from '@/data/gcc/types';
+import type { GccTender, Money } from '@/data/gcc/types';
 import { s1Data } from '@/data/gcc/s1';
 import { personById } from '@/data/people';
-import { addDays } from '@/domain/calendar';
+import { addDays, calendarDaysBetween } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
 import type { Done } from './done';
-import { dataOf, dayMonth2, keyDate, openingOf, tenantCcy, tenderOf } from './common';
+import { dataOf, dayMonth2, keyDate, openingOf, shortDate, tenantCcy, tenderOf } from './common';
 import { resolvedValue, validationsOf } from './validation';
 
 /**
@@ -57,7 +57,15 @@ export interface BidBond {
   amount: Money;
   /** The same amount in the tender's currency, when that differs. */
   original?: Money;
+  /** The date the bond must stay valid to: the tender's stated validity, else 90 days from opening. */
   validTo: string;
+  /** Calendar days from opening to `validTo` (120, or 90 when unstated). Null without an opening date. */
+  validityDays: number | null;
+  validityBasis: 'stated' | 'unstated';
+  /** "Valid 120 days from opening (to Mon 24 Aug)", or "…: not stated, 90 days assumed". */
+  validityText: string;
+  /** Where the tender states the guarantee terms. */
+  source?: string;
   bankLeadDays: typeof BANK_LEAD_DAYS;
   headroom: Money;
   headroomAsOf: string;
@@ -68,6 +76,8 @@ export interface BidBond {
   performanceIfWon?: Money;
   /** Advance payment guarantee if won and the advance is taken (up to 10% on the hero, p. 36). */
   advanceIfWon?: Money;
+  /** The advance the tender offers, in % of contract value (10 on the hero). */
+  advancePct?: number;
   /**
    * After the bid bond, the headroom would not cover the guarantees needed on
    * award (performance plus advance payment): Finance must confirm the facility.
@@ -75,6 +85,25 @@ export interface BidBond {
   facilityTight: boolean;
   /** "SAR 9,600,000 at 2%". */
   text: string;
+}
+
+/**
+ * One validity rule (plan 020 C9): what the tender states (the guarantee's own
+ * end date, else a number of days from opening, else the end of bid validity);
+ * 90 days from opening only when it states none.
+ */
+function validityOf(t: GccTender, statedDays?: number): Pick<BidBond, 'validTo' | 'validityDays' | 'validityBasis' | 'validityText'> {
+  const opening = openingOf(t);
+  const statedTo = keyDate(t, 'bond-validity-end')?.date
+    ?? (statedDays && opening ? addDays(opening.date, statedDays) : undefined)
+    ?? keyDate(t, 'validity-end')?.date;
+  const validTo = statedTo ?? (opening ? addDays(opening.date, DEFAULT_BOND_DAYS) : '');
+  const validityDays = opening && validTo ? calendarDaysBetween(opening.date, validTo) : null;
+  const span = validityDays !== null ? `Valid ${validityDays} days from opening (to ${shortDate(validTo)})` : validTo ? `Valid to ${shortDate(validTo)}` : 'Validity not stated';
+  return {
+    validTo, validityDays, validityBasis: statedTo ? 'stated' : 'unstated',
+    validityText: statedTo || !validTo ? span : `${span}: not stated, ${DEFAULT_BOND_DAYS} days assumed`,
+  };
 }
 
 export function bidBondFor(tenant: string, tenderId: string, done: Done): BidBond | null {
@@ -108,8 +137,7 @@ export function bidBondFor(tenant: string, tenderId: string, done: Done): BidBon
   const value = t.value.amount;
   const inTender = rate === null ? 0 : (value * rate) / 100;
   const amount = convert(inTender, t.value.ccy, ccy);
-  const opening = openingOf(t);
-  const validTo = keyDate(t, 'bond-validity-end')?.date ?? keyDate(t, 'validity-end')?.date ?? (opening ? addDays(opening.date, DEFAULT_BOND_DAYS) : '');
+  const validity = validityOf(t, terms?.bidValidityDays);
   const f = facilityHeadroom(tenant);
   const afterBid = f.headroom.amount - amount;
   const perf = terms ? convert((value * terms.performancePct) / 100, t.value.ccy, ccy) : undefined;
@@ -119,11 +147,11 @@ export function bidBondFor(tenant: string, tenderId: string, done: Done): BidBon
     tenderId, rate, rateBasis, rateText,
     amount: { amount, ccy },
     ...(t.value.ccy !== ccy ? { original: { amount: inTender, ccy: t.value.ccy } } : {}),
-    validTo, bankLeadDays: BANK_LEAD_DAYS,
+    ...validity, ...(terms?.source ? { source: terms.source } : {}), bankLeadDays: BANK_LEAD_DAYS,
     headroom: f.headroom, headroomAsOf: f.asOf, confirmedById: f.confirmedById,
     afterBid: { amount: afterBid, ccy },
     ...(perf !== undefined ? { performanceIfWon: { amount: perf, ccy } } : {}),
-    ...(adv !== undefined ? { advanceIfWon: { amount: adv, ccy } } : {}),
+    ...(adv !== undefined ? { advanceIfWon: { amount: adv, ccy }, advancePct: terms!.advancePct } : {}),
     facilityTight: perf !== undefined && afterBid < perf + (adv ?? 0),
     text: rate === null
       ? 'No bid bond stated'

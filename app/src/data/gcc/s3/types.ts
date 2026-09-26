@@ -51,13 +51,33 @@ export interface WinModel {
   tenant: GccTenantKey;
   tenderId: string;
   base: { pct: number; label: string };
-  drivers: { key: WinDriverKey; label: string; points: number; why: string; source: string }[];
+  /** `cites`: the client records (`ClientBid` ids) a driver rests on. */
+  drivers: { key: WinDriverKey; label: string; points: number; why: string; source: string; cites?: string[] }[];
   /** Comparable decided bids behind the model; sets the band. */
   comparables: number;
   /** "What would move it". */
   movers: { text: string; points: number }[];
   /** Competitor ids, plus the tenant's own key for its own bid. */
   bidders?: string[];
+}
+
+// ---------------------------------------------------------------------------
+// Client history (pack §9.1 client driver, §9.8 win themes)
+
+/**
+ * A decided bid to one client before the lifecycles' 12-month window (plan
+ * 017 holds the window itself), so the pack can cite it. Synthetic projects.
+ */
+export interface ClientBid {
+  id: string;
+  tenant: GccTenantKey;
+  /** The issuer, as the register names it. */
+  client: string;
+  /** The short name the pack uses, "WCWS". */
+  clientShort: string;
+  title: string;
+  year: number;
+  result: 'won' | 'lost';
 }
 
 // ---------------------------------------------------------------------------
@@ -121,10 +141,13 @@ export interface PackSnapshot {
   /** Delivery capacity roll-up (§9.4), as the pack read it. The same figures as plan 015's `DELIVERY_LOAD`. */
   portfolio: { asOf: string; currentPct: number; ifWon: { tenderId: string; addPct: number }[]; safePct: number };
   effort: { toDateWeeks: number; toGoWeeks: number; externalCost: Money };
-  /** Guarantee terms from the tender documents (§9.5). */
-  bonds: { bidPct: number; bidValidityDays: number; performancePct: number; advancePct: number; retentionPct: number; source: string };
-  recommendation: { recommendation: PackRecommendation; rationale: string; winThemes: string[]; resourceAsk: string };
+  /** Retention (§9.5). The guarantee terms (bid bond, validity, performance, advance) are plan 007a's bond terms. */
+  bonds: { retentionPct: number };
+  recommendation: { recommendation: PackRecommendation; rationale: string; winThemes: WinTheme[]; resourceAsk: string };
 }
+
+/** A win theme, or one that rests on client records (`ClientBid` ids). */
+export type WinTheme = string | { text: string; cites: string[] };
 
 export interface PackVersion {
   tenant: GccTenantKey;

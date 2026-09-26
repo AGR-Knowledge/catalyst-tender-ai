@@ -131,6 +131,9 @@ export function pipelineFor(tenant: string, intakeEventId: string): Pipeline | n
 
 export const ASSISTED_TEXT = 'Assisted: an operator completes the portal login. The platform never solves CAPTCHAs.';
 
+/** Sources behind a portal login. A mailbox, the scanned drop and manual upload have no portal to log in to. */
+const PORTAL_KINDS = new Set<Source['kind']>(['portal', 'client-portal']);
+
 const MODE_LABEL: Record<Source['mode'], string> = { api: 'API', scheduled: 'Scheduled', assisted: 'Assisted' };
 const STATE_LABEL: Record<Source['state'], string> = { healthy: 'Healthy', degraded: 'Degraded', 'credentials-expiring': 'Credentials expiring', down: 'Down' };
 
@@ -173,13 +176,16 @@ export interface Radar {
 export function radarFor(tenant: string, viewerCleared: boolean, done: Done = {}): Radar {
   const d = dataOf(tenant);
   const ccy = tenantCcy(tenant);
-  const connectors: Connector[] = d.sources.map((s) => ({
-    id: s.id, name: s.name, kind: s.kind, mode: s.mode, modeLabel: MODE_LABEL[s.mode], state: s.state, stateLabel: STATE_LABEL[s.state],
-    ...(s.note ? { note: s.note } : {}), lastPoll: s.lastPoll,
-    newToday: d.intakeToday.filter((e) => e.sourceId === s.id && isNew(e)).length,
-    loginNeeded: s.mode !== 'api',
-    ...(s.mode === 'assisted' ? { assistedText: ASSISTED_TEXT } : {}),
-  }));
+  const connectors: Connector[] = d.sources.map((s) => {
+    const portal = PORTAL_KINDS.has(s.kind);
+    return {
+      id: s.id, name: s.name, kind: s.kind, mode: s.mode, modeLabel: MODE_LABEL[s.mode], state: s.state, stateLabel: STATE_LABEL[s.state],
+      ...(s.note ? { note: s.note } : {}), lastPoll: s.lastPoll,
+      newToday: d.intakeToday.filter((e) => e.sourceId === s.id && isNew(e)).length,
+      loginNeeded: portal && s.mode !== 'api',
+      ...(portal && s.mode === 'assisted' ? { assistedText: ASSISTED_TEXT } : {}),
+    };
+  });
   const captures: Capture[] = [...d.intakeToday].sort((a, b) => a.receivedAt.localeCompare(b.receivedAt)).map((e) => {
     const t = register(tenant, e.tenderId);
     const restricted = e.disposition === 'restricted' || !!t?.restricted;

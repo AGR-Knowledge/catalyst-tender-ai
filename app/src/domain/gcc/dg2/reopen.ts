@@ -1,13 +1,14 @@
 import { personById } from '@/data/people';
 import { nowIso, readDone, type Done, type WriteError, type WriteResult } from '@/domain/gcc/s3/done';
-import { activeDecision, roundOf, type Dg2Decision, type ReopenRequestValue, type ReopenTrigger, type ReopenValue } from './keys';
+import { activeDecision, roundOf, type Dg2Decision, type ReopenEntry, type ReopenRequestValue, type ReopenTrigger, type ReopenValue } from './keys';
 
 /**
  * Re-opening a DG2 decision (spec §10, dashboards.md §9): the Bid Manager or
  * the Head of Tendering asks, with a reason and a trigger; the Head of
  * Tendering approves. An approved re-open takes the decision out of force
- * (it is kept as `previous` in the record) and returns the tender to "at DG2"
- * with its positions kept, marked as recorded before the re-open.
+ * (it is kept in `previous`, with the reason and trigger given for re-opening
+ * it) and returns the tender to "at DG2" with its positions kept, marked as
+ * recorded before the re-open.
  */
 
 export const REOPEN_TRIGGERS: { key: ReopenTrigger; label: string }[] = [
@@ -25,8 +26,8 @@ export interface ReopenState {
   pending: ReopenRequestValue | null;
   canRequest: boolean;
   canApprove: boolean;
-  /** Every decision re-opened so far, oldest first. */
-  previous: Dg2Decision[];
+  /** Every re-open so far, oldest first: the decision it took out of force, and why. */
+  previous: ReopenEntry[];
   last?: { at: string; byId: string; reason: string; trigger: ReopenTrigger; requestedById: string };
   text?: string;
 }
@@ -72,14 +73,19 @@ export function reopenApproveWrite(tenant: string, tenderId: string, done: Done,
   const s = reopenState(tenant, tenderId, done);
   if (!s.decision || !s.pending) return { error: 'There is no re-open request to approve' };
   const prior = readDone<ReopenValue>(done, `dg2-reopen:${tenderId}`);
+  const at = nowIso();
+  const entry: ReopenEntry = {
+    decision: s.decision, reason: s.pending.reason, trigger: s.pending.trigger,
+    requestedById: s.pending.byId, requestedAt: s.pending.at, at, byId,
+  };
   const value: ReopenValue = {
     approved: true,
     round: s.decision.round,
-    reason: s.pending.reason,
-    trigger: s.pending.trigger,
-    requestedById: s.pending.byId,
-    previous: [...(prior?.previous ?? []), s.decision],
-    at: nowIso(),
+    reason: entry.reason,
+    trigger: entry.trigger,
+    requestedById: entry.requestedById,
+    previous: [...(prior?.previous ?? []), entry],
+    at,
     byId,
   };
   return {

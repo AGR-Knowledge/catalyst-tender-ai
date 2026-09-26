@@ -97,27 +97,32 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
         <div className="db-actions"><ActionList zone={vm.actions} onRoute={navigate} /></div>
       </div>
 
-      {/* Z5 */}
-      <section className="card db-main" ref={main} aria-label={showGraph ? 'Graph' : 'Table'}>
-        {showGraph && vm.graph ? (
-          <Suspense fallback={<div className="db-box-wait">Loading the graph…</div>}>
-            <StageChart vm={vm.graph} onPoint={onPoint} metric={metric} setMetric={setMetric} lead={toggle} />
-          </Suspense>
-        ) : rows === null ? (
-          <div className="db-nodata">
-            {toggle && <div className="tg-bar">{toggle}</div>}
-            <EmptyState title="Tender data is not loaded yet." body="The table fills in once the tender lifecycles are loaded." />
+      {/* Z5: the table stays mounted and sets the box's height; the graph lies over it, so toggling never moves the page. */}
+      <section className={`card db-main ${showGraph ? 'on-graph' : ''}`} ref={main} aria-label={showGraph ? 'Graph' : 'Table'}>
+        <div className="db-table">
+          {rows === null ? (
+            <div className="db-nodata">
+              {toggle && <div className="tg-bar">{toggle}</div>}
+              <EmptyState title="Tender data is not loaded yet." body="The table fills in once the tender lifecycles are loaded." />
+            </div>
+          ) : (
+            <TenderGrid
+              kind={vm.table.kind} rows={rows} columns={vm.table.columns} optional={vm.table.optional}
+              defaultSort={vm.table.defaultSort} filters={vm.table.filters} statusDefault={vm.table.statusDefault}
+              selectedId={vm.table.kind === 'tenders' ? selected : null}
+              onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
+              onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
+              externalFilter={filter} onClearExternal={() => setFilter(null)}
+              lead={toggle}
+            />
+          )}
+        </div>
+        {showGraph && vm.graph && (
+          <div className="db-graph">
+            <Suspense fallback={<div className="db-box-wait">Loading the graph…</div>}>
+              <StageChart vm={vm.graph} onPoint={onPoint} metric={metric} setMetric={setMetric} lead={toggle} />
+            </Suspense>
           </div>
-        ) : (
-          <TenderGrid
-            kind={vm.table.kind} rows={rows} columns={vm.table.columns} optional={vm.table.optional}
-            defaultSort={vm.table.defaultSort} filters={vm.table.filters} statusDefault={vm.table.statusDefault}
-            selectedId={vm.table.kind === 'tenders' ? selected : null}
-            onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
-            onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
-            externalFilter={filter} onClearExternal={() => setFilter(null)}
-            lead={toggle}
-          />
         )}
       </section>
 

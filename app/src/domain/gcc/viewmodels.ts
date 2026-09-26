@@ -53,8 +53,9 @@ export interface TrackerVM {
 }
 
 export interface DataPort {
-  rows(tenant: string, scope: RowScope, viewer: Person, status: 'live' | 'closed' | 'all'): TenderRowVM[];
-  tracker(tenant: string, tenderId: string, viewer: Person): TrackerVM | null;
+  /** `done` is the tenant's demo state (`store.done`): pass it, so actions taken in the demo show (plan 021 applies it). */
+  rows(tenant: string, scope: RowScope, viewer: Person, status: 'live' | 'closed' | 'all', done?: Readonly<Record<string, string>>): TenderRowVM[];
+  tracker(tenant: string, tenderId: string, viewer: Person, done?: Readonly<Record<string, string>>): TrackerVM | null;
 }
 
 /* ---------------------------------------------------------------- dashboard zones */

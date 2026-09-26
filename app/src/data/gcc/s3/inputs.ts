@@ -1,3 +1,7 @@
+import type { Facility } from '../types';
+import { KEY_PERSONNEL } from '../s1/personnel';
+import { NAJD } from '../tenants/najd';
+import { QURAIN } from '../tenants/qurain';
 import type { InputField, InputKey, InputSpec, SeededInput } from './types';
 
 /**
@@ -6,8 +10,6 @@ import type { InputField, InputKey, InputSpec, SeededInput } from './types';
  * inputs are the ones plan 008a lists on the bid workspace checklist (spec
  * §8.1); they share the request keys, so they show in "My requests" too.
  */
-
-const SAR = (amount: number) => ({ amount, ccy: 'SAR' as const });
 
 const STANCES = [
   { value: 'accept', label: 'Accept' }, { value: 'price', label: 'Price' }, { value: 'qualify', label: 'Qualify' }, { value: 'reject', label: 'Reject' },
@@ -125,12 +127,38 @@ export const INPUT_SPECS: Record<InputKey, InputSpec> = {
     fields: [f('cost', 'Preliminary cost estimate', 'money'), f('basis', 'Basis', 'text')],
   },
   'design-basis': {
-    key: 'design-basis', label: 'Design basis (design-build)', ownerRole: 'dir', feeds: 'Stage 2 kick-off',
+    key: 'design-basis', label: 'Design basis (design and build)', ownerRole: 'dir', feeds: 'Stage 2 kick-off',
     fields: [f('basis', 'Design basis', 'text'), f('standards', 'Standards and codes', 'list')],
   },
 };
 
 export const INPUT_KEYS = Object.keys(INPUT_SPECS) as InputKey[];
+
+// ---------------------------------------------------------------------------
+// Facts the contributors quote from other records, so the two never disagree.
+
+/** A key person on record (plan 007a's personnel). `role` is the role on this bid; it defaults to the person's title. */
+function staff(id: string, role?: string) {
+  const p = KEY_PERSONNEL.find((x) => x.id === id);
+  if (!p) throw new Error(`No key person "${id}" in data/gcc/s1/personnel.ts`);
+  return { name: p.name, role: role ?? p.title, availableFrom: p.availableFrom };
+}
+/** HR's availability line for a key person on record. */
+const availability = (id: string, status: string, role?: string) => {
+  const { name, role: r } = staff(id, role);
+  return { name, role: r, status };
+};
+
+/** Finance's answer quotes the facility as plan 004 records it, confirmed the same day. Committed lines are in the facility's currency. */
+function facilityFields(f: Facility) {
+  const committed = f.committed.reduce((s, c) => s + c.amount.amount, 0);
+  return {
+    limit: f.limit, utilised: f.utilised,
+    committed: { amount: committed, ccy: f.limit.ccy },
+    headroom: { amount: f.limit.amount - f.utilised.amount - committed, ccy: f.limit.ccy },
+    asOf: f.asOf,
+  };
+}
 
 // ---------------------------------------------------------------------------
 // Seeded inputs. T-2026-097: all six in before the pack was generated on Sat
@@ -142,8 +170,6 @@ const PACK_097 = { tenant: 'najd', tenderId: 'T-2026-097', requestedById: 'najd.
 const PACK_101 = { tenant: 'najd', tenderId: 'T-2026-101', requestedById: 'najd.bid', requestedAt: '2026-03-04T11:00' } as const;
 const PACK_029 = { tenant: 'corniche', tenderId: 'T-2026-029', requestedById: 'corniche.bid', requestedAt: '2026-03-03T10:00' } as const;
 const PACK_049 = { tenant: 'qurain', tenderId: 'T-2026-049', requestedById: 'qurain.bid', requestedAt: '2026-03-02T10:00' } as const;
-
-const KWD = (amount: number) => ({ amount, ccy: 'KWD' as const });
 
 export const SEEDED_INPUTS: SeededInput[] = [
   {
@@ -162,7 +188,7 @@ export const SEEDED_INPUTS: SeededInput[] = [
   {
     ...PACK_097, key: 'finance', itemId: 'T-2026-097:finance', ownerId: 'najd.fin', due: '2026-03-05T17:00', submittedAt: '2026-03-05T15:20',
     fields: {
-      limit: SAR(600_000_000), utilised: SAR(410_000_000), committed: SAR(94_000_000), headroom: SAR(96_000_000), asOf: '2026-03-05',
+      ...facilityFields(NAJD.facility),
       bankLeadDays: 5,
       bondCharges: 0.75,
       workingCapital: '10% advance against an advance payment guarantee; 10% retention; 60-day payment terms',
@@ -204,12 +230,8 @@ export const SEEDED_INPUTS: SeededInput[] = [
     ...PACK_097, key: 'pd', itemId: 'T-2026-097:pd', ownerId: 'najd.dir', due: '2026-03-06T17:00', submittedAt: '2026-03-06T10:15',
     fields: {
       feasibility: 'with-conditions',
-      feasibilityNote: 'Name the process lead before submission; keep the second site team available if the Tabuk pipeline is also won',
-      keyStaff: [
-        { name: 'Yasser Al-Sabhan', role: 'Project Manager', availableFrom: '2026-05-01' },
-        { name: 'Ramesh Iyer', role: 'Process Lead', availableFrom: '2026-04-15' },
-        { name: 'Turki Al-Juhani', role: 'HSE Manager', availableFrom: '2026-03-15' },
-      ],
+      feasibilityNote: 'Confirm the process lead before submission, as the Abha STP bid names the same person; keep the second site team available if the Tabuk pipeline is also won',
+      keyStaff: [staff('najd-kp-1'), staff('najd-kp-2'), staff('najd-kp-3'), staff('najd-kp-4')],
       site: 'Live plant: work in phases around the existing treatment trains; site access from the Madinah ring road',
     },
   },
@@ -217,9 +239,10 @@ export const SEEDED_INPUTS: SeededInput[] = [
     ...PACK_097, key: 'hr', itemId: 'T-2026-097:hr', ownerId: 'najd.hr', due: '2026-03-06T17:00', submittedAt: '2026-03-06T12:00',
     fields: {
       availability: [
-        { name: 'Yasser Al-Sabhan', role: 'Project Manager', status: 'Available from 1 May, when the Buraydah handover ends' },
-        { name: 'Ramesh Iyer', role: 'Process Lead', status: 'Available' },
-        { name: 'Turki Al-Juhani', role: 'HSE Manager', status: 'Available' },
+        availability('najd-kp-1', 'Available from 1 May, when the Buraydah handover ends'),
+        availability('najd-kp-2', 'Available; also named on the Abha STP bid'),
+        availability('najd-kp-3', 'Available'),
+        availability('najd-kp-4', 'Available from 1 April'),
       ],
       nationalisation: 'High Green band kept',
     },
@@ -250,10 +273,7 @@ export const SEEDED_INPUTS: SeededInput[] = [
     ...PACK_101, key: 'pd', itemId: 'T-2026-101:pd', ownerId: 'najd.dir', due: '2026-03-07T17:00', submittedAt: '2026-03-07T14:40',
     fields: {
       feasibility: 'yes',
-      keyStaff: [
-        { name: 'Hamza Al-Qarni', role: 'Project Manager', availableFrom: '2026-06-01' },
-        { name: 'Ramesh Iyer', role: 'Process Lead', availableFrom: '2026-04-15' },
-      ],
+      keyStaff: [staff('najd-kp-5', 'Project Manager'), staff('najd-kp-2')],
       site: 'Upgrade inside the operating plant; the south-west has no Najd office, so a site office is needed',
     },
   },
@@ -261,8 +281,8 @@ export const SEEDED_INPUTS: SeededInput[] = [
     ...PACK_101, key: 'hr', itemId: 'T-2026-101:hr', ownerId: 'najd.hr', due: '2026-03-07T17:00', submittedAt: '2026-03-07T11:15',
     fields: {
       availability: [
-        { name: 'Hamza Al-Qarni', role: 'Project Manager', status: 'Available from 1 June' },
-        { name: 'Ramesh Iyer', role: 'Process Lead', status: 'Shared with the Madinah WTP if both are won' },
+        availability('najd-kp-5', 'Available', 'Project Manager'),
+        availability('najd-kp-2', 'Shared with the Madinah WTP if both are won'),
       ],
       nationalisation: 'High Green band kept',
     },
@@ -305,7 +325,7 @@ export const SEEDED_INPUTS: SeededInput[] = [
   {
     ...PACK_049, key: 'finance', itemId: 'T-2026-049:finance', ownerId: 'qurain.fin', due: '2026-03-05T17:00', submittedAt: '2026-03-05T16:00',
     fields: {
-      limit: KWD(28_000_000), utilised: KWD(22_800_000), committed: KWD(2_100_000), headroom: KWD(3_100_000), asOf: '2026-03-05',
+      ...facilityFields(QURAIN.facility),
       bankLeadDays: 7,
       bondCharges: 1,
       workingCapital: '5% advance against an advance payment guarantee; 10% retention; 90-day payment terms',

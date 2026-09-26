@@ -11,23 +11,25 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 003 | [Roles, people and permissions](003-roles-people-permissions.md): new role keys, people per tenant, grouped persona switcher, `can()` and masking, admin gating, View as, demo scope, GCC nav model | 1 | 002 | DONE (2026-09-25) |
 | 004 | [GCC seed data](004-gcc-seed-data.md): company data, credential vaults, fit models, registers, history, hero tender record and BOQ, real-document records | 1 | 002 | DONE (2026-09-25) |
 | 005 | [Hero tender booklet PDF](005-hero-itt-pdf.md): dev-only generator for the synthetic KSA booklet, with page-anchor verification | 1 | — (reads gcc-demo-data §4) | DONE (2026-09-25) |
-| 006 | [Shell, sidebar and dashboard kit](006-shell-and-dashboard-kit.md): nine-stage sidebar with Settings at the bottom, AG Grid + Recharts, dashboard layout components (period, tiles with ⓘ, flow, actions, Table/Graph, tracker), registries, DG2/DG3 authority, Proposal Manager | 2 | 002–005 | ACCEPTED with fixes (2026-09-26); fixes and answers in plan 020 |
-| 017 | [Tender lifecycles and dated history](017-lifecycle-data.md): stage logs, gate records, Stage 4–9 register, step facts, generated 12-month history hitting the period targets, data port | 2 | 004; 006 Phase 1 for its last phase | ACCEPTED with fixes (2026-09-26); fixes and answers in plan 020 |
-| 007a | [Stage 1 and DG1 rules](007a-stage1-dg1-rules.md): eligibility vs the vault with the JV scenario, fit and PQ-fail cap, bond, key dates and flags, validation queue, pipeline and radar, addenda, triage, queries, DG1 queue, pack and decision rules. No screens | 2b | 004 | ACCEPTED with fixes (2026-09-26); fixes and answers in plan 020 |
-| 008a | [Stage 2 sourcing rules](008a-stage2-sourcing-rules.md): supplier masters, packages and coverage bar, shortlists with the screening guardrail, RFQ drafts and clock, tracking, levelling, best fit, clarifications, Supplier Portal view. No screens | 2b | 004; 017 for its Phase 8 | ACCEPTED with fixes (2026-09-26); fixes and answers in plan 020 |
-| 009a | [Stage 3 and DG2 rules](009a-stage3-dg2-rules.md): win probability, cited competitors, contributor inputs, the pack with freshness and re-run, positions, quorum 3 of 5, the Head of Tendering's approval, conditions, letter, re-open. No screens | 2b | 004; 007a for Phase 7; 017 for Phase 9 | ACCEPTED with fixes (2026-09-26); fixes and answers in plan 020 |
+| 006 | [Shell, sidebar and dashboard kit](006-shell-and-dashboard-kit.md): nine-stage sidebar with Settings at the bottom, AG Grid + Recharts, dashboard layout components (period, tiles with ⓘ, flow, actions, Table/Graph, tracker), registries, DG2/DG3 authority, Proposal Manager | 2 | 002–005 | DONE (2026-09-26, fixes in plan 020) |
+| 017 | [Tender lifecycles and dated history](017-lifecycle-data.md): stage logs, gate records, Stage 4–9 register, step facts, generated 12-month history hitting the period targets, data port | 2 | 004; 006 Phase 1 for its last phase | DONE (2026-09-26, fixes in plan 020) |
+| 007a | [Stage 1 and DG1 rules](007a-stage1-dg1-rules.md): eligibility vs the vault with the JV scenario, fit and PQ-fail cap, bond, key dates and flags, validation queue, pipeline and radar, addenda, triage, queries, DG1 queue, pack and decision rules. No screens | 2b | 004 | DONE (2026-09-26, fixes in plan 020) |
+| 008a | [Stage 2 sourcing rules](008a-stage2-sourcing-rules.md): supplier masters, packages and coverage bar, shortlists with the screening guardrail, RFQ drafts and clock, tracking, levelling, best fit, clarifications, Supplier Portal view. No screens | 2b | 004; 017 for its Phase 8 | DONE (2026-09-26, fixes in plan 020) |
+| 009a | [Stage 3 and DG2 rules](009a-stage3-dg2-rules.md): win probability, cited competitors, contributor inputs, the pack with freshness and re-run, positions, quorum 3 of 5, the Head of Tendering's approval, conditions, letter, re-open. No screens | 2b | 004; 007a for Phase 7; 017 for Phase 9 | DONE (2026-09-26, fixes in plan 020) |
 | 007b | Stage 1 and DG1 screens (on 007a) | 4 | 006, 019, 007a | Outline |
 | 008b | Stage 2 screens and Supplier Portal (on 008a) | 4 | 006, 019, 008a | Outline |
 | 009b | Stage 3 pack, DG2 gate and contributor forms (on 009a) | 4 | 006, 019, 009a | Outline |
 | 010 | Company and Administration | 4 | 006 | Outline |
 | 011 | Platform Console | 4 | 006 | Outline |
 | 012 | Arabic intake (bonus) | 4 | 006, 007b | Outline |
-| 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017 | READY after 006 and 017 (parallel with 015) |
+| 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | READY (parallel with 015, 019, 021) |
 | 014 | Presenter controls and Compare tenants lens | 5 | 007b–009b | Outline |
-| 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017 | READY after 006 and 017 (parallel with 013) |
+| 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | READY (parallel with 013, 019, 021) |
 | 016 | Script QA and polish (spec §19 acceptance) | 6 | all | Outline |
 | 018 | DG3 approval (lite gate screen for the Head of Tendering, dashboards.md §9) | 4 | 009b (gate screen pattern), 017 | Outline |
-| 019 | Tender kit part 2 and Tender Workspace frame (RecommendationCard, SourceChip, Sheet, Callout, OverrideModal …) | 4 | 006 | Outline |
+| 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | READY (parallel with 013, 015, 021) |
+| 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
+| 021 | [Demo state and rule fixes](021-demo-state-and-rule-fixes.md): demo actions (DG1, Stage 2 progress, pack, positions, DG2) merged into the lifecycles so every dashboard shows them; DG1 rounds, DG2 conditions masked and the other rule bugs from the 020 review | 3 | 017, 007a, 008a, 009a, 020 | READY (parallel with 013, 015, 019) |
 
 **Dashboards replan (orchestrator, 2026-09-25).** The user's brief for the Head of Tendering replaced the sketch, and it applies to every role: [dashboards.md](../../docs/07-product-design/agr-product-definition/dashboards.md). Consequences here:
 - **006** is rewritten as the shell, the sidebar and the dashboard kit.
@@ -152,7 +154,10 @@ Plan 001 was verified with a click audit:
   - None of them edits 004's data, `people.ts`, `access.ts`, the store or any file 006 owns.
   - 009a imports `eligibilityFor` and `addendaFor` from 007a (its Phase 7 waits for them). 008a's Phase 8 and 009a's Phase 9 wait for 017.
   - **The wave 1 parallel rules above apply**, except that 006 is the one plan that runs `npm install`.
-- **Wave 3 (in parallel):**
+- **Wave 3 (in parallel, four sessions; orchestrator, 2026-09-26):** 015, 013, 019 and 021. Shared contracts the orchestrator wrote before the wave: `domain/gcc/requestKeys.ts` (019 writes requests, 013 reads them) and `queriesFor(ctx)` plus an optional `done` on every lifecycle query and on `DataPort.rows`/`.tracker` (015, 013 and 019 call through it; 021 makes `done` take effect).
+  - **019** owns `components/tender/**` (new files only), `pages/gcc/workspace/**`, `domain/gcc/workspace/**`, `components/layout/GccSearch.tsx`, `dev-checks/55-workspace.tsx`, the kit preview, and one line each in `App.tsx`, `screens.ts` (`screenHead`) and `Header.tsx`. It deletes `TenderSummary.tsx`.
+  - **021** owns `domain/gcc/demo/**`, `domain/gcc/lifecycle.ts`, `lifecycle.port.ts`, the `withDemoState` stub, `domain/gcc/{dg1,s1/intake.ts,s2,s3,dg2}`, dev checks 40, 45, 70, 80 and 90, and one call each in `dashboards/build.ts` and `DashboardRoute.tsx`.
+- **Wave 3, the dashboard plans:**
   - **015** owns `data/gcc/portfolio.ts`, `*/portfolio.*` in the registries, `metrics/stages.metric.ts`, `gateChips.ts` (body) and `dev-checks/50-portfolio.tsx`.
   - **013** owns the `stage*.kpi.ts`, `requests.*`, `stages.*` and `steps.metric.ts` registry files, `domain/gcc/requests.ts` and `dev-checks/60-stages.tsx`.
 - **Wave 4:** 019 (tender kit part 2) first. Then the **stage screen lanes in parallel:**

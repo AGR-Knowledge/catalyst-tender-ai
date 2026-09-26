@@ -43,6 +43,7 @@ export const write = <T>(key: string, record: T, audit: AuditDraft): S2Write<T> 
 // Keys
 
 export const K = {
+  /** Plan 007a's DG1 decision. Stage 2 reads it through `dg1RecordFor`, never directly. */
   dg1: (tid: string) => `dg1:${tid}`,
   pkg: (tid: string) => `pkg:${tid}`,
   shortlist: (tid: string, pkgId: string) => `shortlist:${tid}:${pkgId}`,
@@ -64,9 +65,6 @@ export const K = {
 // Values
 
 interface Stamp { at: string; byId: string }
-
-/** Plan 007a's `Dg1Decision`: only the fields Stage 2 reads. */
-export interface Dg1DecisionRead extends Stamp { tenderId?: string; decision: 'pursue' | 'discard' }
 
 /** Merge packages into the first one of the list. */
 export interface PackagingMerge { into: string; from: string[] }

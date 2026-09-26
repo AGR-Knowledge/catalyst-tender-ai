@@ -184,10 +184,11 @@ export function rfqWrite(tenant: string, tenderId: string, pkgId: string, suppli
   for (const id of supplierIds) {
     const s = supplierOf(tenant, id);
     if (!s) return { error: `${id} is not in the supplier master.` };
-    if (!list.supplierIds.includes(id)) return { error: `${s.name} is not on the approved shortlist. Add it with a reason first.` };
-    if (already.has(id)) return { error: `${s.name} already has this RFQ.` };
+    // Screening first: a blocked supplier cannot be added to the shortlist either.
     const sc = screeningOf(s);
     if (!sc.sendable) return { error: `${s.name}: ${sc.reason}` };
+    if (!list.supplierIds.includes(id)) return { error: `${s.name} is not on the approved shortlist. Add it with a reason first.` };
+    if (already.has(id)) return { error: `${s.name} already has this RFQ.` };
   }
   const batch = sentBatches(tenderId, done).filter((b) => b.pkgId === pkgId).length + 1;
   const record: RfqSentValue = { supplierIds, at, byId };

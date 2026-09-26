@@ -14,10 +14,11 @@ import { Suppliers } from '@/pages/Suppliers';
 import { Library } from '@/pages/Library';
 import { Settings } from '@/pages/Settings';
 import { NotFound } from '@/pages/NotFound';
-import { Guard } from '@/pages/Restricted';
+import { Guard, GuardCap } from '@/pages/Restricted';
 import { IntakeList, IntakeReview } from '@/pages/Intake';
 import { Boq } from '@/pages/Boq';
 import { ComingNext } from '@/pages/gcc/ComingNext';
+import { SCREENS } from '@/pages/gcc/screens';
 import { LEGACY_TENANT, TENANTS } from '@/data/tenants';
 import { useWorld } from '@/domain/tenancy';
 
@@ -83,8 +84,30 @@ function Home() {
   return gcc ? lazyEl(<DashboardRoute />) : <Navigate to={`/dashboard/${state.role}`} replace />;
 }
 
-/** GCC working screens that aren't built yet (`pages/gcc/screens.ts`). */
-const GCC_SCREENS = ['calendar', 'radar', 'intake-queue', 'screening', 'dg1', 'sourcing', 'levelling', 'packs', 'dg2', 'dg3', 'company'];
+/** The built GCC screens' pages, loaded on demand (`pages/gcc/screens.ts`). */
+const SCREEN_PAGES = Object.fromEntries(
+  Object.entries(SCREENS).flatMap(([path, s]) => (s.built && s.page ? [[path, lazy(s.page)]] : [])),
+);
+
+/** A GCC working screen: its page behind the screen's capability once built, `ComingNext` until then. */
+function GccScreen({ path }: { path: string }) {
+  const Page = SCREEN_PAGES[path];
+  if (!Page) return <ComingNext path={path} />;
+  const cap = SCREENS[path].cap;
+  return cap ? <GuardCap cap={cap}>{lazyEl(<Page />)}</GuardCap> : lazyEl(<Page />);
+}
+
+/** Paths the Indian preview also uses: the GCC screen replaces them in a GCC tenant. */
+const LEGACY_AT: Record<string, ReactNode> = {
+  '/suppliers': <LegacyOnly><Guard page="suppliers"><Suppliers /></Guard></LegacyOnly>,
+};
+
+/** One route per entry in `SCREENS`, so a new screen is added there and nowhere else. */
+const screenRoutes = () => Object.keys(SCREENS).map((path) => {
+  const gcc = <GccScreen path={path} />;
+  const legacy = LEGACY_AT[path];
+  return <Route key={path} path={path.slice(1)} element={legacy ? <ByWorld legacy={legacy} gcc={gcc} /> : <GccOnly>{gcc}</GccOnly>} />;
+});
 
 export function App() {
   return (
@@ -100,7 +123,6 @@ export function App() {
               <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
               <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
               <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
-              <Route path="suppliers" element={<ByWorld legacy={<LegacyOnly><Guard page="suppliers"><Suppliers /></Guard></LegacyOnly>} gcc={<ComingNext />} />} />
               <Route path="library" element={<LegacyOnly><Guard page="library"><Library /></Guard></LegacyOnly>} />
               <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />
               <Route path="intake/:id" element={<LegacyOnly><Guard page="intake"><IntakeReview /></Guard></LegacyOnly>} />
@@ -111,8 +133,7 @@ export function App() {
               <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
               <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
               <Route path="tenders/:id" element={<GccOnly>{lazyEl(<TenderSummary />)}</GccOnly>} />
-              {GCC_SCREENS.map((p) => <Route key={p} path={p} element={<GccOnly><ComingNext /></GccOnly>} />)}
-              <Route path="admin/*" element={<GccOnly><ComingNext /></GccOnly>} />
+              {screenRoutes()}
               {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
               {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}
 

@@ -10,7 +10,9 @@ import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import type { GateKind, GateRecord, Lifecycle, StageEntry } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
-import { currentOf, deadlineWd, healthOf, hoursText, lifecycle, lifecyclesOf, openGate, personName, teamOf } from './lifecycle';
+import {
+  currentOf, deadlineWd, eligibilityOf, healthOf, hoursText, lifecycle, lifecyclesOf, openGate, personName, staleOf, teamOf, tenderCtx, visible, type DemoDone,
+} from './lifecycle';
 import type { DataPort, GateKey, MoneyVM, RowScope, TenderRowVM, TrackerNodeVM, TrackerVM } from './viewmodels';
 
 /**
@@ -18,22 +20,33 @@ import type { DataPort, GateKey, MoneyVM, RowScope, TenderRowVM, TrackerNodeVM, 
  * §7): the rows of the dashboard table and the tender tracker. Pages reach
  * tender data only through `dataPort()`, which loads this file.
  *
- * Masking follows `can()`: margin facts become null with a `<key>.masked`
- * marker for viewers without `see.margin`; quote facts are counts only, so a
- * viewer with `see.quotes.summary` sees them as they are and a viewer with
- * neither sees them masked. Restricted tenders are left out for people who
- * are not cleared.
+ * Masking follows `can()`, and a masked fact is null with a `<key>.masked`
+ * marker:
+ * - margin and price facts (margins, the estimated price) without `see.margin`;
+ * - win probability, committee positions and what derives from them (quorum,
+ *   weighted value, the predicted win of a result) without `see.positions`;
+ * - quote facts are counts only, so a viewer with `see.quotes.summary` sees
+ *   them as they are and a viewer with neither sees them masked.
+ * Tenders the viewer may not open (`visible`: the restricted lane for people
+ * not cleared) are left out.
  */
+
+export { tenderCtx, visible, visibleOf, queriesFor, type DemoDone } from './lifecycle';
 
 type Facts = TenderRowVM['facts'];
 
 const ccyOf = (tenant: string) => gccData(tenant).fit.band.min.ccy;
 const registerOf = (tenant: string, id: string): GccTender | undefined => gccData(tenant).register.find((t) => t.id === id);
 
-/** The `can()` context for a lifecycle: its Bid Manager, sector, invited people (from the register) and lane. */
-const tenderCtx = (tenant: string, l: Lifecycle) => ({
-  tender: { bidManagerId: l.bidManagerId ?? undefined, sector: l.sector, invited: registerOf(tenant, l.tenderId)?.invited ?? [], restricted: !!l.restricted },
-});
+/** What the viewer may see on this tender. */
+function sightOf(tenant: string, l: Lifecycle, viewer: Person) {
+  const ctx = tenderCtx(tenant, l);
+  return {
+    margin: can(viewer, 'see.margin', ctx).ok,
+    positions: can(viewer, 'see.positions', ctx).ok,
+    quotes: can(viewer, 'see.quotes', ctx).ok || can(viewer, 'see.quotes.summary', ctx).ok,
+  };
+}
 
 const DEMO_YEAR = DEMO_TODAY.slice(0, 4);
 /** "Sun 15 Mar", with the year only outside the demo year. */
@@ -87,16 +100,15 @@ function fitOf(tenant: string, l: Lifecycle): number | null {
  */
 function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
   const out: Facts = {};
-  const ctx = tenderCtx(tenant, l);
-  const margin = can(viewer, 'see.margin', ctx).ok;
-  const quotes = can(viewer, 'see.quotes', ctx).ok || can(viewer, 'see.quotes.summary', ctx).ok;
+  const { margin, positions, quotes } = sightOf(tenant, l, viewer);
   const mask = (keys: string[]) => { for (const k of keys) { out[k] = null; out[`${k}.masked`] = true; } };
   const f = l.facts;
   if (f?.stage === 1) {
     const t = registerOf(tenant, l.tenderId);
+    const e = eligibilityOf(tenant, l);
     Object.assign(out, {
       fieldsToCheck: t?.validations.length ?? 0, fieldsBlocking: t?.validations.filter((v) => v.blocksDg1).length ?? 0,
-      eligPass: f.eligibility.pass, eligAtRisk: f.eligibility.atRisk, eligFail: f.eligibility.fail,
+      eligPass: e?.pass ?? null, eligAtRisk: e?.atRisk ?? null, eligInterpretation: e?.interpretation ?? null, eligFail: e?.fail ?? null,
       documents: f.documents === 'downloaded' ? 'downloaded' : 'to buy',
       documentFee: f.documents === 'downloaded' ? null : f.documents.fee.amount,
       purchaseBy: f.documents === 'downloaded' ? null : f.documents.purchaseBy,
@@ -114,13 +126,14 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
     const g = openGate(l);
     const more = DG2_QUORUM - f.positions.recorded;
     Object.assign(out, {
-      pack: f.pack === 'preparation' ? 'in preparation' : f.stale ? 'stale' : 'fresh', packIssuedAt: f.issuedAt ?? null,
+      pack: f.pack === 'preparation' ? 'in preparation' : staleOf(tenant, l) ? 'stale' : 'fresh', packIssuedAt: f.issuedAt ?? null,
       inputsRequested: f.inputs.requested, inputsOutstanding: f.inputs.outstanding, inputsLate: f.inputs.late,
       positionsRecorded: f.positions.recorded, positionsOf: f.positions.of, quorum: more <= 0 ? 'met' : `${more} more needed`,
       winP: f.win.p, winBand: f.win.band, marginMin: f.marginRange[0], marginMax: f.marginRange[1],
       facilityAfter: f.facilityAfter.amount, weightedValue: f.weightedValue?.amount ?? null, dg2SlaEnd: g?.gate === 'DG2' ? g.slaEnd : null,
     });
     if (!margin) mask(['marginMin', 'marginMax']);
+    if (!positions) mask(['winP', 'winBand', 'positionsRecorded', 'quorum', 'weightedValue']);
   } else if (f?.stage === 4) {
     Object.assign(out, {
       durationPlannedM: f.durationPlannedM, durationRequiredM: f.durationRequiredM, floatDays: f.floatDays, longLeadAtRisk: f.longLeadAtRisk,
@@ -131,7 +144,7 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
       estPrice: f.estPrice.amount, baseMarginPct: f.baseMarginPct, minMarginPct: f.minMarginPct, sourcedPct: f.sourcedPct,
       estimatedPct: f.estimatedPct, financeCheck: f.financeCheck, priceDue: f.priceDue, m2Due: f.m2Due,
     });
-    if (!margin) mask(['baseMarginPct', 'minMarginPct']);
+    if (!margin) mask(['estPrice', 'baseMarginPct', 'minMarginPct']);
   } else if (f?.stage === 6) {
     Object.assign(out, {
       sectionsLocked: f.sections.locked, sectionsTotal: f.sections.total, sectionsLate: f.sections.late, simScore: f.simScore,
@@ -151,6 +164,8 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
       bondValidTo: f.bond.validTo, bondRequiredTo: f.bond.requiredTo, bondIssued: f.bond.issued,
       openingDate: f.openingDate, expectedAwardBy: f.expectedAwardBy ?? null,
     });
+    // The bid bond is a share of the bid price, so its amount reveals the price: masked with margin.
+    if (!margin) mask(['bondAmount']);
   } else if (f?.stage === 9) {
     Object.assign(out, { handoverAt: f.handoverAt ?? null, debriefAt: f.debriefAt ?? null });
   }
@@ -161,6 +176,7 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
       result: r.result, rankPlace: r.rank?.[0] ?? null, rankOf: r.rank?.[1] ?? null, gapToWinnerPct: r.gapToWinnerPct ?? null,
       lossReason: r.lossReason ?? null, predictedWin: r.predictedWin ?? null, lessons: l.events.some((e) => e.kind === 'lessons'),
     });
+    if (!positions) mask(['predictedWin']);
   }
   return out;
 }
@@ -185,7 +201,8 @@ export function rowFor(l: Lifecycle, tenant: string, viewer: Person): TenderRowV
       ...(l.source.url ? { url: l.source.url } : {}), ...(l.source.documentHref ? { documentHref: l.source.documentHref } : {}),
     },
     capturedAt: l.capturedAt, lastActivityAt: lastActivityOf(l),
-    fit: fitOf(tenant, l), win: f?.stage === 3 ? { p: f.win.p, band: f.win.band } : null,
+    // Win probability is masked like the positions (roles-and-access §9): null for viewers without `see.positions`.
+    fit: fitOf(tenant, l), win: f?.stage === 3 && sightOf(tenant, l, viewer).positions ? { p: f.win.p, band: f.win.band } : null,
     live: !l.closedAt, ...(l.closedAt ? { closedAt: l.closedAt } : {}),
     bidManagerId: l.bidManagerId,
     facts: factsOf(tenant, l, viewer),
@@ -257,36 +274,47 @@ function outcomeOf(l: Lifecycle): string | undefined {
   }
 }
 
+const maskedText = (what: string[]) => `${what.join(', ').replace(/, ([^,]*)$/, ' and $1').replace(/^./, (c) => c.toUpperCase())}: masked for your role`;
+
+/** "Eligibility 13 pass · 2 at risk · 1 interpretation · 0 fail": interpretation only when there is one. */
+function eligibilityText(tenant: string, l: Lifecycle): string | null {
+  const e = eligibilityOf(tenant, l);
+  if (!e) return null;
+  return `Eligibility ${e.pass} pass · ${e.atRisk} at risk${e.interpretation ? ` · ${e.interpretation} interpretation` : ''} · ${e.fail} fail`;
+}
+
 /** The step facts in one line, masked like the table (dashboards.md §7). */
 function statusLine(tenant: string, l: Lifecycle, viewer: Person): string {
   const f = l.facts;
-  const ctx = tenderCtx(tenant, l);
   const ccy = ccyOf(tenant);
   const m = (amount: number) => money(amount, ccy);
-  const marginOk = can(viewer, 'see.margin', ctx).ok;
+  const sight = sightOf(tenant, l, viewer);
+  const marginOk = sight.margin;
   if (!f) return stepLabel(currentOf(l).stage, currentOf(l).step);
   switch (f.stage) {
     case 1:
-      return [`Eligibility ${f.eligibility.pass} pass · ${f.eligibility.atRisk} at risk · ${f.eligibility.fail} fail`,
+      return [eligibilityText(tenant, l),
         f.documents === 'downloaded' ? 'documents downloaded' : `booklet ${m(f.documents.fee.amount)} to buy by ${day(f.documents.purchaseBy)}`,
         f.dg1Due ? `DG1 due ${dayTime(f.dg1Due)}` : null].filter(Boolean).join(' · ');
     case 2:
       return `${f.rfqs.sent} of ${f.rfqs.total} RFQs sent · ${f.packages.covered} of ${f.packages.total} packages covered · replies due ${day(f.repliesDue)}${f.rfqs.overdue ? ` · ${f.rfqs.overdue} overdue` : ''}`;
-    case 3:
+    case 3: {
+      const masked = [...(sight.positions ? [] : ['win probability', 'committee positions']), ...(marginOk ? [] : ['margin'])];
       return [f.pack === 'preparation' ? `Pack in preparation · ${f.inputs.outstanding} of ${f.inputs.requested} inputs outstanding` : `Pack issued ${dayTime(f.issuedAt!)}`,
-        `${f.positions.recorded} of ${f.positions.of} positions`, `win ${f.win.p} ± ${f.win.band}`,
-        marginOk ? `margin ${f.marginRange[0]}–${f.marginRange[1]}%` : 'Margin: masked for your role'].join(' · ');
+        sight.positions ? `${f.positions.recorded} of ${f.positions.of} positions` : null, sight.positions ? `win ${f.win.p} ± ${f.win.band}` : null,
+        marginOk ? `margin ${f.marginRange[0]}–${f.marginRange[1]}%` : null, masked.length ? maskedText(masked) : null].filter(Boolean).join(' · ');
+    }
     case 4:
       return `Programme ${f.durationPlannedM} months planned, ${f.durationRequiredM} required · float ${f.floatDays < 0 ? `−${-f.floatDays}` : f.floatDays} days · baseline due ${day(f.baselineDue)}`;
     case 5:
-      return [`Estimated price ${m(f.estPrice.amount)}`, marginOk ? `base margin ${f.baseMarginPct}% (minimum ${f.minMarginPct}%)` : 'Margin: masked for your role',
+      return [marginOk ? `Estimated price ${m(f.estPrice.amount)} · base margin ${f.baseMarginPct}% (minimum ${f.minMarginPct}%)` : maskedText(['estimated price', 'margin']),
         `finance check ${f.financeCheck}`, `price due ${day(f.priceDue)}`].join(' · ');
     case 6:
       return `${f.sections.locked} of ${f.sections.total} sections locked · simulated score ${f.simScore} (pass mark ${f.passMark})${f.redTeamAt ? ` · red-team review ${day(f.redTeamAt)}` : ''}`;
     case 7:
       return `${f.requirements.evidenced} of ${f.requirements.total} requirements evidenced · ${f.mandatoryGaps} mandatory gaps · ${f.redlinesOpen} redlines open`;
     case 8:
-      return `Package ${f.packageReadyPct}% ready · ${f.signaturesPending} signatures pending · bid bond ${m(f.bond.amount.amount)}${f.bond.issued ? ` valid to ${day(f.bond.validTo)}` : ' not issued'}`;
+      return `Package ${f.packageReadyPct}% ready · ${f.signaturesPending} signatures pending · bid bond ${marginOk ? m(f.bond.amount.amount) : '(amount masked for your role)'}${f.bond.issued ? ` valid to ${day(f.bond.validTo)}` : ' not issued'}`;
     case 9:
       return f.handoverAt ? `Handover ${day(f.handoverAt)}` : f.debriefAt ? `Debrief ${day(f.debriefAt)}` : 'Result received';
   }
@@ -377,7 +405,7 @@ export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): Tracke
       stageLabel: stageLabel(cur.stage), stepLabel: stepLabel(cur.stage, cur.step),
       withName: owner?.name ?? null, withRole: owner ? roleLine(owner) : null,
       team: teamLine(tenant, l), status: statusLine(tenant, l, viewer), next: nextLine(tenant, l),
-      blocker: health.health === 'on-track' ? null : health.reason,
+      blocker: health.health === 'on-track' ? null : (sightOf(tenant, l, viewer).margin ? health.reason : health.maskedReason ?? health.reason),
     },
     ...(closed ? { outcome: outcomeOf(l) } : {}),
   };
@@ -385,19 +413,17 @@ export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): Tracke
 
 /* ---------------------------------------------------------------- port */
 
-const visible = (tenant: string, l: Lifecycle, viewer: Person) => can(viewer, 'tender.view', tenderCtx(tenant, l)).ok;
-
 export const port: DataPort = {
-  rows(tenant: string, scope: RowScope, viewer: Person, status: 'live' | 'closed' | 'all'): TenderRowVM[] {
+  rows(tenant: string, scope: RowScope, viewer: Person, status: 'live' | 'closed' | 'all', done?: DemoDone): TenderRowVM[] {
     if (!isGccTenantKey(tenant)) return [];
-    return lifecyclesOf(tenant)
+    return lifecyclesOf(tenant, undefined, done)
       .filter((l) => (status === 'all' ? true : status === 'live' ? !l.closedAt : !!l.closedAt))
       .filter((l) => scope.kind === 'all' || (scope.kind === 'assigned' ? l.bidManagerId === scope.personId : currentOf(l).stage === scope.stage))
       .filter((l) => visible(tenant, l, viewer))
       .map((l) => rowFor(l, tenant, viewer));
   },
-  tracker(tenant: string, tenderId: string, viewer: Person): TrackerVM | null {
-    const l = lifecycle(tenant, tenderId);
+  tracker(tenant: string, tenderId: string, viewer: Person, done?: DemoDone): TrackerVM | null {
+    const l = lifecycle(tenant, tenderId, done);
     return l && visible(tenant, l, viewer) ? trackerFor(l, tenant, viewer) : null;
   },
 };

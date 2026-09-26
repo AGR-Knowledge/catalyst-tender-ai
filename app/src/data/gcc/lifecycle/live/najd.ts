@@ -2,7 +2,7 @@ import { NAJD } from '../../tenants/najd';
 import { HERO_ID } from '../../hero';
 import { buildChain, type ChainSpec, type GateSpec } from '../chain';
 import type { InputItem, Lifecycle, S2Facts, S8Facts, StageN, WorkEvent } from '../types';
-import { dg1Gate, dg1Record, dg2Gate, dg2Record, facilityAfter, fromRegister, intakeSteps, refFor, registerRow, s1, sourceOf, teamFor } from './common';
+import { dg1Gate, dg1Record, dg2Gate, dg2Record, facilityAfter, fromRegister, intakeSteps, refFor, registerRow, s1, s1Derived, sourceOf, teamFor } from './common';
 
 /**
  * Najd (tenant A), hand-authored (plan 017 Phase 2.1): every register row of
@@ -12,8 +12,9 @@ import { dg1Gate, dg1Record, dg2Gate, dg2Record, facilityAfter, fromRegister, in
  *
  * Dates are KSA working days (Fri–Sat weekend; Founding Day Sun 22 Feb)
  * except where the story says otherwise: T-2025-305's DG3 pack (Sat 7 Mar),
- * T-2026-097's pack (Sat 7 Mar), T-2026-079's submission (22 Feb, from 004)
- * and T-2026-107's M1 (captured on Founding Day, hence the late DG1).
+ * T-2026-097's pack (Sat 7 Mar) and T-2026-107's M1 (captured on Founding
+ * Day, hence the late DG1). T-2026-079 was submitted on Thu 19 Feb, before
+ * the Founding Day closure (plan 020 B7).
  */
 
 const T = 'najd' as const;
@@ -41,7 +42,7 @@ function row(id: string, title: string, shortTitle: string, issuer: string, city
   return buildChain({
     tenant: T, cc: 'SA', id, title, shortTitle, issuer, city, country: 'Saudi Arabia', sector,
     value: { amount: SAR(valueM).amount, ccy: 'SAR', basis: 'estimate' }, teamId: teamFor(NAJD, id, sector), bidManagerId: BID,
-    source: sourceOf(T, 'etimad', refFor(issuer, id)), origin: 'live', ...spec,
+    source: sourceOf(T, 'etimad', refFor(issuer, id, NAJD)), origin: 'live', ...spec,
   } as ChainSpec);
 }
 
@@ -87,9 +88,6 @@ const summary = (items: InputItem[]) => ({
   items,
 });
 
-const hero = registerRow(NAJD, HERO_ID);
-const heroReqs = hero.requirements?.length ?? 0;
-
 const s2 = (f: Omit<S2Facts, 'stage'>): S2Facts => ({ stage: 2, ...f });
 
 // ---------------------------------------------------------------------------
@@ -98,19 +96,20 @@ const s2 = (f: Omit<S2Facts, 'stage'>): S2Facts => ({ stage: 2, ...f });
 const STAGE1: Lifecycle[] = [
   story(HERO_ID, {
     now: { stage: 1, step: 'validating' },
-    steps: intakeSteps('2026-03-08T07:15', '2026-03-08T07:31', '2026-03-08T07:44'),
-    // Zakat and GOSI expire before opening (gcc-demo-data §4.7).
-    facts: s1(heroReqs - 2, 2, 0, 'EN', { dg1Due: '2026-03-09T07:44' }),
+    // Documents in at 07:33, the intake event (the booklet purchase was approved at 07:31).
+    steps: intakeSteps('2026-03-08T07:15', '2026-03-08T07:33', '2026-03-08T07:44'),
+    // Eligibility from 007a: Zakat and GOSI expire before opening (gcc-demo-data §4.7).
+    facts: s1Derived('EN', { dg1Due: '2026-03-09T07:44' }),
   }),
   story('T-2026-117', {
     m1: '2026-03-07T16:10', now: { stage: 1, step: 'awaiting-dg1' },
     steps: intakeSteps('2026-03-07T15:58', '2026-03-07T16:00', '2026-03-07T16:10'),
-    facts: s1(registerRow(NAJD, 'T-2026-117').requirements!.length, 0, 0, 'EN', { dg1Due: '2026-03-08T16:10' }),
+    facts: s1Derived('EN', { dg1Due: '2026-03-08T16:10' }),
   }),
   story('T-2026-119', {
     now: { stage: 1, step: 'screened' },
     steps: { ...intakeSteps('2026-03-08T07:52', '2026-03-08T07:53', '2026-03-08T08:00'), '1:screened': '2026-03-08T08:12' },
-    facts: s1(0, 0, registerRow(NAJD, 'T-2026-119').requirements!.length, 'EN'),
+    facts: s1Derived('EN'),
   }),
   story('T-2026-120', {
     now: { stage: 1, step: 'validating' },
@@ -163,7 +162,8 @@ const STAGE2_3: Lifecycle[] = [
     now: { stage: 2, step: 'levelling' },
     facts: s2({
       packages: { total: 11, covered: 7 }, rfqs: { sent: 33, total: 33, overdue: 4, escalated: 2, answeredOnTime: 22, dueSoFar: 31 },
-      toLevel: 5, notCoveredPct: 3.1, repliesDue: '2026-03-05', clarifications: { open: 4, stale: 0 }, bestFitApproved: 0,
+      // Replies due: the next reply date still ahead, after extensions (dashboards.md §10.5, decided 2026-09-26).
+      toLevel: 5, notCoveredPct: 3.1, repliesDue: '2026-03-10', clarifications: { open: 4, stale: 0 }, bestFitApproved: 0,
     }),
   }),
   story('T-2026-101', {
@@ -236,7 +236,7 @@ const STAGE4_8: Lifecycle[] = [
     steps: { '4:m2': '2026-02-19T09:00', '5:cost-build-up': '2026-02-23T09:00', '5:scenarios': '2026-03-01T09:00', '5:finance-check': '2026-03-05T14:00' },
     now: { stage: 5, step: 'finance-check' }, submissionDeadline: { date: '2026-04-06', time: '10:00' },
     events: [replan('2026-02-16T10:00', 2, 'Site visit findings'), m2('2026-02-19', '2026-02-19T12:00'), reprice('2026-03-01T11:30', 1.5, 'Addendum 1')],
-    facts: { stage: 5, estPrice: SAR(210), baseMarginPct: 10.2, minMarginPct: 9, sourcedPct: 93, estimatedPct: 4, financeCheck: 'pending', priceDue: '2026-03-12', m2Due: '2026-02-19' },
+    facts: { stage: 5, estPrice: SAR(203.6), baseMarginPct: 10.2, minMarginPct: 9, sourcedPct: 93, estimatedPct: 4, financeCheck: 'pending', priceDue: '2026-03-12', m2Due: '2026-02-19' },
   }),
   row('T-2025-329', 'Buraydah sewer lift stations', 'Buraydah sewer lift stations', CCWS, 'Buraydah', 'Water and wastewater', 64, {
     captured: '2025-12-01T09:30', m1: '2025-12-02T14:00', dg1: pursue('2025-12-03T10:20'),
@@ -244,7 +244,7 @@ const STAGE4_8: Lifecycle[] = [
     steps: { '5:cost-build-up': '2026-02-25T09:00', '5:scenarios': '2026-03-04T10:00' },
     now: { stage: 5, step: 'scenarios' }, submissionDeadline: { date: '2026-04-08', time: '10:00' },
     events: [m2('2026-02-24', '2026-02-24T12:00')],
-    facts: { stage: 5, estPrice: SAR(64), baseMarginPct: 7.8, minMarginPct: 9, sourcedPct: 81, estimatedPct: 11, financeCheck: 'pending', priceDue: '2026-03-15', m2Due: '2026-02-24' },
+    facts: { stage: 5, estPrice: SAR(66.1), baseMarginPct: 7.8, minMarginPct: 9, sourcedPct: 81, estimatedPct: 11, financeCheck: 'pending', priceDue: '2026-03-15', m2Due: '2026-02-24' },
   }),
   story('T-2026-088', {
     m1: '2026-01-06T16:28', dg1: dg1Gate(dg1Record(NAJD, 'T-2026-088')),
@@ -307,11 +307,11 @@ const STAGE4_8: Lifecycle[] = [
     m1: '2026-01-03T14:33', dg1: dg1Gate(dg1Record(NAJD, 'T-2026-079')),
     packIssued: '2026-01-25T16:00', dg2: dg2Gate(dg2Record(NAJD, 'T-2026-079'), HOT),
     dg3Issued: '2026-02-15T11:00', dg3: approved('2026-02-16T10:00'),
-    submission: sub('2026-02-22T09:10', '2026-02-22T10:00'),
+    submission: sub('2026-02-19T09:10', '2026-02-19T10:00'),
     steps: { ...intakeSteps('2026-01-03T14:20', '2026-01-03T14:23', '2026-01-03T14:33'), '5:cost-build-up': '2026-02-03T09:00', '6:sections-assigned': '2026-02-08T09:00', '7:matrix': '2026-02-11T09:00' },
     now: { stage: 8, step: 'awaiting-result' },
     events: [m2('2026-02-02', '2026-02-02T15:00'), review('2026-02-10', '2026-02-10T14:00')],
-    facts: s8({ packageReadyPct: 100, signaturesPending: 0, openingDate: '2026-02-22', expectedAwardBy: '2026-03-05' }, 8.4, '2026-05-23', '2026-05-23'),
+    facts: s8({ packageReadyPct: 100, signaturesPending: 0, openingDate: '2026-02-19', expectedAwardBy: '2026-03-05' }, 8.4, '2026-05-20', '2026-05-20'),
   }),
 ];
 

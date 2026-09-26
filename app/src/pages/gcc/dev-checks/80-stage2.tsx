@@ -6,6 +6,7 @@ import { HERO_ID, HERO_LINES } from '@/data/gcc/hero';
 import { S2_SUPPLIERS } from '@/data/gcc/s2';
 import { LIFECYCLES, type S2Facts } from '@/data/gcc/lifecycle';
 import * as S2 from '@/domain/gcc/s2';
+import { dg1Reopen } from '@/domain/gcc/dg1';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -15,7 +16,9 @@ import { DataTable } from '@/components/ui/DataTable';
  * (gcc-demo-data §5.3), the hero's packages and shortlists, the levelling
  * trace, six simulated flows on an in-memory `done`, and the Supplier Portal
  * masking. Every tenant also checks each live Stage 2 tender against plan
- * 017's `s2` step facts (10.7). No page reads this; plan 008b builds the screens.
+ * 017's `s2` step facts (10.7). Plan 020 lane D adds the shortlist, levelling,
+ * DG1 re-open, kick-off owner, replies-due and extension-reason rows. No page
+ * reads this; plan 008b builds the screens.
  */
 
 const T104 = 'T-2026-104';
@@ -36,6 +39,7 @@ const EXPECT: Record<string, string> = {
   'T-109 sent after DG1': '22 h 45 m',
   'T-109 clarifications': '2 open, 0 stale',
   'T-109 replies due': 'Sun 15 Mar 2026',
+  'T-104 replies due': 'Tue 10 Mar 2026 · 4 overdue',
   'SRC-1 RFQs within 24 h of DG1': '100%',
   'SRC-3 Replies on time': '71% (22 of 31)',
   'SRC-4 Overdue RFQs': '4 (2 escalated)',
@@ -48,6 +52,8 @@ const EXPECT: Record<string, string> = {
   'Hero long-lead packages': 'P-02 40, P-03 30, P-06 36',
   'Hero shortlists of 4–6, with reasons': '11 of 11 packages',
   'Tarvessa Trading FZE greyed in': 'P-08, P-09',
+  'Hero P-09 approved without Tarvessa, no reason': 'approved',
+  'Hero P-09 approved without a sendable supplier, no reason': 'refused',
   'Hero P-02 RFQ draft': '6 lines, no rate field',
   // 10.3 Levelling: adjustment kinds, in rule order
   'Levelling: Rhein Aqua Systems GmbH': 'currency, delivery (est.), validity, lead-time',
@@ -61,8 +67,14 @@ const EXPECT: Record<string, string> = {
   'Flow 3: hero pursued at 10:00': 'due Mon 9 Mar 2026, 10:00 AST · 0 of 11',
   'Flow 3: shortlists approved, all sent': '11 of 11 · supplier sees hero P-02',
   'Flow 4: send to a blocked supplier': 'refused',
+  'Flow 4: shortlist a blocked supplier': 'refused',
   'Flow 5: accept a gap on T-104 P-06': 'covered 8',
   'Flow 6: Balanced mix with one override': 'audit includes the reason',
+  'Flow 7: DG1 re-opened on T-104': 'not live · no pursue · no kick-off',
+  'Flow 8: pursue naming a Procurement owner': 'kick-off owned by the named owner',
+  'Levelling: reject without a note': 'refused',
+  'Levelling: change an amount without a note': 'refused',
+  'Levelling: change an amount with a note': 'recorded, agent figure kept',
   // 10.5, 10.6
   'Supplier view T-104 P-02: leaks': 'none',
   'Supplier view: another firm’s RFQ': 'not shown',
@@ -76,7 +88,14 @@ const SIMULATION = {
   gulfQuote: { level: 'line' as const, amount: 20_800_000, ccy: 'SAR' as const, validityDays: 90, leadTimeWeeks: 30, deviations: [], exclusions: [], fileName: 'GPS-quote-T104-P02.pdf' },
   gapReason: 'Two of three suppliers answered; the third declined and the utility list has no other substation supplier',
   overrideReason: 'delivery record',
+  reopenReason: 'Client re-issued the scope; the pursue is reviewed again',
+  levelNote: 'Supplier confirmed supervision at a lower day rate',
+  /** A Procurement owner other than the tenant's default, to show the kick-off follows the DG1 team. */
+  teamProc: 'najd.coord',
 };
+
+/** The next reply date still ahead after extensions, per tender that has extended RFQs (plan 020 D3). */
+const REPLIES_DUE: Record<string, string> = { 'T-2026-104': 'Tue 10 Mar 2026', 'T-2026-027': 'Thu 12 Mar 2026' };
 
 interface Check { name: string; expected?: string; got: string }
 
@@ -144,6 +163,14 @@ function compute(key: GccTenantKey) {
   info.push(['SRC-11 Buyer time saved (estimated)', `${saved.hours} h: ${saved.nudges} nudges, ${saved.parsed} quotes parsed, ${saved.levelled} levelled`]);
   info.push(['Live Stage 2 tenders', S2.liveS2Tenders(key, seed).map((t) => t.tenderId).join(', ') || 'none seeded yet']);
 
+  // Plan 020 D6, D7: every extension states why; the overdue RFQs not yet escalated fall due at their own times.
+  const liveRfqs = S2.liveS2Tenders(key, seed).flatMap((t) => S2.rfqsFor(key, t.tenderId, seed));
+  const extended = liveRfqs.filter((r) => r.extendedFrom);
+  got['Every extended RFQ states why'] = extended.every((r) => r.extensionReason?.trim()) ? 'yes' : `${extended.filter((r) => !r.extensionReason).length} of ${extended.length} without a reason`;
+  const waiting = od.rfqs.filter((r) => !S2.isEscalated(key, r));
+  info.push(['Overdue, not escalated: reply times', waiting.map((r) => `${r.tenderId.slice(-3)} ${r.packageId} ${r.replyBy.slice(11)}`).join(' · ') || 'none']);
+  for (const r of extended) info.push([`Extended ${r.id}`, `${dateText(r.extendedFrom!.slice(0, 10))} → ${dateText(r.replyBy.slice(0, 10))} ${r.replyBy.slice(11)}: ${r.extensionReason ?? '—'}`]);
+
   for (const t of S2.liveS2Tenders(key, seed)) {
     const cov = S2.packageCoverage(key, t.tenderId, seed);
     const c = S2.rfqCounts(key, t.tenderId, seed);
@@ -157,12 +184,13 @@ function compute(key: GccTenantKey) {
     const openCl = cl.length;
     const mine = factsLine({
       packages: { total: cov.total, covered: cov.covered },
-      rfqs: { sent: c.sent, total: c.sent, overdue: c.overdue, escalated: c.escalated, answeredOnTime: c.answeredOnTime, dueSoFar: c.dueSoFar },
+      rfqs: { sent: c.sent, total: c.total, overdue: c.overdue, escalated: c.escalated, answeredOnTime: c.answeredOnTime, dueSoFar: c.dueSoFar },
       toLevel: S2.levelledFor(key, t.tenderId, seed).filter((l) => l.state === 'to-level').length,
       notCoveredPct: S2.notCovered(key, t.tenderId)?.pct ?? 0,
       repliesDue: c.repliesDue ?? '',
       clarifications: { open: openCl, stale: cl.filter((x) => x.stale).length },
     });
+    if (REPLIES_DUE[t.tenderId] && tag !== 'T-104') got[`${t.tenderId} replies due`] = c.repliesDue ? dateText(c.repliesDue.slice(0, 10)) : '—';
     const name = `017 s2 facts: ${t.tenderId}`;
     got[name] = mine;
     facts[name] = want?.stage === 2 ? factsLine(want) : 'no Stage 2 facts in plan 017';
@@ -171,6 +199,7 @@ function compute(key: GccTenantKey) {
       got['T-104 overdue'] = `${c.overdue} (${c.escalated} escalated)`;
       got['T-104 to level'] = String(S2.levelledFor(key, t.tenderId, seed).filter((l) => l.state === 'to-level').length);
       got['T-104 not covered'] = `${S2.notCovered(key, t.tenderId)!.pct}%`;
+      got['T-104 replies due'] = `${c.repliesDue ? dateText(c.repliesDue.slice(0, 10)) : '—'} · ${c.overdue} overdue`;
       info.push(['T-104 RFQs issued after DG1', lag?.text ?? '—']);
       info.push(['T-104 long-lead at risk (SRC-9)', S2.longLeadAtRisk(key, t.tenderId, seed).map((x) => `${x.pkgId}: ${x.text}`).join('; ') || 'none']);
       info.push(['T-104 package board', S2.packageBoard(key, t.tenderId, seed).map((b) => `${b.pkgId} ${b.label}`).join(' · ')]);
@@ -191,12 +220,31 @@ function compute(key: GccTenantKey) {
   const ok = lists.filter((l) => l.items.length >= 4 && l.items.length <= 6 && l.items.every((i) => i.reason));
   got['Hero shortlists of 4–6, with reasons'] = `${ok.length} of ${lists.length} packages`;
   got['Tarvessa Trading FZE greyed in'] = lists.filter((l) => l.items.some((i) => i.supplierId === 'tarvessa' && !i.sendable)).map((l) => l.pkgId).join(', ') || 'none';
+  // Plan 020 D1: leaving out a greyed supplier needs no reason; leaving out a sendable one does.
+  const p09 = S2.recommendedShortlist(key, HERO_ID, 'P-09', seed).items;
+  const p09Sendable = p09.filter((i) => i.sendable).map((i) => i.supplierId);
+  got['Hero P-09 approved without Tarvessa, no reason'] = S2.isWriteError(S2.shortlistWrite(key, HERO_ID, 'P-09', p09Sendable, [], `${key}.proc`, seed)) ? 'refused' : 'approved';
+  got['Hero P-09 approved without a sendable supplier, no reason'] = S2.isWriteError(S2.shortlistWrite(key, HERO_ID, 'P-09', p09Sendable.slice(1), [], `${key}.proc`, seed)) ? 'refused' : 'approved';
   const draft = S2.rfqDraft(key, HERO_ID, 'P-02', seed)!;
   got['Hero P-02 RFQ draft'] = `${draft.lines.length} lines, ${/"rate"/.test(JSON.stringify(draft)) ? 'a rate field' : 'no rate field'}`;
 
   // 10.3 Levelling
   const trace = S2.toLevel(key, seed).quotes;
   for (const l of trace) got[`Levelling: ${l.supplierName}`] = l.adjustments.map((a) => `${a.kind}${a.estimated ? ' (est.)' : ''}`).join(', ');
+  // Plan 020 D2: rejecting the agent's adjustment, or changing its amount, needs a note.
+  const est = trace.flatMap((l) => l.adjustments.filter((a) => a.state === 'proposed' && a.estimated && a.delta).map((a) => ({ l, a })))[0];
+  if (est) {
+    const { l, a } = est;
+    const other = a.delta!.amount - 1000;
+    got['Levelling: reject without a note'] = S2.isWriteError(S2.levelWrite(l.quoteId, a.key, 'rejected', `${key}.proc`, undefined, '  ', a)) ? 'refused' : 'recorded';
+    got['Levelling: change an amount without a note'] = S2.isWriteError(S2.levelWrite(l.quoteId, a.key, 'confirmed', `${key}.proc`, other, undefined, a)) ? 'refused' : 'recorded';
+    const d2: S2.Done = {};
+    const w = S2.levelWrite(l.quoteId, a.key, 'confirmed', `${key}.proc`, other, SIMULATION.levelNote, a);
+    if (!S2.isWriteError(w)) d2[w.key] = w.value;
+    const after = S2.levelledFor(key, l.tenderId, d2).find((x) => x.quoteId === l.quoteId)?.adjustments.find((x) => x.key === a.key);
+    got['Levelling: change an amount with a note'] = S2.isWriteError(w) ? 'refused'
+      : after?.delta?.amount === other && after.proposedDelta?.amount === a.delta!.amount && after.note === SIMULATION.levelNote ? 'recorded, agent figure kept' : 'not applied';
+  }
 
   // 10.4 Flows, Najd only: one in-memory `done`, each flow on top of the last.
   const flows: Record<string, string> = {};
@@ -217,7 +265,8 @@ function compute(key: GccTenantKey) {
       flows['Flow 3: hero pursued at 10:00'] = c0 ? `due ${c0.dueText} · ${c0.sent} of ${c0.total}` : 'no clock';
       for (const { pkg } of S2.packagesFor(key, HERO_ID, d)) {
         const rec = S2.recommendedShortlist(key, HERO_ID, pkg.id, d);
-        apply(d, S2.shortlistWrite(key, HERO_ID, pkg.id, rec.items.map((i) => i.supplierId), [], 'najd.proc', d));
+        // A blocked supplier can never be shortlisted; leaving it out needs no reason.
+        apply(d, S2.shortlistWrite(key, HERO_ID, pkg.id, rec.items.filter((i) => i.screening.state !== 'blocked').map((i) => i.supplierId), [], 'najd.proc', d));
         apply(d, S2.rfqWrite(key, HERO_ID, pkg.id, rec.items.filter((i) => i.sendable).map((i) => i.supplierId), 'najd.proc', d));
       }
       const c3 = S2.rfqClock(key, HERO_ID, d);
@@ -229,6 +278,10 @@ function compute(key: GccTenantKey) {
       const refused = S2.rfqWrite(key, HERO_ID, 'P-09', ['tarvessa'], 'najd.proc', d);
       flows['Flow 4: send to a blocked supplier'] = S2.isWriteError(refused) ? 'refused' : 'sent';
       info.push(['Flow 4 message', S2.isWriteError(refused) ? refused.error : '—']);
+      const p09Ids = S2.approvedShortlist(key, HERO_ID, 'P-09', d)?.supplierIds ?? [];
+      const listed = S2.shortlistWrite(key, HERO_ID, 'P-09', [...p09Ids, 'tarvessa'], [{ supplierId: 'tarvessa', action: 'add', reason: SIMULATION.overrideReason }], 'najd.proc', d);
+      flows['Flow 4: shortlist a blocked supplier'] = S2.isWriteError(listed) ? 'refused' : 'approved';
+      info.push(['Flow 4 shortlist message', S2.isWriteError(listed) ? listed.error : '—']);
 
       apply(d, S2.gapWrite(T104, 'P-06', SIMULATION.gapReason, 'najd.proc'));
       flows['Flow 5: accept a gap on T-104 P-06'] = `covered ${S2.packageCoverage(key, T104, d).covered}`;
@@ -239,6 +292,17 @@ function compute(key: GccTenantKey) {
       info.push(['Flow 6 audit', mix.audit.detail ?? '']);
       const opts = S2.mixOptions(key, T104, d).options;
       info.push(['T-104 mix options (SRC-10 ICV)', opts.map((o) => `${o.label} ${money(o.total.amount, o.total.ccy)}, ICV ${o.icvShare}%`).join(' · ')]);
+
+      // Plan 020 D4: a DG1 re-open (007a) takes the tender out of Stage 2.
+      const r7: S2.Done = {};
+      for (const w of dg1Reopen(key, T104, SIMULATION.reopenReason, 'najd.hot', r7, SIMULATION.pursueAt).writes) r7[w.key] = w.value;
+      const live7 = S2.liveS2Tenders(key, r7).some((t) => t.tenderId === T104);
+      flows['Flow 7: DG1 re-opened on T-104'] = [live7 ? 'live' : 'not live', S2.pursueOf(key, T104, r7) ? 'pursue stands' : 'no pursue', S2.kickoffFor(key, T104, r7) ? 'kick-off' : 'no kick-off'].join(' · ');
+
+      // Plan 020 D9: the kick-off's sourcing items belong to the Procurement owner the DG1 team names.
+      const r8: S2.Done = { [S2.K.dg1(HERO_ID)]: JSON.stringify({ tenderId: HERO_ID, decision: 'pursue', at: SIMULATION.pursueAt, byId: 'najd.bid', team: { proc: SIMULATION.teamProc } }) };
+      const owners = (S2.kickoffFor(key, HERO_ID, r8)?.items ?? []).filter((i) => !i.inputKey).map((i) => i.ownerId);
+      flows['Flow 8: pursue naming a Procurement owner'] = owners.length && owners.every((o) => o === SIMULATION.teamProc) ? 'kick-off owned by the named owner' : `owned by ${owners.join(', ') || 'nobody'}`;
     } catch (e) {
       flows['Flow error'] = e instanceof Error ? e.message : String(e);
     }
@@ -268,8 +332,18 @@ export default function Stage2Check() {
 
   const najd = key === 'najd';
   // The hero's packages are the same in every tenant; its shortlists depend on each tenant's master, so only Najd's are targeted.
-  const everyTenant = (name: string) => name.startsWith('Determinism') || (name.startsWith('Hero') && !name.startsWith('Hero shortlists'));
-  const checks: Check[] = Object.entries(r.got).map(([name, got]) => ({ name, got, expected: r.facts[name] ?? (najd || everyTenant(name) ? EXPECT[name] : undefined) }));
+  // The levelling-note rules hold wherever a quote has an estimated adjustment to decide.
+  const LEVEL_NOTES = ['Levelling: reject without a note', 'Levelling: change an amount without a note', 'Levelling: change an amount with a note'];
+  const everyTenant = (name: string) => name.startsWith('Determinism') || LEVEL_NOTES.includes(name)
+    || (name.startsWith('Hero') && !name.startsWith('Hero shortlists') && !name.startsWith('Hero P-09 approved'));
+  const expected = (name: string) => {
+    if (r.facts[name]) return r.facts[name];
+    if (name === 'Every extended RFQ states why') return 'yes';
+    const tid = name.match(/^(T-\d{4}-\d{3}) replies due$/)?.[1];
+    if (tid) return REPLIES_DUE[tid];
+    return najd || everyTenant(name) ? EXPECT[name] : undefined;
+  };
+  const checks: Check[] = Object.entries(r.got).map(([name, got]) => ({ name, got, expected: expected(name) }));
   if (!najd) {
     // Every seeded RFQ goes to a sendable supplier in the package's trade, and the master has at least one screening due.
     const live = S2.liveS2Tenders(key, {});

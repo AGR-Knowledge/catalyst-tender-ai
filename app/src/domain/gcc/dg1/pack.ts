@@ -8,7 +8,7 @@ import { recommendationFor, fitFor, type ComparableVM, type FitResult, type Reco
 import type { EligibilityLine, EligibilityResult } from '@/domain/gcc/s1/eligibility';
 import { keyDatesFor, prepRatio, type KeyDateRow, type PrepRatio } from '@/domain/gcc/s1/dates';
 import { bidBondFor, facilityHeadroom, type BidBond } from '@/domain/gcc/s1/bond';
-import { asCommitment, peakMonth, teamLoad, type PeakMonth } from '@/domain/gcc/s1/triage';
+import { asCommitment, peakMonth, teamLoad, toSubmissionLabel, type PeakMonth } from '@/domain/gcc/s1/triage';
 import { blockingOpen, validationsOf, type QueueItem } from '@/domain/gcc/s1/validation';
 import { queriesFor, type QueriesVM } from '@/domain/gcc/s1/queries';
 
@@ -50,7 +50,10 @@ export interface Dg1Pack {
   capacity: {
     teamId: string;
     teamName: string;
+    /** Today to submission: not the four weeks triage and CAP-1 read. */
     window: { from: string; to: string };
+    /** "Today to submission (8 Mar – 26 Apr)". */
+    windowLabel: string;
     nowPct: number;
     withPct: number;
     peak: PeakMonth;
@@ -62,8 +65,22 @@ export interface Dg1Pack {
   comparables: ComparableVM[];
   /** 8. */
   open: { validations: QueueItem[]; queries: QueriesVM };
-  locked: { reason: string; nudge: { key: string; toId: string; sent: boolean } } | null;
+  /** Set while a field that blocks DG1 is open. */
+  locked: {
+    reason: string;
+    /** Nudge the Coordinator; absent when the tenant has none. The lock stands either way. */
+    nudge?: { key: string; toId: string; sent: boolean };
+    /**
+     * The recommendation is a PQ-fail discard: no open field can change a PQ
+     * fail, so Discard stays open while Pursue is locked.
+     */
+    discardAllowed: boolean;
+  } | null;
 }
+
+/** "Recommend discard" because the company fails the PQ bidding alone and no partner clears it. */
+export const isPqFailDiscard = (pack: Pick<Dg1Pack, 'recommendation' | 'eligibility'>) =>
+  pack.recommendation.verdict === 'discard' && pack.eligibility?.result.verdict === 'not-eligible';
 
 export function dg1PackFor(tenant: string, tenderId: string, done: Done): Dg1Pack | null {
   const t = tenderOf(tenant, tenderId);
@@ -82,7 +99,7 @@ export function dg1PackFor(tenant: string, tenderId: string, done: Done): Dg1Pac
   const sub = keyDate(t, 'submission');
   const capacity = effort && team && sub && sub.date >= DEMO_TODAY
     ? {
-      teamId: team.id, teamName: team.name, window: { from: DEMO_TODAY, to: sub.date },
+      teamId: team.id, teamName: team.name, window: { from: DEMO_TODAY, to: sub.date }, windowLabel: toSubmissionLabel(DEMO_TODAY, sub.date),
       nowPct: Math.round(teamLoad(team, DEMO_TODAY, sub.date) * 100),
       withPct: Math.round(teamLoad(team, DEMO_TODAY, sub.date, [asCommitment(effort)]) * 100),
       peak: peakMonth(team, DEMO_TODAY, sub.date, [asCommitment(effort)]),
@@ -95,6 +112,8 @@ export function dg1PackFor(tenant: string, tenderId: string, done: Done): Dg1Pac
   const bond = bidBondFor(tenant, tenderId, done);
   const blocking = blockingOpen(tenant, tenderId, done);
   const nudgeKey = DONE_KEY.nudged(`val-${tenderId}`);
+
+  const pqFailDiscard = isPqFailDiscard({ recommendation, eligibility });
 
   return {
     tenant, tenderId, recommendation,
@@ -112,8 +131,12 @@ export function dg1PackFor(tenant: string, tenderId: string, done: Done): Dg1Pac
     bond: bond ? { bond, facilityText: facilityHeadroom(tenant).text } : null,
     comparables: fit.comparables,
     open: { validations: validationsOf(tenant, tenderId, done).filter((q) => q.state !== 'resolved'), queries: queriesFor(tenant, tenderId, done) },
-    locked: blocking.count && blocking.coordinatorId
-      ? { reason: blocking.text, nudge: { key: nudgeKey, toId: blocking.coordinatorId, sent: isFlagged(done, nudgeKey) } }
+    locked: blocking.count
+      ? {
+        reason: blocking.text,
+        ...(blocking.coordinatorId ? { nudge: { key: nudgeKey, toId: blocking.coordinatorId, sent: isFlagged(done, nudgeKey) } } : {}),
+        discardAllowed: pqFailDiscard,
+      }
       : null,
   };
 }

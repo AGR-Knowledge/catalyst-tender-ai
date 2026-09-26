@@ -53,7 +53,7 @@ export const reasonLabel = (code: string) => NO_BID_REASONS.find((r) => r.code =
 
 export const AGAINST_MAJORITY_TEXT = 'Approval differs from majority';
 export const STALE_ACK_LABEL = 'I have seen that the pack is stale';
-export const STALE_WARNING = 'Pack is stale: re-run and issue it first (or approve with a reason)';
+export const STALE_WARNING = `Pack is stale: re-run and issue it first, or tick "${STALE_ACK_LABEL}" to decide on it as it stands`;
 export const DECISION_LABEL: Record<Dg2Choice, string> = { bid: 'Bid', 'no-bid': 'No-Bid' };
 
 export const BID_EFFECTS = ['Decision recorded. Planning and Commercial have been asked to start baselines.', 'Stage moves to Planning'];
@@ -231,7 +231,7 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
     effects = [...NO_BID_EFFECTS];
     const letter = state.letterNeeded ? declineLetter(state.tenant, input.tenderId, byId) : null;
     if (letter) {
-      const w = letterWrite(input.tenderId, letter.text, false, letter.signatoryId);
+      const w = letterWrite(input.tenderId, state.round, letter.text, false, letter.signatoryId);
       writes.push({ key: w.key, value: w.value });
       audit.push({ ...w.audit, actorId: byId });
       effects = [LETTER_EFFECT, ...effects];

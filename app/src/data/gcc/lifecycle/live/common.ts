@@ -4,6 +4,7 @@ import { HERO_FILE, HERO_ID, HERO_REF } from '../../hero';
 import type { BidOutcome, Dg1Record, Dg2History, GccTender, Money, TenantSeed } from '../../types';
 import type { GccTenantKey } from '../../index';
 import { POOLS, acronymOf } from '../pools';
+import { hash32 } from '../rng';
 import { buildChain, type ChainSpec, type GateSpec } from '../chain';
 import type { Lifecycle, S1Facts, S8Facts } from '../types';
 
@@ -26,10 +27,30 @@ export function sourceOf(tenant: GccTenantKey, sourceId: string, ref: string, do
   return { sourceId, ref, ...(host && ref !== 'Restricted' ? { url: `https://${host}/tenders/${slug(ref)}` } : {}), ...(documentHref ? { documentHref } : {}) };
 }
 
-/** "NCWS/PRJ/2026/0109" for T-2026-109 from NCWS: the employer's reference style of the hero. */
-export const refFor = (issuer: string, id: string) => {
+/**
+ * The reference plan 004 wrote for a tender, if any: its intake event's, or
+ * an addendum's base reference ("WCWS/PRJ/2026/0009, Addendum 2" →
+ * "WCWS/PRJ/2026/0009").
+ */
+export function authoredRef(seed: TenantSeed, id: string): string | undefined {
+  const events = seed.intakeToday.filter((e) => e.tenderId === id);
+  const e = events.find((x) => x.docType !== 'Addendum') ?? events[0];
+  return e?.ref.replace(/,\s*Addendum \d+$/, '');
+}
+
+/**
+ * The employer's reference, in the hero's style ("NCWS/PRJ/2026/0378"): the
+ * one plan 004 wrote when there is one, else generated. A generated serial
+ * never repeats the TID's number: it is the number plus an offset seeded by
+ * the issuer and the year, so it is fixed and unique within that issuer's year.
+ */
+export const refFor = (issuer: string, id: string, seed?: TenantSeed) => {
+  const authored = seed && authoredRef(seed, id);
+  if (authored) return authored;
   const [, year, n] = id.split('-');
-  return `${acronymOf(issuer)}/PRJ/${year}/${n.padStart(4, '0')}`;
+  const acronym = acronymOf(issuer);
+  const serial = Number(n) + 17 + (hash32(`ref:${acronym}:${year}`) % 283);
+  return `${acronym}/PRJ/${year}/${String(serial).padStart(4, '0')}`;
 };
 
 /** The team that carries a tender: its commitment if it has one, else the team of its sector. */
@@ -54,8 +75,7 @@ export function facilityAfter(seed: TenantSeed, value: number, pct: number): Mon
 /** The base of a chain spec for one of plan 004's register rows. */
 export function fromRegister(tenant: GccTenantKey, seed: TenantSeed, t: GccTender): Pick<ChainSpec,
   'tenant' | 'cc' | 'id' | 'title' | 'shortTitle' | 'issuer' | 'city' | 'country' | 'sector' | 'value' | 'teamId' | 'bidManagerId' | 'source' | 'restricted' | 'origin' | 'captured' | 'submissionDeadline'> {
-  const event = seed.intakeToday.find((e) => e.tenderId === t.id && e.docType !== 'Addendum');
-  const ref = t.id === HERO_ID ? HERO_REF : event?.ref ?? refFor(t.issuer, t.id);
+  const ref = t.id === HERO_ID ? HERO_REF : refFor(t.issuer, t.id, seed);
   const doc = t.id === HERO_ID ? HERO_FILE : t.docKey ? GCC_DOC_FILES[t.docKey] : undefined;
   const deadline = t.keyDates.find((k) => k.kind === 'submission');
   return {
@@ -100,9 +120,14 @@ export const dg2Gate = (r: Dg2History, byId: string): GateSpec => ({
   at: r.at, decision: r.decision, byId, onTime: r.withinSla, ...(r.againstMajority ? { againstMajority: true } : {}), ...(r.reopened ? { reopened: r.reopened } : {}),
 });
 
-/** Stage 1 facts: the interim eligibility summary (007a derives it from the vault later). */
+/** Stage 1 facts with the interim eligibility counts: only for a tender without extracted requirements. */
 export const s1 = (pass: number, atRisk: number, failCount: number, language: S1Facts['language'], extra: Partial<S1Facts> = {}): S1Facts => ({
-  stage: 1, eligibility: { pass, atRisk, fail: failCount }, documents: 'downloaded', language, ...extra,
+  stage: 1, eligibility: { pass, atRisk, interpretation: 0, fail: failCount }, documents: 'downloaded', language, ...extra,
+});
+
+/** Stage 1 facts for a tender with extracted requirements: its eligibility is 007a's `eligibilityFor`, never a copy (plan 020 B12). */
+export const s1Derived = (language: S1Facts['language'], extra: Partial<S1Facts> = {}): S1Facts => ({
+  stage: 1, documents: 'downloaded', language, ...extra,
 });
 
 /** Stage 1 steps between capture and M1 (logged), for rows logged this morning. */
@@ -140,7 +165,7 @@ export function liveKit(tenant: GccTenantKey, seed: TenantSeed, portal: string) 
     buildChain({
       tenant, cc: ccOf(tenant), id, title, shortTitle, issuer, city, country, sector,
       value: { amount: money(valueM).amount, ccy, basis: 'estimate' }, teamId: teamFor(seed, id, sector), bidManagerId: bidManager,
-      source: sourceOf(tenant, sourceId, refFor(issuer, id)), origin: 'live', ...spec,
+      source: sourceOf(tenant, sourceId, refFor(issuer, id, seed)), origin: 'live', ...spec,
     } as ChainSpec);
 
   const pursue = (at: string): GateSpec => ({ at, decision: 'pursue', byId: bidManager, onTime: true, recommendation: 'pursue' });

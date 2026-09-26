@@ -51,25 +51,39 @@ export interface Dg2Decision {
 /** `dg2-reopen-req:{TID}`. */
 export interface ReopenRequestValue { reason: string; trigger: ReopenTrigger; round: number; at: string; byId: string }
 
-/** `dg2-reopen:{TID}`: the Head of Tendering's approval, holding every decision re-opened so far. */
+/** One approved re-open: the decision it took out of force, with the reason and trigger given for it. */
+export interface ReopenEntry {
+  decision: Dg2Decision;
+  reason: string;
+  trigger: ReopenTrigger;
+  requestedById: string;
+  requestedAt: string;
+  at: string;
+  byId: string;
+}
+
+/** `dg2-reopen:{TID}`: the Head of Tendering's latest approval, holding every re-open so far, oldest first. */
 export interface ReopenValue {
   approved: true;
   round: number;
   reason: string;
   trigger: ReopenTrigger;
   requestedById: string;
-  previous: Dg2Decision[];
+  previous: ReopenEntry[];
   at: string;
   byId: string;
 }
 
-/** `dg2-letter:{TID}`. */
-export interface LetterValue { text: string; sent: boolean; at: string; byId: string }
+/** `dg2-letter:{TID}:R{round}`: the decline letter of the No-Bid in that round. */
+export interface LetterValue { text: string; sent: boolean; round: number; at: string; byId: string }
 
-/** `cond:{conditionId}`. */
+/** `cond:{conditionId}`, where the id is `{TID}-R{round}-C{n}`. */
 export interface ConditionValue { state: 'closed'; note?: string; at: string; byId: string }
 
 export const posKey = (tenderId: string, seat: Seat) => `dg2-pos:${tenderId}:${seat}`;
+export const letterKey = (tenderId: string, round: number) => `dg2-letter:${tenderId}:R${round}`;
+/** Round-scoped, so a closed condition of one round doesn't close the same number in the next. */
+export const conditionId = (tenderId: string, round: number, n: number) => `${tenderId}-R${round}-C${n}`;
 
 /** The decision round in force: 1, plus one per approved re-open. */
 export function roundOf(done: Done, tenderId: string): number {

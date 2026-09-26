@@ -103,7 +103,7 @@ const REGISTER: GccTender[] = [
       [4, 'New client in a new country', 'Client history'],
       [7, 'Standard government terms', 'Extraction'],
       [9, 'Roads team has room', 'Capacity: Roads tendering team'],
-      [5, 'The initial guarantee would take a large share of headroom', 'Bank guarantee facility'],
+      [5, 'The initial guarantee fits, at under a tenth of headroom; the guarantees due on award would take most of the rest', 'Bank guarantee facility'],
       [5, 'KSA is on the watch list, not the plan', 'Strategy: 2026 plan'],
     ]),
   }),
@@ -137,7 +137,7 @@ const REGISTER: GccTender[] = [
     country: 'Oman', city: 'Sohar', sector: 'Roads', sourceId: 'tender-board', sourceDetail: 'Tender Board e-tendering', procurement: 'open',
     value: { amount: 32_000_000, ccy: 'OMR', basis: 'estimate', band: [28_000_000, 36_000_000] },
     stage: 'S1', stageNote: 'Validated; waiting for DG1', bidManagerId: 'batinah.bid', invited: [],
-    keyDates: [{ kind: 'published', date: '2026-03-08' }, { kind: 'questions', date: '2026-03-22' }, { kind: 'submission', date: '2026-04-26', time: '12:00' }],
+    keyDates: [{ kind: 'published', date: '2026-03-08' }, { kind: 'questions', date: '2026-03-24' }, { kind: 'submission', date: '2026-04-26', time: '12:00' }],
     fit: fit([
       [10, 'Dual carriageway: the core business', 'Capability profile'],
       [8, 'Inside the value band', 'Platform estimate'],
@@ -234,8 +234,8 @@ export const BATINAH: TenantSeed = {
     limit: OMR(30_000_000),
     utilised: OMR(17_500_000),
     committed: [
-      { label: 'Bid bond: Nizwa bypass link (submitted)', kind: 'bid bond', amount: OMR(650_000) },
-      { label: 'Bid bond: Saham coastal road (submitted)', kind: 'bid bond', amount: OMR(550_000) },
+      { label: 'Bid bond: Nizwa bypass link (submitted)', tenderId: 'T-2025-407', kind: 'bid bond', amount: OMR(650_000) },
+      { label: 'Bid bond: Saham coastal road (submitted)', tenderId: 'T-2025-415', kind: 'bid bond', amount: OMR(550_000) },
     ],
     asOf: '2026-03-04',
     confirmedById: 'batinah.fin',

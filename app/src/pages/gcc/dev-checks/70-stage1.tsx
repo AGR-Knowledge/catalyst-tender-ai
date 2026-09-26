@@ -9,7 +9,7 @@ import {
   asCommitment, peakMonth, type Commitment, type Done, type EligibilityResult, type JvScenario,
 } from '@/domain/gcc/s1';
 import {
-  DISCARD_REASONS, dg1PackFor, dg1Queue, dg1RecordFor, dg1Reopen, dg1Write, reasonLabel, stageOverlay, validateDg1, type Dg1Decision,
+  DISCARD_REASONS, dg1PackFor, dg1Queue, dg1RecordFor, dg1Reopen, dg1Write, reasonLabel, rollupReason, stageOverlay, validateDg1, type Dg1Decision,
 } from '@/domain/gcc/dg1';
 import { shortWhen } from '@/domain/gcc/s1/common';
 import { CardHead, KV } from '@/components/ui/primitives';
@@ -42,8 +42,8 @@ const GROUPS: [string, string[]][] = [
 // Targets. The only place values are typed.
 
 const EXPECT: Record<string, string> = {
-  // 10.1 Five answers. §4.7 differences (reported): Corniche PQ-11 is a plain fail (AED 1.10 bn is SAR 1.12 bn),
-  // and Qurain PQ-11 is an interpretation line (its FY2025 audit is due 26 Apr, before opening).
+  // 10.1 Five answers. Turnover (plan 020 B10, C10): Corniche's and Qurain Meridian Arabia's FY2025 audits fall after
+  // opening, so each PQ-11 has one reading: Corniche fails at SAR 1.12 bn (AED 1.10 bn); Qurain passes at SAR 1.35 bn.
   'najd · PQ-01, 04, 06, 07, 08 KSA registrations': 'pass', 'najd · PQ-02 Zakat': 'at-risk', 'najd · PQ-03 GOSI': 'at-risk',
   'najd · PQ-05 Classification': 'pass', 'najd · PQ-09 STP experience': 'pass', 'najd · PQ-10 O&M': 'pass', 'najd · PQ-11 Turnover': 'interpretation',
   'najd · PQ-12 to PQ-15': 'pass',
@@ -58,7 +58,7 @@ const EXPECT: Record<string, string> = {
   'batinah · PQ-01, 04, 06, 07, 08 KSA registrations': 'fail', 'batinah · PQ-02 Zakat': 'fail', 'batinah · PQ-03 GOSI': 'fail',
   'batinah · PQ-05 Classification': 'fail', 'batinah · PQ-09 STP experience': 'fail', 'batinah · PQ-10 O&M': 'fail', 'batinah · PQ-11 Turnover': 'fail',
   'qurain · PQ-01, 04, 06, 07, 08 KSA registrations': 'pass', 'qurain · PQ-02 Zakat': 'pass', 'qurain · PQ-03 GOSI': 'pass',
-  'qurain · PQ-05 Classification': 'pass', 'qurain · PQ-09 STP experience': 'pass', 'qurain · PQ-10 O&M': 'pass', 'qurain · PQ-11 Turnover': 'interpretation',
+  'qurain · PQ-05 Classification': 'pass', 'qurain · PQ-09 STP experience': 'pass', 'qurain · PQ-10 O&M': 'pass', 'qurain · PQ-11 Turnover': 'pass',
   'qurain · PQ-12 to PQ-15': 'pass',
   'najd · roll-up': '13 met · 2 at risk · 1 interpretation · 0 fail → eligible; renew two certificates before 10 May',
   'dafna · roll-up': 'fails 4 lines alone → eligible only with a JV partner (Tihama Hydro Works Co.)',
@@ -67,9 +67,12 @@ const EXPECT: Record<string, string> = {
   'batinah · verdict': 'Recommend discard', 'qurain · verdict': 'Pursue with conditions',
   'najd · capped': 'none', 'corniche · capped': 'pq-fail', 'dafna · capped': 'pq-fail-jv', 'batinah · capped': 'none', 'qurain · capped': 'capacity',
   'corniche · what would change it, first': 'Join a Grade 1 bidder as MEP subcontractor (inside the 30% subcontracting cap)',
-  'qurain · what would change it: capacity': 'Water tendering team peaks at 139% in April: release a bid or add estimators',
+  'corniche · PQ-11 why': 'Average turnover FY2022–FY2024 (audited): SAR 1.12 bn (AED 1.10 bn), below the SAR 1.2 bn threshold',
+  'qurain · PQ-11 why': 'Qurain Meridian Arabia Co.: Average turnover FY2022–FY2024 (audited): SAR 1.35 bn, meets the SAR 1.2 bn threshold',
+  'qurain · what would change it: turnover': 'none',
+  'qurain · what would change it: capacity':'Water tendering team peaks at 139% in April: release a bid or add estimators',
   'qurain · what would change it: facility':
-    'Finance to confirm the facility; headroom KWD 3.1 M against the KWD 785,920 bid bond, then a KWD 1.96 M performance bond and a KWD 3.93 M advance payment guarantee if won',
+    'Finance to confirm the facility; headroom KWD 3.10 M against the KWD 0.79 M bid bond, then a KWD 1.96 M performance bond and a KWD 3.93 M advance payment guarantee if won and the 10% advance is taken',
   'hero · lines not assessed automatically': '0 in every tenant',
   'hero · preparation ratio': 'green in every tenant',
   'hero · upload recognised': 'T-2026-118 in every tenant',
@@ -113,6 +116,29 @@ const EXPECT: Record<string, string> = {
   'Flow 6: Hold, request to qurain.fin': 'in queue · held',
   'Flow 7: re-open after Discard': 'in queue · previous 1 · S1',
   'Determinism: same JSON twice': 'yes',
+
+  // Plan 020, lane C (review fixes)
+  'C1: Corniche PQ-15 (UAE certificate, KSA tender)':
+    'fail · In-Country Value (ICV) certificate (UAE) does not count in KSA; a Saudi local content baseline certificate is required. A target LC% commitment must be stated in the bid (§51-4)',
+  'C2: radar, login needed': '5 of 9 · portal, client-portal',
+  'C2: radar, assisted-login text': '3 · client-portal',
+  'C3: hero pack locked while 2 fields are open': 'locked in every tenant',
+  'C4: Dafna Pursue as prime, no note':
+    'Record the JV with Tihama Hydro Works Co. as the submission strategy, or add a note on why the company bids alone (it fails 4 PQ lines on its own).',
+  'C4: Dafna Pursue as prime, with a note': 'valid',
+  'C4: Dafna Pursue with the JV scenario recorded': 'valid · Submission strategy: JV with Tihama Hydro Works Co. (60/40)',
+  'C4: JV with a partner not on the list': 'No partner "nobody" on the partner list.',
+  'C5: Discard open while locked': 'najd no · corniche yes · dafna no · batinah yes · qurain no',
+  'C5: Corniche Discard (PQ fail), fields open': 'valid · 2 fields open on record',
+  'C5: Corniche Pursue, fields open': "2 fields still being validated by Joanna D'Souza. DG1 can be recorded once they are resolved.",
+  'C5: Najd Discard, fields open': '2 fields still being validated by Aisha Al-Qahtani. DG1 can be recorded once they are resolved.',
+  'C6: rollupReason': 'pq-fail-classification → pq-fail · pq-fail-turnover → pq-fail · pq-fail → pq-fail · capacity → capacity',
+  'C7: eligibilityFor, unknown partner':
+    'error · No partner "nobody" on Dafna Keystone Civil W.L.L.\'s partner list: the JV scenario was not checked',
+  'C9: Stage 3 bid bonds': 'T-2026-097 2% · 120 days · T-2026-101 2% · 120 days · T-2026-029 2% · 90 days · T-2026-049 2% · 90 days',
+  'C9: hero bond validity': 'Valid 90 days from opening (to Sat 8 Aug) · stated',
+  'C11: DG1 pack capacity window': 'Today to submission (8 Mar – 10 May): 61% → 79%',
+  'C11: triage capacity window': 'Next 4 weeks (8 Mar – 4 Apr): 78% → 96% with the hero',
 };
 
 // ---------------------------------------------------------------------------
@@ -142,7 +168,9 @@ function fiveAnswers(): Check[] {
     out.push({ section: s, name: `${k} · verdict`, got: f.verdictLabel });
     out.push({ section: s, name: `${k} · capped`, got: f.capped ?? 'none' });
     out.push({ section: s, name: `${k} · what would change it, first`, got: f.wouldChange[0] ?? '—' });
+    if (k === 'corniche' || k === 'qurain') out.push({ section: s, name: `${k} · PQ-11 why`, got: r.lines.find((l) => l.reqId === 'PQ-11')!.why });
     if (k === 'qurain') {
+      out.push({ section: s, name: 'qurain · what would change it: turnover', got: f.wouldChange.filter((w) => w.includes('PQ-11') || /turnover/i.test(w)).join(' · ') || 'none' });
       out.push({ section: s, name: 'qurain · what would change it: capacity', got: f.wouldChange.find((w) => w.includes('peaks at')) ?? '—' });
       out.push({ section: s, name: 'qurain · what would change it: facility', got: f.wouldChange.find((w) => w.startsWith('Finance to confirm')) ?? '—' });
     }
@@ -263,6 +291,59 @@ function flows(): Check[] {
   return out;
 }
 
+/** Plan 020 lane C: the review fixes, each read through the rules' own functions. */
+function reviewFixes(): Check[] {
+  const s = 'Plan 020 fixes';
+  const out: Check[] = [];
+  const add = (name: string, got: string) => out.push({ section: s, name, got });
+  // C1
+  const lc = eligibilityFor('corniche', H, {})!.lines.find((l) => l.reqId === 'PQ-15')!;
+  add('C1: Corniche PQ-15 (UAE certificate, KSA tender)', `${lc.state} · ${lc.why}`);
+  // C2
+  const conn = radarFor('najd', false).connectors;
+  const login = conn.filter((c) => c.loginNeeded);
+  const assisted = conn.filter((c) => c.assistedText);
+  add('C2: radar, login needed', `${login.length} of ${conn.length} · ${[...new Set(login.map((c) => c.kind))].join(', ')}`);
+  add('C2: radar, assisted-login text', `${assisted.length} · ${[...new Set(assisted.map((c) => c.kind))].join(', ')}`);
+  // C3
+  const locks = TENANTS.map((k) => dg1PackFor(k, H, {})!.locked);
+  add('C3: hero pack locked while 2 fields are open', locks.every(Boolean) ? 'locked in every tenant' : TENANTS.map((k, i) => `${k} ${locks[i] ? 'locked' : 'open'}`).join(' · '));
+  // C4
+  const packD = dg1PackFor('dafna', H, resolveBoth('dafna', 'dafna.coord'))!;
+  const jv = { kind: 'jv' as const, partnerId: TIHAMA_JV.partnerId, shares: TIHAMA_JV.shares };
+  const verdict = (v: { ok: boolean; errors: string[] }) => (v.ok ? 'valid' : v.errors.join(' '));
+  add('C4: Dafna Pursue as prime, no note', verdict(validateDg1({ tenderId: H, decision: 'pursue' }, packD)));
+  add('C4: Dafna Pursue as prime, with a note', verdict(validateDg1({ tenderId: H, decision: 'pursue', note: 'Tihama declined; a named O&M subcontractor covers PQ-10' }, packD)));
+  const wJv = dg1Write({ tenderId: H, decision: 'pursue', strategy: jv }, 'dafna.bid', packD);
+  add('C4: Dafna Pursue with the JV scenario recorded',
+    `${verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: jv }, packD))} · ${wJv.effects.find((e) => e.startsWith('Submission strategy')) ?? '—'}`);
+  add('C4: JV with a partner not on the list', verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: { kind: 'jv', partnerId: 'nobody' } }, packD)));
+  // C5
+  add('C5: Discard open while locked', TENANTS.map((k) => `${k} ${dg1PackFor(k, H, {})!.locked?.discardAllowed ? 'yes' : 'no'}`).join(' · '));
+  const packC = dg1PackFor('corniche', H, {})!;
+  const discardC = { tenderId: H, decision: 'discard' as const, reasonCodes: ['pq-fail-classification'] };
+  const snapC = readDone<Dg1Decision>(put({}, dg1Write(discardC, 'corniche.bid', packC).writes), `dg1:${H}`)!.snapshot;
+  add('C5: Corniche Discard (PQ fail), fields open', `${verdict(validateDg1(discardC, packC))} · ${snapC.validationsOpen} fields open on record`);
+  add('C5: Corniche Pursue, fields open', verdict(validateDg1({ tenderId: H, decision: 'pursue', note: 'Override for the dev check' }, packC)));
+  add('C5: Najd Discard, fields open', verdict(validateDg1({ tenderId: H, decision: 'discard', reasonCodes: ['capacity'] }, dg1PackFor('najd', H, {})!)));
+  // C6, C7
+  add('C6: rollupReason', ['pq-fail-classification', 'pq-fail-turnover', 'pq-fail', 'capacity'].map((c) => `${c} → ${rollupReason(c)}`).join(' · '));
+  const bad = eligibilityFor('dafna', H, {}, { partnerId: 'nobody', lead: 'partner', shares: [60, 40] })!;
+  add('C7: eligibilityFor, unknown partner', bad.error ? `error · ${bad.error}` : `no error · ${bad.text}`);
+  // C9
+  const stage3: [GccTenantKey, string][] = [['najd', 'T-2026-097'], ['najd', 'T-2026-101'], ['corniche', 'T-2026-029'], ['qurain', 'T-2026-049']];
+  add('C9: Stage 3 bid bonds', stage3.map(([k, t]) => { const b = bidBondFor(k, t, {}); return `${t} ${b?.rate ?? '—'}% · ${b?.validityDays ?? '—'} days`; }).join(' · '));
+  const hb = bidBondFor('najd', H, {})!;
+  add('C9: hero bond validity', `${hb.validityText} · ${hb.validityBasis}`);
+  // C11
+  const cap = dg1PackFor('najd', H, {})!.capacity!;
+  add('C11: DG1 pack capacity window', `${cap.windowLabel}: ${cap.nowPct}% → ${cap.withPct}%`);
+  const tri = triageFor('najd', {});
+  add('C11: triage capacity window',
+    `${tri.windowLabel}: ${tri.teams.find((t) => t.id === 'najd-water')!.basePct}% → ${tri.rows.find((r) => r.tenderId === H)!.cumulative.teamLoadPct}% with the hero`);
+  return out;
+}
+
 /** The active tenant's own readings (info). */
 function tenantInfo(k: GccTenantKey): Check[] {
   const s = 'This tenant';
@@ -286,7 +367,7 @@ export default function Stage1Check() {
 
   // Targets are keyed by name; the active tenant's readings are info only.
   const checks = [
-    ...[...fiveAnswers(), ...(key === 'najd' ? [...najdSeed(), ...flows()] : [])].map((c) => ({ ...c, expected: EXPECT[c.name] })),
+    ...[...fiveAnswers(), ...(key === 'najd' ? [...najdSeed(), ...flows(), ...reviewFixes()] : [])].map((c) => ({ ...c, expected: EXPECT[c.name] })),
     ...tenantInfo(key).map((c) => ({ ...c, expected: undefined as string | undefined })),
   ];
   const targeted = checks.filter((c) => c.expected !== undefined);

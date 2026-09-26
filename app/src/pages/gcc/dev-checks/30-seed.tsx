@@ -98,6 +98,9 @@ function compute(key: GccTenantKey) {
   const affecting = new Set(d.register.filter((t) => LIVE.has(t.stage)).flatMap((t) => certificateCheck(d, t).flatMap((r) => (r.state === 'at-risk' && r.credential ? [shortName(r.credential)] : []))));
   const overrides = dg1.filter((r) => (r.decision === 'pursue' && r.recommendation === 'discard') || (r.decision === 'discard' && r.recommendation !== 'discard'));
   const windowTo = new Date(ms(DEMO_TODAY) + 27 * DAY).toISOString().slice(0, 10);
+  // The entity that bids for the hero: a KSA subsidiary when the group has one, else the company.
+  const bidder = d.company.entities?.find((e) => e.country === 'SA') ?? d.company;
+  const fy25Audit = bidder.financials.find((f) => f.fy === 2025)?.auditDate;
 
   return {
     d, hero,
@@ -128,6 +131,7 @@ function compute(key: GccTenantKey) {
     affecting: [...affecting].join(', ') || 'none',
     teams: d.teams.map((t) => ({ t, now: load(t, DEMO_TODAY, windowTo), april: load(t, '2026-04-01', '2026-04-30') })),
     windowTo,
+    fy25Audit,
   };
 }
 
@@ -140,10 +144,13 @@ const EXPECT: Record<GccTenantKey, Record<string, string>> = {
     'Eligibility risks (live tenders)': '3', 'Credentials at risk on live bids': 'Zakat, GOSI', 'Water team, next 4 weeks': '78%', 'Water team, with the hero': '96%',
     'BOQ total and lines': 'SAR 480.0 M, 236 lines',
   },
-  corniche: { 'Hero weighted fit': '63', 'Hit rate': '27% (6 of 22)', 'Buildings MEP tendering team, next 4 weeks': '64%' },
+  corniche: { 'Hero weighted fit': '63', 'Hit rate': '27% (6 of 22)', 'Buildings MEP tendering team, next 4 weeks': '64%', 'Bidder FY2025 audited after the hero opens': 'yes' },
   dafna: { 'Hero weighted fit': '71', 'Hit rate': '28% (5 of 18)', 'Utilities tendering team, next 4 weeks': '72%' },
   batinah: { 'Hero weighted fit': '38', 'Hit rate': '32% (8 of 25)' },
-  qurain: { 'Hero weighted fit': '78', 'Facility headroom': 'KWD 3.1 M', 'Hit rate': '27% (8 of 30)', 'Water tendering team, April': '118%', 'Credentials expiring before 10 May': 'none' },
+  qurain: {
+    'Hero weighted fit': '78', 'Facility headroom': 'KWD 3.1 M', 'Hit rate': '27% (8 of 30)', 'Water tendering team, April': '118%', 'Credentials expiring before 10 May': 'none',
+    'Bidder FY2025 audited after the hero opens': 'yes',
+  },
 };
 
 interface Check { name: string; expected?: string; got: string }
@@ -172,6 +179,8 @@ export default function SeedCheck() {
     'Documents to buy': String(r.docsToBuy),
     'Eligibility risks (live tenders)': String(r.risks),
     'Credentials at risk on live bids': r.affecting,
+    // Plan 020 B10: an audit after opening gives PQ-11 one reading (the three audited years).
+    'Bidder FY2025 audited after the hero opens': r.fy25Audit ? (r.fy25Audit > HERO_OPENING ? 'yes' : `no (${r.fy25Audit})`) : '—',
   };
   for (const { t, now, april } of r.teams) {
     got[`${t.name}, next 4 weeks`] = pct(now);

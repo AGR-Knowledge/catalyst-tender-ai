@@ -5,7 +5,7 @@ import {
 } from '@/data/gcc/s2';
 import { convert, money, rateNote } from '@/domain/money';
 import { dateText } from '@/domain/calendar';
-import { K, NOW, readDone, write, type Done, type LevValue, type S2Write } from './done';
+import { K, NOW, readDone, write, type Done, type LevValue, type S2WriteResult } from './done';
 import { bidCcy, dateOf, liveS2Tenders, requiredValidityDays, supplierName, supplierOf } from './context';
 import { packagesFor } from './packaging';
 import { quotesFor } from './rfq';
@@ -200,17 +200,23 @@ export function toLevel(tenant: string, done: Done): { count: number; quotes: Le
 
 /**
  * Confirm or reject an adjustment. A changed amount (bid currency) replaces an
- * estimated figure; the audit keeps the agent's figure.
+ * estimated figure; the audit keeps the agent's figure. Rejecting the agent's
+ * adjustment, or changing its amount, needs a note (CLAUDE.md rule 8).
  */
-export function levelWrite(quoteId: string, adjKey: AdjKey, state: 'confirmed' | 'rejected', byId: string, amount?: number, note?: string, adjustment?: Adjustment, at = NOW): S2Write<LevValue> {
-  const record: LevValue = { state, ...(amount !== undefined ? { amount } : {}), ...(note ? { note } : {}), at, byId };
+export function levelWrite(quoteId: string, adjKey: AdjKey, state: 'confirmed' | 'rejected', byId: string, amount?: number, note?: string, adjustment?: Adjustment, at = NOW): S2WriteResult<LevValue> {
+  const why = note?.trim();
+  const agentAmount = adjustment?.proposedDelta?.amount ?? adjustment?.delta?.amount;
+  const changedAmount = amount !== undefined && amount !== agentAmount;
+  if (state === 'rejected' && !why) return { error: 'Add a note saying why the agent’s adjustment is rejected.' };
+  if (changedAmount && !why) return { error: 'Add a note saying why the amount differs from the agent’s figure.' };
+  const record: LevValue = { state, ...(amount !== undefined ? { amount } : {}), ...(why ? { note: why } : {}), at, byId };
   const what = adjustment?.label ?? adjKey;
-  const changed = amount !== undefined && adjustment?.delta
+  const changed = amount !== undefined && changedAmount && adjustment?.delta
     ? ` Amount changed to ${full({ amount, ccy: adjustment.delta.ccy })}; the agent proposed ${full(adjustment.proposedDelta ?? adjustment.delta)}.`
     : '';
   return write(K.lev(quoteId, adjKey), record, {
     actorId: byId, action: state === 'confirmed' ? 'Levelling adjustment confirmed' : 'Levelling adjustment rejected', target: quoteId,
-    detail: `${what}.${changed}${note ? ` Note: ${note}` : ''}`,
+    detail: `${what}.${changed}${why ? ` Note: ${why}` : ''}`,
   });
 }
 

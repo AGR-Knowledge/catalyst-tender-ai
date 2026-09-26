@@ -24,7 +24,8 @@ export interface StageChartProps {
   lead?: ReactNode;
 }
 
-const PLOT_H = 440;
+/** The plot fills the box the table sets (dashboards.md §1 Z5), never under 440 px (`.sc-plot`). */
+const PLOT_H = '100%';
 
 /** Compact y-axis ticks: 1.2 bn, 260 M, 12 k. */
 function tick(v: number): string {

@@ -32,6 +32,7 @@ export interface RfqRow {
   openedAt?: string;
   acknowledgedAt?: string;
   extendedFrom?: string;
+  extensionReason?: string;
   declined?: { at: string; reason: string };
   quote?: QuoteInput;
   nudges?: number;
@@ -50,6 +51,7 @@ export function rfqs(tenderId: string, rows: RfqRow[], levelOf: (pkg: string) =>
     out.push({
       id, tenderId, packageId: row.pkg, supplierId: row.sup, sentAt: row.sentAt, replyBy: row.replyBy, nudges: row.nudges ?? 0,
       ...(row.extendedFrom ? { extendedFrom: row.extendedFrom } : {}),
+      ...(row.extensionReason ? { extensionReason: row.extensionReason } : {}),
       ...(row.openedAt ? { openedAt: row.openedAt } : {}),
       ...(row.acknowledgedAt ? { acknowledgedAt: row.acknowledgedAt } : {}),
       ...(row.declined ? { declined: row.declined } : {}),

@@ -122,7 +122,7 @@ const REGISTER: GccTender[] = [
       [9, 'Utility clients in KSA pay reliably', 'Client history'],
       [8, 'Standard Saudi government terms', 'Extraction'],
       [4, 'The water team is over capacity in April: two large Kuwait bids are due', 'Capacity: Water tendering team'],
-      [3, 'Headroom barely covers the bid bond; a performance bond would not fit', 'Bank guarantee facility, group level'],
+      [3, 'The bid bond fits, but the performance and advance payment guarantees together would exceed headroom if won and the 10% advance is taken', 'Bank guarantee facility, group level'],
       [10, 'KSA water is the group\'s growth priority', 'Strategy: 2026 plan'],
     ]),
   }),
@@ -264,7 +264,8 @@ export const QURAIN: TenantSeed = {
           { fy: 2022, turnover: SAR(1_280_000_000), audited: true },
           { fy: 2023, turnover: SAR(1_350_000_000), audited: true },
           { fy: 2024, turnover: SAR(1_420_000_000), audited: true, netWorth: SAR(460_000_000), currentRatio: 1.3 },
-          { fy: 2025, turnover: SAR(1_470_000_000), audited: false, auditDate: '2026-04-26' },
+          // Audited after the hero opens on 10 May, so PQ-11 reads the FY2022–FY2024 accounts only.
+          { fy: 2025, turnover: SAR(1_470_000_000), audited: false, auditDate: '2026-05-24' },
         ],
       },
     ],
@@ -304,11 +305,14 @@ export const QURAIN: TenantSeed = {
     },
   ],
   facility: {
-    limit: KWD(28_000_000),
+    // The limit carries the two submitted bids' bid bonds, so headroom stays KWD 3.1 M (plan 020 B11).
+    limit: KWD(28_560_000),
     utilised: KWD(22_800_000),
     committed: [
       { label: 'Bid bond: Kuwait South wastewater conveyance tunnels', tenderId: 'T-2026-058', kind: 'bid bond', amount: KWD(1_150_000) },
       { label: 'Bid bond: Northern Kuwait water transmission mains', tenderId: 'T-2026-062', kind: 'bid bond', amount: KWD(950_000) },
+      { label: 'Bid bond: Mutlaa stormwater network (submitted 18 Feb)', tenderId: 'T-2025-418', kind: 'bid bond', amount: KWD(320_000) },
+      { label: 'Bid bond: Kabd sewage treatment rehabilitation (submitted 1 Mar)', tenderId: 'T-2025-431', kind: 'bid bond', amount: KWD(240_000) },
     ],
     asOf: '2026-03-05',
     confirmedById: 'qurain.fin',

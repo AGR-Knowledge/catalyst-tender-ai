@@ -156,9 +156,12 @@ export function fitFor(tenant: string, tenderId: string, done: Done): FitResult 
   if (capacity && capacity.share > 1) wouldChange.push(`${capacity.teamName} peaks at ${capacity.pct}% in ${capacity.month}: release a bid or add estimators`);
   const bond = bidBondFor(tenant, tenderId, done);
   if (bond?.facilityTight && bond.rate !== null) {
-    const onAward = [bond.performanceIfWon && `a ${money(bond.performanceIfWon.amount, bond.performanceIfWon.ccy, { dp: 2 })} performance bond`,
-      bond.advanceIfWon && `a ${money(bond.advanceIfWon.amount, bond.advanceIfWon.ccy, { dp: 2 })} advance payment guarantee`].filter(Boolean) as string[];
-    wouldChange.push(`Finance to confirm the facility; headroom ${money(bond.headroom.amount, bond.headroom.ccy)} against the ${money(bond.amount.amount, bond.amount.ccy)} bid bond, then ${listText(onAward)} if won`);
+    // One format for every amount in the sentence: millions to 2 dp ("KWD 0.79 M", never "KWD 785,920" beside "KWD 1.96 M").
+    const m = (x: Money) => money(x.amount, x.ccy, { millions: true, dp: 2 });
+    const onAward = [bond.performanceIfWon && `a ${m(bond.performanceIfWon)} performance bond`,
+      bond.advanceIfWon && `a ${m(bond.advanceIfWon)} advance payment guarantee`].filter(Boolean) as string[];
+    const when = bond.advanceIfWon ? `if won and the ${bond.advancePct}% advance is taken` : 'if won';
+    wouldChange.push(`Finance to confirm the facility; headroom ${m(bond.headroom)} against the ${m(bond.amount)} bid bond, then ${listText(onAward)} ${when}`);
   }
   if (blocking.count) wouldChange.push(`Resolve ${blocking.count} field${blocking.count === 1 ? '' : 's'} in the intake queue`);
   const renew = certRenewals(eligibility?.lines ?? []);

@@ -12,7 +12,8 @@ export const WIN_MODELS: WinModel[] = [
     tenant: 'najd', tenderId: 'T-2026-097',
     base: { pct: 33, label: 'Water hit rate, trailing 12 months (7 of 21)' },
     drivers: [
-      { key: 'client', label: 'Client history', points: 9, why: 'WCWS: 2 awards from 3 bids since 2022', source: 'Bid history' },
+      { key: 'client', label: 'Client history', points: 9, why: 'WCWS: 2 awards from 3 bids since 2022', source: 'Client history: award records',
+        cites: ['najd-wcws-2022', 'najd-wcws-2023', 'najd-wcws-2024'] },
       { key: 'value-band', label: 'Value band', points: 3, why: 'Inside the preferred band, where the hit rate is highest', source: 'Bid history; Fit model & rules' },
       { key: 'geography', label: 'Geography and presence', points: 2, why: 'Jeddah office serves Madinah', source: 'Company profile: offices' },
       { key: 'competitors', label: 'Competitor count', points: -4, why: '6 prequalified bidders', source: 'Prequalified bidders list (EV-04)' },
@@ -34,7 +35,7 @@ export const WIN_MODELS: WinModel[] = [
     base: { pct: 33, label: 'Water hit rate, trailing 12 months (7 of 21)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 3, why: 'SCWS: repeat client, though payments are sometimes late', source: 'Bid history; client history' },
-      { key: 'value-band', label: 'Value band', points: 4, why: 'Mid-band value, where the hit rate is highest', source: 'Bid history; Fit model & rules' },
+      { key: 'value-band', label: 'Value band', points: 4, why: 'Value near the band\'s lower edge', source: 'Bid history; Fit model & rules' },
       { key: 'geography', label: 'Geography and presence', points: -4, why: 'No office in the south-west', source: 'Company profile: offices' },
       { key: 'competitors', label: 'Competitor count', points: -3, why: 'Open tender: more bidders expected than on a prequalified list', source: 'Tender procedure (two-file, open)' },
       { key: 'capacity', label: 'Capacity load', points: -3, why: 'Shares process engineers with the Madinah WTP bid', source: 'Capacity: Water tendering team' },

@@ -6,7 +6,7 @@ import { dg1Queue, dg1RecordFor } from '@/domain/gcc/dg1/record';
 import type { Done } from './done';
 import { bidBondFor, facilityHeadroom } from './bond';
 import { fitScoresFor } from './eligibility';
-import { capitalise, countWord, dataOf, monthName, tenantCcy, weightedOf } from './common';
+import { capitalise, countWord, dataOf, dayMonth, monthName, tenantCcy, weightedOf } from './common';
 
 /**
  * Same-day triage and bid-team capacity (spec §6.9, plan 007a Phase 7). The
@@ -18,6 +18,15 @@ export type Commitment = Team['commitments'][number];
 
 /** The next four weeks, as CAP-1 reads them. */
 export const CAPACITY_WINDOW_DAYS = 28;
+
+/**
+ * Two capacity windows are in use, and a screen must say which it shows:
+ * triage and CAP-1 read the next four weeks; the DG1 pack reads today to the
+ * tender's submission. "Next 4 weeks (8 Mar – 4 Apr)".
+ */
+export const nextWeeksLabel = (from: string, to: string) => `Next ${CAPACITY_WINDOW_DAYS / 7} weeks (${dayMonth(from)} – ${dayMonth(to)})`;
+/** "Today to submission (8 Mar – 26 Apr)". */
+export const toSubmissionLabel = (from: string, to: string) => `Today to submission (${dayMonth(from)} – ${dayMonth(to)})`;
 
 const overlapDays = (from: string, to: string, a: string, b: string) => {
   const start = from > a ? from : a;
@@ -79,7 +88,10 @@ export interface TriageRow {
 export interface TriageTeam { id: string; name: string; basePct: number; allPct: number; rows: number; peak: PeakMonth }
 
 export interface TriageResult {
+  /** The next four weeks: every team percentage here is over this window. */
   window: { from: string; to: string };
+  /** "Next 4 weeks (8 Mar – 4 Apr)", so a screen never confuses it with the DG1 pack's window to submission. */
+  windowLabel: string;
   rows: TriageRow[];
   teams: TriageTeam[];
   facility: { headroom: Money; allBonds: Money; usePct: number };
@@ -145,5 +157,8 @@ export function triageFor(tenant: string, done: Done): TriageResult {
   const usePct = f.headroom.amount > 0 ? Math.round((bonds / f.headroom.amount) * 100) : 0;
   if (usePct > 100) flags.push(`${pursuingAll(rows.length)} would need bid bonds of ${usePct}% of the bank guarantee facility headroom.`);
 
-  return { window: { from, to }, rows, teams, facility: { headroom: f.headroom, allBonds: { amount: bonds, ccy }, usePct }, flags };
+  return {
+    window: { from, to }, windowLabel: nextWeeksLabel(from, to), rows, teams,
+    facility: { headroom: f.headroom, allBonds: { amount: bonds, ccy }, usePct }, flags,
+  };
 }

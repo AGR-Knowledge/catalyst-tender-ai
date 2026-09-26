@@ -1,7 +1,7 @@
 import { DAFNA } from '../../tenants/dafna';
 import { HERO_ID } from '../../hero';
 import type { Lifecycle } from '../types';
-import { dg1Gate, dg1Record, intakeSteps, liveKit, s1 } from './common';
+import { dg1Gate, dg1Record, intakeSteps, liveKit, s1, s1Derived } from './common';
 
 /**
  * Dafna (tenant C, Qatar: Fri–Sat weekend), hand-authored (plan 017 §2.2):
@@ -18,8 +18,8 @@ export const LIVE_DAFNA: Lifecycle[] = [
   K.story(HERO_ID, {
     now: { stage: 1, step: 'validating' },
     steps: intakeSteps('2026-03-08T07:20', '2026-03-08T08:10', '2026-03-08T08:26'),
-    // gcc-demo-data §4.7, alone: classification, STP, O&M and turnover fail; the JV with Tihama closes them.
-    facts: s1(12, 0, 4, 'EN', { dg1Due: '2026-03-09T08:26' }),
+    // Eligibility from 007a (gcc-demo-data §4.7): alone, classification, STP, O&M and turnover fail; the JV with Tihama closes them.
+    facts: s1Derived('EN', { dg1Due: '2026-03-09T08:26' }),
   }),
   K.story('T-2026-033', {
     m1: '2026-03-08T07:14', now: { stage: 1, step: 'awaiting-dg1' },
@@ -53,7 +53,7 @@ export const LIVE_DAFNA: Lifecycle[] = [
     steps: { '4:m2': '2026-02-24T09:00', '5:cost-build-up': '2026-03-01T09:00', '5:scenarios': '2026-03-03T09:00', '5:finance-check': '2026-03-05T14:00' },
     now: { stage: 5, step: 'finance-check' }, submissionDeadline: { date: '2026-03-17', time: '12:00' },
     events: [{ kind: 'm2', due: '2026-02-24', at: '2026-02-24T12:00' }, { kind: 'reprice', at: '2026-03-03T10:00', turnaroundH: 1, trigger: 'Pump supplier price change' }],
-    facts: { stage: 5, estPrice: K.money(75), baseMarginPct: 11, minMarginPct: 9, sourcedPct: 88, estimatedPct: 6, financeCheck: 'pending', priceDue: '2026-03-11', m2Due: '2026-02-24' },
+    facts: { stage: 5, estPrice: K.money(72.4), baseMarginPct: 11, minMarginPct: 9, sourcedPct: 88, estimatedPct: 6, financeCheck: 'pending', priceDue: '2026-03-11', m2Due: '2026-02-24' },
   }),
   K.row('T-2026-008', 'Mesaieed stormwater outfall', 'Mesaieed stormwater outfall', 'Southern Municipalities Drainage Office', 'Mesaieed', 'Civil works', 220, 'monaqasat', {
     captured: '2026-01-04T09:00', m1: '2026-01-04T14:00', dg1: K.pursue('2026-01-05T10:00'),

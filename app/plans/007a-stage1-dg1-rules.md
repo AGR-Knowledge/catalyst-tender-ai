@@ -130,6 +130,7 @@ Values are JSON strings unless noted. Read them with `readDone<T>(done, key)` fr
     - If the requirement note says "at least one with tertiary treatment" (PQ-09), require one `tertiary`.
     - **pass** when the count ≥ `threshold.count`, else **fail**.
     - The `why` lists the qualifying projects: "2 on record: Riyadh East STP (150,000 m³/day, tertiary, 2022), Buraydah STP (120,000 m³/day, 2019)".
+      - Note (2026-09-26): this example has the years swapped. The engine follows gcc-demo-data §2.2: Riyadh East 2019, Buraydah 2022.
     - A fail reads like spec §6.5 tenant C: "Two completed STPs ≥ 100,000 m³/day in 10 years: 1 on record (110,000 m³/day, 2020). JV partner needed."
   - [x] 2.2.5 **O&M** (`om`): a project with an `om` period of ≥ `threshold.years` on a plant ≥ `threshold.value`. Otherwise **fail**, with `find-partner`.
   - [x] 2.2.6 **Turnover** (`turnover`): the average of the last N audited financial years, converted to the requirement currency with `convert()`.
@@ -155,6 +156,7 @@ Values are JSON strings unless noted. Read them with `readDone<T>(done, key)` fr
 - [x] 2.3 **JV scenario** (`JvScenario { partnerId: string; lead: 'partner' | 'self'; shares: [number, number] }`). It re-runs every line with the partner's credentials, projects and financials added, applying the requirement's `jvRule`:
   - **Classification (Art. 9):** every member is classified in the field; at least one at the grade; the others at most one grade lower.
   - **Turnover:** the lead ≥ 60% of the threshold; members combined ≥ 100%. Dafna reads "Pass: lead Tihama Hydro Works Co. SAR 1.10 bn ≥ 60%; combined SAR 1.95 bn". Use the numbers the data gives and report them.
+    - Note (2026-09-26): the data gives SAR 1.94 bn; gcc-demo-data §4.7 now matches.
   - **Experience and O&M:** the members' projects together; the partner's count as the lead's when `lead: 'partner'`.
   - **Certificates:** each member must hold its own.
   - Each line's `why` says which member satisfies it: "Pass (partner): Tihama Hydro Works Co., 2 STPs ≥ 100,000 m³/day".
@@ -208,6 +210,7 @@ Values are JSON strings unless noted. Read them with `readDone<T>(done, key)` fr
   - **Check:**
     - Najd: SAR 9,600,000 at 2%;
     - Qurain: SAR 9,600,000 converted to KWD, against headroom KWD 3.1 M, with a performance bond of about KWD 1.97 M.
+      - Note (2026-09-26): about KWD 1.96 M. The facility line compares headroom with the performance guarantee plus the 10% advance-payment guarantee, "if won and the 10% advance is taken" (see Answers below).
 - [x] 4.2 `dates.ts`: `keyDatesFor(tenant, tenderId)` returns rows `{ kind; label; date; time?; tz; place?; page?; daysLeft; workingDaysLeft; past: boolean; flags: { key; text }[] }`.
   - Working days and flags use the **authority's country** calendar (`CountryCode` from the tender's `country`), not the tenant's. The hero is KSA for every tenant.
   - Flags come from `dayFlags()` plus two derived rules.
@@ -350,7 +353,7 @@ Values are JSON strings unless noted. Read them with `readDone<T>(done, key)` fr
     - Strategic;
     - Other.
 
-    Use code keys like 004's history (`out-of-scope`, `below-band`, `pq-fail`, `insufficient-time`, `capacity` …). Read 004's `DG1_HISTORY` so the keys match what the history already uses; list any mismatch in the report.
+    Use code keys like 004's history (`out-of-scope`, `below-value`, `pq-fail`, `insufficient-time`, `capacity` …). Read 004's `DG1_HISTORY` so the keys match what the history already uses; list any mismatch in the report.
   - [x] 9.3.3 `validateDg1(input, pack)` returns `{ ok; errors: string[] }`:
     - locked → error;
     - discard with no reason code → error;
@@ -520,6 +523,14 @@ None blocking. Three questions for review:
   - adjust the seed so the demo tells the §4.7 story.
 - **The facility rule (deviation 2).** Is performance + advance payment the intended comparison?
 - **Discard codes (deviation 3).** Keep `below-value`, or rename it across 004's history?
+
+**Answers (2026-09-26 review):**
+- **Turnover (§4.7 against the data):** the seed and the doc both change, so each tenant tells one clean story.
+  - Qurain: the seed moves the FY2025 audit date after opening, so PQ-11 reads a clean "Pass (SAR 1.35 bn)" (plan 020 B10.1).
+  - Corniche: one reading, "Fail (SAR 1.12 bn)" against SAR 1.2 bn (plan 020 B10.2).
+  - Dafna: gcc-demo-data §4.7 now says SAR 1.94 bn.
+- **Facility rule:** accepted. The check compares headroom with the performance guarantee plus the 10% advance-payment guarantee if won.
+- **Discard codes:** keep `below-value`. Phase 9.3.2 now names `below-value` (it said `below-band` in the first draft).
 
 ### Follow-ups noticed (not done)
 - 007b: plug `stageOverlay` into the data port. It also needs to replace 017's interim `s1` step facts with an agreement check (out of scope here).

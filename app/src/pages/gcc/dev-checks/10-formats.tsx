@@ -29,6 +29,7 @@ const CHECKS: Check[] = [
   { name: "money(49.22e6, 'OMR', { dp: 2 })", expected: 'OMR 49.22 M', got: money(49.22e6, 'OMR', { dp: 2 }) },
   { name: "money(12064000, 'SAR', { full: true })", expected: 'SAR 12,064,000', got: money(12064000, 'SAR', { full: true }) },
   { name: "money(−4.1e6, 'SAR')", expected: '−SAR 4.1 M', got: money(-4.1e6, 'SAR') },
+  { name: "money(785920, 'KWD', { millions: true, dp: 2 })", expected: 'KWD 0.79 M', got: money(785920, 'KWD', { millions: true, dp: 2 }) },
   { name: 'Calendar days, 8 Mar → 10 May', expected: '63', got: String(calendarDaysBetween(DEMO_TODAY, HERO_SUBMISSION)) },
   { name: 'Fri 13 Mar is a working day in SA', expected: 'false', got: String(isWorkingDay('2026-03-13', 'SA')) },
   { name: 'Fri 13 Mar is a working day in AE', expected: 'true', got: String(isWorkingDay('2026-03-13', 'AE')) },

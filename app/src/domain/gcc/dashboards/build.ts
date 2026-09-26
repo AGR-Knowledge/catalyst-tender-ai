@@ -1,11 +1,11 @@
 /// <reference types="vite/client" />
-import { can, holdersOf } from '@/data/access';
+import { can, holdersOf, type Capability } from '@/data/access';
 import { firstWithRole, type Person } from '@/data/people';
 import { GCC_STAGES, stageOf, stageShortLabel, stepLabel } from '@/data/gcc/stages';
 import type { PeriodWindow } from '../period';
 import { kpi } from '../kpi';
 import { flow as flowDef } from '../flows';
-import { actionSource } from '../actions';
+import { actionSource, type ActionSource } from '../actions';
 import { metric as metricDef } from '../metrics';
 import type { KpiCtx, KpiKind } from '../kpi/types';
 import type {
@@ -38,6 +38,13 @@ function safe<T>(what: string, fn: () => T, fallback: T): T {
   }
 }
 
+/**
+ * Whether the viewer gets a registry entry that names a capability. View as asks
+ * about the viewed person's own rights, so the presenter sees what they would;
+ * writing is refused where it happens (in-place action rows are disabled below).
+ */
+const holds = (ctx: KpiCtx, cap?: Capability) => !cap || can(ctx.viewer, cap).ok;
+
 /** The ⓘ "Period" line. */
 function periodText(kind: KpiKind, ctx: KpiCtx): string {
   return kind === 'flow' ? `${ctx.window.label} · ${ctx.window.rangeText}` : `Now · change since ${ctx.window.startText}`;
@@ -66,16 +73,18 @@ export function dashboardCtx(spec: DashboardSpec, base: CtxBase): KpiCtx {
 function buildTile(id: string, ctx: KpiCtx): TileVM {
   const def = kpi(id);
   if (!def) {
+    // The raw id ("PF-5") never reaches the screen: dev builds name it inside `notDefinedText`.
+    const text = notDefinedText(id);
     return {
-      id, label: id, display: notDefinedText(id), drill: null, missing: true,
-      info: { label: id, means: 'This KPI is not registered yet.', counted: 'Not counted yet.', period: '', source: 'None yet' },
+      id, label: text, display: text, drill: null, missing: true,
+      info: { label: text, means: 'This KPI is not registered yet.', counted: 'Not counted yet.', period: '', source: 'None yet' },
     };
   }
   const baseLabel = ctx.window.key === 'today' && def.labelToday ? def.labelToday : def.label;
   const info = (label: string, smallSample?: boolean): InfoVM => ({
     label, ...def.info, period: periodText(def.kind, ctx), ...(smallSample ? { smallSample } : {}),
   });
-  if (def.cap && !can(ctx.viewer, def.cap, { viewAs: ctx.viewAs }).ok) {
+  if (def.cap && !holds(ctx, def.cap)) {
     return { id, label: baseLabel, display: 'Masked for your role', masked: { by: holdersOf(def.cap) }, info: info(baseLabel), drill: null };
   }
   const r = safe(`KPI ${id}`, () => def.compute(ctx), { display: 'Not available', tone: 'muted' as const });
@@ -92,7 +101,8 @@ function buildTile(id: string, ctx: KpiCtx): TileVM {
 function buildFlow(id: string, ctx: KpiCtx): FlowZoneVM {
   const def = flowDef(id);
   if (!def) {
-    return { id, label: id, steps: [], missing: true, info: { label: id, means: 'This flow is not registered yet.', counted: 'Not counted yet.', period: '', source: 'None yet' } };
+    const text = notDefinedText(id);
+    return { id, label: text, steps: [], missing: true, info: { label: text, means: 'This flow is not registered yet.', counted: 'Not counted yet.', period: '', source: 'None yet' } };
   }
   const vm = safe(`Flow ${id}`, () => def.compute(ctx), { steps: [] });
   return { id, label: def.label, steps: vm.steps, info: { label: def.label, ...def.info, period: periodText('flow', ctx) } };
@@ -100,24 +110,34 @@ function buildFlow(id: string, ctx: KpiCtx): FlowZoneVM {
 
 /* --------------------------------------------------------------------- actions */
 
-function buildActions(spec: DashboardSpec, ctx: KpiCtx, title: string): ActionsZoneVM {
-  const missing: string[] = [];
+/**
+ * The rows the viewer gets from these sources, merged and ordered. Exported for
+ * the dev check. A source's `cap` is asked of the viewed person without View as
+ * (a write capability such as `dg1.decide` would otherwise hide every row);
+ * View as then keeps in-place rows visible but disabled.
+ */
+export function actionRows(sources: ActionSource[], ctx: KpiCtx): { rows: ActionVM[]; nextText?: string } {
   const rows = new Map<string, ActionVM>();
   let nextText: string | undefined;
-  for (const id of spec.actions) {
-    const src = actionSource(id);
-    if (!src) { missing.push(id); continue; }
-    if (src.cap && !can(ctx.viewer, src.cap, { viewAs: ctx.viewAs }).ok) continue;
-    for (const row of safe(`Action source ${id}`, () => src.rows(ctx), [])) {
+  for (const src of sources) {
+    if (!holds(ctx, src.cap)) continue;
+    for (const row of safe(`Action source ${src.id}`, () => src.rows(ctx), [])) {
       if (rows.has(row.id)) continue;
       // View as is read only: in-place actions stay visible but can't be done.
       const readOnly = ctx.viewAs && row.primary.kind === 'inplace' && !row.disabledReason;
       rows.set(row.id, readOnly ? { ...row, disabledReason: `Viewing as ${ctx.viewer.name}. Read only` } : row);
     }
-    nextText ??= safe(`Action source ${id} next`, () => src.next?.(ctx) ?? undefined, undefined);
+    nextText ??= safe(`Action source ${src.id} next`, () => src.next?.(ctx) ?? undefined, undefined);
   }
   const ordered = [...rows.values()].map((r, i) => ({ r, i })).sort((a, b) => a.r.urgency - b.r.urgency || a.i - b.i).map((x) => x.r);
-  return { title, rows: ordered, nextText, missing };
+  return { rows: ordered, nextText };
+}
+
+function buildActions(spec: DashboardSpec, ctx: KpiCtx, title: string): ActionsZoneVM {
+  const sources = spec.actions.map((id) => ({ id, src: actionSource(id) }));
+  const missing = sources.filter((s) => !s.src).map((s) => s.id);
+  const found = sources.flatMap((s) => (s.src ? [s.src] : []));
+  return { title, ...actionRows(found, ctx), missing };
 }
 
 /* ----------------------------------------------------------------------- graph */
@@ -137,7 +157,7 @@ export function buildGraph(spec: DashboardSpec, ctx: KpiCtx, metricId?: string):
     : [];
 
   const defs = spec.metrics.map((id) => ({ id, def: metricDef(id) }));
-  const offered = defs.filter((d) => d.def && (!d.def.cap || can(ctx.viewer, d.def.cap, { viewAs: ctx.viewAs }).ok));
+  const offered = defs.filter((d) => d.def && holds(ctx, d.def.cap));
   const metrics = offered.map((d) => ({ id: d.id, label: d.def!.label }));
   const chosen = offered.find((d) => d.id === metricId) ?? offered.find((d) => d.id === spec.defaultMetric) ?? offered[0];
   const axisWord = g.axis === 'stages' ? 'stage' : 'step';

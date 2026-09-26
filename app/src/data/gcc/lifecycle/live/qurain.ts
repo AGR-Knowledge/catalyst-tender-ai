@@ -1,7 +1,7 @@
 import { QURAIN } from '../../tenants/qurain';
 import { HERO_ID } from '../../hero';
 import type { Lifecycle } from '../types';
-import { dg1Gate, dg1Record, facilityAfter, intakeSteps, liveKit, registerRow, s1 } from './common';
+import { dg1Gate, dg1Record, facilityAfter, intakeSteps, liveKit, registerRow, s1, s1Derived } from './common';
 
 /**
  * Qurain (tenant E, Kuwait: Fri–Sat weekend), hand-authored (plan 017 §2.2).
@@ -22,8 +22,8 @@ export const LIVE_QURAIN: Lifecycle[] = [
   K.story(HERO_ID, {
     m1: '2026-03-08T07:55', now: { stage: 1, step: 'awaiting-dg1' },
     steps: intakeSteps('2026-03-08T07:18', '2026-03-08T07:40', '2026-03-08T07:55'),
-    // gcc-demo-data §4.7: every line passes through the KSA subsidiary.
-    facts: s1(16, 0, 0, 'EN', { dg1Due: '2026-03-09T07:55' }),
+    // Eligibility from 007a (gcc-demo-data §4.7): every line passes through the KSA subsidiary.
+    facts: s1Derived('EN', { dg1Due: '2026-03-09T07:55' }),
   }),
   K.story('T-2026-071', {
     now: { stage: 1, step: 'screened' },
@@ -91,7 +91,7 @@ export const LIVE_QURAIN: Lifecycle[] = [
     steps: { '4:m2': '2026-02-10T09:00', '5:cost-build-up': '2026-02-16T09:00' },
     now: { stage: 5, step: 'cost-build-up' }, submissionDeadline: { date: '2026-04-05', time: '13:00' },
     events: [{ kind: 'm2', due: '2026-02-10', at: '2026-02-11T10:00' }],
-    facts: { stage: 5, estPrice: K.money(9), baseMarginPct: 8.8, minMarginPct: 8, sourcedPct: 68, estimatedPct: 18, financeCheck: 'pending', priceDue: '2026-03-15', m2Due: '2026-02-10' },
+    facts: { stage: 5, estPrice: K.money(9.3), baseMarginPct: 8.8, minMarginPct: 8, sourcedPct: 68, estimatedPct: 18, financeCheck: 'pending', priceDue: '2026-03-15', m2Due: '2026-02-10' },
   }),
   K.row('T-2026-033', 'Subiya water transmission line', 'Subiya water transmission', GRID, 'Subiya', 'Water', 22, 'capt', {
     captured: '2026-01-06T09:00', m1: '2026-01-06T14:00', dg1: K.pursue('2026-01-07T10:00'),

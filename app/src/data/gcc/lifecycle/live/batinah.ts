@@ -1,7 +1,7 @@
 import { BATINAH } from '../../tenants/batinah';
 import { HERO_ID } from '../../hero';
 import type { Lifecycle } from '../types';
-import { dg1Gate, dg1Record, dg2Gate, dg2Record, intakeSteps, liveKit, s1 } from './common';
+import { dg1Gate, dg1Record, dg2Gate, dg2Record, intakeSteps, liveKit, s1, s1Derived } from './common';
 
 /**
  * Batinah (tenant D, Oman: Fri–Sat weekend), hand-authored (plan 017 §2.2).
@@ -20,8 +20,8 @@ export const LIVE_BATINAH: Lifecycle[] = [
   K.story(HERO_ID, {
     now: { stage: 1, step: 'screened' },
     steps: { ...intakeSteps('2026-03-08T09:05', '2026-03-08T09:06', '2026-03-08T09:19'), '1:screened': '2026-03-08T09:30' },
-    // gcc-demo-data §4.7: KSA registrations, certificates, classification, STP, O&M and turnover fail; PQ-12 to 15 not applicable.
-    facts: s1(5, 0, 11, 'EN'),
+    // Eligibility from 007a (gcc-demo-data §4.7): KSA registrations, certificates, classification, STP, O&M and turnover fail.
+    facts: s1Derived('EN'),
   }),
   K.story('T-2026-041', {
     now: { stage: 1, step: 'validating' },
@@ -39,7 +39,8 @@ export const LIVE_BATINAH: Lifecycle[] = [
     now: { stage: 2, step: 'rfqs-out' },
     facts: {
       stage: 2, packages: { total: 7, covered: 3 }, rfqs: { sent: 21, total: 21, overdue: 1, escalated: 0, answeredOnTime: 9, dueSoFar: 12 },
-      toLevel: 2, notCoveredPct: 4.5, repliesDue: '2026-03-05', clarifications: { open: 2, stale: 0 }, bestFitApproved: 0,
+      // Replies due: the next reply date still ahead, after extensions (dashboards.md §10.5, decided 2026-09-26).
+      toLevel: 2, notCoveredPct: 4.5, repliesDue: '2026-03-12', clarifications: { open: 2, stale: 0 }, bestFitApproved: 0,
     },
   }),
   K.row('T-2026-048', 'Sur–Ras Al Hadd road widening', 'Sur–Ras Al Hadd widening', PORTS, 'Sur', 'Roads', 18, 'tender-board', {
@@ -55,7 +56,7 @@ export const LIVE_BATINAH: Lifecycle[] = [
     steps: { '4:m2': '2026-02-12T09:00', '5:cost-build-up': '2026-02-16T09:00', '5:scenarios': '2026-03-03T10:00' },
     now: { stage: 5, step: 'scenarios' }, submissionDeadline: { date: '2026-03-29', time: '12:00' },
     events: [{ kind: 'm2', due: '2026-02-12', at: '2026-02-12T12:00' }, { kind: 'reprice', at: '2026-03-02T11:00', turnaroundH: 2, trigger: 'Steel price update' }],
-    facts: { stage: 5, estPrice: K.money(12), baseMarginPct: 9.8, minMarginPct: 8.5, sourcedPct: 84, estimatedPct: 9, financeCheck: 'pending', priceDue: '2026-03-12', m2Due: '2026-02-12' },
+    facts: { stage: 5, estPrice: K.money(11.7), baseMarginPct: 9.8, minMarginPct: 8.5, sourcedPct: 84, estimatedPct: 9, financeCheck: 'pending', priceDue: '2026-03-12', m2Due: '2026-02-12' },
   }),
   K.row('T-2025-404', dg1Record(BATINAH, 'T-2025-404').title!, 'Sohar ring road, s. 2', COAST, 'Sohar', 'Roads', 9, 'tender-board', {
     origin: 'history',

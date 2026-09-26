@@ -74,7 +74,12 @@ export type WorkEvent =
 
 export interface S1Facts {
   stage: 1;
-  eligibility: { pass: number; atRisk: number; fail: number };
+  /**
+   * Interim counts, only for tenders without extracted requirements. A tender
+   * with requirements takes its counts from 007a's `eligibilityFor`, through
+   * `domain/gcc/lifecycle.ts` (`eligibilityOf`), so the two never disagree.
+   */
+  eligibility?: { pass: number; atRisk: number; interpretation: number; fail: number };
   documents: 'downloaded' | { fee: Money; purchaseBy: string; requestedById?: string; requestedAt?: string };
   language: 'EN' | 'AR' | 'EN+AR';
   dg1Due?: string;

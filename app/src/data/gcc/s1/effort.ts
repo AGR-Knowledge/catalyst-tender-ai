@@ -21,12 +21,12 @@ export const EFFORT: EffortEstimate[] = [
   { tenant: 'najd', tenderId: 'T-2026-125', teamId: 'najd-networks', hoursPerWeek: 20, from: '2026-03-08', to: '2026-04-09', note: 'Metering programme and data services' },
   { tenant: 'najd', tenderId: 'T-2026-126', teamId: 'najd-water', hoursPerWeek: 12, from: '2026-03-08', to: '2026-03-31', note: 'Consultancy proposal' },
   { tenant: 'najd', tenderId: 'T-2026-127', teamId: 'najd-networks', hoursPerWeek: 30, from: '2026-03-08', to: '2026-04-15', note: 'Resurfacing and lighting BOQ' },
-  { tenant: 'najd', tenderId: 'T-2026-128', teamId: 'najd-water', hoursPerWeek: 15, from: '2026-03-08', to: '2026-03-26', note: 'Small works; hand-delivered bid' },
+  { tenant: 'najd', tenderId: 'T-2026-128', teamId: 'najd-water', hoursPerWeek: 15, from: '2026-03-08', to: '2026-03-29', note: 'Small works; hand-delivered bid' },
 
   // Corniche
   { tenant: 'corniche', tenderId: HERO_ID, teamId: 'corniche-mep', hoursPerWeek: 55, from: '2026-03-08', to: '2026-05-10', note: 'MEP scope only; process works would need a partner' },
   { tenant: 'corniche', tenderId: 'T-2026-061', teamId: 'corniche-mep', hoursPerWeek: 60, from: '2026-03-08', to: '2026-04-21', note: 'Hospital MEP with medical gases' },
-  { tenant: 'corniche', tenderId: 'T-2026-063', teamId: 'corniche-mep', hoursPerWeek: 25, from: '2026-03-08', to: '2026-03-22', note: 'Two-week fit-out bid' },
+  { tenant: 'corniche', tenderId: 'T-2026-063', teamId: 'corniche-mep', hoursPerWeek: 25, from: '2026-03-08', to: '2026-03-24', note: 'Fit-out bid, due just after Eid' },
 
   // Dafna
   { tenant: 'dafna', tenderId: HERO_ID, teamId: 'dafna-utilities', hoursPerWeek: 60, from: '2026-03-08', to: '2026-05-10', note: 'Share of a JV bid with the partner as lead' },

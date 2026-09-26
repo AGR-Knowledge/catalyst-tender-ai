@@ -239,7 +239,7 @@ function layout(ctx: Ctx, r: Rng, plan: Plan, band: Band, fillTo: string, frac: 
       ? { at: at(dg1Day), decision: 'hold', byId: decider, onTime: true, recommendation: 'conditions', reasonCodes: ['information-requested'], note: 'Held for information the tender does not give' }
       : { at: at(dg1Day), decision: 'pursue', byId: decider, onTime: true, recommendation: r.chance(0.75) ? 'pursue' : 'conditions' };
   const m1 = openedBefore(r, dg1.at, 24, true, cc);
-  const issuer = issuerFor(title, ctx.pool, r);
+  const issuer = issuerFor(title, ctx.pool, r, plan.kind === 'E' || plan.kind === 'EC');
   const d: Draft = {
     tenant, cc, id: null, title, shortTitle: title, issuer, clientType: clientTypeOf(issuer), city: cityFrom(city, ctx.pool, r), country: ctx.pool.country,
     sector, value: { amount, ccy: ctx.pool.ccy, basis: 'estimate' }, teamId: ctx.pool.sectors[sector]?.teamId ?? ctx.seed.teams[0].id,
@@ -434,7 +434,7 @@ function finalSpec(d: Draft, seed: TenantSeed): ChainSpec {
   const portal = seed.sources.find((s) => s.id === sourceId)?.name ?? sourceId;
   return {
     ...rest, id: d.id!,
-    source: sourceOf(d.tenant as GccTenantKey, sourceId, refFor(d.issuer, d.id!)),
+    source: sourceOf(d.tenant as GccTenantKey, sourceId, refFor(d.issuer, d.id!, seed)),
     ...(d.submission ? { submission: { ...d.submission, portal: d.submission.portal || portal } } : {}),
   };
 }

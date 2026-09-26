@@ -25,9 +25,11 @@ export function DashboardRoute({ dashboardKey }: { dashboardKey?: string }) {
   const person = state.person;
   const key = dashboardKey ?? homeDashboardKey(person);
   if (!key) {
-    const where = can(person, 'portal.rfq').ok ? 'The Supplier Portal arrives with plan 008.'
-      : can(person, 'platform.console').ok ? 'The Platform Console arrives with plan 011.' : 'This role has no dashboard.';
-    return <div className="view"><Card><EmptyState title="This role works in its own shell." body={where} /></Card></div>;
+    // The supplier and the Catalyst operator work in their own shells. Dev builds name the plan that builds each.
+    const [title, plan] = can(person, 'portal.rfq').ok ? ['The Supplier Portal isn’t part of this demo yet.', '008']
+      : can(person, 'platform.console').ok ? ['The Catalyst operator console isn’t part of this demo yet.', '011'] : ['This role has no dashboard.', null];
+    const devNote = import.meta.env.DEV && plan ? <span className="t-muted">Plan {plan}, in its own shell.</span> : undefined;
+    return <div className="view"><Card><EmptyState title={title} body={devNote} /></Card></div>;
   }
   const spec = dashboardSpec(key);
   if (!spec) {

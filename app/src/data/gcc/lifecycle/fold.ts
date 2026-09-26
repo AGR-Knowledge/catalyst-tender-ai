@@ -87,14 +87,19 @@ const ISSUER_HINTS: [RegExp, RegExp][] = [
   [/water|reservoir|desal|pipeline|transmission|effluent|network|main/i, /Water|Utilities|Grid/],
 ];
 
-/** A fictional issuer from the pool whose name fits the work. */
-export function issuerFor(title: string, pool: TenantPool, r: Rng): string {
+/**
+ * A fictional issuer from the pool whose name fits the work. A tender that
+ * reaches submission (`bid`) never goes to an issuer whose bid history is
+ * authored (`authoredClients`).
+ */
+export function issuerFor(title: string, pool: TenantPool, r: Rng, bid = false): string {
+  const issuers = bid && pool.authoredClients ? pool.issuers.filter((i) => !pool.authoredClients!.includes(i)) : pool.issuers;
   for (const [work, issuer] of ISSUER_HINTS) {
     if (!work.test(title)) continue;
-    const fits = pool.issuers.filter((i) => issuer.test(i));
+    const fits = issuers.filter((i) => issuer.test(i));
     if (fits.length) return r.pick(fits);
   }
-  return r.pick(pool.issuers);
+  return r.pick(issuers);
 }
 
 /** The kind of employer an invented issuer is: developers and hotel groups are private, utility and holding companies semi-government. */
@@ -174,10 +179,10 @@ export interface FoldInput {
   claimed: Set<string>;
 }
 
-const base = (fi: FoldInput, r: Rng, title: string, sector: string, amount: number, from: string): Omit<Draft, 'captured'> => {
+const base = (fi: FoldInput, r: Rng, title: string, sector: string, amount: number, from: string, bid = false): Omit<Draft, 'captured'> => {
   const pool = POOLS[fi.tenant];
   const sectorPool = pool.sectors[sector];
-  const issuer = issuerFor(title, pool, r);
+  const issuer = issuerFor(title, pool, r, bid);
   return {
     tenant: fi.tenant, cc: fi.cc, id: null, title, shortTitle: title, issuer, clientType: clientTypeOf(issuer), city: cityFrom(title, pool, r),
     country: pool.country, sector, value: { amount, ccy: pool.ccy, basis: 'estimate' },
@@ -207,7 +212,7 @@ function outcomeDraft(fi: FoldInput, o: BidOutcome, link: Dg2History | undefined
   const resultAt = `${o.decided}T${timeIn(r, 10, 13)}`;
   const events = [...workEvents(r, cc, dg2.at, dg3Issued), ...(o.result === 'withdrawn' ? [] : resultEvents(r, cc, resultAt, won))];
   return {
-    ...base(fi, r, o.title, o.sector, o.value.amount, `outcome ${o.id}${link ? ` + DG2 ${link.tenderId}` : ''}`),
+    ...base(fi, r, o.title, o.sector, o.value.amount, `outcome ${o.id}${link ? ` + DG2 ${link.tenderId}` : ''}`, true),
     id: link?.tenderId ?? null, clientType: o.clientType,
     captured: capturedBefore(r, m1, cc, idYear), m1, dg1, packIssued, dg2, dg3Issued, dg3,
     submission: { at: subAt, deadline, onTime: true, portal: '' },

@@ -1,7 +1,7 @@
 import { CORNICHE } from '../../tenants/corniche';
 import { HERO_ID } from '../../hero';
 import type { Lifecycle } from '../types';
-import { dg1Gate, dg1Record, dg2Gate, dg2Record, facilityAfter, intakeSteps, liveKit, registerRow, s1 } from './common';
+import { dg1Gate, dg1Record, dg2Gate, dg2Record, facilityAfter, intakeSteps, liveKit, registerRow, s1, s1Derived } from './common';
 
 /**
  * Corniche (tenant B, UAE: Sat–Sun weekend), hand-authored (plan 017 §2.2):
@@ -19,8 +19,8 @@ export const LIVE_CORNICHE: Lifecycle[] = [
   K.story(HERO_ID, {
     now: { stage: 1, step: 'validating' },
     steps: intakeSteps('2026-03-08T08:17', '2026-03-08T08:52', '2026-03-08T09:04'),
-    // gcc-demo-data §4.7: no Saudi registrations, classification, STP or O&M record; PQ-12 to 15 not applicable.
-    facts: s1(5, 0, 11, 'EN', { dg1Due: '2026-03-09T09:04' }),
+    // Eligibility from 007a (gcc-demo-data §4.7): no Saudi registrations, classification, STP or O&M record.
+    facts: s1Derived('EN', { dg1Due: '2026-03-09T09:04' }),
   }),
   K.story('T-2026-061', {
     m1: '2026-03-08T07:52', now: { stage: 1, step: 'awaiting-dg1' },
@@ -75,7 +75,7 @@ export const LIVE_CORNICHE: Lifecycle[] = [
     steps: { '4:m2': '2026-02-26T09:00', '5:cost-build-up': '2026-03-02T09:00' },
     now: { stage: 5, step: 'cost-build-up' }, submissionDeadline: { date: '2026-04-02', time: '14:00' },
     events: [{ kind: 'm2', due: '2026-02-26', at: '2026-02-26T12:00' }],
-    facts: { stage: 5, estPrice: K.money(210), baseMarginPct: 9.4, minMarginPct: 8, sourcedPct: 72, estimatedPct: 14, financeCheck: 'pending', priceDue: '2026-03-16', m2Due: '2026-02-26' },
+    facts: { stage: 5, estPrice: K.money(204.8), baseMarginPct: 9.4, minMarginPct: 8, sourcedPct: 72, estimatedPct: 14, financeCheck: 'pending', priceDue: '2026-03-16', m2Due: '2026-02-26' },
   }),
   K.row('T-2026-018', 'Sharjah hospital MEP package', 'Sharjah hospital MEP', HOSPITAL, 'Sharjah', 'Buildings MEP', 118, 'mail', {
     captured: '2026-01-14T09:30', m1: '2026-01-14T15:00', dg1: K.pursue('2026-01-15T10:00'),

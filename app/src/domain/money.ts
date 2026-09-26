@@ -19,6 +19,11 @@ export interface MoneyOpts {
   dp?: number;
   /** Every digit, e.g. SAR 12,064,000. */
   full?: boolean;
+  /**
+   * Always in millions, below 1 M and above 1,000 M too ("KWD 0.79 M"), so the
+   * amounts in one sentence share a format. Ignored for INR and with `full`.
+   */
+  millions?: boolean;
 }
 
 const group = (n: number, dp: number, locale = 'en-GB') =>
@@ -38,11 +43,11 @@ export function money(amount: number, ccy: Ccy, opts: MoneyOpts = {}): string {
   const sign = amount < 0 ? MINUS : '';
   const abs = Math.abs(amount);
   if (ccy === 'INR') return sign + inr(abs, opts);
-  if (opts.full || opts.compact === false || abs < 1e6) return `${sign}${ccy} ${group(abs, opts.dp ?? 0)}`;
+  if (opts.full || opts.compact === false || (abs < 1e6 && !opts.millions)) return `${sign}${ccy} ${group(abs, opts.dp ?? 0)}`;
 
   const mDp = opts.dp ?? 1;
   const m = round(abs / 1e6, mDp);
-  if (m < 1000) return `${sign}${ccy} ${group(m, mDp)} M`;
+  if (m < 1000 || opts.millions) return `${sign}${ccy} ${group(m, mDp)} M`;
   const bDp = opts.dp ?? 2;
   return `${sign}${ccy} ${group(round(abs / 1e9, bDp), bDp)} bn`;
 }
