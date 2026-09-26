@@ -6,7 +6,7 @@ import {
 import { convert, money, rateNote } from '@/domain/money';
 import { dateText } from '@/domain/calendar';
 import { K, NOW, readDone, write, type Done, type LevValue, type S2WriteResult } from './done';
-import { bidCcy, dateOf, liveS2Tenders, requiredValidityDays, supplierName, supplierOf } from './context';
+import { bidCcy, dateOf, liveS2Tenders, NOT_PURSUED, pursueOf, requiredValidityDays, supplierName, supplierOf } from './context';
 import { packagesFor } from './packaging';
 import { quotesFor } from './rfq';
 
@@ -201,9 +201,14 @@ export function toLevel(tenant: string, done: Done): { count: number; quotes: Le
 /**
  * Confirm or reject an adjustment. A changed amount (bid currency) replaces an
  * estimated figure; the audit keeps the agent's figure. Rejecting the agent's
- * adjustment, or changing its amount, needs a note (CLAUDE.md rule 8).
+ * adjustment, or changing its amount, needs a note (CLAUDE.md rule 8). Refused
+ * once the tender's DG1 pursue no longer stands.
  */
-export function levelWrite(quoteId: string, adjKey: AdjKey, state: 'confirmed' | 'rejected', byId: string, amount?: number, note?: string, adjustment?: Adjustment, at = NOW): S2WriteResult<LevValue> {
+export function levelWrite(
+  tenant: string, tenderId: string, quoteId: string, adjKey: AdjKey, state: 'confirmed' | 'rejected', byId: string, done: Done,
+  amount?: number, note?: string, adjustment?: Adjustment, at = NOW,
+): S2WriteResult<LevValue> {
+  if (!pursueOf(tenant, tenderId, done)) return { error: NOT_PURSUED };
   const why = note?.trim();
   const agentAmount = adjustment?.proposedDelta?.amount ?? adjustment?.delta?.amount;
   const changedAmount = amount !== undefined && amount !== agentAmount;

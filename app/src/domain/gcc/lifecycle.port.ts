@@ -10,8 +10,10 @@ import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import type { GateKind, GateRecord, Lifecycle, StageEntry } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
+import { validationsOf } from '@/domain/gcc/s1/validation';
 import {
-  currentOf, deadlineWd, eligibilityOf, healthOf, hoursText, lifecycle, lifecyclesOf, openGate, personName, staleOf, teamOf, tenderCtx, visible, type DemoDone,
+  currentOf, deadlineWd, demoDoneOf, eligibilityOf, healthOf, hoursText, lifecycle, lifecyclesOf, openGate, personName, staleOf, standingGate, teamOf, tenderCtx, visible,
+  type DemoDone,
 } from './lifecycle';
 import type { DataPort, GateKey, MoneyVM, RowScope, TenderRowVM, TrackerNodeVM, TrackerVM } from './viewmodels';
 
@@ -29,6 +31,9 @@ import type { DataPort, GateKey, MoneyVM, RowScope, TenderRowVM, TrackerNodeVM, 
  *   them as they are and a viewer with neither sees them masked.
  * Tenders the viewer may not open (`visible`: the restricted lane for people
  * not cleared) are left out.
+ *
+ * Rows and trackers read the lifecycles with the tenant's demo actions merged
+ * in (plan 021): every helper below takes the `done` they were merged with.
  */
 
 export { tenderCtx, visible, visibleOf, queriesFor, type DemoDone } from './lifecycle';
@@ -98,16 +103,17 @@ function fitOf(tenant: string, l: Lifecycle): number | null {
  * The current step's facts, flattened for columns (dashboards.md §10), plus
  * the result of a decided tender. Keys are listed in plan 017's report.
  */
-function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
+function factsOf(tenant: string, l: Lifecycle, viewer: Person, done: DemoDone): Facts {
   const out: Facts = {};
   const { margin, positions, quotes } = sightOf(tenant, l, viewer);
   const mask = (keys: string[]) => { for (const k of keys) { out[k] = null; out[`${k}.masked`] = true; } };
   const f = l.facts;
   if (f?.stage === 1) {
-    const t = registerOf(tenant, l.tenderId);
-    const e = eligibilityOf(tenant, l);
+    // Fields still open in 007a's queue, with the demo's `val:` actions (plan 021 2.5); at seed every field is open.
+    const open = validationsOf(tenant, l.tenderId, done as Record<string, string>).filter((q) => q.state !== 'resolved');
+    const e = eligibilityOf(tenant, l, done);
     Object.assign(out, {
-      fieldsToCheck: t?.validations.length ?? 0, fieldsBlocking: t?.validations.filter((v) => v.blocksDg1).length ?? 0,
+      fieldsToCheck: open.length, fieldsBlocking: open.filter((q) => q.item.blocksDg1).length,
       eligPass: e?.pass ?? null, eligAtRisk: e?.atRisk ?? null, eligInterpretation: e?.interpretation ?? null, eligFail: e?.fail ?? null,
       documents: f.documents === 'downloaded' ? 'downloaded' : 'to buy',
       documentFee: f.documents === 'downloaded' ? null : f.documents.fee.amount,
@@ -126,7 +132,7 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
     const g = openGate(l);
     const more = DG2_QUORUM - f.positions.recorded;
     Object.assign(out, {
-      pack: f.pack === 'preparation' ? 'in preparation' : staleOf(tenant, l) ? 'stale' : 'fresh', packIssuedAt: f.issuedAt ?? null,
+      pack: f.pack === 'preparation' ? 'in preparation' : staleOf(tenant, l, done) ? 'stale' : 'fresh', packIssuedAt: f.issuedAt ?? null,
       inputsRequested: f.inputs.requested, inputsOutstanding: f.inputs.outstanding, inputsLate: f.inputs.late,
       positionsRecorded: f.positions.recorded, positionsOf: f.positions.of, quorum: more <= 0 ? 'met' : `${more} more needed`,
       winP: f.win.p, winBand: f.win.band, marginMin: f.marginRange[0], marginMax: f.marginRange[1],
@@ -181,7 +187,7 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person): Facts {
   return out;
 }
 
-export function rowFor(l: Lifecycle, tenant: string, viewer: Person): TenderRowVM {
+export function rowFor(l: Lifecycle, tenant: string, viewer: Person, done: DemoDone = demoDoneOf(l)): TenderRowVM {
   const cur = currentOf(l);
   const ownerId = ownerOf(tenant, l);
   const owner = personById(ownerId);
@@ -195,7 +201,7 @@ export function rowFor(l: Lifecycle, tenant: string, viewer: Person): TenderRowV
     value: l.value.amount ? moneyVM(tenant, l.value.amount, l.value.ccy) : null, valueBasis: l.value.basis,
     submission: l.submissionDeadline ? { date: l.submissionDeadline.date, time: l.submissionDeadline.time } : null,
     nextGate: nextGateOf(l),
-    health: healthOf(l, tenant).health,
+    health: healthOf(l, tenant, NOW, done).health,
     source: {
       name: src?.name ?? l.source.sourceId, ref: l.source.ref, capturedAt: l.capturedAt,
       ...(l.source.url ? { url: l.source.url } : {}), ...(l.source.documentHref ? { documentHref: l.source.documentHref } : {}),
@@ -205,7 +211,7 @@ export function rowFor(l: Lifecycle, tenant: string, viewer: Person): TenderRowV
     fit: fitOf(tenant, l), win: f?.stage === 3 && sightOf(tenant, l, viewer).positions ? { p: f.win.p, band: f.win.band } : null,
     live: !l.closedAt, ...(l.closedAt ? { closedAt: l.closedAt } : {}),
     bidManagerId: l.bidManagerId,
-    facts: factsOf(tenant, l, viewer),
+    facts: factsOf(tenant, l, viewer, done),
   };
 }
 
@@ -277,14 +283,14 @@ function outcomeOf(l: Lifecycle): string | undefined {
 const maskedText = (what: string[]) => `${what.join(', ').replace(/, ([^,]*)$/, ' and $1').replace(/^./, (c) => c.toUpperCase())}: masked for your role`;
 
 /** "Eligibility 13 pass · 2 at risk · 1 interpretation · 0 fail": interpretation only when there is one. */
-function eligibilityText(tenant: string, l: Lifecycle): string | null {
-  const e = eligibilityOf(tenant, l);
+function eligibilityText(tenant: string, l: Lifecycle, done: DemoDone): string | null {
+  const e = eligibilityOf(tenant, l, done);
   if (!e) return null;
   return `Eligibility ${e.pass} pass · ${e.atRisk} at risk${e.interpretation ? ` · ${e.interpretation} interpretation` : ''} · ${e.fail} fail`;
 }
 
 /** The step facts in one line, masked like the table (dashboards.md §7). */
-function statusLine(tenant: string, l: Lifecycle, viewer: Person): string {
+function statusLine(tenant: string, l: Lifecycle, viewer: Person, done: DemoDone): string {
   const f = l.facts;
   const ccy = ccyOf(tenant);
   const m = (amount: number) => money(amount, ccy);
@@ -293,11 +299,16 @@ function statusLine(tenant: string, l: Lifecycle, viewer: Person): string {
   if (!f) return stepLabel(currentOf(l).stage, currentOf(l).step);
   switch (f.stage) {
     case 1:
-      return [eligibilityText(tenant, l),
+      return [eligibilityText(tenant, l, done),
         f.documents === 'downloaded' ? 'documents downloaded' : `booklet ${m(f.documents.fee.amount)} to buy by ${day(f.documents.purchaseBy)}`,
         f.dg1Due ? `DG1 due ${dayTime(f.dg1Due)}` : null].filter(Boolean).join(' · ');
     case 2:
-      return `${f.rfqs.sent} of ${f.rfqs.total} RFQs sent · ${f.packages.covered} of ${f.packages.total} packages covered · replies due ${day(f.repliesDue)}${f.rfqs.overdue ? ` · ${f.rfqs.overdue} overdue` : ''}`;
+    {
+      // Straight after Pursue there are no RFQs yet: say what is happening, not "0 of 0".
+      const rfqs = f.rfqs.total ? `${f.rfqs.sent} of ${f.rfqs.total} RFQs sent`
+        : currentOf(l).step === 'packaging' ? 'Packages being set up' : 'No RFQs sent yet';
+      return `${rfqs} · ${f.packages.covered} of ${f.packages.total} packages covered${f.rfqs.sent ? ` · replies due ${day(f.repliesDue)}` : ''}${f.rfqs.overdue ? ` · ${f.rfqs.overdue} overdue` : ''}`;
+    }
     case 3: {
       const masked = [...(sight.positions ? [] : ['win probability', 'committee positions']), ...(marginOk ? [] : ['margin'])];
       return [f.pack === 'preparation' ? `Pack in preparation · ${f.inputs.outstanding} of ${f.inputs.requested} inputs outstanding` : `Pack issued ${dayTime(f.issuedAt!)}`,
@@ -343,14 +354,19 @@ function teamLine(tenant: string, l: Lifecycle): string | null {
   return [`${t.name}${bm ? `: ${bm} (Bid Manager)` : ''}`, count(t.engineers, 'engineer'), count(t.estimators, 'estimator')].join(', ');
 }
 
-export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): TrackerVM {
+export function trackerFor(l: Lifecycle, tenant: string, viewer: Person, done: DemoDone = demoDoneOf(l)): TrackerVM {
   const cur = currentOf(l);
   const closed = !!l.closedAt;
-  const health = healthOf(l, tenant);
+  const health = healthOf(l, tenant, NOW, done);
   const byStage = new Map<number, StageEntry[]>();
   for (const e of l.log) byStage.set(e.stage, [...(byStage.get(e.stage) ?? []), e]);
   const firstOf = (n: number) => byStage.get(n)?.[0]?.at;
-  const decided = (g: GateKind) => l.gates.find((x) => x.gate === g);
+  const decided = (g: GateKind) => standingGate(l, g);
+  /** "Re-opened: the Water team released a bid", for a gate whose earlier decision was re-opened in the demo (plan 021). */
+  const reopenedNote = (g: GateKind, standing?: GateRecord) => {
+    const r = [...l.gates].reverse().find((x) => x.gate === g && x.reopened && x !== standing);
+    return r ? `Re-opened: ${r.reopened}` : undefined;
+  };
   const open = openGate(l);
 
   // Where the tender stopped, if it did: a gate that did not go on, or the stage it closed in.
@@ -378,6 +394,8 @@ export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): Tracke
     const node: TrackerNodeVM = { key: o.gate, kind: 'gate', label: o.gate, gate: o.gate, status: 'not-reached' };
     if (stopped) return node;
     const g = decided(o.gate);
+    // Only a round re-opened in the demo carries a note here: the seed's re-opened records stand, so they are skipped.
+    const again = reopenedNote(o.gate, g);
     if (g) {
       const d = DECISION[g.decision];
       const late = hoursBetween(g.openedAt, g.at) - g.slaHours;
@@ -386,11 +404,12 @@ export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): Tracke
       return {
         ...node, status, from: g.openedAt, to: g.at,
         decision: { label: d.label, tone: d.tone, byName: personName(g.byId) ?? g.byId, at: g.at, onTime: g.onTime, ...(g.onTime ? {} : { lateBy: hoursText(late) }) },
-        ...(status === 'stopped' ? { note: outcomeOf(l) } : {}),
+        ...(status === 'stopped' ? { note: outcomeOf(l) } : again ? { note: again } : {}),
       };
     }
     if (open?.gate === o.gate) {
-      return { ...node, status: 'current', from: open.openedAt, note: open.onTime ? `${hoursText(open.leftHours)} left of ${open.slaHours} h` : `Overdue by ${hoursText(open.leftHours)}` };
+      const sla = open.onTime ? `${hoursText(open.leftHours)} left of ${open.slaHours} h` : `Overdue by ${hoursText(open.leftHours)}`;
+      return { ...node, status: 'current', from: open.openedAt, note: again ? `${again} · ${sla}` : sla };
     }
     return node;
   });
@@ -404,7 +423,7 @@ export function trackerFor(l: Lifecycle, tenant: string, viewer: Person): Tracke
     now: closed ? null : {
       stageLabel: stageLabel(cur.stage), stepLabel: stepLabel(cur.stage, cur.step),
       withName: owner?.name ?? null, withRole: owner ? roleLine(owner) : null,
-      team: teamLine(tenant, l), status: statusLine(tenant, l, viewer), next: nextLine(tenant, l),
+      team: teamLine(tenant, l), status: statusLine(tenant, l, viewer, done), next: nextLine(tenant, l),
       blocker: health.health === 'on-track' ? null : (sightOf(tenant, l, viewer).margin ? health.reason : health.maskedReason ?? health.reason),
     },
     ...(closed ? { outcome: outcomeOf(l) } : {}),
@@ -420,10 +439,10 @@ export const port: DataPort = {
       .filter((l) => (status === 'all' ? true : status === 'live' ? !l.closedAt : !!l.closedAt))
       .filter((l) => scope.kind === 'all' || (scope.kind === 'assigned' ? l.bidManagerId === scope.personId : currentOf(l).stage === scope.stage))
       .filter((l) => visible(tenant, l, viewer))
-      .map((l) => rowFor(l, tenant, viewer));
+      .map((l) => rowFor(l, tenant, viewer, done ?? {}));
   },
   tracker(tenant: string, tenderId: string, viewer: Person, done?: DemoDone): TrackerVM | null {
     const l = lifecycle(tenant, tenderId, done);
-    return l && visible(tenant, l, viewer) ? trackerFor(l, tenant, viewer) : null;
+    return l && visible(tenant, l, viewer) ? trackerFor(l, tenant, viewer, done ?? {}) : null;
   },
 };

@@ -154,6 +154,8 @@ export interface Dg2Input {
   reasonCodes?: string[];
   /** Bid: the approver's own conditions, added to the members'. */
   conditions?: string[];
+  /** Bid: the approver's own conditions that state a margin figure (plan 021 4.6). */
+  marginConditions?: string[];
   staleAcknowledged?: boolean;
   lessons?: string;
 }
@@ -177,9 +179,14 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
     if (unknown.length) return { error: `Unknown No-Bid reason: ${unknown.join(', ')}` };
   }
 
-  const memberConditions = splitConditions(state.positions.seats.flatMap((s) => (s.position?.stance === 'conditions' ? s.position.conditions ?? [] : [])));
-  const ownConditions = (input.conditions ?? []).map((c) => c.trim()).filter(Boolean);
+  const withConditions = state.positions.seats.flatMap((s) => (s.position?.stance === 'conditions' ? [s.position] : []));
+  const memberConditions = splitConditions(withConditions.flatMap((p) => p.conditions ?? []));
+  const ownMargin = (input.marginConditions ?? []).map((c) => c.trim()).filter(Boolean);
+  const ownConditions = [...(input.conditions ?? []).map((c) => c.trim()).filter(Boolean), ...ownMargin];
   const conditions = input.decision === 'bid' ? uniqStr([...memberConditions, ...ownConditions]) : [];
+  // Which of them state a margin figure: marked where they were written, never guessed from the text.
+  const marginSet = new Set([...splitConditions(withConditions.flatMap((p) => p.marginConditions ?? [])), ...ownMargin]);
+  const marginConditions = conditions.filter((c) => marginSet.has(c));
   const at = nowIso();
   const lessons = input.decision === 'no-bid'
     ? input.lessons?.trim() || `No-Bid at DG2: ${reasonCodes.map(reasonLabel).join(', ')}`
@@ -193,6 +200,7 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
     ...(reason ? { reason } : {}),
     ...(reasonCodes.length ? { reasonCodes } : {}),
     conditions,
+    ...(marginConditions.length ? { marginConditions } : {}),
     packVersion: state.packVersion ?? 1,
     positionsSnapshot: state.positions.seats.map((s) => ({
       seat: s.seat, personId: s.personId,
@@ -200,6 +208,7 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
         stance: s.position.stance, at: s.position.at, packVersion: s.position.packVersion,
         ...(s.position.comment ? { comment: s.position.comment } : {}),
         ...(s.position.conditions ? { conditions: s.position.conditions } : {}),
+        ...(s.position.marginConditions ? { marginConditions: s.position.marginConditions } : {}),
       } : {}),
     })),
     majority,

@@ -11,6 +11,7 @@ import { bidBondFor, facilityHeadroom, type BidBond } from '@/domain/gcc/s1/bond
 import { asCommitment, peakMonth, teamLoad, toSubmissionLabel, type PeakMonth } from '@/domain/gcc/s1/triage';
 import { blockingOpen, validationsOf, type QueueItem } from '@/domain/gcc/s1/validation';
 import { queriesFor, type QueriesVM } from '@/domain/gcc/s1/queries';
+import { dg1RecordFor } from './record';
 
 /**
  * The DG1 evidence pack (spec §7, plan 007a step 9.2): one screen with the
@@ -31,6 +32,8 @@ const CLASH_DAYS = 7;
 export interface Dg1Pack {
   tenant: string;
   tenderId: string;
+  /** The decision round in force (plan 021 4.1): a decision recorded on this pack is written in it. */
+  round: number;
   /** 1. */
   recommendation: RecommendationVM;
   /** 2. */
@@ -116,7 +119,7 @@ export function dg1PackFor(tenant: string, tenderId: string, done: Done): Dg1Pac
   const pqFailDiscard = isPqFailDiscard({ recommendation, eligibility });
 
   return {
-    tenant, tenderId, recommendation,
+    tenant, tenderId, round: dg1RecordFor(tenant, tenderId, done).round, recommendation,
     glance: {
       authority: t.issuer,
       value: t.value.basis === 'not-stated' || !t.value.amount ? null : moneyPair(t.value.amount, t.value.ccy, ccy),

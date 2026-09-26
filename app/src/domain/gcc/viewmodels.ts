@@ -224,6 +224,8 @@ export interface TableZoneVM {
   defaultSort: SortPreset;
   filters: FilterKey[];
   statusDefault: TableStatus;
+  /** Shown when the default view has no rows and no filter is set; the grid's generic text otherwise. */
+  empty?: { title: string; body?: string };
 }
 
 /** A whole dashboard, Z1–Z6 (dashboards.md §1). */

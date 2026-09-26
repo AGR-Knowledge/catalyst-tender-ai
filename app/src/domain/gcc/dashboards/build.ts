@@ -46,8 +46,10 @@ function safe<T>(what: string, fn: () => T, fallback: T): T {
 const holds = (ctx: KpiCtx, cap?: Capability) => !cap || can(ctx.viewer, cap).ok;
 
 /** The ⓘ "Period" line. */
-function periodText(kind: KpiKind, ctx: KpiCtx): string {
-  return kind === 'flow' ? `${ctx.window.label} · ${ctx.window.rangeText}` : `Now · change since ${ctx.window.startText}`;
+function periodText(kind: KpiKind, ctx: KpiCtx, periodAware = false): string {
+  // A state tile is a value now; only a period-aware one's sub-line shows the change since the window started (PF-1).
+  if (kind === 'flow') return `${ctx.window.label} · ${ctx.window.rangeText}`;
+  return periodAware ? `Now · change since ${ctx.window.startText}` : 'Now: the period does not change this value';
 }
 
 /* --------------------------------------------------------------------- context */
@@ -82,7 +84,7 @@ function buildTile(id: string, ctx: KpiCtx): TileVM {
   }
   const baseLabel = ctx.window.key === 'today' && def.labelToday ? def.labelToday : def.label;
   const info = (label: string, smallSample?: boolean): InfoVM => ({
-    label, ...def.info, period: periodText(def.kind, ctx), ...(smallSample ? { smallSample } : {}),
+    label, ...def.info, period: periodText(def.kind, ctx, def.periodAware), ...(smallSample ? { smallSample } : {}),
   });
   if (def.cap && !holds(ctx, def.cap)) {
     return { id, label: baseLabel, display: 'Masked for your role', masked: { by: holdersOf(def.cap) }, info: info(baseLabel), drill: null };
@@ -237,12 +239,13 @@ export function buildDashboard(spec: DashboardSpec, ctx: KpiCtx, port: DataPort 
     kind,
     rows: kind === 'requests'
       ? safe(`${spec.key} request rows`, () => spec.table.rows?.(ctx) ?? [], [])
-      : port ? safe(`${spec.key} rows`, () => port.rows(ctx.tenant, ctx.scope, ctx.viewer, 'all'), []) : null,
+      : port ? safe(`${spec.key} rows`, () => port.rows(ctx.tenant, ctx.scope, ctx.viewer, 'all', ctx.done), []) : null,
     columns: spec.table.columns,
     optional: spec.table.optional ?? [],
     defaultSort: spec.table.defaultSort,
     filters: spec.table.filters,
     statusDefault: spec.table.statusDefault ?? 'live',
+    ...(spec.table.empty ? { empty: spec.table.empty(ctx) } : {}),
   };
 
   const graph = buildGraph(spec, ctx, opts.metric);
@@ -259,7 +262,7 @@ export function buildDashboard(spec: DashboardSpec, ctx: KpiCtx, port: DataPort 
     crumbs: isHome ? [] : [{ label: 'Dashboard', to: `/?period=${ctx.window.key}` }, { label: title }],
     viewerNote: stage && !isHome && !isOwner ? ownerNote(stage, ctx.tenant) : undefined,
     tiles, flow, actions, table, graph,
-    trackerFor: (id) => (port ? safe(`Tracker ${id}`, () => port.tracker(ctx.tenant, id, ctx.viewer), null) : null),
+    trackerFor: (id) => (port ? safe(`Tracker ${id}`, () => port.tracker(ctx.tenant, id, ctx.viewer, ctx.done), null) : null),
     missing,
   };
 }

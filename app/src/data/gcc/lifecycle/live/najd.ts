@@ -194,7 +194,7 @@ const STAGE2_3: Lifecycle[] = [
       stale: { since: '2026-03-08T09:12', reason: 'Addendum 2 received: two packages re-quoting and the delay damages cap raised' },
       positions: {
         recorded: 2, of: 5, bySeat: {
-          cfo: { stance: 'conditions', at: '2026-03-07T18:40', comment: 'Keep the bid bond within the facility; minimum margin 9%' },
+          cfo: { stance: 'conditions', at: '2026-03-07T18:40', comment: 'Keep the bid bond within the facility; see my margin condition' },
           technical: { stance: 'support', at: '2026-03-08T08:15' },
         },
       },

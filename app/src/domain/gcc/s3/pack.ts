@@ -1,7 +1,7 @@
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import type { GccTender, Money } from '@/data/gcc/types';
 import type { Seat } from '@/data/people';
-import { INPUT_SPECS, type PackInputKey, type PackRecommendation, type PackSectionId, type RerunEffect, type RiskRating } from '@/data/gcc/s3';
+import { INPUT_SPECS, type PackInputKey, type PackRecommendation, type PackSectionId, type RiskRating } from '@/data/gcc/s3';
 import { GATE_SLA_HOURS } from '@/data/gcc/targets';
 import { money } from '@/domain/money';
 import { s1Data } from '@/data/gcc/s1';
@@ -12,7 +12,7 @@ import { clientBidsOf, WIN_AGENT, winFor, type ClientBidVM, type WinVM } from '.
 import { competitorsFor, type CompetitorsVM } from './competitors';
 import { inputFields, inputsFor, type InputItem, type InputsVM } from './inputs';
 import { freshnessFor, type FreshnessVM } from './freshness';
-import { compareVersions, marginRangeText, packVersionsFor, SECTION_TITLES, type PackIssueValue, type VersionCompare } from './versions';
+import { compareVersions, effectFor, marginRangeText, packVersionsFor, SECTION_TITLES, type PackIssueValue, type VersionCompare } from './versions';
 
 /**
  * The Bid / No-Bid pack (spec §9): a sticky summary and sections 9.1–9.10,
@@ -23,12 +23,11 @@ import { compareVersions, marginRangeText, packVersionsFor, SECTION_TITLES, type
  */
 
 /**
- * From `can()`: `see.margin` and `see.positions`. Win probability and the
- * committee's positions follow `canSeeMargin` unless `canSeePositions` is
- * given, because everyone masked from margin is masked from them too
- * (roles-and-access §9); the Commercial Manager sees margin but not positions.
+ * From `can()`: `see.margin` and `see.positions`. Both are required (plan 021
+ * 4.7), so a page can't forget positions and show the Commercial Manager, who
+ * sees margin but not positions, the win probability.
  */
-export interface PackViewer { canSeeMargin: boolean; canSeePositions?: boolean }
+export interface PackViewer { canSeeMargin: boolean; canSeePositions: boolean }
 
 export type SectionFreshness = 'current' | 'stale' | 'waiting' | 'not-requested';
 
@@ -250,14 +249,8 @@ function risksOf(tenant: string, t: GccTender, legal: Fields | null, patches: { 
   return [...contract, ...extractionFlagsFor(tenant, t.id, done)];
 }
 
-/** Re-run effects without their margin figures, for viewers masked from margin. */
-function maskEffect(e: RerunEffect): RerunEffect {
-  if (!e.patch || (e.patch.margin === undefined && e.patch.marginNote === undefined)) return e;
-  const { patch: { margin: _m, marginNote: _n, ...patch }, ...rest } = e;
-  return Object.keys(patch).length ? { ...rest, patch } : rest;
-}
-
-const maskFreshness = (f: FreshnessVM): FreshnessVM => ({ ...f, versions: f.versions.map((v) => ({ ...v, effects: v.effects.map(maskEffect) })) });
+/** The versions' effects as the viewer may see them: the same mask as the compare view (`effectFor`). */
+const maskFreshness = (f: FreshnessVM, viewer: PackViewer): FreshnessVM => ({ ...f, versions: f.versions.map((v) => ({ ...v, effects: v.effects.map((e) => effectFor(e, viewer)) })) });
 
 export function packFor(tenant: string, tenderId: string, done: Done, viewer: PackViewer): PackVM | null {
   if (!isGccTenantKey(tenant)) return null;
@@ -275,7 +268,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const value: Money = { amount: t.value.amount, ccy: t.value.ccy };
 
   const seeMargin = viewer.canSeeMargin;
-  const seeWin = viewer.canSeePositions ?? viewer.canSeeMargin;
+  const seeWin = viewer.canSeePositions;
   const masked: MaskedBody = { masked: true, text: MASKED_TEXT };
 
   // 9.1, 9.2
@@ -315,7 +308,8 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const n = port.ifWon.length;
   const ifWon = port.ifWon.map((x) => {
     const estimate = !inputFields(tenant, x.tenderId, 'planning', done);
-    const w = seeWin ? winFor(tenant, x.tenderId) : null;
+    // Plan 021 4.8: only this tender's win. Another tender's is its own `can()` question, which the pack can't ask.
+    const w = seeWin && x.tenderId === tenderId ? winFor(tenant, x.tenderId) : null;
     return {
       tenderId: x.tenderId, title: d.register.find((r) => r.id === x.tenderId)?.title ?? x.tenderId, addPct: x.addPct, estimate,
       addText: `+${x.addPct}${estimate ? ' (estimate)' : ''}`,
@@ -441,7 +435,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const s99 = section('9.9', 'Input requests and submissions', seeMargin ? inputs : { ...inputs, items: inputs.items.map(({ fields: _f, ...i }) => i) }, staleAll);
   const first = pv.versions[0];
   const s910 = section<Section910>('9.10', 'Pack versions, addenda and credential renewals', {
-    freshness: seeMargin ? fresh : maskFreshness(fresh),
+    freshness: seeMargin && seeWin ? fresh : maskFreshness(fresh, viewer),
     ...(cur.version > first.version ? { compare: compareVersions(tenant, tenderId, first.version, cur.version, viewer) } : {}),
   }, staleAll);
 

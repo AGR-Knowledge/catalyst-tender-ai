@@ -15,13 +15,23 @@ import type { Dg1Decision } from './decision';
 /** DG1 is due within 24 h of M1 (logged). */
 export const DG1_SLA_HOURS = 24;
 
-/** `dg1-hold:{TID}`. */
-export interface Dg1HoldValue extends Stamped { request: { toId: string; what: string; due: string } }
-
-/** `dg1-reopen:{TID}`. `previous` is the decision it cleared, so a later decision is not cleared by an old re-open. */
-export interface Dg1ReopenValue extends Stamped { reason: string; previous?: Dg1Decision | Dg1Record }
+/** `dg1-hold:{TID}`. `round` is the decision round it was asked in (1 when absent). */
+export interface Dg1HoldValue extends Stamped { request: { toId: string; what: string; due: string }; round?: number }
 
 export type AnyDg1 = Dg1Decision | Dg1Record;
+
+/** One re-open: the decision it cleared (null when none stood), why, and the round it closed. */
+export interface Dg1ReopenEntry extends Stamped { cleared: AnyDg1 | null; reason: string; round: number }
+
+/**
+ * `dg1-reopen:{TID}`: the latest re-open. `round` is the round it closed, so
+ * the next decision is round + 1 and a decision of an earlier round is never
+ * read as standing (plan 021 4.1: the demo clock doesn't move, so times can't
+ * tell two rounds apart). `previous` is the decision it cleared; `earlier`
+ * keeps the re-opens before it, oldest first. Values written before rounds
+ * existed have no `round` and are matched by `previous`.
+ */
+export interface Dg1ReopenValue extends Stamped { reason: string; round?: number; previous?: AnyDg1; earlier?: Dg1ReopenEntry[] }
 
 export interface Dg1State {
   tenderId: string;
@@ -34,9 +44,22 @@ export interface Dg1State {
   reopen: Dg1ReopenValue | null;
   /** Decisions cleared by a re-open, oldest first. */
   previous: AnyDg1[];
+  /** Every re-open so far, oldest first, with the decision each cleared. */
+  reopens: Dg1ReopenEntry[];
+  /** The decision round in force: 1, plus one per re-open. A new decision is written in this round. */
+  round: number;
 }
 
 const same = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+
+/** The round a decision was recorded in: seed records and values written before rounds existed are round 1. */
+export const roundOfDg1 = (d: AnyDg1 | Dg1HoldValue): number => ('round' in d && typeof d.round === 'number' ? d.round : 1);
+
+/** Every re-open in a `dg1-reopen:` value, oldest first. */
+export function reopensOf(v: Dg1ReopenValue | null): Dg1ReopenEntry[] {
+  if (!v) return [];
+  return [...(v.earlier ?? []), { cleared: v.previous ?? null, reason: v.reason, round: v.round ?? 1, at: v.at, byId: v.byId }];
+}
 
 /** The seed's DG1 record: the register row's, else the latest in the history. */
 function seedRecord(tenant: string, t: GccTender | undefined, tenderId: string): Dg1Record | undefined {
@@ -55,18 +78,26 @@ export function dg1RecordFor(tenant: string, tenderId: string, done: Done): Dg1S
   let current: AnyDg1 | null = demo ?? seedDecision ?? null;
   let source: Dg1State['source'] = demo ? 'demo' : seedDecision ? 'seed' : null;
   const previous: AnyDg1[] = [];
-  if (demo && seedDecision) previous.push(seedDecision);
+  const keep = (d: AnyDg1 | null | undefined) => { if (d && !previous.some((p) => same(p, d))) previous.push(d); };
+  if (demo && seedDecision) keep(seedDecision);
 
+  const reopens = reopensOf(reopen);
+  const round = reopen ? (reopen.round ?? 1) + 1 : 1;
   if (reopen) {
-    if (reopen.previous) {
-      if (current && same(reopen.previous, current)) { previous.push(current); current = null; source = null; }
-      else if (!previous.some((p) => same(p, reopen.previous))) previous.push(reopen.previous);
-    } else if (current && reopen.at >= current.at) { previous.push(current); current = null; source = null; }
+    for (const e of reopens.slice(0, -1)) keep(e.cleared);
+    if (reopen.round !== undefined) {
+      // A decision of the round the re-open closed (or earlier) no longer stands.
+      if (current && roundOfDg1(current) <= reopen.round) { keep(current); current = null; source = null; }
+      else keep(reopen.previous);
+    } else if (reopen.previous) {
+      if (current && same(reopen.previous, current)) { keep(current); current = null; source = null; }
+      else keep(reopen.previous);
+    } else if (current && reopen.at >= current.at) { keep(current); current = null; source = null; }
   }
 
   const seedHold = seed?.decision === 'hold' ? seed : null;
-  const hold = current ? null : heldDemo && (!reopen || heldDemo.at >= reopen.at) ? heldDemo : !demo && !reopen ? seedHold : null;
-  return { tenderId, current, source, hold, reopen, previous };
+  const hold = current ? null : heldDemo && roundOfDg1(heldDemo) === round ? heldDemo : !demo && !reopen ? seedHold : null;
+  return { tenderId, current, source, hold, reopen, previous, reopens, round };
 }
 
 export interface Dg1QueueItem {

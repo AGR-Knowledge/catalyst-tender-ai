@@ -19,6 +19,8 @@ export interface Dg2PositionValue {
   stance: Stance;
   comment?: string;
   conditions?: string[];
+  /** Conditions that state a margin figure, masked for people without `see.margin` (plan 021 4.6). */
+  marginConditions?: string[];
   coi?: { declared: true; text: string };
   packVersion: number;
   /** Decision round it was recorded in (1 when absent). */
@@ -40,8 +42,10 @@ export interface Dg2Decision {
   reason?: string;
   reasonCodes?: string[];
   conditions: string[];
+  /** The conditions above that state a margin figure, as the members and the approver marked them (plan 021 4.6). */
+  marginConditions?: string[];
   packVersion: number;
-  positionsSnapshot: { seat: Seat; personId: string; stance?: Stance; comment?: string; conditions?: string[]; at?: string; packVersion?: number }[];
+  positionsSnapshot: { seat: Seat; personId: string; stance?: Stance; comment?: string; conditions?: string[]; marginConditions?: string[]; at?: string; packVersion?: number }[];
   majority: Majority;
   lessons?: string;
   staleAcknowledged?: boolean;

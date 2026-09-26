@@ -87,11 +87,11 @@ if (import.meta.env?.DEV) {
 }
 
 /**
- * The hook for demo actions. Gates recorded during the demo (DG1 Pursue on
- * the hero, a DG2 approval …) are `mark()` keys in the store's `done` map.
- * Plans 007–018 apply them here, on top of the seeded lifecycle, so every
- * query reads one merged lifecycle and a reset returns the seed. For now it
- * returns `l` unchanged.
+ * A documented no-op, kept so existing imports still resolve. Demo actions are
+ * merged in the domain layer instead (plan 021): `domain/gcc/lifecycle.ts`
+ * runs every lifecycle through the appliers in `domain/gcc/demo`, because the
+ * rules they read (007a, 008a, 009a) can't be imported from `data/` without a
+ * cycle. Read lifecycles through the queries (`queriesFor`), never this.
  */
 export function withDemoState(l: Lifecycle, _done: Readonly<Record<string, string>>): Lifecycle {
   return l;

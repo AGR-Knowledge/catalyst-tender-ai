@@ -52,6 +52,8 @@ export interface KpiDef {
   /** The label when the period is Today, e.g. "Captured today". */
   labelToday?: string;
   kind: KpiKind;
+  /** A state tile whose sub-line shows the change since the window started (dashboards.md §2; PF-1). */
+  periodAware?: boolean;
   info: KpiInfo;
   /** The viewer needs this to see the value; without it the tile shows `Masked`. */
   cap?: Capability;

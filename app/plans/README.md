@@ -20,16 +20,34 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 008b | Stage 2 screens and Supplier Portal (on 008a) | 4 | 006, 019, 008a | Outline |
 | 009b | Stage 3 pack, DG2 gate and contributor forms (on 009a) | 4 | 006, 019, 009a | Outline |
 | 010 | Company and Administration | 4 | 006 | Outline |
-| 011 | Platform Console | 4 | 006 | Outline |
-| 012 | Arabic intake (bonus) | 4 | 006, 007b | Outline |
-| 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | READY (parallel with 015, 019, 021) |
+| 011 | [Platform Console and break-glass](011-platform-console.md): separate operator shell with counts and health only, the break-glass request that the tenant's Head of Tendering sees, and the tenant audit log | 4 | 006, 015 | READY (parallel with 007b, 008b, 009b, 022, 023) |
+| 012 | Arabic intake: bilingual values, "Read in English", Plex Sans Arabic, on 007b's screens and 023's Arabic tender | 5 | 007b, 023 | Outline (written when 007b and 023 land) |
+| 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 014 | Presenter controls and Compare tenants lens | 5 | 007b–009b | Outline |
-| 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | READY (parallel with 013, 019, 021) |
+| 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 016 | Script QA and polish (spec §19 acceptance) | 6 | all | Outline |
 | 018 | DG3 approval (lite gate screen for the Head of Tendering, dashboards.md §9) | 4 | 009b (gate screen pattern), 017 | Outline |
-| 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | READY (parallel with 013, 015, 021) |
+| 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | DONE (2026-09-26) |
 | 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
-| 021 | [Demo state and rule fixes](021-demo-state-and-rule-fixes.md): demo actions (DG1, Stage 2 progress, pack, positions, DG2) merged into the lifecycles so every dashboard shows them; DG1 rounds, DG2 conditions masked and the other rule bugs from the 020 review | 3 | 017, 007a, 008a, 009a, 020 | READY (parallel with 013, 015, 019) |
+| 021 | [Demo state and rule fixes](021-demo-state-and-rule-fixes.md): demo actions (DG1, Stage 2 progress, pack, positions, DG2) merged into the lifecycles so every dashboard shows them; DG1 rounds, DG2 conditions masked and the other rule bugs from the 020 review | 3 | 017, 007a, 008a, 009a, 020 | DONE (2026-09-26) |
+| 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | READY (parallel with 007b, 008b, 009b, 011, 023) |
+| 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | READY (parallel with 007b, 008b, 009b, 011, 022) |
+
+**Wave 3 review (orchestrator, 2026-09-26): 015, 013, 019 and 021 accepted.**
+- Typecheck and build pass. `/dev/checks` passes in all five tenants with no console errors: Najd 124 lifecycle, 16 demo-state, 82 portfolio, 10 workspace, 36 stage, 131 Stage 1, 55 Stage 2 and 97 Stage 3 targets; the other four tenants pass every panel. Three review agents read each plan's code against its plan; nothing high.
+- Browser, as Faisal (Najd): the home dashboard, the hero's workspace (the p. 4 chip opens the booklet at the page with the value highlighted), ⌘K; as Joseph (Procurement Lead): T-2025-329 masks price, margins and the blocker, T-2026-121 is "not here". DG1 Pursue written through `dg1Write` moves the hero to 2 · Sourcing · Packaging with Joseph as owner, and Reset returns it to Stage 1.
+- **Orchestrator fixes before commit:**
+  - `/dashboard` titled "Not found" (screenHead); tile labels split mid-word beside an owner tag (dashboard.css wraps the tag instead); the workspace top bar says "Tender workspace" rather than repeating the ID.
+  - The empty-stage message (013 Q1): an `empty` hook on the dashboard spec, `TableZoneVM` and `TenderGrid`; stage dashboards say "No tenders are in Stage 3 now. Tenders arrive here after sourcing."
+  - Cross-plan: a re-opened gate no longer counts as decided (`standingGate` in the rail, PF's hero hint and Stage 2's RFQ clock); "0 of 0 RFQs sent" reads "Packages being set up" / "No RFQs sent yet"; 013's waiting rows sort on 015's scale.
+  - Masking: DG2 approval rows show "With the committee" without `see.positions`; DEC-4, PRC-3 and `s3.weighted` check access tender by tender; the CFO's seed comment no longer states the margin figure (seed and 017 copy) and `dg2RecordFor` takes `canSeePositions`; gate notes "against the majority" are masked without `see.positions`; demo audit events gain `sensitive` and the workspace timeline masks them.
+  - Rules: the unnamed JV partner is tried with the company leading first (Rafid still fails 11 lines, so the note stays required); an RFQ due at 10:00 is not yet due at 10:00; the JV effect line names the partner.
+  - Workspace contract for wave 4: tab panels and the rail sit in an error boundary; `WorkspaceCtx.check(cap, extra?)` returns the refusal sentence.
+  - Renewal requests record who asked (`renewal-requested:` holds `{ at, byId }`).
+  - State tiles: a `periodAware` flag (PF-1 only); the ⓘ of other state tiles says the period doesn't change them; dashboards.md §2 amended ("4 in · 9 out": 015 Q1 accepted as the seed reads).
+- **Decisions:** 015 Q1: 9 out accepted. 013 Q2: see above. 013 Q3: Aisha reads 10 and 14 min (she isn't cleared for the restricted lane; a tile never counts what its table hides). 019: no hero addendum (the addendum story is T-2026-097's, script C). 021 deviations 1, 3, 4, 5 and 7 accepted; `levelWrite` is now `(tenant, tenderId, quoteId, adjKey, state, byId, done, amount?, note?, adjustment?, at)`.
+- **Carried to wave 4:** 007b offers DG1 Re-open only on demo decisions and keeps the recommendation visible beside an override (spec §5.2); per-source `doc` on SourceChip for addenda; `EligibilityLine` highlights `termsOf`; 009b passes `{ canSeeMargin, canSeePositions }` to `dg2RecordFor` and sets `sensitive` on position audit events; the `mixWrite`/`packagingWrite`/`gapWrite` pursue guards; small copy items (the CEO's delegate wording, "requested by you", "ranked 2 of 5", Stage 7 "Most", search "First 8", "With nobody now" on closed tenders, rail key dates via `countdownText`) go to 016.
+- **Demo tenders (user, 2026-09-26):** at least three, all GCC, one Arabic. The hero (KSA, English), 022 (UAE, English, Corniche) and 023 (Oman, Arabic, Batinah). The Lebanese scanned tender leaves the demo path. The orchestrator wrote `domain/gcc/documents.ts` (`documentFor`) so the Stage 1 screens and the data plans don't share files.
 
 **Dashboards replan (orchestrator, 2026-09-25).** The user's brief for the Head of Tendering replaced the sketch, and it applies to every role: [dashboards.md](../../docs/07-product-design/agr-product-definition/dashboards.md). Consequences here:
 - **006** is rewritten as the shell, the sidebar and the dashboard kit.
@@ -176,7 +194,7 @@ Plan 001 was verified with a click audit:
 
 **Wave 2+ plans are written after wave 1 lands**, so they reference real code. Their outlines:
 - **006, 013, 015, 017:** written (see the index).
-- **019 Tender kit part 2 and Tender Workspace:** the rest of ui-direction §6.2 (RecommendationCard, OverrideModal, SourceChip, CoverageBar, ThresholdBar, EligibilityLine, MembersPanel, ReasonCodePicker, Sheet, Callout, RequestButton, AuditEntry, LangBadge/BilingualValue); the Tender Workspace `/tenders/:id` with header, tabs frame and right rail, replacing 006's `TenderSummary`.
+- **019 Tender kit part 2 and Tender Workspace:** the rest of ui-direction §6.2 (RecommendationCard, OverrideModal, SourceChip, CoverageBar, ThresholdBar, EligibilityLine, ReasonCodePicker, Sheet, Callout, RequestButton, AuditEntry, LangBadge; `MembersPanel` moves to 009b and `BilingualValue` to 012); the Tender Workspace `/tenders/:id` with header, tabs frame and right rail, replacing 006's `TenderSummary`.
 - **007b Stage 1 and DG1 screens** on 007a's rules (spec §6–7):
   - radar, with sources, captures and reconciliation;
   - intake pipeline steps, including the booklet purchase;

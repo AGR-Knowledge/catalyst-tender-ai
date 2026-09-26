@@ -1,6 +1,6 @@
 # 013 — Stage dashboards (Stages 1–9) and My requests
 
-Status: READY (2026-09-26) · Depends on: 006 (kit, registries, routes), 017 (lifecycles, facts, port) · Can run in parallel with: 015, 019, 021
+Status: DONE (2026-09-26, accepted by the orchestrator; see the wave 3 review in README.md) · Depends on: 006 (kit, registries, routes), 017 (lifecycles, facts, port) · Can run in parallel with: 015, 019, 021
 
 ## Review notes (2026-09-26)
 - **Starts only after plan 020 lanes A and B are DONE.**
@@ -66,7 +66,7 @@ Finance and HR get **My requests** in the same layout (four tiles, no graph).
 ## Steps
 
 ### Phase 1 — The generic stage pieces
-- [ ] 1.1 **`stages.flow.ts`:** `stageFlow(n)` builds a `FlowDef` with id `flow.stage.{n}`:
+- [x] 1.1 **`stages.flow.ts`:** `stageFlow(n)` builds a `FlowDef` with id `flow.stage.{n}`:
   - **Steps:** for each step of `GCC_STAGES[n].steps`, the number of tenders whose log has an entry into that step inside the window.
   - **After the steps:**
     - for stages ending in a gate (1 → DG1, 3 → DG2, 7 → DG3), that gate's decisions in the window;
@@ -74,7 +74,7 @@ Finance and HR get **My requests** in the same layout (four tiles, no graph).
   - **Stage 1** starts with "Captured" (`capturesIn`) and "Linked" (017's `INTAKE_DAILY.linked` plus today's duplicate and addendum events) before its steps.
   - **Drills:** each part's drill is `table` with `ids` = those tenders and status All. Captured and Linked have no drill, because they are notices rather than tenders.
   - **ⓘ:** "How tenders moved through {stage name} in this period: how many entered each step, then moved on or stopped. Counted from each tender's stage history."
-- [ ] 1.2 **`steps.metric.ts`**, axis `steps` (keys are the step keys of the stage). Generic metrics:
+- [x] 1.2 **`steps.metric.ts`**, axis `steps` (keys are the step keys of the stage). Generic metrics:
   - `steps.count` (Tenders now): live tenders whose current step is that step;
   - `steps.value` (Value now);
   - `steps.inPeriod`: in the step at any time in the window;
@@ -95,14 +95,14 @@ Finance and HR get **My requests** in the same layout (four tiles, no graph).
 ### Phase 2 — KPIs, stage by stage
 Every KPI has `info` verbatim from dashboards.md §11 (or §11.9 for reused IDs), and `kind` as stated there. Compute over **live tenders in the stage** (tenant scope), unless the entry says otherwise. Money goes through `Money`, dates through `When`, time left through `SlaClock` text.
 
-- [ ] 2.1 **`stage1.kpi.ts`** (dashboards.md §10.4):
-  - [ ] 2.1.1 **INT-1 Captured** (flow): `capturesIn(window)`. Sub: split by source kind ("Etimad 7 · portals 1 · email 2 · scanned 1"). The label becomes "Captured today" when the period is Today.
-  - [ ] 2.1.2 **INT-2 Intake to logged** (flow): p90 of intake-to-logged minutes in the window. Use today's 004 events (`loggedAt − receivedAt`) plus `INTAKE_DAILY.minutes`. Sub: "worst {max} min". Tone ≤ 15 green, ≤ 20 orange, else red.
-  - [ ] 2.1.3 **INT-3 Missed tenders** (flow): Σ `missed` over the window, plus today's reconciliation. Sub: "last reconciled {time} · {n} sources".
-  - [ ] 2.1.4 **INT-4 Sources healthy** (state): 004 `sources` that are healthy ÷ all. Sub: the worst one with its note.
-  - [ ] 2.1.5 **INT-5 Fields to check** (state): open 004 validations on live Stage 1 tenders. Sub: "{n} block DG1 · oldest {age}". The age runs from `raisedAt` to the demo clock.
-  - [ ] 2.1.6 **INT-10 Documents to buy** (state): live Stage 1 tenders with `s1.documents` of the fee form. Sub: "{TID} · {fee} · closes {purchaseBy}". If `done['booklet-approved:{TID}']` is set, add "· approved, to buy".
-- [ ] 2.2 **`stage2.kpi.ts`** (§10.5). SRC-1 … SRC-6 from `s2` facts and the log:
+- [x] 2.1 **`stage1.kpi.ts`** (dashboards.md §10.4):
+  - [x] 2.1.1 **INT-1 Captured** (flow): `capturesIn(window)`. Sub: split by source kind ("Etimad 7 · portals 1 · email 2 · scanned 1"). The label becomes "Captured today" when the period is Today.
+  - [x] 2.1.2 **INT-2 Intake to logged** (flow): p90 of intake-to-logged minutes in the window. Use today's 004 events (`loggedAt − receivedAt`) plus `INTAKE_DAILY.minutes`. Sub: "worst {max} min". Tone ≤ 15 green, ≤ 20 orange, else red.
+  - [x] 2.1.3 **INT-3 Missed tenders** (flow): Σ `missed` over the window, plus today's reconciliation. Sub: "last reconciled {time} · {n} sources".
+  - [x] 2.1.4 **INT-4 Sources healthy** (state): 004 `sources` that are healthy ÷ all. Sub: the worst one with its note.
+  - [x] 2.1.5 **INT-5 Fields to check** (state): open 004 validations on live Stage 1 tenders. Sub: "{n} block DG1 · oldest {age}". The age runs from `raisedAt` to the demo clock.
+  - [x] 2.1.6 **INT-10 Documents to buy** (state): live Stage 1 tenders with `s1.documents` of the fee form. Sub: "{TID} · {fee} · closes {purchaseBy}". If `done['booklet-approved:{TID}']` is set, add "· approved, to buy".
+- [x] 2.2 **`stage2.kpi.ts`** (§10.5). SRC-1 … SRC-6 from `s2` facts and the log:
   - **SRC-1 RFQ clock:**
     - **Live:** tenders pursued less than 24 h ago that aren't at `rfqs-out`, shown as time left.
     - **When there are none,** show the trailing form: "RFQs within 24 h of DG1: {pct}", meaning tenders that entered `rfqs-out` in the window within 24 h of their DG1 pursue.
@@ -113,45 +113,45 @@ Every KPI has `info` verbatim from dashboards.md §11 (or §11.9 for reused IDs)
   - **SRC-6 To level:** Σ toLevel.
 
   **SRC-9 Long-lead at risk** lives here too (reused by Stage 4): Σ `s4.longLeadAtRisk` over Stage 4 tenders when used on the Stage 4 dashboard. Give it a `scopeStage` parameter, or define it over the dashboard's stage via `ctx.scope`.
-- [ ] 2.3 **`stage3.kpi.ts`** (§10.6):
+- [x] 2.3 **`stage3.kpi.ts`** (§10.6):
   - **DEC-1 Awaiting DG2:** issued packs with no DG2. Sub: "{recorded} of 5 positions · quorum 3 · {time left}".
   - **DEC-8 Stale packs:** `s3.stale` count. Sub: the reason.
 
   DEC-4 … DEC-7 come from 015.
-- [ ] 2.4 **`stage4.kpi.ts`** (§10.7, §11.2):
+- [x] 2.4 **`stage4.kpi.ts`** (§10.7, §11.2):
   - **PLN-1:** tenders not yet at `released` whose `baselineDue` is ≤ `NEAR_WD` working days away or past;
   - **PLN-2:** planned duration > required duration;
   - **PLN-4:** tenders with `clashWith`;
   - **PLN-5** (flow): `workEventsIn(window, 'replan')`. Sub: "p90 {h} h vs 4 h";
   - **PLN-6** (flow): M2 events due in the window, completed by their due date ÷ due.
-- [ ] 2.5 **`stage5.kpi.ts`** (§11.3):
+- [x] 2.5 **`stage5.kpi.ts`** (§11.3):
   - **PRC-1:** tenders not yet `price-approved` with `priceDue` ≤ 5 working days away or past;
   - **PRC-2** and **PRC-4:** value-weighted `sourcedPct` and `estimatedPct` across Stage 5 tenders (weight = the tender value in tenant currency). Sub: the lowest (PRC-2) or the highest (PRC-4) tender;
   - **PRC-3:** `baseMarginPct < minMarginPct`. **Masked** (`see.margin`);
   - **PRC-5** (flow): re-prices, with p90 vs 2 h;
   - **PRC-6:** `financeCheck === 'pending'`.
-- [ ] 2.6 **`stage6.kpi.ts`** (§11.4):
+- [x] 2.6 **`stage6.kpi.ts`** (§11.4):
   - **PRP-1:** Σ late sections;
   - **PRP-2:** Σ locked ÷ Σ total. Sub: least advanced, with working days to its deadline;
   - **PRP-3:** `simScore < passMark`;
   - **PRP-4:** Σ `smeOverdue`;
   - **PRP-5** (flow): review events due in the window, held by their due date ÷ due;
   - **PRP-6:** value-weighted `reusePct`.
-- [ ] 2.7 **`stage7.kpi.ts`** (§11.5):
+- [x] 2.7 **`stage7.kpi.ts`** (§11.5):
   - **CMP-1:** Σ `mandatoryGaps`;
   - **CMP-2:** Σ evidenced ÷ Σ total;
   - **CMP-3:** Σ `redlinesOpen`;
   - **CMP-4:** Σ `risksWithoutOwner`;
   - **CMP-5:** open DG3 (from `openGate`). Sub: SLA left;
   - **CMP-6** (flow): DG3 gate events on time ÷ all, in the window.
-- [ ] 2.8 **`stage8.kpi.ts`** (§11.6):
+- [x] 2.8 **`stage8.kpi.ts`** (§11.6):
   - **SUB-1:** deadlines within 14 days (not yet submitted);
   - **SUB-2** (flow): `submissionsIn(window)`, on time ÷ all;
   - **SUB-3:** for bids due within 5 working days, the mean `packageReadyPct`, or the least ready as the sub;
   - **SUB-4:** Σ `signaturesPending` on bids due within 5 working days;
   - **SUB-5:** submitted and no result: count and Σ value. Sub: the oldest, in days since submission;
   - **SUB-6:** bids due within 14 days with `bond.issued === false` or `validTo < requiredTo`.
-- [ ] 2.9 **`stage9.kpi.ts`** (§11.7):
+- [x] 2.9 **`stage9.kpi.ts`** (§11.7):
   - **OUT-1 Hit rate** (flow, with n, small-sample rule as PF-3);
   - **OUT-6 Why we lose** (flow): the top loss reason in the window, with counts ("Price 1 · Technical 1"). A tie shows both;
   - **RES-1:** awaiting-result tenders whose `expectedAwardBy` is in the past;
@@ -159,27 +159,27 @@ Every KPI has `info` verbatim from dashboards.md §11 (or §11.9 for reused IDs)
   - **RES-3** (flow): results in the window with a `lessons` event ÷ results in the window.
 
   OUT-3 comes from 015.
-- [ ] 2.10 **Masking:** every KPI that reveals margin or quotes declares `cap`.
+- [x] 2.10 **Masking:** every KPI that reveals margin or quotes declares `cap`.
 
 ### Phase 3 — Stage action sources (`stages.actions.ts`)
 Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the screen is built, otherwise "Open tender").
 
 **Every row sets `waitingOn`** to the stage owner (or the named person), so the Head of Tendering sees "Waiting in {stage}" rows with names. The owner's view shows them as their own.
 
-- [ ] 3.1 **Stage 1:**
+- [x] 3.1 **Stage 1:**
   - `validation.check`: open 004 validations, blocking first. Route `/intake-queue`.
   - `addendum.confirm`: today's 004 intake events with disposition `addendum`. For example, "Addendum 2 for T-2026-097 received 09:12: confirm the link". Route `/radar`.
   - `booklet.status` (Coordinator view): purchase requests waiting on the Head of Tendering. Informational, with the disabled reason "Waiting for Faisal Al-Harbi's approval".
   - Reuse `booklet.approve` (015) for the Head of Tendering, and `dg1.decide` (015) for the Bid Manager.
-- [ ] 3.2 **Stage 2:**
+- [x] 3.2 **Stage 2:**
   - `rfq.send`: tenders pursued less than 24 h ago that aren't at `rfqs-out`;
   - `rfq.escalations`: escalated overdue RFQs, per tender ("2 non-responders escalated on T-2026-104");
   - `levelling.confirm`: `toLevel` > 0;
   - `clarifications.stale`: stale > 0.
 
   Routes `/sourcing` and `/levelling`.
-- [ ] 3.3 **Stage 3:** reuse `dg2.approve`, `dg2.position`, `pack.issue`, `pack.stale` and `input.nudge` (015).
-- [ ] 3.4 **Stages 4–6** (no working screens, so the button is "Open tender"):
+- [x] 3.3 **Stage 3:** reuse `dg2.approve`, `dg2.position`, `pack.issue`, `pack.stale` and `input.nudge` (015).
+- [x] 3.4 **Stages 4–6** (no working screens, so the button is "Open tender"):
   - `baseline.due` (PLN-1 tenders);
   - `programme.overrun` (PLN-2);
   - `replan.open` (a re-plan event in the last 24 h with a turnaround still open, if 017 models it; otherwise skip and note it);
@@ -189,23 +189,23 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
   - `sections.late` (PRP-1);
   - `score.below` (PRP-3);
   - `review.due` (a review event due within 5 working days and not held).
-- [ ] 3.5 **Stage 7:**
+- [x] 3.5 **Stage 7:**
   - `gaps.open` (CMP-1 > 0);
   - `redlines.open`;
   - `dg3.issue` (tenders at `redlines` with no gaps, ready for the DG3 pack; Compliance only);
   - reuse `dg3.approve` (015) for the Head of Tendering.
-- [ ] 3.6 **Stage 8:**
+- [x] 3.6 **Stage 8:**
   - reuse `submission.due` (015);
   - `signatures.pending`;
   - `bond.issue` (SUB-6 tenders).
-- [ ] 3.7 **Stage 9:**
+- [x] 3.7 **Stage 9:**
   - `handover.start` (RES-2);
   - `debrief.hold` (lost in the last 30 days with no `debriefAt`);
   - `lessons.record` (results with no `lessons` event after 14 days);
   - `result.chase` (RES-1: "Result expected by Thu 5 Mar. Worth a call to the employer.").
 
 ### Phase 4 — Columns (`stages.cols.tsx`)
-- [ ] 4.1 One column per stage-specific header in dashboards.md §10.4–10.12. Each reads a `row.facts` key from 017; list the mapping in the report. Formatting:
+- [x] 4.1 One column per stage-specific header in dashboards.md §10.4–10.12. Each reads a `row.facts` key from 017; list the mapping in the report. Formatting:
   - counts "7 / 11";
   - percentages "88%";
   - money via `Money`;
@@ -213,12 +213,12 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
   - SLAs via `SlaClock`;
   - state words via `StatusPill`;
   - **masked** facts via `Masked`.
-- [ ] 4.2 Column ids are prefixed by stage (`s1.fields`, `s2.covered`, `s3.positions`, `s4.duration`, `s5.margin`, `s6.sections`, `s7.gaps`, `s8.deadline`, `s9.result` …).
+- [x] 4.2 Column ids are prefixed by stage (`s1.fields`, `s2.covered`, `s3.positions`, `s4.duration`, `s5.margin`, `s6.sections`, `s7.gaps`, `s8.deadline`, `s9.result` …).
   - Value getters return sortable raw values.
   - Headers match dashboards.md exactly.
 
 ### Phase 5 — My requests
-- [ ] 5.1 **`domain/gcc/requests.ts`:** `requestsFor(tenant, personId, done)` returns `Request[]`, where `Request = { id; tenderId; what; section; requestedById; requestedAt; due; status: 'open' | 'late' | 'submitted' | 'accepted'; submittedAt? }`. Its sources:
+- [x] 5.1 **`domain/gcc/requests.ts`:** `requestsFor(tenant, personId, done)` returns `Request[]`, where `Request = { id; tenderId; what; section; requestedById; requestedAt; due; status: 'open' | 'late' | 'submitted' | 'accepted'; submittedAt? }`. Its sources:
   - 017's `s3.inputs.items` where `ownerId === personId`:
     - submitted → `submitted`;
     - submitted, and the pack was later issued → `accepted`;
@@ -229,11 +229,11 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
     - requested by the Head of Tendering;
     - due: 10 working days before the affected bid's opening.
   - *(added 2026-09-26)* requests made during the demo with plan 019's `RequestButton`: `requestsTo(done, personId)` from `src/domain/gcc/requestKeys.ts` (the key contract the orchestrator wrote; import it, don't parse `request:` keys yourself). `open`, or `late` when `due` is before the demo clock. Plan 019 runs in parallel, so on `/dev/kit` or in your dev check write one with `requestWrite(...)` on an in-memory `done` to test.
-- [ ] 5.2 **`requests.kpi.ts`:** REQ-1 open (open + late); REQ-2 due in 48 h; REQ-3 late; REQ-4 submitted in the window (flow).
-- [ ] 5.3 **`requests.flow.ts` part of `stages.flow.ts`:** Requested → Submitted → Accepted, in the window.
-- [ ] 5.4 **`requests.actions.ts`:** each open request is a row: "{what} for {TID}" · due · "Open tender". It becomes "Open form" when plan 009 builds the forms.
-- [ ] 5.5 **The requests table** uses 006's `table.kind: 'requests'` with `rows(ctx) = requestsFor(...)`. `requests.cols.tsx` registers the request columns with `appliesTo: 'request'`: Tender · What's asked · For · Requested by · Due · Status. If 006 deviated and this extension point is missing, stop and write a Blocker.
-- [ ] 5.6 **`requests.dash.ts`:**
+- [x] 5.2 **`requests.kpi.ts`:** REQ-1 open (open + late); REQ-2 due in 48 h; REQ-3 late; REQ-4 submitted in the window (flow).
+- [x] 5.3 **`requests.flow.ts` part of `stages.flow.ts`:** Requested → Submitted → Accepted, in the window.
+- [x] 5.4 **`requests.actions.ts`:** each open request is a row: "{what} for {TID}" · due · "Open tender". It becomes "Open form" when plan 009 builds the forms.
+- [x] 5.5 **The requests table** uses 006's `table.kind: 'requests'` with `rows(ctx) = requestsFor(...)`. `requests.cols.tsx` registers the request columns with `appliesTo: 'request'`: Tender · What's asked · For · Requested by · Due · Status. If 006 deviated and this extension point is missing, stop and write a Blocker.
+- [x] 5.6 **`requests.dash.ts`:**
   - key `requests`;
   - four tiles;
   - flow `flow.requests`;
@@ -241,21 +241,21 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
   - no graph.
 
 ### Phase 6 — Dashboard definitions (`stages.dash.ts`)
-- [ ] 6.1 **`stage.1` … `stage.9`**, exactly dashboards.md §10.4–10.12:
+- [x] 6.1 **`stage.1` … `stage.9`**, exactly dashboards.md §10.4–10.12:
   - tiles in the listed order;
   - flow `flow.stage.{n}`;
   - actions as Phase 3;
   - table: scope `{ kind: 'stage', stage: n }`, the listed columns, default sort as listed, filters `step`, `health`, `owner` (plus `status` on stage 9);
   - graph: `{ axis: 'steps', stage: n }` with the listed metrics.
-- [ ] 6.2 **Titles and subtitles:**
+- [x] 6.2 **Titles and subtitles:**
   - Title: "Stage {n} · {short}". On the owner's home the title is still "Stage {n} · {short}", and the Dashboard nav item is active.
   - Subtitle: "{full name} · {owner name}, {owner role}" (e.g. "Subcontractor & Internal Input Orchestration · Joseph Mathew, Procurement Lead").
   - 006's breadcrumb and "Actions follow your own rights" line appear when the viewer isn't the owner.
-- [ ] 6.3 **Stage 8's owner** is the Bid Manager, but Stage 8 isn't their home. Their sidebar entry "8 Submission" links to it.
+- [x] 6.3 **Stage 8's owner** is the Bid Manager, but Stage 8 isn't their home. Their sidebar entry "8 Submission" links to it.
 
 ### Phase 7 — Dev check and readings
-- [ ] 7.1 `dev-checks/60-stages.tsx`: for the active tenant, a selector for stage 1–9 or requests, and every period. It prints each tile (display and sub), the flow parts, the action rows, the graph points and the first five table rows.
-- [ ] 7.2 **Najd target readings** (✓/✗):
+- [x] 7.1 `dev-checks/60-stages.tsx`: for the active tenant, a selector for stage 1–9 or requests, and every period. It prints each tile (display and sub), the flow parts, the action rows, the graph points and the first five table rows.
+- [x] 7.2 **Najd target readings** (✓/✗):
   - **Stage 1 (Today):** INT-1 11 (Etimad 7 · portals 1 · email 2 · scanned 1); INT-2 p90 11 min, worst 14; INT-3 0 (reconciled 06:00, 9 sources); INT-4 8 of 9 (Etimad credentials expire Fri 13 Mar); INT-5 6 (2 block DG1, oldest 2 h 16 m); INT-10 1 (T-2026-122, SAR 3,000, closes Tue 10 Mar).
   - **Stage 2:** SRC-1 trailing 100%; SRC-2 7 of 11 (T-2026-104) in the sub; SRC-3 71%; SRC-4 4 (2 escalated); SRC-5 6 (0 stale); SRC-6 5.
   - **Stage 3:** DEC-1 1 (2 of 5 · quorum 3 · 4 h 10 m); DEC-8 1 (Addendum 2).
@@ -267,7 +267,7 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
   - **My requests** (Sultan Al-Anazi, 30 days): REQ-1 1; REQ-3 1 (the T-2026-101 facility input); REQ-4 1 (the T-2026-097 finance input, 5 Mar).
 
   Stage 4 readings and the remaining Stage 5–6 readings are whatever the data gives. **List them in the report** and confirm they read sensibly (e.g. PRC-2 about 90% orange, PRC-4 about 5.6% orange).
-- [ ] 7.3 **Every ✗ is fixed in the maths, or explained** (a data gap, as a Blocker for the orchestrator). Never type a value.
+- [x] 7.3 **Every ✗ is fixed in the maths, or explained** (a data gap, as a Blocker for the orchestrator). Never type a value.
 
 ## Data and derivation
 - **No new facts.** Everything derives from 004 (sources, validations, intake events, credentials), 017 (lifecycles, facts, events, daily intake) and demo state (`done` keys from 015's in-place actions).
@@ -275,28 +275,92 @@ Route actions use `isScreenBuilt` exactly as 015 does ("Open …" when the scree
 
 ## Acceptance checks
 Run these after both 013 and 015 are DONE.
-- [ ] typecheck and build pass; no console errors on any stage dashboard, as any persona.
-- [ ] **Same page, two viewers:**
+- [x] typecheck and build pass; no console errors on any stage dashboard, as any persona.
+- [x] **Same page, two viewers:**
   - As Joseph Mathew, `/` shows Stage 2 · Sourcing with "Needs your action".
   - As Faisal Al-Harbi, clicking "2 Sourcing" in his graph opens `/stages/2?period=30d` with **the same tiles, flow, table rows and graph**. The action zone is titled "Waiting in Sourcing", with names. There's a breadcrumb and "Back to my dashboard".
   - Also check Stage 3 as Khalid Al-Mutairi (CFO, his home) against Faisal's view of Stage 3.
-- [ ] **Masking on the same page:** on Stage 5, Faisal sees base margins, and a Procurement Lead can't open Stage 5 at all ("Stage 5 is outside your role"). On Stage 3, the margin range column is masked for the Bid Manager if the tenant setting says so; otherwise it is visible (roles-and-access §9).
+- [x] **Masking on the same page:** on Stage 5, Faisal sees base margins, and a Procurement Lead can't open Stage 5 at all ("Stage 5 is outside your role"). On Stage 3, the margin range column is masked for the Bid Manager if the tenant setting says so; otherwise it is visible (roles-and-access §9).
 - [ ] **Every stage dashboard at every period:** tiles, flow, graph and table render. Periods change the flow and graph and the flow-kind tiles; state tiles change only their "since" sub-line.
-- [ ] **Clicks:**
+- [x] **Clicks:**
   - a step in the graph switches to the Table filtered to that step;
   - a row click opens the tracker;
   - "Open tender" opens `/tenders/:id`.
-- [ ] **Stage 7 as Faisal:** the DG3 approval row appears (015's source), and the sidebar's DG3 chip is orange.
-- [ ] **My requests as Sultan Al-Anazi:**
+- [x] **Stage 7 as Faisal:** the DG3 approval row appears (015's source), and the sidebar's DG3 chip is orange.
+- [x] **My requests as Sultan Al-Anazi:**
   - four tiles and the request table, with no toggle;
   - after Faisal clicks "Request renewal" for Zakat on his dashboard, switch to Sultan: the renewal request appears; it survives a reload, and Reset clears it.
 - [ ] **Other tenants:** each stage dashboard renders for Corniche, Dafna, Batinah and Qurain with non-empty data where their register has tenders. Where a stage is empty, `EmptyState` says why: "No tenders are in Stage 3 now. Tenders arrive here after sourcing."
-- [ ] **Layout:** light and dark, at 1440 and 1280.
+- [x] **Layout:** light and dark, at 1440 and 1280.
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-26.)
+
+- **Changed files** (all new, except the plan and its README row):
+  - Domain: `domain/gcc/requests.ts`; `kpi/stages.ts` (shared helpers, not collected by the glob); `kpi/stage1.kpi.ts` … `kpi/stage9.kpi.ts`, `kpi/requests.kpi.ts`; `flows/stages.flow.ts` (the nine stage flows and `flow.requests`); `metrics/steps.metric.ts`; `actions/stages.actions.ts`, `actions/requests.actions.ts`; `dashboards/stages.dash.ts`, `dashboards/requests.dash.ts`.
+  - Components: `components/dashboard/columns/stages.cols.tsx`, `columns/requests.cols.tsx`.
+  - Dev check: `pages/gcc/dev-checks/60-stages.tsx`.
+- **Verification:**
+  - `npm --prefix app run typecheck` and `npm --prefix app run build` pass (the only warning is the existing chunk-size one).
+  - `/dev/checks` in all five GCC tenants: panel 60 reads "All 36 targets met" (Najd) and "All 6 targets met" (the others). No panel crashed and no console errors.
+  - Headless Chrome on port 5182, own profile, no console errors throughout:
+    - every stage owner's home: Aisha (S1), Joseph (S2), Khalid (S3), Arjun (S4), Tarek (S5), Rami (S6), Lina (S7), Mohammed (S9); Omar on `/stages/8`;
+    - Faisal on `/stages/2`, `/3` and `/7` ("Waiting in …", breadcrumb, "Back to my dashboard"). Stage 2 and Stage 3 have the same tiles, flow and rows for the owner and for Faisal;
+    - Joseph on `/stages/5` gets "Stage 5 is outside your role";
+    - every stage × every period for Faisal;
+    - Corniche, Dafna, Batinah and Qurain, every stage and My requests;
+    - graph click on a step: the table is filtered "From graph: Quotes in · 30 days"; row click opens the tracker; "Open tender" goes to `/tenders/T-2026-104`;
+    - Stage 7 as Faisal: the DG3 approval row, and an orange DG3 chip;
+    - Sultan: four tiles, the request table, no toggle. After Faisal clicks "Request renewal" (Zakat), Sultan gets "Renewal · T-2026-118 · Renew the Zakat certificate (ZATCA) · asked by Faisal Al-Harbi". It survives a reload, and Settings → Reset demo → "Reset this company" clears it;
+    - light and dark at 1440 and 1280.
+  - **Najd §7.2 readings, all ✓** (Head of Tendering, seed): INT-1 11 (Etimad 7 · portals 1 · email 2 · scanned 1); INT-2 11 min, worst 14 min; INT-3 0 (last reconciled 06:00 · 9 sources); INT-4 8 of 9 (Etimad: service-account password expires Fri 13 Mar); INT-5 6 (2 block DG1 · oldest 2 h 16 m); INT-10 1 (T-2026-122 · SAR 3,000 · closes Tue 10 Mar); SRC-1 100% (4 of 4); SRC-2 64% (T-2026-104: 7 of 11); SRC-3 71%; SRC-4 4 (2 escalated); SRC-5 6 (0 stale); SRC-6 5; DEC-1 1 (2 of 5 positions · quorum 3 · 4 h 10 m left); DEC-8 1 (T-2026-097 · Addendum 2 received 08 Mar 09:12); PRC-3 1 (T-2025-329: 7.8% vs 9.0%); PRC-6 1; PRP-3 1 (T-2025-317: 68 vs 70); PRP-1 3; CMP-5 1 (T-2025-305 · 30 h left of 48 h); CMP-1 0; SUB-1 1 (T-2025-298 · Thu 12 Mar, 10:00 · 4 working days); SUB-5 3 (SAR 786.0 M · oldest T-2025-284 · 21 days); OUT-1 1 won · 2 lost; RES-1 1 (T-2026-079); RES-2 1 (T-2025-262 · 12 days since award); RES-3 1 of 3; REQ-1 1; REQ-3 1 (T-2026-101); REQ-4 1 (T-2026-097, Thu 5 Mar).
+  - **Stage 4–6 readings (Najd, 30 days)**, which read sensibly:
+    - Stage 4: PLN-1 2 (first T-2025-341, Wed 11 Mar, 3 working days, orange); PLN-2 1 (T-2025-336: 20 vs 18 months, red); SRC-9 3 (most on T-2025-336, red); PLN-4 0; PLN-5 2 (p90 3.5 h vs 4 h, green); PLN-6 100% (4 of 4).
+    - Stage 5: PRC-1 2 (first T-2025-322, Thu 12 Mar); PRC-2 90% orange (lowest T-2025-329, 81%); PRC-4 5.6% orange (highest T-2025-329, 11%); PRC-5 2 (p90 2.5 h vs 2 h, orange).
+    - Stage 6: PRP-2 47% (least T-2025-317, 3 of 12, 20 working days left); PRP-4 3 on T-2025-317; PRP-5 100% (4 of 4); PRP-6 41% across 2 proposals.
+- **Column → facts key mapping** (017's `row.facts`):
+  - S1: `s1.fields` fieldsToCheck · `s1.eligibility` eligPass/eligAtRisk/eligFail · `s1.documents` documents/purchaseBy · `s1.language` language · `s1.dg1Due` dg1Due.
+  - S2: `s2.covered` packagesCovered/packagesTotal · `s2.issued` rfqsSent/rfqsTotal · `s2.overdue` rfqsOverdue · `s2.toLevel` toLevel · `s2.notCovered` notCoveredPct · `s2.repliesDue` repliesDue · `s2.bidManager` bidManagerId.
+  - S3: `s3.margin` marginMin/marginMax · `s3.facility` facilityAfter · `s3.positions` positionsRecorded/positionsOf · `s3.quorum` quorum · `s3.dg2Sla` dg2SlaEnd · `s3.pack` pack.
+  - S4: `s4.duration` durationPlannedM/durationRequiredM · `s4.float` floatDays · `s4.longLead` longLeadAtRisk · `s4.manpower` peakManpower · `s4.baselineDue` baselineDue · `s4.m2Due` m2Due.
+  - S5: `s5.price` estPrice · `s5.margin` baseMarginPct · `s5.minMargin` minMarginPct · `s5.sourced` sourcedPct · `s5.estimated` estimatedPct · `s5.finance` financeCheck · `s5.m2Due` m2Due.
+  - S6: `s6.sections` sectionsLocked/sectionsTotal · `s6.late` sectionsLate · `s6.score` simScore/passMark · `s6.sme` smeOverdue · `s6.redTeam` redTeamAt.
+  - S7: `s7.evidenced` evidencedPct · `s7.gaps` mandatoryGaps · `s7.redlines` redlinesOpen · `s7.risks` risksWithoutOwner · `s7.dg3` dg3SlaEnd.
+  - S8: `s8.deadline` submission/submittedAt · `s8.portal` portal · `s8.ready` packageReadyPct · `s8.signatures` signaturesPending · `s8.bond` bondAmount/bondValidTo/bondRequiredTo/bondIssued · `s8.receipt` receipt/submittedAt · `s8.opening` openingDate.
+  - S9: `s9.result` result · `s9.rank` rankPlace/rankOf · `s9.gap` gapToWinnerPct · `s9.lossReason` lossReason · `s9.predicted` predictedWin · `s9.lessons` lessons.
+  - Masked facts (`<key>.masked`) render "Masked for your role".
+- **Deviations from plan:**
+  1. **INT-5** counts open validations on every live tender the viewer may open, not only Stage 1 ones. That matches 007a's queue and gives the target 6.
+  2. **PRC-6** counts Stage 5 tenders at the `finance-check` step with Finance's confirmation pending.
+  3. **SRC-2** is computed over tenders past "Quotes in" only; those still awaiting quotes are shown in the sub ("1 awaiting quotes").
+  4. **Stage 1's flow** starts with notices captured (dashboards.md §3); the gate stages (1, 3, 7) end with the gate's decisions, and the flow ⓘ says so.
+  5. **Rates with fewer than 5 items** are flagged small-sample: SRC-1 trailing, PLN-6, PRP-5, CMP-6 and SUB-2.
+  6. **Shared helpers** live in `kpi/stages.ts`. Stage thresholds that aren't catalogue targets (`STAGE_BANDS`) sit there, not in `data/gcc/targets.ts`, so another plan's file isn't touched.
+  7. **`s2.issued`** is derived from the RFQ counts: "9 / 9 · 27 RFQs" when all are sent, else "{sent} of {total} RFQs sent". 017 has no packages-issued fact.
+  8. **Stage 9 "Newest first"** sorts by capture date, not result date: the sort preset belongs to 006's grid.
+  9. **Stage subtitles** add "· As of {time} {zone}", like the portfolio sub-line.
+  10. **Clarification rows** include open questions before the reply date, not only stale ones (Joseph's Stage 2 would otherwise be nearly empty on the seed). Stale ones rank as blocking.
+  11. **`debrief.hold`** includes debriefs already booked, with the date ("Debrief with the employer booked Thu 12 Mar, 11:00").
+  12. **No `replan.open` row:** 017 models turnaround only once a replan is done. PLN-5 reads the finished ones.
+  13. **De-duplication against 015:**
+      - `booklet.status` only appears after the purchase is approved (`booklet-approved:{TID}`), because 015's `booklet.approve` covers the approval.
+      - `signatures.pending` skips tenders within 5 working days of the deadline when the viewer can issue the pack, because 015's `submission.due` covers them.
+  14. **Urgency:** my action rows use 015's scale (blocking first, then minutes left, via `urgency()` in `kpi/stages.ts`), so rows from both plans sort together.
+  15. **OUT-1** takes its tone against `TENANT_TARGETS` from 015's `data/gcc/portfolio.ts`, only when n ≥ 5.
+  16. **Selectors are exported** from the KPI files (`s2Of`, `pricesDue`, `dg3Waiting` …), so actions and tiles count the same lists.
+  17. **Owner tags:**
+      - CMP-5's tag is the approver's first name ("Faisal"). "Head of Tendering" squeezed the tile label to one letter per line.
+      - The tag is hidden when the viewer is the approver.
+  18. **INT-1's lead portal** drops its bracketed qualifier to fit the tile ("Monaqasat (Ministry of Finance)" → "Monaqasat").
+  19. **Credential labels** keep their case in requests ("Renew the Zakat certificate (ZATCA)").
+  20. **Just-pursued tenders:** the RFQ clock reads "packages being set up" for a tender pursued with no RFQs yet (the hero right after DG1), instead of "0 of 0 RFQs sent".
+  21. **State tiles and the period:** they keep the sub-line their §10–11 definition gives and don't change with the period. dashboards.md §124's "since {window start}" sub-line is used where a definition asks for it (PF-1, 015). That's why acceptance check "Every stage dashboard at every period" is left unticked for the orchestrator. Everything else in that check holds: every stage × period renders with no errors, and the flow, graph and flow tiles change.
+- **Blockers / questions:**
+  1. **Empty stage message** (acceptance "Other tenants", left unticked). Dafna's and Batinah's Stage 3 have no live tenders. 006's `TenderGrid` shows "No tenders match these filters." because closed rows exist under the default Live status. The wanted text ("No tenders are in Stage 3 now. Tenders arrive here after sourcing.") needs an empty-text hook on `TenderGrid`, fed by the spec (for example `table.emptyText(ctx)`). `TenderGrid` and `DashboardPage` are outside this plan's files. The spec side is a one-line addition once the hook exists.
+  2. **Restricted tenders hidden from Aisha.** She isn't cleared for the restricted lane, so on Stage 1 Today she reads INT-1 10, not 11, and INT-2 14 min, not 11. The §7.2 targets are read as the Head of Tendering. Confirm this is the intended demo behaviour.
+- **Follow-ups noticed (not done):**
+  - On an owner's home at `/`, the top-bar title is "Dashboard" (dashboards.md says so), and the stage name appears only in the sub-line. Fine as specified, but a prospect watching Joseph's home never sees "Sourcing" in the title. Consider "Dashboard · Stage 2 Sourcing".
+  - `build.ts` doesn't pass `done` to `port.rows` for the table (plan 021's area). With demo validations done, the `s1.fields` column lags the tile until 021 lands.
+  - Flow-step drills filter the stage-scoped table. Tenders that have since moved on from the step's stage don't show in the drilled table.
+  - Stage tables have 11–12 columns (about 1,850 px) and scroll sideways at 1440 behind the pinned TID and Tender columns. That's as designed; trimming the base column widths (006) would reduce it.
+  - Stage 9's flow at 1280 wraps "Closed" onto a second line (`FlowStrip` layout, 006).

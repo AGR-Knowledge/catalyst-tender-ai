@@ -177,12 +177,13 @@ export function overdue(tenant: string, done: Done, now = NOW): { count: number;
 export function rfqCounts(tenant: string, tenderId: string, done: Done, now = NOW) {
   const all = rfqsFor(tenant, tenderId, done);
   const rfqs = all.filter((r) => r.sentAt <= now);
-  const due = rfqs.filter((r) => r.replyBy <= now);
+  // Due at exactly 10:00 is still ahead at 10:00 (plan 021 4.5).
+  const due = rfqs.filter((r) => r.replyBy < now);
   const od = rfqs.filter((r) => isOverdue(r, now));
   /** The reply date the RFQs were issued with, before any extension; the latest when batches differ. */
   const issuedReplyBy = rfqs.map((r) => r.extendedFrom ?? r.replyBy).sort().pop();
-  /** The next reply date still ahead, after extensions, among RFQs not yet answered. */
-  const nextReplyBy = rfqs.filter((r) => !r.repliedAt && r.replyBy > now).map((r) => r.replyBy).sort()[0];
+  /** The next reply date still ahead, after extensions, among RFQs not yet answered. Due at exactly now is ahead: `isOverdue` starts after it (plan 021 4.5). */
+  const nextReplyBy = rfqs.filter((r) => !r.repliedAt && r.replyBy >= now).map((r) => r.replyBy).sort()[0];
   return {
     sent: rfqs.length,
     /** Every RFQ the tender has, seeded or sent in the demo, including any dated after `now`. */

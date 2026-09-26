@@ -79,14 +79,33 @@ export interface VersionCompare {
 
 const marginRangeText = ([lo, hi]: [number, number]) => `${lo.toFixed(1)}–${hi.toFixed(1)}%`;
 
-/** What changed between two versions, from the authored effects. Margin figures are masked unless the viewer may see them. */
-export function compareVersions(tenant: string, tenderId: string, from: number, to: number, viewer: { canSeeMargin: boolean } = { canSeeMargin: true }): VersionCompare {
-  const effects = RERUN_EFFECTS.filter((e) => e.tenant === tenant && e.tenderId === tenderId && e.fromVersion >= from && e.fromVersion < to);
+/** What a viewer may see of a pack version: `see.margin` and `see.positions` (win probability follows positions). */
+export interface VersionViewer { canSeeMargin: boolean; canSeePositions: boolean }
+
+export const MARGIN_CHANGE_MASKED = 'Margin range changed (masked for your role)';
+export const WIN_CHANGE_MASKED = 'Win probability changed (masked for your role)';
+
+/**
+ * A re-run effect as a viewer may see it (plan 021 4.9): the one mask the
+ * compare view and the pack's freshness section both use. Without
+ * `see.margin`, a 9.7 margin change loses its figures and its text; without
+ * `see.positions`, a 9.1 win change loses its text the same way.
+ */
+export function effectFor(e: RerunEffect, viewer: VersionViewer): RerunEffect {
+  const marginHidden = !viewer.canSeeMargin && (e.patch?.margin !== undefined || e.patch?.marginNote !== undefined);
+  const winHidden = !viewer.canSeePositions && e.section === '9.1' && e.changed;
+  if (!marginHidden && !winHidden) return e;
+  const { patch, ...rest } = e;
+  const { margin: _m, marginNote: _n, ...kept } = patch ?? {};
+  const change = marginHidden && e.section === '9.7' ? MARGIN_CHANGE_MASKED : winHidden ? WIN_CHANGE_MASKED : e.change;
+  return { ...rest, change, ...(Object.keys(kept).length ? { patch: kept } : {}) };
+}
+
+/** What changed between two versions, from the authored effects, masked by `effectFor`. */
+export function compareVersions(tenant: string, tenderId: string, from: number, to: number, viewer: VersionViewer = { canSeeMargin: true, canSeePositions: true }): VersionCompare {
+  const effects = RERUN_EFFECTS.filter((e) => e.tenant === tenant && e.tenderId === tenderId && e.fromVersion >= from && e.fromVersion < to).map((e) => effectFor(e, viewer));
   const sections = effects.map((e) => {
-    let change = e.change;
-    if (e.section === '9.7' && e.patch?.margin) {
-      change = viewer.canSeeMargin ? `Margin range ${marginRangeText(e.patch.margin)}: ${e.change[0].toLowerCase()}${e.change.slice(1)}` : 'Margin range changed (masked for your role)';
-    }
+    const change = e.section === '9.7' && e.patch?.margin ? `Margin range ${marginRangeText(e.patch.margin)}: ${e.change[0].toLowerCase()}${e.change.slice(1)}` : e.change;
     return { section: e.section, title: SECTION_TITLES[e.section], changed: e.changed, change };
   });
   return { from, to, sections, changed: sections.filter((s) => s.changed).map((s) => s.section) };

@@ -43,15 +43,15 @@ function flowChecks(key: GccTenantKey, k: PeriodKey): Check[] {
   if (!t) return [];
   const w = windowOf(k, key);
   const p = `${label(k)} · `;
-  const dg1 = gateEventsIn(key, w, 'DG1');
-  const dg2 = gateEventsIn(key, w, 'DG2');
-  const dg3 = gateEventsIn(key, w, 'DG3');
-  const subs = submissionsIn(key, w);
-  const res = resultsIn(key, w);
+  const dg1 = gateEventsIn(key, w, 'DG1', undefined, {});
+  const dg2 = gateEventsIn(key, w, 'DG2', undefined, {});
+  const dg3 = gateEventsIn(key, w, 'DG3', undefined, {});
+  const subs = submissionsIn(key, w, undefined, {});
+  const res = resultsIn(key, w, undefined, undefined, {});
   const ccy = GCC_DATA[key].fit.band.min.ccy;
   const avg = subs.length ? subs.reduce((s, x) => s + x.l.value.amount, 0) / subs.length : null;
   const out: Check[] = [];
-  if (t.captured !== undefined) out.push({ name: `${p}Notices captured`, expected: String(t.captured), got: String(capturesIn(key, w).captured) });
+  if (t.captured !== undefined) out.push({ name: `${p}Notices captured`, expected: String(t.captured), got: String(capturesIn(key, w, undefined, {}).captured) });
   out.push({ name: `${p}DG1 (pursue · discard · hold)`, expected: `${t.dg1.total} (${t.dg1.by.pursue} · ${t.dg1.by.discard} · ${t.dg1.by.hold})`, got: split(dg1, ['pursue', 'discard', 'hold']) });
   if (t.dg1.onTime !== undefined) out.push({ name: `${p}DG1 on time`, expected: `${t.dg1.onTime} / ${t.dg1.total}`, got: onTime(dg1) });
   out.push({ name: `${p}DG2 (bid · no-bid)`, expected: `${t.dg2.total} (${t.dg2.by.bid} · ${t.dg2.by['no-bid']})`, got: split(dg2, ['bid', 'no-bid']) });
@@ -79,7 +79,7 @@ function splitChecks(key: GccTenantKey): Check[] {
   if (key !== 'najd') return [];
   const w12 = windowOf('12m', key);
   const w90 = windowOf('90d', key);
-  const res = resultsIn(key, w12);
+  const res = resultsIn(key, w12, undefined, undefined, {});
   const won = res.filter((x) => x.r.result === 'won');
   const lost = res.filter((x) => x.r.result === 'lost');
   const out: Check[] = [];
@@ -89,10 +89,10 @@ function splitChecks(key: GccTenantKey): Check[] {
     const xs = res.filter((x) => x.r.predictedWin !== undefined && x.r.predictedWin >= b.min && x.r.predictedWin <= b.max);
     out.push({ name: `Calibration ${b.band}: bids · won`, expected: `${b.bids} · ${b.won}`, got: `${xs.length} · ${xs.filter((x) => x.r.result === 'won').length}` });
   }
-  const dg2 = gateEventsIn(key, w12, 'DG2');
+  const dg2 = gateEventsIn(key, w12, 'DG2', undefined, {});
   out.push({ name: '12 months · DG2 approved against the majority', expected: String(RESULT_SPLITS.dg2.againstMajority), got: String(dg2.filter((x) => x.g.againstMajority).length) });
   out.push({ name: '12 months · DG2 re-opened', expected: String(RESULT_SPLITS.dg2.reopened), got: String(dg2.filter((x) => x.g.reopened).length) });
-  const dg1 = gateEventsIn(key, w90, 'DG1');
+  const dg1 = gateEventsIn(key, w90, 'DG1', undefined, {});
   const overrides = dg1.filter(({ g }) => (g.decision === 'pursue' && g.recommendation === 'discard') || (g.decision === 'discard' && g.recommendation === 'pursue'));
   out.push({ name: '90 days · DG1 overrides (client relationship)', expected: `${RESULT_SPLITS.dg1.overrides} (${RESULT_SPLITS.dg1.overridesClientRelationship})`, got: `${overrides.length} (${overrides.filter((x) => x.g.reasonCodes.includes('client-relationship')).length})` });
   for (const [code, n] of Object.entries(RESULT_SPLITS.dg1.discardReasons)) {
@@ -113,11 +113,11 @@ function maskingChecks(key: GccTenantKey): Check[] {
   const S3 = 'T-2026-097';
   const S5 = 'T-2025-322';
   const sight = (p: Person) => {
-    const rows = port.rows(key, { kind: 'all' }, p, 'live');
+    const rows = port.rows(key, { kind: 'all' }, p, 'live', {});
     const r3 = rows.find((r) => r.id === S3);
     const r5 = rows.find((r) => r.id === S5);
-    const t3 = port.tracker(key, S3, p)?.now?.status ?? '';
-    const t5 = port.tracker(key, S5, p)?.now?.status ?? '';
+    const t3 = port.tracker(key, S3, p, {})?.now?.status ?? '';
+    const t5 = port.tracker(key, S5, p, {})?.now?.status ?? '';
     const shown: string[] = [];
     const hidden: string[] = [];
     const put = (ok: boolean, what: string) => (ok ? shown : hidden).push(what);
@@ -154,18 +154,18 @@ function visibilityChecks(key: GccTenantKey): Check[] {
   if (key !== 'najd') return [];
   const out: Check[] = [];
   const today = windowOf('today', key);
-  const all = capturesIn(key, today).captured;
+  const all = capturesIn(key, today, undefined, {}).captured;
   for (const [role, restricted] of [['hot', 0], ['coord', 1]] as const) {
     const p = personById(`${key}.${role}`);
     if (!p) continue;
     const n = LIVE_TARGETS[key][1] - restricted;
     const s1 = [
-      liveOf(key, p).filter((l) => currentOf(l).stage === 1).length,
-      port.rows(key, { kind: 'stage', stage: 1 }, p, 'live').length,
+      liveOf(key, p, {}).filter((l) => currentOf(l).stage === 1).length,
+      port.rows(key, { kind: 'stage', stage: 1 }, p, 'live', {}).length,
       visibleOf(key, p).filter((l) => !l.closedAt && currentOf(l).stage === 1).length,
     ].join(' · ');
     out.push({ name: `B3 · Stage 1 now for ${p.name} (liveOf · port rows · visibleOf)`, expected: `${n} · ${n} · ${n}`, got: s1 });
-    out.push({ name: `B3 · Captured today for ${p.name}`, expected: String(all - restricted), got: String(capturesIn(key, today, p).captured) });
+    out.push({ name: `B3 · Captured today for ${p.name}`, expected: String(all - restricted), got: String(capturesIn(key, today, p, {}).captured) });
   }
   return out;
 }
@@ -173,7 +173,7 @@ function visibilityChecks(key: GccTenantKey): Check[] {
 /** B4, B6, B7, B8, B11, B13, B17: references, dates, the facility and the WCWS history, every tenant. */
 function dataChecks(key: GccTenantKey): Check[] {
   const out: Check[] = [];
-  const lcs = lifecyclesOf(key);
+  const lcs = lifecyclesOf(key, undefined, {});
   const seed = LIFECYCLE_SEEDS[key];
   const cc = TENANTS.find((t) => t.key === key)!.countryCode;
 
@@ -187,13 +187,13 @@ function dataChecks(key: GccTenantKey): Check[] {
   });
   out.push({ name: 'B4 · Generated references never repeat the TID number', expected: '0', got: reused.length ? `${reused.length}: ${reused.slice(0, 3).map((l) => `${l.tenderId} ${l.source.ref}`).join(', ')}` : '0' });
   if (key === 'najd') {
-    out.push({ name: 'B4 · T-2026-097 reference (Addendum 2 base)', expected: 'WCWS/PRJ/2026/0009', got: lifecycle(key, 'T-2026-097')?.source.ref ?? '—' });
+    out.push({ name: 'B4 · T-2026-097 reference (Addendum 2 base)', expected: 'WCWS/PRJ/2026/0009', got: lifecycle(key, 'T-2026-097', {})?.source.ref ?? '—' });
     // B6: the hero's documents arrived with the intake event, not at the purchase approval.
-    const hero = lifecycle(key, HERO_ID);
+    const hero = lifecycle(key, HERO_ID, {});
     const ev = seed.intakeToday.find((e) => e.tenderId === HERO_ID && e.docType !== 'Addendum');
     out.push({ name: 'B6 · Hero documents in (intake event)', expected: ev?.receivedAt ?? '—', got: hero?.log.find((e) => e.step === 'documents-in')?.at ?? '—' });
     // B7: T-2026-079 before Founding Day.
-    const t079 = lifecycle(key, 'T-2026-079');
+    const t079 = lifecycle(key, 'T-2026-079', {});
     const dg3 = t079?.gates.find((g) => g.gate === 'DG3');
     out.push({ name: 'B7 · T-2026-079 submitted · days after DG3', expected: '2026-02-19 · 3', got: t079?.submission && dg3 ? `${t079.submission.at.slice(0, 10)} · ${Math.round(hoursBetween(dg3.at, t079.submission.at) / 24)}` : '—' });
     // B13: the WCWS client history belongs to plan 009a.
@@ -225,9 +225,9 @@ function dataChecks(key: GccTenantKey): Check[] {
 function eligibilityChecks(key: GccTenantKey): Check[] {
   const viewer = personById(`${key}.hot`);
   if (!viewer) return [];
-  const rows = port.rows(key, { kind: 'stage', stage: 1 }, viewer, 'live');
+  const rows = port.rows(key, { kind: 'stage', stage: 1 }, viewer, 'live', {});
   const out: Check[] = [];
-  for (const l of liveOf(key).filter((x) => x.facts?.stage === 1)) {
+  for (const l of liveOf(key, undefined, {}).filter((x) => x.facts?.stage === 1)) {
     const e = eligibilityFor(key, l.tenderId, {});
     if (!e) continue;
     const r = rows.find((x) => x.id === l.tenderId);
@@ -247,14 +247,14 @@ function eligibilityChecks(key: GccTenantKey): Check[] {
 function headerChecks(key: GccTenantKey): Check[] {
   const viewer = personById(`${key}.hot`);
   if (!viewer) return [];
-  const keys = new Set(port.rows(key, { kind: 'all' }, viewer, 'all').flatMap((r) => Object.keys(r.facts).filter((k) => !k.endsWith('.masked'))));
+  const keys = new Set(port.rows(key, { kind: 'all' }, viewer, 'all', {}).flatMap((r) => Object.keys(r.facts).filter((k) => !k.endsWith('.masked'))));
   const missing = [...keys].filter((k) => !column(k));
   return [{ name: `B18 · Step-fact keys with a column header (${keys.size})`, expected: 'all', got: missing.length ? `missing: ${missing.join(', ')}` : 'all' }];
 }
 
 function compute(key: GccTenantKey) {
-  const lcs = lifecyclesOf(key);
-  const live = liveOf(key);
+  const lcs = lifecyclesOf(key, undefined, {});
+  const live = liveOf(key, undefined, {});
   const checks: Check[] = [];
   const byStage = (n: number) => live.filter((l) => currentOf(l).stage === n);
   for (let n = 1; n <= 9; n++) checks.push({ name: `Live now · Stage ${n}`, expected: String((LIVE_TARGETS[key] as Record<number, number>)[n]), got: String(byStage(n).length) });
@@ -269,8 +269,8 @@ function compute(key: GccTenantKey) {
   // §12.5 for every tenant.
   const s7 = byStage(7);
   checks.push({ name: 'Stage 7 tender has a DG3 pack waiting', expected: 'yes', got: s7.length && s7.every((l) => openGate(l)?.gate === 'DG3') ? 'yes' : 'no' });
-  checks.push({ name: 'A DG1 decision in the last 7 days', expected: 'yes', got: gateEventsIn(key, windowOf('7d', key), 'DG1').length ? 'yes' : 'no' });
-  checks.push({ name: 'A result in the last 30 days', expected: 'yes', got: resultsIn(key, windowOf('30d', key)).length ? 'yes' : 'no' });
+  checks.push({ name: 'A DG1 decision in the last 7 days', expected: 'yes', got: gateEventsIn(key, windowOf('7d', key), 'DG1', undefined, {}).length ? 'yes' : 'no' });
+  checks.push({ name: 'A result in the last 30 days', expected: 'yes', got: resultsIn(key, windowOf('30d', key), undefined, undefined, {}).length ? 'yes' : 'no' });
 
   // SRC-1: RFQs out within 24 h of Pursue.
   const pursued = lcs.filter((l) => l.gates.some((g) => g.gate === 'DG1' && g.decision === 'pursue') && l.log.some((e) => e.step === 'rfqs-out'));
@@ -343,7 +343,7 @@ export default function LifecycleCheck() {
       />
       <div style={{ padding: '10px 22px 16px' }}>
         {trackerIds.map((id) => {
-          const t = port.tracker(key, id, viewer);
+          const t = port.tracker(key, id, viewer, {});
           if (!t) return <KV key={id} k={id} v="not visible" />;
           const nodes = t.nodes.map((n) => `${n.label} ${n.status === 'done' ? '✓' : n.status === 'current' ? '●' : n.status === 'stopped' ? '✕' : '○'}${n.decision ? ` ${n.decision.label}${n.decision.onTime ? '' : ` (late by ${n.decision.lateBy})`}` : ''}`).join(' · ');
           return <KV key={id} k={`${id} · ${t.health}`} v={`${nodes}${t.now ? ` — Now: ${t.now.stageLabel} · ${t.now.stepLabel} · ${t.now.status}` : ''}${t.outcome ? ` — ${t.outcome}` : ''}`} />;
@@ -351,7 +351,7 @@ export default function LifecycleCheck() {
       </div>
       {/* The port's tracker in plan 006's component: the view-model contract, rendered. */}
       {trackerIds.slice(0, 3).map((id) => {
-        const t = port.tracker(key, id, viewer);
+        const t = port.tracker(key, id, viewer, {});
         return t ? <TenderTracker key={`vm-${id}`} vm={t} focusOnOpen={false} /> : null;
       })}
     </>

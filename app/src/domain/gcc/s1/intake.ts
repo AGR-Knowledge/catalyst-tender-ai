@@ -4,6 +4,8 @@ import { HERO_DOC_KEY, HERO_EXTRACTED, HERO_FILE_NAME, HERO_ID } from '@/data/gc
 import type { IntakeDisposition, IntakeEvent, Source } from '@/data/gcc/types';
 import { moneyPair, type MoneyPair } from '@/domain/money';
 import { addHours, minutesBetween } from '@/domain/gcc/clock';
+import type { Person } from '@/data/people';
+import { lifecycle, visible } from '@/domain/gcc/lifecycle';
 import type { Done } from './done';
 import { eligibilityFor, fitScoresFor } from './eligibility';
 import { dataOf, keyDate, tenantCcy, timeOf, weightedOf } from './common';
@@ -172,21 +174,32 @@ export interface Radar {
   restrictedCount: number;
 }
 
-/** What the Tender Coordinator reads first thing: did anything come in, is anything broken, did we miss anything? */
-export function radarFor(tenant: string, viewerCleared: boolean, done: Done = {}): Radar {
+/**
+ * What the Tender Coordinator reads first thing: did anything come in, is
+ * anything broken, did we miss anything? With a `viewer`, tenders they may not
+ * open are left out of the counts and the rows, exactly as the dashboards'
+ * `capturesIn(…, viewer)` leaves them out (plan 021 4.10); without one, a
+ * restricted capture is shown masked unless `viewerCleared`.
+ */
+export function radarFor(tenant: string, viewerCleared: boolean, done: Done = {}, viewer?: Person): Radar {
   const d = dataOf(tenant);
   const ccy = tenantCcy(tenant);
+  const hidden = (e: IntakeEvent) => {
+    const l = viewer && e.tenderId ? lifecycle(tenant, e.tenderId, done) : undefined;
+    return !!l && !visible(tenant, l, viewer!);
+  };
+  const today = d.intakeToday.filter((e) => !hidden(e));
   const connectors: Connector[] = d.sources.map((s) => {
     const portal = PORTAL_KINDS.has(s.kind);
     return {
       id: s.id, name: s.name, kind: s.kind, mode: s.mode, modeLabel: MODE_LABEL[s.mode], state: s.state, stateLabel: STATE_LABEL[s.state],
       ...(s.note ? { note: s.note } : {}), lastPoll: s.lastPoll,
-      newToday: d.intakeToday.filter((e) => e.sourceId === s.id && isNew(e)).length,
+      newToday: today.filter((e) => e.sourceId === s.id && isNew(e)).length,
       loginNeeded: portal && s.mode !== 'api',
       ...(portal && s.mode === 'assisted' ? { assistedText: ASSISTED_TEXT } : {}),
     };
   });
-  const captures: Capture[] = [...d.intakeToday].sort((a, b) => a.receivedAt.localeCompare(b.receivedAt)).map((e) => {
+  const captures: Capture[] = [...today].sort((a, b) => a.receivedAt.localeCompare(b.receivedAt)).map((e) => {
     const t = register(tenant, e.tenderId);
     const restricted = e.disposition === 'restricted' || !!t?.restricted;
     const masked = restricted && !viewerCleared;
@@ -210,7 +223,7 @@ export function radarFor(tenant: string, viewerCleared: boolean, done: Done = {}
   const healthy = connectors.filter((c) => c.state === 'healthy').length;
   return {
     connectors, healthy, healthText: `${healthy} of ${connectors.length} healthy`,
-    captures, newToday: d.intakeToday.filter(isNew).length,
+    captures, newToday: today.filter(isNew).length,
     reconciliation: `Last reconciliation ${timeOf(d.reconciliation.at)}. ${d.reconciliation.missed} missed across ${d.reconciliation.sources} sources.`,
     restrictedCount: captures.filter((c) => c.restricted).length,
   };

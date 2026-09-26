@@ -1,0 +1,126 @@
+/* ───────── Tender Workspace (plan 019, ui-direction §5 C2) ───────── */
+
+/* Sticky header: identity, track, due, owner, then the tabs. It runs edge to edge of the content column. */
+.wsh {
+  position: sticky; top: var(--header-h); z-index: 15;
+  margin: -28px calc(-1 * var(--gutter)) var(--gap); padding: 12px var(--gutter) 0;
+  background: var(--glass); -webkit-backdrop-filter: saturate(180%) blur(14px); backdrop-filter: saturate(180%) blur(14px);
+  border-bottom: 1px solid var(--line);
+}
+.wsh .tabs { border-bottom: 0; margin: 8px -12px 0; }
+.wsh-crumb { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 12px; }
+.wsh-back { display: inline-flex; align-items: center; gap: 2px; color: var(--ink-3); font-size: 12px; }
+.wsh-back:hover { color: var(--ink); }
+.wsh-stage { color: var(--ink-3); padding-left: 10px; border-left: 1px solid var(--line); }
+
+.wsh-l1 { display: flex; align-items: center; gap: 10px 14px; min-width: 0; }
+.wsh-id { display: inline-flex; align-items: center; gap: 7px; flex: none; }
+.wsh-flag { font-size: 17px; line-height: 1; }
+.wsh-tid { font-size: 13px; font-weight: 500; color: var(--ink-2); padding: 2px 7px; border-radius: 5px; background: var(--surface-active); }
+.wsh-title {
+  flex: 1 1 auto; min-width: 0; margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.35px; line-height: 1.25; color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.wsh-badges { display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.wsh-badge {
+  display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 11.5px; font-weight: 500; line-height: 18px;
+  padding: 0 7px; border-radius: 4px; background: var(--cyan-soft); color: var(--ink-2);
+}
+.wsh-badge.restricted { background: var(--orange-soft); }
+.wsh-value { display: inline-flex; flex-direction: column; align-items: flex-end; flex: none; line-height: 1.2; }
+.wsh-value .money { font-size: 19px; font-weight: 600; letter-spacing: -0.3px; }
+.wsh-vnote { font-size: 11.5px; color: var(--ink-3); }
+
+.wsh-l2 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 12.5px; color: var(--ink-3); }
+.wsh-who { min-width: 0; max-width: 34%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wsh-owner { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.wsh-owner b { font-weight: 600; color: var(--ink-2); }
+.wsh-due { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.wsh-dk { font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-4); }
+.wsh-due .num { color: var(--ink); font-weight: 500; }
+.wsh-cd { color: var(--ink-3); }
+.wsh-due.near .wsh-cd { color: var(--red); font-weight: 500; }
+
+/* The compact stage track: S1 · DG1 · S2 · S3 · DG2 · S4 … later stages muted. */
+.wsh-track { display: inline-flex; align-items: center; list-style: none; margin: 0; padding: 0; gap: 0; }
+.wsh-track li { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px; position: relative; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
+.wsh-track li + li::before { content: ''; position: absolute; left: -3px; width: 6px; height: 1px; background: var(--line-strong); }
+.wsh-dot { width: 13px; height: 13px; border-radius: 50%; display: grid; place-items: center; font-size: 8px; font-family: var(--font-sans); border: 1px solid var(--line-strong); color: var(--surface); flex: none; }
+.wsh-track .k-gate .wsh-dot { border-radius: 3px; transform: rotate(45deg); width: 10px; height: 10px; }
+.wsh-track .k-gate .wsh-dot { font-size: 0; }
+.wsh-track .s-done .wsh-dot { background: var(--green); border-color: var(--green); }
+.wsh-track .s-done { color: var(--ink-2); }
+.wsh-track .s-current .wsh-dot { background: var(--brand, var(--ink)); border-color: var(--brand, var(--ink)); font-size: 6px; }
+.wsh-track .s-current { color: var(--ink); font-weight: 600; }
+.wsh-track .s-stopped .wsh-dot { background: var(--red); border-color: var(--red); }
+.wsh-track .s-stopped { color: var(--red); }
+.wsh-track .muted { color: var(--ink-5); }
+.wsh-track .muted .wsh-dot { border-color: var(--line); }
+
+/* Main 8/12, rail 4/12 at 1280 px and wider; below, the rail goes under the content. */
+.ws-grid { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1280px) {
+  .ws-grid { grid-template-columns: minmax(0, 8fr) minmax(300px, 4fr); }
+
+}
+.ws-main:focus { outline: none; }
+.ws-tab { display: grid; gap: var(--gap); }
+.ws-two { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.ws-kv { padding: 4px 22px 14px; }
+.ws-kv .kv .v { max-width: 64%; }
+.ws-src { display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; }
+.ws-activity { padding: 2px 22px 10px; }
+.ws-activity .audit-e + .audit-e { border-top: 1px solid var(--line-3); }
+.ws-flag { font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 7px; border-radius: 4px; background: var(--orange-soft); color: var(--ink); }
+.ws-lede { margin: 0; padding: 0 22px 6px; font-size: 13px; color: var(--ink-3); }
+.ws-days { padding: 0 22px 12px; }
+.ws-day + .ws-day { margin-top: 6px; }
+.ws-dayh { position: sticky; top: 0; margin: 10px 0 2px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.3px; color: var(--ink-3); text-transform: uppercase; }
+.ws-day .audit-e + .audit-e { border-top: 1px solid var(--line-3); }
+
+/* The rail */
+.rl { display: grid; gap: 16px; }
+.rl-sec { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 12px 14px; box-shadow: var(--shadow-card); }
+.rl-h { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.rl-h2 { margin: 12px 0 6px; font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
+.rl-n { font-size: 11px; font-weight: 600; line-height: 17px; padding: 0 6px; border-radius: var(--radius-pill); background: var(--orange-soft); color: var(--ink); }
+.rl-empty { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.rl-stack { display: grid; gap: 8px; }
+.rl-acts { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.rl-act { padding: 9px 10px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); background: var(--surface-2); }
+.rl-act.done { opacity: 0.85; }
+.rl-act-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.rl-what { font-size: 12.5px; color: var(--ink-2); margin-top: 5px; line-height: 1.45; }
+.rl-wait { font-size: 11.5px; color: var(--ink-3); margin-top: 3px; }
+.rl-act-b { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin-top: 7px; }
+.rl-why { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.rl-done { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; }
+.rl-due-t { font-size: 12px; }
+.rl-dates { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; }
+.rl-dates li { display: grid; grid-template-columns: 1fr auto; gap: 1px 10px; align-items: baseline; font-size: 12.5px; }
+.rl-dl { color: var(--ink-2); font-weight: 500; }
+.rl-dates .when { grid-column: 1; }
+.rl-dates .when .num { font-size: 12px; color: var(--ink-3); }
+.rl-dcd { grid-column: 2; grid-row: 1; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.rl-flagline { grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-2); line-height: 1.4; padding-left: 8px; border-left: 2px solid var(--orange); margin-top: 2px; }
+.rl-more { margin-top: 10px; font-size: 12.5px; }
+.rl-dec-t { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; font-weight: 500; }
+.rl-dec-b { display: grid; gap: 3px; }
+.rl-flag { justify-self: start; font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 7px; border-radius: 4px; background: var(--orange-soft); color: var(--ink); }
+.rl .rec-card { box-shadow: var(--shadow-lift); }
+
+@media (max-width: 1100px) {
+  .wsh-who { max-width: none; }
+}
+@media (max-width: 760px) {
+  .wsh { margin-top: -18px; }
+  .wsh-l1 { flex-wrap: wrap; }
+  .wsh-title { flex-basis: 100%; order: 3; white-space: normal; }
+  .wsh-value { align-items: flex-start; }
+}
+
+/* The sticky header already names the tender, its value and health: the tracker's own heading is not repeated. */
+.ws-tab .tt > .tt-head { display: none; }
+.ws-kv .thr { white-space: normal; flex-wrap: wrap; justify-content: flex-end; row-gap: 2px; }
+.ws-kv .thr-t { text-align: right; }
+.rl-act-b:empty { display: none; }

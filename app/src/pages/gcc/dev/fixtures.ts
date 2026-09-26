@@ -356,3 +356,24 @@ export const EXPECTED_WINDOWS: Record<string, { w: [string, string]; p: [string,
   '90d': { w: ['2025-12-09', '2026-03-08'], p: ['2025-09-10', '2025-12-08'] },
   '12m': { w: ['2025-03-09', '2026-03-08'], p: ['2024-03-09', '2025-03-08'] },
 };
+
+/* ------------------------------------------------------- kit part 2 (plan 019) */
+
+/** Source chips of every kind, as a caller would pass them. */
+export const FIXTURE_SOURCES: { label: string; kind: 'page' | 'addendum' | 'credential' | 'project' | 'calc' | 'quote' | 'input'; page?: number; detail?: string; terms?: string[] }[] = [
+  { kind: 'page', label: 'p. 12', page: 12, terms: ['1%'] },
+  { kind: 'addendum', label: 'add.2 p. 3', page: 3 },
+  { kind: 'credential', label: 'Cred: GOSI', detail: 'GOSI certificate, valid to 14 Apr 2026' },
+  { kind: 'project', label: 'Proj: Qatif STP', detail: 'Completed 2023, 120,000 m³/day, tertiary treatment' },
+  { kind: 'quote', label: 'Q-0412', detail: 'Pumps package, received Thu 5 Mar' },
+  { kind: 'input', label: 'Input: Finance', detail: 'Bond headroom, requested from Finance / Treasury' },
+  { kind: 'calc', label: 'Calc: fit model', detail: 'Nine weighted criteria from Administration › Fit model & rules' },
+];
+
+export const FIXTURE_OVERRIDDEN = { name: 'Faisal Al-Harbi', at: 'Sun 8 Mar 10:42', choice: 'Pursue', reason: 'Strategic client: we would bid as a JV with a classified partner.' };
+
+export const FIXTURE_AUDIT = [
+  { key: 'a1', actor: { name: 'Omar Siddiqui', role: 'Bid Manager' }, at: '2026-03-08T10:42', action: 'DG1 decision recorded', chip: { label: 'Pursue', tone: 'green' as const }, detail: 'On time (within 24 h) · Recommendation: Pursue with conditions' },
+  { key: 'a2', actor: { name: 'Aisha Al-Qahtani', role: 'Tender Coordinator' }, at: '2026-03-08T10:31', action: 'Field corrected', before: '2%', after: '1%', detail: 'Initial guarantee rate: §41 on p. 12 prevails over §77' },
+  { key: 'a3', actor: { name: 'Intake & Extraction agent', role: null }, at: '2026-03-08T07:44', action: 'Captured from Etimad', detail: 'Reference ECWS/PRJ/2026/0147', system: true },
+];

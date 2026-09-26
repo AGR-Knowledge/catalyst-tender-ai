@@ -11,8 +11,9 @@ import type { SeededPosition } from './types';
 export const SEEDED_POSITIONS: SeededPosition[] = [
   {
     tenant: 'najd', tenderId: 'T-2026-097', seat: 'cfo', stance: 'conditions',
-    comment: 'Keep the bid bond within the facility; minimum margin 9%',
-    conditions: ['Keep the bid bond within the facility; minimum margin 9%'],
+    comment: 'Keep the bid bond within the facility; see my margin condition',
+    conditions: ['Keep the bid bond within the facility'],
+    marginConditions: ['minimum margin 9%'],
     at: '2026-03-07T18:40', byId: 'najd.member.cfo',
   },
   { tenant: 'najd', tenderId: 'T-2026-097', seat: 'technical', stance: 'support', at: '2026-03-08T08:15', byId: 'najd.member.technical' },

@@ -52,7 +52,7 @@ export const isScreenBuilt = (path: string): boolean => !!SCREENS[path.split('?'
 /** The top-bar title and line for a GCC path, or null when no such page exists. */
 export function screenHead(pathname: string): { title: string; sub?: string } | null {
   const path = pathname.replace(/\/+$/, '') || '/';
-  if (path === '/') return { title: 'Dashboard' };
+  if (path === '/' || path === '/dashboard') return { title: 'Dashboard' };
   if (path === '/requests') return { title: 'My requests', sub: 'Everything the bid teams are waiting for from you.' };
   const stage = /^\/stages\/(\d+)$/.exec(path);
   if (stage) {
@@ -60,7 +60,8 @@ export function screenHead(pathname: string): { title: string; sub?: string } | 
     return s ? { title: `Stage ${s.n} · ${s.short}`, sub: s.full } : null;
   }
   const tender = /^\/tenders\/([^/]+)$/.exec(path);
-  if (tender) return { title: decodeURIComponent(tender[1]), sub: 'Tender summary' };
+  // The page header carries the tender's identity; the top bar names the place (019 review).
+  if (tender) return { title: 'Tender workspace', sub: 'Documents, requirements, sourcing and decisions for one bid.' };
   if (import.meta.env.DEV && path === '/dev/checks') return { title: 'Dev checks', sub: 'Tenant foundation, people and seed data. Development only.' };
   if (import.meta.env.DEV && path === '/dev/kit') return { title: 'Kit preview', sub: 'Every dashboard component on fixture data. Development only.' };
   const screen = SCREENS[path];

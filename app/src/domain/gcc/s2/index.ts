@@ -6,7 +6,7 @@
 
 export * from './done';
 export {
-  tenantOf, suppliersOf, supplierOf, supplierName, registerRow, s2TenderOf, heroS2, liveS2Tenders, pursueOf, requiredValidityDays, bidCcy,
+  tenantOf, suppliersOf, supplierOf, supplierName, registerRow, s2TenderOf, heroS2, liveS2Tenders, pursueOf, NOT_PURSUED, requiredValidityDays, bidCcy,
   addWorkingDays, sentSupplierIds, type S2Tenant, type Pursue,
 } from './context';
 export * from './packaging';

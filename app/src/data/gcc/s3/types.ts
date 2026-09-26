@@ -188,6 +188,8 @@ export interface SeededPosition {
   comment?: string;
   /** As the member wrote them; the domain splits each on ";". */
   conditions?: string[];
+  /** Conditions that state a margin figure, kept apart so they can be masked for people without `see.margin` (plan 021 4.6). */
+  marginConditions?: string[];
   at: string;
   byId: string;
 }

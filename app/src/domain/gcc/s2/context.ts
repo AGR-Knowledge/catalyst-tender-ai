@@ -131,6 +131,9 @@ export function pursueOf(tenant: string, tenderId: string, done: Done): Pursue |
   return { at: current.at, byId: current.byId, source, ...(procId ? { procId } : {}) };
 }
 
+/** What a Stage 2 write says when the pursue behind it no longer stands (plan 021 4.4). */
+export const NOT_PURSUED = 'This tender is no longer pursued (DG1 was re-opened).';
+
 /**
  * Tenders being sourced now, with a Stage 2 record: Stage 2 in the register,
  * or pursued in the demo, while the pursue stands. A DG1 re-open takes a

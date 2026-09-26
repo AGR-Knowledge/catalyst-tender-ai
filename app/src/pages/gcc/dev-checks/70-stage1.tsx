@@ -12,6 +12,9 @@ import {
   DISCARD_REASONS, dg1PackFor, dg1Queue, dg1RecordFor, dg1Reopen, dg1Write, reasonLabel, rollupReason, stageOverlay, validateDg1, type Dg1Decision,
 } from '@/domain/gcc/dg1';
 import { shortWhen } from '@/domain/gcc/s1/common';
+import { capturesIn } from '@/domain/gcc/lifecycle';
+import { windowOf } from '@/domain/gcc/period';
+import { personById } from '@/data/people';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -139,6 +142,16 @@ const EXPECT: Record<string, string> = {
   'C9: hero bond validity': 'Valid 90 days from opening (to Sat 8 Aug) · stated',
   'C11: DG1 pack capacity window': 'Today to submission (8 Mar – 10 May): 61% → 79%',
   'C11: triage capacity window': 'Next 4 weeks (8 Mar – 4 Apr): 78% → 96% with the hero',
+
+  // Plan 021, phase 4 (rule fixes)
+  '4.1: Pursue → Re-open → Pursue': 'S2 · not in queue · round 2 · previous 1',
+  '4.1: Discard → Re-open → Discard': 'closed · not in queue · round 2 · previous 1',
+  // Orchestrator review: the company leads first; Rafid still lacks the KSA registrations every JV member needs.
+  '4.2: Najd Pursue in a JV with Rafid, no note': 'Add a note: in a JV with Rafid Process Engineering, 11 PQ lines still fail.',
+  '4.2: Najd Pursue in a JV with Rafid, with a note': 'valid',
+  '4.3: Corniche Discard (capacity), fields open, audit': '2 fields still open',
+  '4.3: Corniche Discard (PQ fail), fields open, audit': '2 fields still open, which cannot change a PQ fail',
+  '4.10: Coordinator, radar and captures today': 'radar 10 · captures 10',
 };
 
 // ---------------------------------------------------------------------------
@@ -344,6 +357,45 @@ function reviewFixes(): Check[] {
   return out;
 }
 
+/** Plan 021 phase 4: the rule fixes from the 020 review, through the rules' own functions. */
+function plan021(): Check[] {
+  const s = 'Plan 021 fixes';
+  const out: Check[] = [];
+  const add = (name: string, got: string) => out.push({ section: s, name, got });
+  const k = 'najd';
+  const verdict = (v: { ok: boolean; errors: string[] }) => (v.ok ? 'valid' : v.errors.join(' '));
+  // 4.1: the same decision twice, with a re-open between, is a new round.
+  const round = (d: Done) => {
+    const r = dg1RecordFor(k, H, d);
+    return `${stageOverlay(k, H, d)?.stage ?? '—'} · ${dg1Queue(k, d).some((x) => x.tenderId === H) ? 'in queue' : 'not in queue'} · round ${r.round} · previous ${r.previous.length}`;
+  };
+  const again = (d0: Done, input: Parameters<typeof dg1Write>[0]) => {
+    const d1 = put(d0, dg1Write(input, 'najd.bid', dg1PackFor(k, H, d0)!, d0).writes);
+    const d2 = put(d1, dg1Reopen(k, H, 'Re-checked with the Water team', 'najd.hot', d1).writes);
+    return put(d2, dg1Write(input, 'najd.bid', dg1PackFor(k, H, d2)!, d2).writes);
+  };
+  const base = resolveBoth(k, 'najd.coord');
+  add('4.1: Pursue → Re-open → Pursue', round(again(base, { tenderId: H, decision: 'pursue' })));
+  add('4.1: Discard → Re-open → Discard', round(again(base, { tenderId: H, decision: 'discard', reasonCodes: ['capacity'] })));
+  // 4.2: a partner the recommendation didn't name must clear the PQ, or the note says why.
+  const pack = dg1PackFor(k, H, base)!;
+  const rafid = { kind: 'jv' as const, partnerId: 'rafid', shares: [60, 40] as [number, number] };
+  add('4.2: Najd Pursue in a JV with Rafid, no note', verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid }, pack, base)));
+  add('4.2: Najd Pursue in a JV with Rafid, with a note',
+    verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid, note: 'Rafid leads the process design only' }, pack, base)));
+  // 4.3: the PQ-fail wording only with a PQ-fail reason.
+  const packC = dg1PackFor('corniche', H, {})!;
+  const openText = (code: string) =>
+    (dg1Write({ tenderId: H, decision: 'discard', reasonCodes: [code] }, 'corniche.bid', packC).audit[0]?.detail ?? '').split('; ').find((x) => x.includes('still open')) ?? '—';
+  add('4.3: Corniche Discard (capacity), fields open, audit', openText('capacity'));
+  add('4.3: Corniche Discard (PQ fail), fields open, audit', openText('pq-fail-classification'));
+  // 4.10: the radar leaves out what the viewer may not open, as capturesIn does.
+  const coord = personById('najd.coord')!;
+  add('4.10: Coordinator, radar and captures today',
+    `radar ${radarFor(k, false, {}, coord).newToday} · captures ${capturesIn(k, windowOf('today', k), coord, {}).captured}`);
+  return out;
+}
+
 /** The active tenant's own readings (info). */
 function tenantInfo(k: GccTenantKey): Check[] {
   const s = 'This tenant';
@@ -367,7 +419,7 @@ export default function Stage1Check() {
 
   // Targets are keyed by name; the active tenant's readings are info only.
   const checks = [
-    ...[...fiveAnswers(), ...(key === 'najd' ? [...najdSeed(), ...flows(), ...reviewFixes()] : [])].map((c) => ({ ...c, expected: EXPECT[c.name] })),
+    ...[...fiveAnswers(), ...(key === 'najd' ? [...najdSeed(), ...flows(), ...reviewFixes(), ...plan021()] : [])].map((c) => ({ ...c, expected: EXPECT[c.name] })),
     ...tenantInfo(key).map((c) => ({ ...c, expected: undefined as string | undefined })),
   ];
   const targeted = checks.filter((c) => c.expected !== undefined);

@@ -29,7 +29,7 @@ import { useWorld } from '@/domain/tenancy';
  */
 const DashboardRoute = lazy(() => import('@/pages/gcc/DashboardRoute'));
 const StageRoute = lazy(() => import('@/pages/gcc/StageRoute'));
-const TenderSummary = lazy(() => import('@/pages/gcc/TenderSummary'));
+const Workspace = lazy(() => import('@/pages/gcc/workspace/Workspace'));
 const GccPending = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/GccPending').then((m) => ({ default: m.GccPending }))) : null;
 const KitPreview = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/dev/KitPreview')) : null;
 
@@ -132,7 +132,7 @@ export function App() {
               {/* GCC (dashboards.md §8) */}
               <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
               <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
-              <Route path="tenders/:id" element={<GccOnly>{lazyEl(<TenderSummary />)}</GccOnly>} />
+              <Route path="tenders/:id" element={<GccOnly>{lazyEl(<Workspace />)}</GccOnly>} />
               {screenRoutes()}
               {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
               {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}

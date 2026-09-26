@@ -38,10 +38,10 @@
 .kt.tone-red { border-left-color: var(--red); }
 .kt.tone-orange { border-left-color: var(--orange); }
 .kt.tone-green { border-left-color: var(--green); }
-.kt-head { position: relative; z-index: 1; display: flex; align-items: center; gap: 2px; min-height: 24px; pointer-events: none; }
+.kt-head { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; min-height: 24px; pointer-events: none; }
 .kt-head .info-btn { pointer-events: auto; }
 /* The label wraps to a second line rather than losing words beside an owner tag. */
-.kt-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; min-width: 0; line-height: 1.3; overflow-wrap: anywhere; }
+.kt-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; min-width: auto; line-height: 1.3; overflow-wrap: break-word; }
 .kt-owner { margin-left: auto; pointer-events: auto; font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 16px; white-space: nowrap; }
 .kt-body, .kt-hit { display: block; width: 100%; text-align: left; margin-top: 6px; }
 .kt-value {

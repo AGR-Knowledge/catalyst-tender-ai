@@ -23,7 +23,10 @@ export interface PositionVM {
   stance: Stance;
   stanceLabel: string;
   comment?: string;
+  /** Every condition the member wrote, margin ones last. */
   conditions?: string[];
+  /** The conditions that state a margin figure (plan 021 4.6): masked for people without `see.margin`. */
+  marginConditions?: string[];
   coi?: { declared: true; text: string };
   at: string;
   byId: string;
@@ -78,18 +81,21 @@ export function positionsFor(tenant: string, tenderId: string, done: Done): Posi
     const seed = SEEDED_POSITIONS.find((p) => p.tenant === tenant && p.tenderId === tenderId && p.seat === seat);
     const raw: Dg2PositionValue | null = saved ?? (seed ? {
       stance: seed.stance, ...(seed.comment ? { comment: seed.comment } : {}), ...(seed.conditions ? { conditions: seed.conditions } : {}),
+      ...(seed.marginConditions ? { marginConditions: seed.marginConditions } : {}),
       packVersion: 1, round: 1, at: seed.at, byId: seed.byId,
     } : null);
     const base = { seat, personId: person?.id ?? '', name: person?.name ?? SEAT_LABEL[seat], label };
     if (!raw) return base;
     const onOlder = issuedVersion !== null && raw.packVersion < issuedVersion;
     const posRound = raw.round ?? 1;
+    const conditions = [...(raw.conditions ?? []), ...(raw.marginConditions ?? [])];
     return {
       ...base,
       position: {
         stance: raw.stance, stanceLabel: STANCE_LABEL[raw.stance],
         ...(raw.comment ? { comment: raw.comment } : {}),
-        ...(raw.conditions?.length ? { conditions: raw.conditions } : {}),
+        ...(conditions.length ? { conditions } : {}),
+        ...(raw.marginConditions?.length ? { marginConditions: raw.marginConditions } : {}),
         ...(raw.coi ? { coi: raw.coi } : {}),
         at: raw.at, byId: raw.byId, packVersion: raw.packVersion,
         onOlderVersion: onOlder, ...(onOlder ? { versionText: `on v${raw.packVersion}` } : {}),
@@ -118,6 +124,8 @@ export interface PositionInput {
   stance: Stance;
   comment?: string;
   conditions?: string[];
+  /** Conditions that state a margin figure (plan 021 4.6), kept apart from `conditions` so they can be masked. */
+  marginConditions?: string[];
   /** A declared conflict of interest: the position becomes Abstain. */
   coi?: { text: string };
   /** The pack version the member read (`PositionsVM.issuedVersion`). */
@@ -134,12 +142,13 @@ export function positionWrite(tenderId: string, seat: Seat, input: PositionInput
   const comment = input.comment?.trim() || coiText || '';
   if (stance !== 'support' && !comment) return { error: 'Add a comment: it is needed for any position other than Support' };
   const conditions = (input.conditions ?? []).map((c) => c.trim()).filter(Boolean);
-  if (stance === 'conditions' && !conditions.length) return { error: 'Add at least one condition for Support with conditions' };
+  const marginConditions = (input.marginConditions ?? []).map((c) => c.trim()).filter(Boolean);
+  if (stance === 'conditions' && !conditions.length && !marginConditions.length) return { error: 'Add at least one condition for Support with conditions' };
 
   const value: Dg2PositionValue = {
     stance,
     ...(comment ? { comment } : {}),
-    ...(stance === 'conditions' ? { conditions } : {}),
+    ...(stance === 'conditions' ? { conditions, ...(marginConditions.length ? { marginConditions } : {}) } : {}),
     ...(input.coi ? { coi: { declared: true as const, text: coiText! } } : {}),
     packVersion: input.packVersion,
     round: input.round ?? 1,

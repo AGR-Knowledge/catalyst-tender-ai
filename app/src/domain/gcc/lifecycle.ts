@@ -3,6 +3,7 @@ import { can } from '@/data/access';
 import { personById, type Person } from '@/data/people';
 import { INTAKE_DAILY, LIFECYCLES, gccData, isGccTenantKey } from '@/data/gcc';
 import { NEAR_WD, SLA_AT_RISK_SHARE, GATE_SLA_HOURS } from '@/data/gcc/targets';
+import { GATE_AFTER } from '@/data/gcc/stages';
 import { NOW, hoursBetween, plusHours } from '@/data/gcc/lifecycle/chain';
 import { isNewNotice } from '@/data/gcc/lifecycle/intake';
 import type { GateKind, GateRecord, IntakeDay, Lifecycle, Result, S1Facts, StageEntry, StepFacts, Submission, WorkEvent } from '@/data/gcc/lifecycle';
@@ -10,6 +11,7 @@ import type { Team } from '@/data/gcc/types';
 import { DEMO_TODAY, workingDaysBetween } from '@/domain/calendar';
 import { eligibilityFor } from '@/domain/gcc/s1/eligibility';
 import { freshnessFor } from '@/domain/gcc/s3/freshness';
+import { applyDemo } from './demo';
 import { inWindow, type PeriodWindow } from './period';
 import type { Health } from './viewmodels';
 
@@ -31,12 +33,68 @@ type Win = Pick<PeriodWindow, 'from' | 'to'>;
 /** The tenant's demo actions (`store.done`). Queries take it last and optional; without it they read the seed. */
 export type DemoDone = Readonly<Record<string, string>>;
 
+const SEED_DONE: DemoDone = Object.freeze({});
+
+/** No demo actions: missing, or an empty map (the store gives a fresh `{}` after Reset). */
+const isSeed = (done?: DemoDone): boolean => {
+  for (const _ in done) return false;
+  return true;
+};
+
+const MERGED = new Map<string, WeakMap<DemoDone, Lifecycle[]>>();
+
+/** The demo state each merged lifecycle was built with, so a reading of it (eligibility, staleness, health) uses the same state. */
+const DONE_OF = new WeakMap<Lifecycle, DemoDone>();
+
 /**
- * Every lifecycle of the tenant. `_done` is the demo state: plan 021 merges it
- * in (`withDemoState`), so a gate recorded in a screen shows on every
- * dashboard. Until then the seed is returned as it is.
+ * The demo state a lifecycle carries: the `done` it was merged with (plan
+ * 021), or the seed's for a seed lifecycle. Helpers that take a lifecycle and
+ * an optional `done` default to it, so a caller holding a merged lifecycle
+ * can't read it against the seed by mistake.
  */
-const allOf = (tenant: string, _done?: DemoDone): Lifecycle[] => (isGccTenantKey(tenant) ? LIFECYCLES[tenant] : []);
+export const demoDoneOf = (l: Lifecycle): DemoDone => DONE_OF.get(l) ?? SEED_DONE;
+
+/**
+ * Every lifecycle of the tenant, with the demo actions merged in (plan 021):
+ * a gate recorded in a screen shows on every dashboard, and Reset returns the
+ * seed. With no `done`, or an empty one, it is the seed array itself. Otherwise
+ * each lifecycle goes through the appliers (`domain/gcc/demo`); the result is
+ * memoised on the `done` object's identity, and every lifecycle in it is a
+ * copy that carries that `done` (`demoDoneOf`).
+ */
+function allOf(tenant: string, done?: DemoDone): Lifecycle[] {
+  if (!isGccTenantKey(tenant)) return [];
+  const seed = LIFECYCLES[tenant];
+  if (isSeed(done)) return seed;
+  let memo = MERGED.get(tenant);
+  if (!memo) MERGED.set(tenant, (memo = new WeakMap()));
+  const hit = memo.get(done!);
+  if (hit) return hit;
+  const merged = seed.map((l) => {
+    const m = applyDemo(tenant, l, done!);
+    const out = m === l ? { ...l } : m;
+    DONE_OF.set(out, done!);
+    return out;
+  });
+  memo.set(done!, merged);
+  return merged;
+}
+
+/**
+ * The gate decision that stands (plan 021). A re-opened record stays in the
+ * history, marked `reopened`; it stops standing once the tender is back at
+ * the gate or a later record follows it. On a live tender a Hold never
+ * stands: DG1 keeps its SLA running while a person is asked for information.
+ * The seed's re-opened records (plan 004's history) are on tenders past the
+ * gate, and its holds on closed tenders, so seed readings are unchanged.
+ */
+export function standingGate(l: Lifecycle, gate: GateKind): GateRecord | undefined {
+  const xs = l.gates.filter((g) => g.gate === gate);
+  if (l.closedAt) return [...xs].reverse().find((g) => !g.reopened) ?? xs[0];
+  const back = currentOf(l).stage <= GATE_AFTER[gate];
+  const standing = xs.filter((g, i) => g.decision !== 'hold' && !(g.reopened && (back || i < xs.length - 1)));
+  return standing[standing.length - 1];
+}
 
 /** The `can()` context for a lifecycle: its Bid Manager, sector, invited people (from the register) and lane. */
 export const tenderCtx = (tenant: string, l: Lifecycle) => ({
@@ -148,7 +206,7 @@ export function capturesIn(tenant: string, w: Win, viewer?: Person, done?: DemoD
   }
   const recon = gccData(tenant).reconciliation;
   if (inWindow(recon.at, w)) c.missed += recon.missed;
-  c.screened += lifecyclesOf(tenant, viewer).filter((l) => inWindow(l.capturedAt, w) && l.capturedAt.slice(0, 10) === DEMO_TODAY && l.log.some((e) => e.step === 'screened')).length;
+  c.screened += lifecyclesOf(tenant, viewer, done).filter((l) => inWindow(l.capturedAt, w) && l.capturedAt.slice(0, 10) === DEMO_TODAY && l.log.some((e) => e.step === 'screened')).length;
   return c;
 }
 
@@ -182,7 +240,7 @@ export function openGate(l: Lifecycle, now = NOW): OpenGate | null {
   if (l.closedAt) return null;
   const cur = currentOf(l);
   const f = l.facts;
-  const decided = (g: GateKind) => l.gates.some((x) => x.gate === g);
+  const decided = (g: GateKind) => !!standingGate(l, g);
   if (cur.stage === 1 && !decided('DG1')) {
     if (f?.stage === 1 && f.dg1Due) return gateFrom('DG1', plusHours(f.dg1Due, -GATE_SLA_HOURS.DG1), now, f.dg1Due);
     if (cur.step === 'awaiting-dg1') return gateFrom('DG1', cur.at, now);
@@ -208,43 +266,58 @@ export function hoursText(h: number): string {
 
 export type EligibilityCountsVM = NonNullable<S1Facts['eligibility']> & { from: '007a' | 'interim' };
 
-const ELIGIBILITY = new Map<string, EligibilityCountsVM | null>();
+/** A cache per demo state: one map for the seed, one per `done` object (dropped with it). */
+function doneCache<V>() {
+  const seed = new Map<string, V>();
+  const byDone = new WeakMap<DemoDone, Map<string, V>>();
+  return (done: DemoDone): Map<string, V> => {
+    if (isSeed(done)) return seed;
+    let m = byDone.get(done);
+    if (!m) byDone.set(done, (m = new Map()));
+    return m;
+  };
+}
+
+const ELIGIBILITY = doneCache<EligibilityCountsVM | null>();
 
 /**
  * A Stage 1 tender's eligibility counts (plan 020 B12): 007a's
  * `eligibilityFor` when it has extracted requirements, else the interim
- * counts in its step facts. The seed reading: demo actions reach the
- * lifecycles through `withDemoState`.
+ * counts in its step facts. `done` defaults to the one the lifecycle was
+ * merged with, so a renewed credential (plan 021 2.5) changes the counts.
  */
-export function eligibilityOf(tenant: string, l: Lifecycle): EligibilityCountsVM | null {
+export function eligibilityOf(tenant: string, l: Lifecycle, done: DemoDone = demoDoneOf(l)): EligibilityCountsVM | null {
   if (l.facts?.stage !== 1) return null;
   const key = `${tenant}:${l.tenderId}`;
-  if (!ELIGIBILITY.has(key)) {
-    const r = isGccTenantKey(tenant) ? eligibilityFor(tenant, l.tenderId, {}) : null;
-    ELIGIBILITY.set(key, r ? { pass: r.counts.met, atRisk: r.counts.atRisk, interpretation: r.counts.interpretation, fail: r.counts.fail, from: '007a' } : null);
+  const cache = ELIGIBILITY(done);
+  if (!cache.has(key)) {
+    const r = isGccTenantKey(tenant) ? eligibilityFor(tenant, l.tenderId, done as Record<string, string>) : null;
+    cache.set(key, r ? { pass: r.counts.met, atRisk: r.counts.atRisk, interpretation: r.counts.interpretation, fail: r.counts.fail, from: '007a' } : null);
   }
-  const derived = ELIGIBILITY.get(key);
+  const derived = cache.get(key);
   if (derived) return derived;
   return l.facts.eligibility ? { ...l.facts.eligibility, from: 'interim' } : null;
 }
 
 export interface StaleVM { since: string; text: string; from: '009a' | 'interim' }
 
-const STALE = new Map<string, StaleVM | null | 'no pack'>();
+const STALE = doneCache<StaleVM | null | 'no pack'>();
 
 /**
  * A Stage 3 pack's staleness (plan 020 B17): 009a's freshness text when 009a
  * holds the pack ("Addendum 2 received 08 Mar 09:12 changes 2 packages …"),
- * else the interim step facts. Null when the pack is fresh.
+ * else the interim step facts. Null when the pack is fresh. `done` defaults to
+ * the lifecycle's own, so a re-run in the demo clears it (plan 021 2.3).
  */
-export function staleOf(tenant: string, l: Lifecycle): StaleVM | null {
+export function staleOf(tenant: string, l: Lifecycle, done: DemoDone = demoDoneOf(l)): StaleVM | null {
   if (l.facts?.stage !== 3) return null;
   const key = `${tenant}:${l.tenderId}`;
-  if (!STALE.has(key)) {
-    const f = isGccTenantKey(tenant) ? freshnessFor(tenant, l.tenderId, {}) : null;
-    STALE.set(key, !f ? 'no pack' : f.stale ? { since: f.stale.since, text: f.stale.reason, from: '009a' } : null);
+  const cache = STALE(done);
+  if (!cache.has(key)) {
+    const f = isGccTenantKey(tenant) ? freshnessFor(tenant, l.tenderId, done as Record<string, string>) : null;
+    cache.set(key, !f ? 'no pack' : f.stale ? { since: f.stale.since, text: f.stale.reason, from: '009a' } : null);
   }
-  const v = STALE.get(key)!;
+  const v = cache.get(key)!;
   if (v !== 'no pack') return v;
   const st = l.facts.stale;
   return st ? { since: st.since, text: `since ${st.since.slice(11, 16)} (${st.reason})`, from: 'interim' } : null;
@@ -272,9 +345,10 @@ const pct = (n: number) => `${Math.round(n * 10) / 10}%`;
 
 /**
  * Health, exactly dashboards.md §5 (plan 017 §4.5). The reason is one line a
- * person can act on; several at-risk reasons are joined.
+ * person can act on; several at-risk reasons are joined. `done` defaults to
+ * the lifecycle's own demo state.
  */
-export function healthOf(l: Lifecycle, tenant: string, now = NOW): HealthVM {
+export function healthOf(l: Lifecycle, tenant: string, now = NOW, done: DemoDone = demoDoneOf(l)): HealthVM {
   if (l.closedAt) return { health: l.closedAs ?? 'withdrawn', reason: l.closedNote ?? null };
   const f: StepFacts | undefined = l.facts;
   const wd = deadlineWd(l, tenant);
@@ -282,7 +356,7 @@ export function healthOf(l: Lifecycle, tenant: string, now = NOW): HealthVM {
   const gate = openGate(l, now);
 
   // Blocked: a hard block.
-  const elig = eligibilityOf(tenant, l);
+  const elig = eligibilityOf(tenant, l, done);
   if (elig && elig.fail > 0) return { health: 'blocked', reason: `Eligibility: ${elig.fail} ${elig.fail === 1 ? 'line fails' : 'lines fail'}` };
   if (f?.stage === 7 && f.mandatoryGaps > 0 && near) return { health: 'blocked', reason: `${f.mandatoryGaps} mandatory ${f.mandatoryGaps === 1 ? 'gap' : 'gaps'}, submission in ${wd} working days` };
   if (f?.stage === 8 && near && (!f.bond.issued || f.bond.validTo < f.bond.requiredTo)) {
@@ -301,7 +375,7 @@ export function healthOf(l: Lifecycle, tenant: string, now = NOW): HealthVM {
   const risks: string[] = [];
   if (gate && gate.leftShare < SLA_AT_RISK_SHARE) risks.push(`${gate.gate}: ${hoursText(gate.leftHours)} left`);
   if (f?.stage === 3) {
-    const stale = staleOf(tenant, l);
+    const stale = staleOf(tenant, l, done);
     if (stale) risks.push(stale.from === '009a' ? `pack stale: ${stale.text}` : `pack stale ${stale.text}`);
     if (f.inputs.late > 0) risks.push(`${f.inputs.late} ${f.inputs.late === 1 ? 'input' : 'inputs'} late`);
   }
@@ -336,7 +410,7 @@ export const personName = (id: string | null | undefined): string | null => pers
 /**
  * Every query above, bound to one context: the tenant, the viewer (so a count
  * never includes a tender the viewer's table hides) and the demo state (so a
- * gate recorded in a screen shows everywhere once plan 021 lands). Dashboards
+ * gate recorded in a screen shows everywhere, plan 021). Dashboards
  * (015, 013) and the Tender Workspace (019) call lifecycle queries through
  * this, never unbound, so neither the viewer nor `done` can be forgotten.
  */

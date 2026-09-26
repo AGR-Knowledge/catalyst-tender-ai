@@ -65,6 +65,13 @@ export interface AuditEvent {
   action: string;
   target?: string;
   detail?: string;
+  /**
+   * What `detail` reveals, when it is confidential (orchestrator contract, wave 4):
+   * readers show the detail only to viewers who may see it (`see.margin`,
+   * `see.positions`, `see.quotes`). A DG2 position, a margin figure or a quote
+   * amount in a demo audit entry must set this.
+   */
+  sensitive?: 'margin' | 'positions' | 'quotes';
 }
 
 interface Persisted {

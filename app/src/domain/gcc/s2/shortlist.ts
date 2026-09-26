@@ -2,7 +2,7 @@ import type { Supplier, TenderPackage } from '@/data/gcc/s2';
 import { RESCREEN_DAYS, SHORTLIST_MAX, SHORTLIST_MAX_SENDABLE } from '@/data/gcc/s2';
 import { addDays, dateText, DEMO_TODAY } from '@/domain/calendar';
 import { K, NOW, readDone, write, type Done, type S2WriteResult, type ShortlistOverride, type ShortlistValue } from './done';
-import { liveS2Tenders, registerRow, s2TenderOf, sentSupplierIds, supplierName, suppliersOf } from './context';
+import { liveS2Tenders, NOT_PURSUED, pursueOf, registerRow, s2TenderOf, sentSupplierIds, supplierName, suppliersOf } from './context';
 import { packagesFor } from './packaging';
 
 /**
@@ -183,7 +183,7 @@ export function heldByScreening(tenant: string, done: Done): { rows: HeldRow[]; 
 // Write
 
 /**
- * Approve a shortlist. Adding a supplier the agent did not recommend, or
+ * Approve a shortlist, while the DG1 pursue stands. Adding a supplier the agent did not recommend, or
  * removing a sendable one it did, needs an override with a reason. Leaving out
  * a greyed supplier needs none, and a blocked supplier (sanctions match or
  * anti-bribery flag) can never be on an approved shortlist.
@@ -191,6 +191,7 @@ export function heldByScreening(tenant: string, done: Done): { rows: HeldRow[]; 
 export function shortlistWrite(
   tenant: string, tenderId: string, pkgId: string, supplierIds: string[], overrides: ShortlistOverride[], byId: string, done: Done, at = NOW,
 ): S2WriteResult<ShortlistValue> {
+  if (!pursueOf(tenant, tenderId, done)) return { error: NOT_PURSUED };
   if (!supplierIds.length) return { error: 'Choose at least one supplier for the shortlist.' };
   const recommended = recommendedShortlist(tenant, tenderId, pkgId, done).items;
   const reasonOf = (id: string, action: 'add' | 'remove') => overrides.find((o) => o.supplierId === id && o.action === action)?.reason.trim();

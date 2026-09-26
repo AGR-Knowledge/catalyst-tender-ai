@@ -113,6 +113,7 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
               onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
               onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
               externalFilter={filter} onClearExternal={() => setFilter(null)}
+              empty={vm.table.empty}
               lead={toggle}
             />
           )}

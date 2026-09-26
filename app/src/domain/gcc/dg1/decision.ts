@@ -1,11 +1,12 @@
 import { peopleOf, personById } from '@/data/people';
 import { addDays } from '@/domain/calendar';
 import { addHours } from '@/domain/gcc/clock';
-import { DONE_KEY, json, nowIso, type AuditDraft, type Done, type DoneWrite } from '@/domain/gcc/s1/done';
+import { DONE_KEY, json, nowIso, readDone, type AuditDraft, type Done, type DoneWrite } from '@/domain/gcc/s1/done';
 import { addWorkingDays, authorityCalendar, dataOf, keyDate, listText, plural, profileOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
 import type { Verdict } from '@/domain/gcc/s1/fit';
+import { eligibilityFor } from '@/domain/gcc/s1/eligibility';
 import type { Dg1Pack } from './pack';
-import { dg1RecordFor, DG1_SLA_HOURS, type AnyDg1, type Dg1HoldValue, type Dg1ReopenValue } from './record';
+import { dg1RecordFor, reopensOf, DG1_SLA_HOURS, type AnyDg1, type Dg1HoldValue, type Dg1ReopenValue } from './record';
 
 /**
  * DG1: Pursue or Discard (spec §7, plan 007a step 9.3). The record keeps who,
@@ -37,6 +38,8 @@ export interface Dg1Decision {
    * DG1: 0, except for a PQ-fail discard recorded while they were open.
    */
   snapshot: { weighted: number; eligibilityText: string | null; bond: string; validationsOpen: number };
+  /** The decision round (plan 021 4.1): 1, plus one per re-open. Values written before rounds existed read as 1. */
+  round?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -92,7 +95,14 @@ export interface Dg1Input {
   at?: string;
 }
 
-export function validateDg1(input: Dg1Input, pack: Dg1Pack): { ok: boolean; errors: string[] } {
+/** The shares a JV strategy is re-checked with when it states none: 007a's default scenario, with the partner as lead. */
+const DEFAULT_JV_SHARES: [number, number] = [60, 40];
+
+/**
+ * `done` is the demo state the pack was built from: a JV partner other than
+ * the recommendation's is re-checked against the PQ with it.
+ */
+export function validateDg1(input: Dg1Input, pack: Dg1Pack, done: Done = {}): { ok: boolean; errors: string[] } {
   const errors: string[] = [];
   const note = input.note?.trim();
   // Hold is how the missing fields are asked for; a PQ-fail discard can't be changed by them.
@@ -103,12 +113,22 @@ export function validateDg1(input: Dg1Input, pack: Dg1Pack): { ok: boolean; erro
   if (unknown.length) errors.push(`Unknown reason code: ${unknown.join(', ')}.`);
   const overridesDiscard = input.decision === 'pursue' && pack.recommendation.verdict === 'discard';
   if (overridesDiscard && !note) errors.push('Add a note: Pursue overrides a Recommend discard.');
+  const elig = pack.eligibility?.result;
   if (input.decision === 'pursue' && input.strategy?.kind === 'jv') {
-    if (!input.strategy.partnerId) errors.push('Name the JV partner.');
-    else if (!dataOf(pack.tenant).partners.some((p) => p.id === input.strategy!.partnerId)) errors.push(`No partner "${input.strategy.partnerId}" on the partner list.`);
+    const partnerId = input.strategy.partnerId;
+    const partner = partnerId ? dataOf(pack.tenant).partners.find((p) => p.id === partnerId) : undefined;
+    if (!partnerId) errors.push('Name the JV partner.');
+    else if (!partner) errors.push(`No partner "${partnerId}" on the partner list.`);
+    else if (partnerId !== elig?.jvPartner?.id && !note) {
+      // Plan 021 4.2: a partner the recommendation didn't name must clear the PQ in the JV, or the note says why it is chosen.
+      // The company leads unless the partner leading is what clears it (orchestrator review, 2026-09-26).
+      const tryLead = (lead: 'self' | 'partner') => eligibilityFor(pack.tenant, input.tenderId, done, { partnerId, lead, shares: input.strategy!.shares ?? DEFAULT_JV_SHARES });
+      const jv = [tryLead('self'), tryLead('partner')].find((r) => r && !r.error && r.counts.fail === 0) ?? tryLead('self');
+      const fails = jv ? jv.counts.fail : 0;
+      if (jv && (jv.error || fails > 0)) errors.push(`Add a note: in a JV with ${partner.name}, ${plural(fails, 'PQ line')} still ${fails === 1 ? 'fails' : 'fail'}.`);
+    }
   }
   // The recommendation needs a JV: bidding alone fails the PQ. A prime bid needs the reason on record.
-  const elig = pack.eligibility?.result;
   if (input.decision === 'pursue' && elig?.verdict === 'eligible-with-jv' && input.strategy?.kind !== 'jv' && !note && !overridesDiscard) {
     errors.push(`Record the JV with ${elig.jvPartner?.name ?? 'the partner'} as the submission strategy, or add a note on why the company bids alone (it fails ${plural(elig.counts.fail, 'PQ line')} on its own).`);
   }
@@ -155,9 +175,9 @@ export interface Dg1Writes { writes: DoneWrite[]; audit: AuditDraft[]; effects: 
 
 const nameOf = (id: string) => personById(id)?.name ?? id;
 
-/** Build the record, audit and effects of a DG1 action. Call `validateDg1` first: an invalid input throws. */
-export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Writes {
-  const v = validateDg1(input, pack);
+/** Build the record, audit and effects of a DG1 action. Call `validateDg1` first: an invalid input throws. `done` is the one the pack was built from. */
+export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack, done: Done = {}): Dg1Writes {
+  const v = validateDg1(input, pack, done);
   if (!v.ok) throw new Error(v.errors.join(' '));
   const t = tenderOf(pack.tenant, input.tenderId);
   const at = input.at ?? nowIso();
@@ -166,7 +186,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
 
   if (input.decision === 'hold') {
     const r = input.request!;
-    const value: Dg1HoldValue = { request: r, at, byId };
+    const value: Dg1HoldValue = { request: r, at, byId, round: pack.round };
     const due = t?.intake.loggedAt ? addHours(t.intake.loggedAt, DG1_SLA_HOURS) : undefined;
     return {
       writes: [{ key: DONE_KEY.dg1Hold(input.tenderId), value: json(value) }],
@@ -196,6 +216,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
       bond: pack.bond?.bond.text ?? 'No bid bond stated',
       validationsOpen: pack.open.validations.filter((q) => q.item.blocksDg1).length,
     },
+    round: pack.round,
   };
   const override = pursue ? rec.verdict === 'discard' : rec.verdict !== 'discard';
   const by = nameOf(byId);
@@ -208,7 +229,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
     if (names.length) effects.push(`Team notified: ${listText(names)}`);
     effects.push(`RFQ clock started: all RFQs due by ${shortWhen(addHours(at, 24))}`);
     if (decision.strategy?.kind === 'jv' && decision.strategy.partnerId) {
-      const partner = pack.eligibility?.result.jvPartner?.id === decision.strategy.partnerId ? pack.eligibility.result.jvPartner.name : decision.strategy.partnerId;
+      const partner = dataOf(pack.tenant).partners.find((p) => p.id === decision.strategy!.partnerId)?.name ?? decision.strategy.partnerId;
       effects.push(`Submission strategy: JV with ${partner}${decision.strategy.shares ? ` (${decision.strategy.shares[0]}/${decision.strategy.shares[1]})` : ''}`);
     }
   } else {
@@ -226,7 +247,10 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack): Dg1Write
         decision.note ? `note: ${decision.note}` : '',
         decision.delegate ? `recorded by ${by} as delegate` : '',
         override ? 'overrides the recommendation' : '',
-        decision.snapshot.validationsOpen ? `${plural(decision.snapshot.validationsOpen, 'field')} still open, which cannot change a PQ fail` : '',
+        // Plan 021 4.3: the PQ-fail wording only when a PQ-fail reason was chosen.
+        decision.snapshot.validationsOpen
+          ? `${plural(decision.snapshot.validationsOpen, 'field')} still open${decision.reasonCodes.some((c) => c.startsWith('pq-fail')) ? ', which cannot change a PQ fail' : ''}`
+          : '',
       ].filter(Boolean).join('; '),
     }],
     effects,
@@ -238,7 +262,11 @@ export function dg1Reopen(tenant: string, tenderId: string, reason: string, byId
   if (!reason.trim()) throw new Error('Give a reason to re-open DG1.');
   const s = dg1RecordFor(tenant, tenderId, done);
   const t = tenderOf(tenant, tenderId);
-  const value: Dg1ReopenValue = { reason: reason.trim(), at, byId, ...(s.current ? { previous: s.current } : {}) };
+  // The round it closes is the one in force; the re-opens before it are kept, so every cleared decision stays on record.
+  const earlier = reopensOf(readDone<Dg1ReopenValue>(done, DONE_KEY.dg1Reopen(tenderId)));
+  const value: Dg1ReopenValue = {
+    reason: reason.trim(), at, byId, round: s.round, ...(s.current ? { previous: s.current } : {}), ...(earlier.length ? { earlier } : {}),
+  };
   return {
     writes: [{ key: DONE_KEY.dg1Reopen(tenderId), value: json(value) }],
     audit: [{ action: 'DG1: Re-opened', target: `${tenderId} · ${t?.shortTitle ?? tenderId}`, detail: `${reason.trim()}${s.current ? `; ${s.current.decision} of ${shortWhen(s.current.at)} kept on record` : ''}` }],

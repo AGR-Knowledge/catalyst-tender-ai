@@ -48,6 +48,8 @@ export interface TenderGridProps<R extends Row = TenderRowVM> {
   label?: string;
   /** Rendered first in the toolbar (the page's Table | Graph toggle). */
   lead?: ReactNode;
+  /** The dashboard's own empty text, used when no filter is set. */
+  empty?: { title: string; body?: string };
 }
 
 /* ------------------------------------------------------------------- presets */
@@ -111,7 +113,7 @@ const always = () => true;
 export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R>) {
   const {
     kind = 'tenders', rows, columns, optional = [], defaultSort, filters, statusDefault,
-    selectedId, onSelect, onOpen, externalFilter, onClearExternal, label, lead,
+    selectedId, onSelect, onOpen, externalFilter, onClearExternal, label, lead, empty,
   } = props;
   const tenders = kind === 'tenders';
   const apiRef = useRef<GridApi<R> | null>(null);
@@ -388,7 +390,8 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
         {n === 0 && (
           <div className="tg-empty">
             <EmptyState
-              title={anyFilter || m === 0 && rows.length > 0 ? `No ${noun} match these filters.` : tenders ? 'No tenders here yet.' : 'Nothing is asked of you right now.'}
+              title={!anyFilter && empty ? empty.title : anyFilter || m === 0 && rows.length > 0 ? `No ${noun} match these filters.` : tenders ? 'No tenders here yet.' : 'Nothing is asked of you right now.'}
+              body={!anyFilter && empty ? empty.body : undefined}
               action={anyFilter ? <button type="button" className="btn btn-sm" onClick={() => { clearAll(); setStatus(statusDefault); }}>Clear all</button> : undefined}
               compact
             />

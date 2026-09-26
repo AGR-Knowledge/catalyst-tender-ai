@@ -70,6 +70,7 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     'Flow 2 · No-Bid effects': 'Decline letter drafted: the Bid Manager reviews and sends it | Lessons captured | Tender closed: No-Bid',
     'Flow 2 · Letter': 'Courteous · no internal reasons · signed by Omar Siddiqui',
     'Flow 3 · Bid conditions': 'Keep the bid bond within the facility (CFO) · Minimum margin 9% (CFO)',
+    'Flow 3 · Bid conditions, margin masked (4.6)': 'Keep the bid bond within the facility (CFO) · Minimum margin condition (figure masked for your role) (CFO) · masked 1',
     'Flow 3 · Bid effects': 'Decision recorded. Planning and Commercial have been asked to start baselines. | Stage moves to Planning',
     'Flow 3 · Overlay': 'S4',
     'Flow 4 · Sector Head declares a conflict': 'Abstain · declaration recorded',
@@ -112,8 +113,8 @@ const ALWAYS: Record<string, string> = {
 // Raw sources of this plan's folders, for the determinism grep (dev builds only).
 const SOURCES = import.meta.glob<string>(['/src/data/gcc/s3/*.ts', '/src/domain/gcc/s3/*.ts', '/src/domain/gcc/dg2/*.ts'], { query: '?raw', import: 'default', eager: true });
 
-const ALL: PackViewer = { canSeeMargin: true };
-const MASKED: PackViewer = { canSeeMargin: false };
+const ALL: PackViewer = { canSeeMargin: true, canSeePositions: true };
+const MASKED: PackViewer = { canSeeMargin: false, canSeePositions: false };
 /** The Commercial Manager: margin, but not win probability or positions. */
 const MARGIN_ONLY: PackViewer = { canSeeMargin: true, canSeePositions: false };
 const SECTION_ORDER: PackSectionId[] = ['9.1', '9.2', '9.3', '9.4', '9.5', '9.6', '9.7', '9.8', '9.9', '9.10'];
@@ -230,7 +231,7 @@ function najdRows(): Record<string, string> {
   const wcws = CLIENT_BIDS.filter((b) => b.tenant === T);
   got['WCWS award records name the register issuer'] = agree(wcws.length > 0 && wcws.every((b) => b.client === issuer), issuer);
   // After plan 020 B13: no lifecycle in the window adds a WCWS bid (submitted or decided) to the "2 awards from 3 bids" story.
-  const extra = lifecyclesOf(T).filter((l) => l.issuer === issuer && (l.submission || l.result?.result === 'won' || l.result?.result === 'lost'));
+  const extra = lifecyclesOf(T, undefined, {}).filter((l) => l.issuer === issuer && (l.submission || l.result?.result === 'won' || l.result?.result === 'lost'));
   got['No WCWS bid in the window contradicts the award records'] = agree(!extra.length, extra.map((l) => `${l.tenderId} ${l.result?.result ?? 'submitted'}`).join(', '));
   got['097 · Positions'] = pack.summary.positions;
   got['097 · Majority'] = `${pos.majority.for} for · ${pos.majority.against} against`;
@@ -311,6 +312,9 @@ function najdRows(): Record<string, string> {
   const bid = dg2Write({ tenderId: A, decision: 'bid', staleAcknowledged: true }, 'najd.hot', s1);
   const f3 = applyWrites(f1, writesOf(bid));
   got['Flow 3 · Bid conditions'] = conditionsFor(T, A, f3).map((c) => `${c.text}${c.fromSeat ? ` (${SEAT_LABEL[c.fromSeat]})` : ''}`).join(' · ') || errOf(bid);
+  const maskedConds = conditionsFor(T, A, f3, { canSeeMargin: false });
+  got['Flow 3 · Bid conditions, margin masked (4.6)'] =
+    `${maskedConds.map((c) => `${c.text}${c.fromSeat ? ` (${SEAT_LABEL[c.fromSeat]})` : ''}`).join(' · ')} · masked ${maskedConds.filter((c) => c.masked).length}`;
   got['Flow 3 · Bid effects'] = isWriteError(bid) ? bid.error : bid.effects.join(' | ');
   got['Flow 3 · Overlay'] = dg2Overlay(T, A, f3)?.stage ?? 'none';
 
@@ -419,7 +423,7 @@ function agreementRows(tenant: GccTenantKey): Record<string, string> {
   const rows: Record<string, string> = {};
   const same = (theirs: string, mine: string) => (theirs === mine ? 'Agrees' : `Differs: 017 ${theirs} · 009a ${mine}`);
   const full = (m: { amount: number; ccy: Parameters<typeof money>[1] } | null | undefined) => (m ? money(m.amount, m.ccy, { full: true }) : 'none');
-  for (const l of lifecyclesOf(tenant).filter((x) => x.facts?.stage === 3)) {
+  for (const l of lifecyclesOf(tenant, undefined, {}).filter((x) => x.facts?.stage === 3)) {
     const f = l.facts as S3Facts;
     const id = l.tenderId;
     const P = `${id} · agrees with 017:`;
@@ -479,7 +483,7 @@ export default function Stage3Check() {
       <div style={{ padding: '6px 22px 14px' }}>
         <KV k="Win models, packs, seeded inputs" v={`${models} · ${PACK_VERSIONS.filter((p) => p.tenant === key).length} · ${SEEDED_INPUTS.filter((i) => i.tenant === key).length}`} />
         <KV k="Sources scanned" v={`${Object.keys(SOURCES).length} files in data/gcc/s3, domain/gcc/s3, domain/gcc/dg2`} />
-        <KV k="Agreement with plan 017" v={`${lifecyclesOf(key).filter((l) => l.facts?.stage === 3).length} Stage 3 tenders checked against their step facts`} />
+        <KV k="Agreement with plan 017" v={`${lifecyclesOf(key, undefined, {}).filter((l) => l.facts?.stage === 3).length} Stage 3 tenders checked against their step facts`} />
       </div>
       <DataTable
         rows={checks}

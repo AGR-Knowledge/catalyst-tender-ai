@@ -14,6 +14,7 @@ import { useTenant } from '@/domain/tenancy';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { bg } from '@/components/ui/primitives';
 import { GlobalSearch } from './Search';
+import { GccSearch } from './GccSearch';
 import { UploadButton } from '@/components/intake/UploadButton';
 import { TenantSwitch } from './TenantSwitch';
 import { screenHead } from '@/pages/gcc/screens';
@@ -112,7 +113,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
       <div className="hd-actions">
         <TenantSwitch />
         {/* Search and upload read the Indian register; GCC tenants get their own with plans 006 and 007. */}
-        {!gcc && <GlobalSearch />}
+        {gcc ? <GccSearch /> : <GlobalSearch />}
         {!gcc && <UploadButton />}
 
         <span className="pop-anchor" ref={notifRef}>

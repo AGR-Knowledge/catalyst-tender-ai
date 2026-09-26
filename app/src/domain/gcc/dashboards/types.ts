@@ -16,7 +16,9 @@ export interface DashboardSpec {
   actions: string[];
   table: { kind?: 'tenders' | 'requests';   // default 'tenders'
            scope(ctx: KpiCtx): RowScope; rows?(ctx: KpiCtx): { id: string }[];   // `rows` is used when kind is 'requests'
-           columns: string[]; optional?: string[]; defaultSort: SortPreset; filters: FilterKey[]; statusDefault?: TableStatus };
+           columns: string[]; optional?: string[]; defaultSort: SortPreset; filters: FilterKey[]; statusDefault?: TableStatus;
+           /** What the table says when nothing is in scope and no filter is set ("No tenders are in Stage 3 now."). */
+           empty?(ctx: KpiCtx): { title: string; body?: string } };
   graph: null | { axis: 'stages' } | { axis: 'steps'; stage: number };
   metrics: string[]; defaultMetric: string;
 }

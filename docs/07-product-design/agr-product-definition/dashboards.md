@@ -121,7 +121,7 @@ It opens **below the main view** when a table row is selected (§7). Clicking th
 
 **Two kinds of KPI** (every registry entry declares its `kind`):
 - **Flow KPIs** count events inside the window: decisions, submissions, results, captures. The sub-line may compare with the previous period in words ("previous 30 days: 2"). Arrows are optional and always neutral in colour.
-- **State KPIs** are a value **now**: live pipeline, credentials at risk, fields to check. The period changes only the sub-line, which shows the change since the window started ("4 in · 5 out since 7 Feb"). With "Today", that is the change since 00:00.
+- **State KPIs** are a value **now**: live pipeline, credentials at risk, fields to check. The period never changes the value. Where the history exists, the sub-line shows the change since the window started ("4 in · 9 out since 7 Feb" on Live pipeline, PF-1; with "Today", since 00:00). Other state tiles keep their own sub-line, and their ⓘ says the period does not change them (orchestrator, 2026-09-26, plan 013 review).
 
 **Small numbers:**
 - A rate with n < 5 shows its count beside it ("1 won · 2 lost"). Its tone is neutral, and the ⓘ adds "Small sample".

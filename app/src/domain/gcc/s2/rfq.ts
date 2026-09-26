@@ -9,7 +9,7 @@ import { whenText } from '@/domain/calendar';
 import { addHours, durationText, minutesBetween } from '@/domain/gcc/clock';
 import { K, NOW, readDone, write, type Done, type RfqSentValue, type S2WriteResult, type SupplierQuoteValue } from './done';
 import {
-  addWorkingDays, bidCcy, dateOf, liveS2Tenders, pursueOf, requiredValidityDays, s2TenderOf, sentBatches, sentSupplierIds,
+  addWorkingDays, bidCcy, dateOf, liveS2Tenders, NOT_PURSUED, pursueOf, requiredValidityDays, s2TenderOf, sentBatches, sentSupplierIds,
   supplierName, supplierOf, tenantOf, timeOf,
 } from './context';
 import { packagesFor } from './packaging';
@@ -173,10 +173,12 @@ export function rfqDraft(tenant: string, tenderId: string, pkgId: string, done: 
 // Send (the screening guardrail)
 
 /**
- * Send RFQs for a package. Refused when no shortlist is approved, when a
- * supplier is not on it, has already been sent one, or is not screened.
+ * Send RFQs for a package. Refused when the pursue no longer stands, when no
+ * shortlist is approved, when a supplier is not on it, has already been sent
+ * one, or is not screened.
  */
 export function rfqWrite(tenant: string, tenderId: string, pkgId: string, supplierIds: string[], byId: string, done: Done, at = NOW): S2WriteResult<RfqSentValue> {
+  if (!pursueOf(tenant, tenderId, done)) return { error: NOT_PURSUED };
   const list = approvedShortlist(tenant, tenderId, pkgId, done);
   if (!list) return { error: `Approve the ${pkgId} shortlist before sending RFQs.` };
   if (!supplierIds.length) return { error: 'Choose at least one supplier to send to.' };
