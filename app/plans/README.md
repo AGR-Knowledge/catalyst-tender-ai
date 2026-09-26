@@ -19,19 +19,20 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 007b | [Stage 1 and DG1 screens](007b-stage1-dg1-screens.md): radar, intake steps, intake queue with the conflict pattern, Requirements / Eligibility & fit / Key dates / Queries tabs, screening and triage, the DG1 evidence pack and decision form, calendar, GCC upload | 4 | 007a, 019, 021 | DONE (2026-09-27, reviewed) |
 | 008b | [Stage 2 screens and the Supplier Portal](008b-stage2-screens.md): packages and coverage, shortlists with the screening guardrail, RFQs and the clock, package board and nudges, simulated replies, levelling, best fit, clarifications, suppliers, the Supplier Portal preview | 4 | 008a, 019, 021 | DONE (2026-09-27, reviewed) |
 | 009b | [Stage 3 bid pack, DG2 and the contributor forms](009b-stage3-dg2-screens.md): the pack 9.1–9.10 with re-run and issue, Inputs tab and forms from My requests, positions and the members panel, the Head of Tendering's approval, conditions, decline letter, re-open | 4 | 009a, 019, 021 | DONE (2026-09-27, reviewed) |
-| 010 | Company and Administration | 4 | 006 | Outline |
+| 010 | [Company: the credentials vault and the renewal loop](010-company.md): Credentials with the renewal upload that re-checks eligibility everywhere, capability profile, bank facility, teams and partners | 5 | 007a, 007b, 013, 015 | READY |
 | 011 | [Platform Console and break-glass](011-platform-console.md): separate operator shell with counts and health only, the break-glass request that the tenant's Head of Tendering sees, and the tenant audit log | 4 | 006, 015 | DONE (2026-09-27, reviewed) |
-| 012 | Arabic intake: bilingual values, "Read in English", Plex Sans Arabic, on 007b's screens and 023's Arabic tender | 5 | 007b, 023 | Outline (written when 007b and 023 land) |
+| 012 | [Arabic intake](012-arabic-intake.md): `BilingualValue`, Plex Sans Arabic, the English value with the Arabic source on 007b's screens, "Arabic text prevails", "Read in English", OCR pages named | 5 | 007b, 019, 023 | READY |
 | 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | DONE (2026-09-26) |
-| 014 | Presenter controls and Compare tenants lens | 5 | 007b–009b | Outline |
+| 014 | [Presenter controls and the Compare tenants lens](014-presenter-controls.md): the Demo menu, four scenario presets, Advance agent work, Advance to Stage 3 for T-2026-061 and T-2026-042, Compare tenants | 5 | 007b, 008b, 009b, 021, 022, 023 | READY |
 | 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 016 | Script QA and polish (spec §19 acceptance) | 6 | all | Outline |
-| 018 | DG3 approval (lite gate screen for the Head of Tendering, dashboards.md §9) | 4 | 009b (gate screen pattern), 017 | Outline |
+| 018 | [DG3 approval](018-dg3-approval.md): the Head of Tendering's final gate (evidence left, decision right), send back to Compliance and re-issue, Qurain's guarantee catch | 5 | 009b, 013, 015, 017 | READY |
 | 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | DONE (2026-09-26) |
 | 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
 | 021 | [Demo state and rule fixes](021-demo-state-and-rule-fixes.md): demo actions (DG1, Stage 2 progress, pack, positions, DG2) merged into the lifecycles so every dashboard shows them; DG1 rounds, DG2 conditions masked and the other rule bugs from the 020 review | 3 | 017, 007a, 008a, 009a, 020 | DONE (2026-09-26) |
 | 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
+| 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | READY |
 
 **Wave 4 review (orchestrator, 2026-09-27): 007b, 008b, 009b, 011, 022 and 023 accepted.**
 - Typecheck and build pass. `/dev/checks` passes in all five tenants with no console errors (Najd 665, Corniche 257, Dafna 239, Batinah 246, Qurain 262 targets). `demo-itt:cbhh` 66/66, `demo-itt:ilra` 46/46, `hero-itt` 57/57; the demo PDFs carry pinned dates and rebuild byte-identical.
@@ -200,11 +201,19 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 5 (in parallel, five sessions; orchestrator, 2026-09-27):** 010, 012, 014, 018 and 024. Plan 010 was split: 010 is Company, 024 is Administration. File ownership, so no two sessions edit one file:
+  - **010** owns `pages/gcc/company/**`, `domain/gcc/company/**`, `dev-checks/66-company.tsx`, the `/company` entry in `screens.ts`, the renewal route in `requests.actions.ts`, and "Add evidence" in `EligibilityPanel.tsx`.
+  - **012** owns `domain/gcc/arabic/**`, `components/tender/BilingualValue.tsx`, `workspace/parts/ReadInEnglish.tsx`, `dev-checks/73-arabic.tsx`, the font (`package.json`, `main.tsx`, `tokens.css`), `ocrPages` on the record type and ILRA_042, `pipelineFor`'s OCR step, and the Requirements, Documents and Overview tabs, `ValidationCard`, `KeyDateList`, and a backward-compatible `SourceChip` tip.
+  - **014** owns `domain/gcc/demo/presets/**`, `demo/compare.ts`, `demo/25-stage3-entry.apply.ts`, `components/layout/DemoMenu.tsx`, `pages/gcc/demo/**`, `dev-checks/46-presenter.tsx`, `applyPreset` in the store, one line in `Header.tsx`, one route in `App.tsx`, the move of `pendingReplies` to `domain/gcc/s2/simulate.ts`, and one link in `WorkspaceHeader.tsx`.
+  - **018** owns `data/gcc/dg3/**`, `domain/gcc/dg3/**`, `demo/50-dg3.apply.ts`, `pages/gcc/dg3/**`, `dev-checks/97-dg3.tsx`, the `/dg3` entry in `screens.ts`, and the `dg3Approve` text in `portfolio.actions.ts` (and CMP-5's sub-line if needed).
+  - **024** owns `pages/gcc/admin/**` except `AuditLog.tsx`, `domain/gcc/admin/**`, `dev-checks/67-admin.tsx`, the `/admin*` entries in `screens.ts`, the branding lines in `AppShell.tsx` and `TenantSwitch.tsx`, and the GCC branch of `pages/Settings.tsx`.
+  - **Shared by entry:** `screens.ts` (010, 018 and 024, one entry each: re-read before editing). Nobody else edits `tokens.css` (012), `Header.tsx` or `store.tsx` (014), `AppShell.tsx` (024).
+  - **Decisions (orchestrator, 2026-09-27):** "Treat as newly published" is deferred (key dates are read without `done` in about 14 modules, and no script uses it). The fit model page is a what-if, not a saved change. The hero gets no Stage 3 seed: script C stays on T-2026-097, and "Advance to Stage 3" serves T-2026-061 and T-2026-042.
 - **Wave 4 (original outline, kept for history):** 019 (tender kit part 2) first. Then the **stage screen lanes in parallel:**
   - 007b owns `pages/gcc/s1` (and may fix bugs in 007a's folders);
   - 008b owns `pages/gcc/s2` and `pages/gcc/supplier`;
   - 009b owns `pages/gcc/s3`, `pages/gcc/dg2` and the contributor input forms;
-  - 010 owns `pages/gcc/company`, `pages/gcc/admin`;
+  - 010 owns `pages/gcc/company`; 024 owns `pages/gcc/admin` (010 was split, 2026-09-27);
   - 011 owns `pages/platform`;
   - 012 (after 007b) owns `domain/gcc/arabic` and the Arabic records.
 
