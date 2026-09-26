@@ -80,7 +80,7 @@ Everything is fictional except public regulators and programmes named genericall
 - Plumbing, drainage and water treatment;
 - ELV, BMS and nurse call (in-house design, supply only).
 
-Shortlists from Corniche's supplier master (add fictional suppliers only where a package has fewer than three). Seed **no RFQs sent** at the start (the demo sends them), but give two packages (chillers, AHUs) three **quotes each** in the seed data that the RFQ flow reveals, with the levelling traps the hero uses: one EUR ex-works, one quote without VAT stated, one with a 30-day validity. Follow exactly how the hero or `CORNICHE_T044` stores quotes; if quotes can only exist after a demo action, seed them the way 008a's rules expect and note it.
+Shortlists from Corniche's supplier master (add fictional suppliers only where a package has fewer than three). Seed **no RFQs and no quotes**: the demo sends the RFQs, and the replies arrive through **scripted replies** (`src/data/gcc/s2/replies.ts`, an orchestrator contract; plan 008b's labelled "Simulate supplier replies" control submits them through the Supplier Portal write). Add three replies each for two packages (chillers, AHUs) to Corniche's list, with the levelling traps: one EUR ex-works (`incoterm: 'EXW'`), one with VAT included (`vatInclusive: true`), one with a 30-day validity, and one exclusion.
 
 **Stage 3** (after the demo's Stage 2): a pack with win probability **52 ± 9**, three fictional competitors (UAE MEP contractors; names never real), a margin range, facility headroom after the bond, the Buildings MEP team's load, and contributor inputs from Corniche's Commercial Manager, Planning Manager and Finance. The committee (above the AED 40 M referral threshold) votes; the demo outcome is **Bid**.
 
@@ -96,6 +96,7 @@ Shortlists from Corniche's supplier master (add fictional suppliers only where a
 - `app/src/data/extracted/gcc/index.ts`: one entry each in `GCC_EXTRACTED` and `GCC_DOC_FILES` (plan 023 adds its own lines; re-read the file right before editing).
 - `app/src/data/gcc/tenants/corniche.ts`: the T-2026-061 row only (`docKey`, `requirements`, `validations`, key dates, fit reasons if needed), plus up to two `SimilarProject`s and any fictional partner or supplier the facts need.
 - `app/src/data/gcc/lifecycle/live/corniche.ts`: the T-2026-061 story only (step, facts, `documentHref` via `sourceOf`).
+- `app/src/data/gcc/s2/replies.ts`: append Corniche's T-2026-061 replies to `SCRIPTED_REPLIES.corniche`.
 - `app/src/data/gcc/s1/{queries,bonds,effort}.ts`, `s2/tenders/*` index or `others.ts` export list, `s2/suppliers/corniche.ts`, `s3/{packs,inputs,win,competitors}.ts`: **append** Corniche T-2026-061 entries only. Plan 023 appends Batinah entries to the same files at the same time: re-read each file right before editing, and never reorder or reformat other entries.
 - Dev-check target constants for **Corniche** in existing panels (`40-lifecycle`, `50-portfolio`, `60-stages`, `70-stage1`, `80-stage2`, `90-stage3`) where your data moves a Corniche reading. Change the number and add a one-line comment "plan 022". Touch no other tenant's targets.
 - `docs/07-product-design/agr-product-definition/gcc-demo-data.md`: add **§4A "Second demo tender: Abu Dhabi hospital MEP (Corniche)"** with the facts table, key dates, catches, expected eligibility, packages and the **page map as built** (the page of every cited value). Also add one row to §9's table noting it. Keep it under about 80 lines.
@@ -119,7 +120,7 @@ Shortlists from Corniche's supplier master (add fictional suppliers only where a
 - [ ] 2.5 **Check:** in the browser, as Corniche's Head of Tendering, `/tenders/T-2026-061` shows the document in the rail's source chips (open the PDF at a cited page), the recommendation reads Pursue with the conditions, and the eligibility counts read 8 · 1 · 1 · 0.
 
 ### Phase 3 — Stage 2 and Stage 3 data
-- [ ] 3.1 Seven packages, shortlists and the seeded quotes (see the facts). **Check:** after writing the demo keys for DG1 Pursue (as plan 021's dev check does), Corniche's Stage 2 dashboard lists T-2026-061 with 7 packages.
+- [ ] 3.1 Seven packages, shortlists and the scripted replies (see the facts). **Check:** after writing the demo keys for DG1 Pursue (as plan 021's dev check does), Corniche's Stage 2 dashboard lists T-2026-061 with 7 packages.
 - [ ] 3.2 The Stage 3 pack inputs, win probability, competitors and contributor inputs. **Check:** `packFor` for T-2026-061 returns every section without a "not available" gap, and margin is masked for Corniche's Procurement Lead.
 
 ### Phase 4 — Docs and dev check

@@ -72,7 +72,7 @@ Everything is fictional except public bodies named generically. No real company 
 - Street lighting: poles and LED luminaires (one quote in USD, one without VAT stated);
 - Road markings, signage and safety barriers.
 
-Earthworks and paving are in-house (not packaged). Shortlists from Batinah's supplier master (add fictional suppliers only where a package has fewer than three). Seed quotes for two packages (bridge bearings, street lighting), three each, with the levelling traps, exactly as plan 022 does and in the form 008a's rules expect.
+Earthworks and paving are in-house (not packaged). Shortlists from Batinah's supplier master (add fictional suppliers only where a package has fewer than three). Seed **no RFQs and no quotes**; add **scripted replies** (`src/data/gcc/s2/replies.ts`, `SCRIPTED_REPLIES.batinah`) for two packages (bridge bearings, street lighting), three each, with the levelling traps (EUR ex-works, USD, VAT included, a short validity), as plan 022 does.
 
 **Stage 3:** a pack with win probability **61 ± 7**, three fictional Omani competitors, a margin range, facility headroom after the bond, the roads team's load, and contributor inputs. The committee (above the OMR 4 M referral threshold) votes; the demo outcome is **Bid with conditions** (confirm the bond with the employer).
 
@@ -88,6 +88,7 @@ Earthworks and paving are in-house (not packaged). Shortlists from Batinah's sup
 - `app/src/data/extracted/gcc/index.ts`: one entry each in `GCC_EXTRACTED` and `GCC_DOC_FILES` (plan 022 adds its own lines; re-read right before editing).
 - `app/src/data/gcc/tenants/batinah.ts`: the T-2026-042 row only, plus up to two `SimilarProject`s and any fictional supplier the facts need.
 - `app/src/data/gcc/lifecycle/live/batinah.ts`: the T-2026-042 story only (language `'AR'`, step, facts, `documentHref`).
+- `app/src/data/gcc/s2/replies.ts`: append Batinah's T-2026-042 replies to `SCRIPTED_REPLIES.batinah`.
 - `app/src/data/gcc/s1/{queries,bonds,effort}.ts`, `s2/tenders/*` index or export list, `s2/suppliers/batinah.ts`, `s3/{packs,inputs,win,competitors}.ts`: **append** Batinah T-2026-042 entries only. Plan 022 appends Corniche entries to the same files at the same time: re-read right before editing; never reorder or reformat other entries.
 - Dev-check target constants for **Batinah** in existing panels, where your data moves a Batinah reading, each with a comment "plan 023".
 - `docs/07-product-design/agr-product-definition/gcc-demo-data.md`: add **§4B "Third demo tender: Sohar–Buraimi road dualling (Batinah, Arabic)"** with the facts, catches, expected eligibility, packages and the page map as built; in §9, mark the scanned Lebanese roads tender "replaced by §4B for script E" and the Batinah line in §2.5 accordingly. Under about 80 lines.
@@ -113,7 +114,7 @@ Earthworks and paving are in-house (not packaged). Shortlists from Batinah's sup
 - [ ] 2.5 **Check:** in the browser, as Batinah's Head of Tendering, `/tenders/T-2026-042` shows the document in the rail's source chips (the PDF opens at the cited page), the recommendation reads Pursue with its conditions, and the eligibility counts read 7 · 1 · 1 · 0.
 
 ### Phase 3 — Stage 2 and Stage 3 data
-- [ ] 3.1 Six packages, shortlists and the seeded quotes. **Check:** after the demo keys for DG1 Pursue, Batinah's Stage 2 dashboard lists T-2026-042 with 6 packages.
+- [ ] 3.1 Six packages, shortlists and the scripted replies. **Check:** after the demo keys for DG1 Pursue, Batinah's Stage 2 dashboard lists T-2026-042 with 6 packages.
 - [ ] 3.2 The Stage 3 pack inputs, win probability, competitors and contributor inputs. **Check:** `packFor` for T-2026-042 has no gaps, and margin is masked for Batinah's Procurement Lead.
 
 ### Phase 4 — Docs and dev check
