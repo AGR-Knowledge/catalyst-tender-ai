@@ -1,6 +1,6 @@
 import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import {
-  Bar, CartesianGrid, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps,
+  Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Text, Tooltip, XAxis, YAxis, type TooltipContentProps,
 } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
 import { ChevronDown } from 'lucide-react';
@@ -8,11 +8,14 @@ import type { GraphPointVM, GraphVM } from '@/domain/gcc/viewmodels';
 import { EmptyState } from '@/components/tender/EmptyState';
 
 /**
- * The dashboard graph (dashboards.md §6): stages or steps on the x-axis, a
- * metric the viewer chooses on the y-axis, and a dashed comparison series (the
- * start of the window for state metrics, the previous window for flow metrics).
- * A click on a point, or Enter on a point focused with the arrow keys, calls
- * `onPoint`; the page decides where that goes. Colours are CSS variables only.
+ * The dashboard graph (dashboards.md §6, user decision 2026-09-26): one bar
+ * per stage (or per step on a stage dashboard). Buttons switch the bars between
+ * Tenders | Value | Weighted; the other metrics sit under "More". Compare draws
+ * a ghost bar behind each bar (the start of the window for state metrics, the
+ * previous window for flow metrics). A click on a bar, or Enter on a bar
+ * focused with the arrow keys, calls `onPoint`; the page decides where that
+ * goes. Every number and every sentence comes from the view model; colours
+ * are CSS variables only.
  */
 
 export interface StageChartProps {
@@ -24,9 +27,6 @@ export interface StageChartProps {
   lead?: ReactNode;
 }
 
-/** The plot fills the box the table sets (dashboards.md §1 Z5), never under 440 px (`.sc-plot`). */
-const PLOT_H = '100%';
-
 /** Compact y-axis ticks: 1.2 bn, 260 M, 12 k. */
 function tick(v: number): string {
   const a = Math.abs(v);
@@ -36,17 +36,49 @@ function tick(v: number): string {
   return String(+v.toFixed(1));
 }
 
+/** An x-axis label that wraps inside its band ("3 Bid decision" on two lines when the band is narrow). */
+function AxisTick(props: { x?: number | string; y?: number | string; payload?: { value: string }; width?: number | string; visibleTicksCount?: number }) {
+  const band = Number(props.width ?? 0) / Math.max(1, props.visibleTicksCount ?? 1);
+  // A narrow band (nine stages at 1280 px) steps the size down so "Compliance" still fits on its line.
+  const size = band < 68 ? 10.5 : 11.5;
+  return (
+    <Text
+      x={Number(props.x)} y={Number(props.y)} width={Math.max(40, band - 4)} maxLines={2}
+      textAnchor="middle" verticalAnchor="start" fill="var(--ink-3)" fontSize={size} lineHeight={14}
+      // Recharts measures the words with `style`, not the font attributes.
+      style={{ fontSize: `${size}px`, fontFamily: 'var(--font-sans)' }}
+    >{props.payload?.value ?? ''}</Text>
+  );
+}
+
+/** The value above a bar, on one line (Recharts' own label wraps to the bar's width). */
+function BarLabel(props: { x?: number | string; y?: number | string; width?: number | string; value?: unknown }) {
+  const text = typeof props.value === 'string' ? props.value : '';
+  if (!text) return null;
+  return (
+    <text
+      x={Number(props.x) + Number(props.width) / 2} y={Number(props.y) - 6} textAnchor="middle"
+      fill="var(--ink-2)" fontSize={11.5} fontWeight={500} style={{ fontVariantNumeric: 'tabular-nums' }}
+    >{text}</text>
+  );
+}
+
 export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartProps) {
-  const [shape, setShape] = useState<'line' | 'bar'>('line');
   const [compare, setCompare] = useState(true);
   const active = useRef<GraphPointVM | null>(null);
   const showCompare = compare && vm.compareLabel !== null;
-  const data = vm.points.map((p) => ({ ...p, v: p.value ?? 0, c: p.compare ?? 0 }));
+  // Null draws no bar (a stage without a win probability); the page adds nothing to the numbers.
+  const data = vm.points.map((p) => ({ ...p, v: p.value, c: p.compare, t: p.barLabel ?? '' }));
   const byLabel = (label: unknown) => vm.points.find((p) => p.label === label) ?? null;
   // A gate sits between two points: draw it at the start of the point after it.
   const markers = vm.markers
     .map((mk) => ({ ...mk, next: vm.points[vm.points.findIndex((p) => p.key === mk.after) + 1] }))
     .filter((mk) => mk.next);
+  // Without measure buttons (older fixtures), every metric sits in the select.
+  const measures = vm.measures ?? [];
+  const more = vm.more ?? (measures.length ? [] : vm.metrics);
+  const onMore = more.some((m) => m.id === metric);
+  const notes = vm.notes ?? [];
 
   const click = (p: GraphPointVM | null) => { if (p?.drill) onPoint(p.key); };
   const onKey = (e: KeyboardEvent) => {
@@ -60,7 +92,7 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
     return (
       <div className="sc-tip">
         <b>{p.label}</b>
-        <span>{vm.metricLabel}: <span className="num">{p.display}</span>{p.count !== undefined && ` · ${p.count} ${p.count === 1 ? 'tender' : 'tenders'}`}</span>
+        <span>{vm.metricLabel}: <span className="num">{p.display}</span>{p.count !== undefined && p.value !== null && ` · ${p.count} ${p.count === 1 ? 'tender' : 'tenders'}`}</span>
         {showCompare && <span className="cmp">{vm.compareLabel}: <span className="num">{p.compareDisplay}</span></span>}
         {p.hint && <span className="hint">{p.hint}</span>}
       </div>
@@ -71,91 +103,94 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
     <div className="sc">
       <div className="sc-bar">
         {lead}
-        <label className="tg-sort">
-          <span className="sr-only">Metric</span>
-          <select value={metric} onChange={(e) => setMetric(e.target.value)}>
-            {vm.metrics.length === 0 && <option value={metric}>{vm.metricLabel}</option>}
-            {vm.metrics.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
-          </select>
-          <ChevronDown size={13} aria-hidden />
-        </label>
-        <div className="seg" role="radiogroup" aria-label="Chart type">
-          {(['line', 'bar'] as const).map((s) => (
-            <button key={s} type="button" role="radio" aria-checked={shape === s} className={shape === s ? 'on' : ''} onClick={() => setShape(s)}>
-              {s === 'line' ? 'Line' : 'Bar'}
-            </button>
-          ))}
-        </div>
-        <label className="sc-cmp" title={vm.compareLabel ?? 'No comparison for this period'}>
-          <input type="checkbox" checked={compare && vm.compareLabel !== null} disabled={vm.compareLabel === null} onChange={(e) => setCompare(e.target.checked)} />
+        {measures.length > 0 && (
+          <div className="seg sc-measures" role="radiogroup" aria-label="Measure">
+            {measures.map((m) => (
+              <button
+                key={m.id} type="button" role="radio" aria-checked={metric === m.id} className={metric === m.id ? 'on' : ''}
+                onClick={() => setMetric(m.id)} title={m.label}
+              >{m.short}</button>
+            ))}
+          </div>
+        )}
+        {more.length > 0 && (
+          <label className={`tg-sort sc-more ${onMore ? 'on' : ''}`}>
+            <span className="sr-only">{measures.length ? 'More measures' : 'Metric'}</span>
+            <select value={onMore ? metric : ''} onChange={(e) => e.target.value && setMetric(e.target.value)}>
+              {measures.length > 0 && <option value="" disabled>More</option>}
+              {!measures.length && !onMore && <option value="" disabled>{vm.metricLabel}</option>}
+              {more.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
+            </select>
+            <ChevronDown size={13} aria-hidden />
+          </label>
+        )}
+        <label className="sc-cmp" title={vm.compareLabel ?? 'No comparison for this measure'}>
+          <input type="checkbox" checked={showCompare} disabled={vm.compareLabel === null} onChange={(e) => setCompare(e.target.checked)} />
           Compare
         </label>
+      </div>
+
+      <div className="sc-cap">
         <span className="sc-legend" aria-hidden>
-          <span className="k main" />{vm.metricLabel}
+          <span className="k main" />{vm.metricLabel}{vm.unit && <span className="unit">{vm.unit}</span>}
           {showCompare && <><span className="k cmp" />{vm.compareLabel}</>}
-          {vm.compareLabel === null && <span className="none">No comparison</span>}
+          {vm.compareLabel === null && <span className="none">No comparison for this measure</span>}
+          {vm.target && <><span className="k tgt" />{vm.target.label}</>}
         </span>
+        {notes.map((n) => <span key={n} className="sc-note">{n}</span>)}
       </div>
 
       <figure className="sc-fig" onKeyDown={onKey}>
         {vm.missing || vm.empty ? (
           <div className="sc-empty">
             <EmptyState
-              title={vm.missing ? vm.metricLabel : vm.axis === 'stages' ? 'No tenders in these stages in this period.' : 'No tenders in these steps in this period.'}
+              title={vm.missing ? vm.metricLabel : vm.emptyText ?? (vm.axis === 'stages' ? 'No tenders in these stages in this period.' : 'No tenders in these steps in this period.')}
               body={vm.missing ? 'This metric is not registered yet.' : undefined}
               compact
             />
           </div>
         ) : (
           <div role="img" aria-label={vm.summary} className="sc-plot">
-            <ResponsiveContainer width="100%" height={PLOT_H}>
-              <ComposedChart
-                data={data} margin={{ top: 26, right: 24, bottom: 8, left: 4 }} barGap={4} barCategoryGap="28%"
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data} margin={{ top: 28, right: 12, bottom: 4, left: 0 }} barCategoryGap="22%"
                 onClick={(s) => click(byLabel(s?.activeLabel))}
                 style={{ cursor: 'pointer' }}
               >
                 <CartesianGrid stroke="var(--line-2)" vertical={false} />
                 <XAxis
-                  dataKey="label" scale="band" interval={0} tickLine={false} axisLine={{ stroke: 'var(--line)' }}
-                  tick={{ fill: 'var(--ink-3)', fontSize: 12 }} height={36}
+                  xAxisId="main" dataKey="label" scale="band" interval={0} tickLine={false} axisLine={{ stroke: 'var(--line)' }}
+                  tick={<AxisTick />} height={40}
                 />
+                {/* The ghost bars get their own hidden band axis, so they sit centred behind the bars, a little wider. Height 0: bottom axes stack. */}
+                <XAxis xAxisId="ghost" dataKey="label" scale="band" hide height={0} />
                 <YAxis
-                  tickFormatter={tick} tickLine={false} axisLine={false} width={52} allowDecimals={false}
+                  tickFormatter={tick} tickLine={false} axisLine={false} width={48} allowDecimals={false}
                   tick={{ fill: 'var(--ink-3)', fontSize: 12 }}
                 />
                 {markers.map((mk) => (
                   <ReferenceLine
-                    key={mk.label} x={mk.next.label} position="start" stroke="var(--line-strong)" strokeDasharray="4 4"
+                    key={mk.label} xAxisId="main" x={mk.next.label} position="start" stroke="var(--line-strong)" strokeDasharray="4 4"
                     label={{ value: mk.label, position: 'top', fill: 'var(--ink-3)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
                   />
                 ))}
-                <Tooltip content={TooltipBody} cursor={{ fill: 'var(--surface-hover)' }} isAnimationActive={false} />
-                {shape === 'bar' ? (
-                  <>
-                    <Bar dataKey="v" name={vm.metricLabel} fill="var(--brand)" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={false} />
-                    {showCompare && (
-                      <Bar
-                        dataKey="c" name={vm.compareLabel ?? ''} fill="var(--brand)" fillOpacity={0.12} stroke="var(--brand)" strokeOpacity={0.5}
-                        strokeDasharray="4 3" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={false}
-                      />
-                    )}
-                  </>
-                ) : (
-                  <>
-                    {showCompare && (
-                      <Line
-                        dataKey="c" name={vm.compareLabel ?? ''} stroke="var(--brand)" strokeOpacity={0.5} strokeDasharray="5 4" strokeWidth={2}
-                        dot={{ r: 3, fill: 'var(--surface)', stroke: 'var(--brand)', strokeOpacity: 0.5 }} activeDot={false} isAnimationActive={false}
-                      />
-                    )}
-                    <Line
-                      dataKey="v" name={vm.metricLabel} stroke="var(--brand)" strokeWidth={2.2}
-                      dot={{ r: 4, fill: 'var(--surface)', stroke: 'var(--brand)', strokeWidth: 2 }}
-                      activeDot={{ r: 6, fill: 'var(--brand)', stroke: 'var(--surface)', strokeWidth: 2 }} isAnimationActive={false}
-                    />
-                  </>
+                <Tooltip axisId="main" content={TooltipBody} cursor={{ fill: 'var(--surface-hover)' }} isAnimationActive={false} />
+                {showCompare && (
+                  <Bar
+                    xAxisId="ghost" dataKey="c" name={vm.compareLabel ?? ''} fill="var(--brand)" fillOpacity={0.1}
+                    stroke="var(--brand)" strokeOpacity={0.45} strokeDasharray="4 3" radius={[4, 4, 0, 0]} maxBarSize={60} isAnimationActive={false}
+                  />
                 )}
-              </ComposedChart>
+                <Bar xAxisId="main" dataKey="v" name={vm.metricLabel} fill="var(--brand)" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={false}>
+                  <LabelList dataKey="t" content={BarLabel} />
+                </Bar>
+                {vm.target && (
+                  <ReferenceLine
+                    xAxisId="main" y={vm.target.value} stroke="var(--orange)" strokeDasharray="6 4"
+                    label={{ value: `${vm.target.label} ${vm.target.display}`, position: 'insideTopRight', fill: 'var(--ink-3)', fontSize: 11 }}
+                  />
+                )}
+              </BarChart>
             </ResponsiveContainer>
           </div>
         )}

@@ -1,5 +1,6 @@
 import { PACK_VERSIONS, RERUN_EFFECTS, type PackSectionId, type PackSnapshot, type RerunEffect } from '@/data/gcc/s3';
 import { nowIso, readDone, stampText, type Done, type WriteError, type WriteResult } from './done';
+import { seededPackReady } from './ready';
 
 /**
  * Pack versions (spec §9.10): the seeded versions, plus the one a re-run
@@ -38,7 +39,8 @@ const effectsUpTo = (tenant: string, tenderId: string, version: number) =>
   RERUN_EFFECTS.filter((e) => e.tenant === tenant && e.tenderId === tenderId && e.fromVersion < version);
 
 export function packVersionsFor(tenant: string, tenderId: string, done: Done): PackVersions {
-  const seeded = PACK_VERSIONS.filter((p) => p.tenant === tenant && p.tenderId === tenderId).sort((a, b) => a.version - b.version);
+  const seeded = seededPackReady(tenant, tenderId, done)
+    ? PACK_VERSIONS.filter((p) => p.tenant === tenant && p.tenderId === tenderId).sort((a, b) => a.version - b.version) : [];
   if (!seeded.length) return { tenderId, versions: [], current: null, issued: null };
   const base = seeded[seeded.length - 1];
 

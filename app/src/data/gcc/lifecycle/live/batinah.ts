@@ -7,9 +7,10 @@ import { dg1Gate, dg1Record, dg2Gate, dg2Record, intakeSteps, liveKit, s1, s1Der
  * Batinah (tenant D, Oman: Fri–Sat weekend), hand-authored (plan 017 §2.2).
  * Plan 004's pursued DG1 records become the Stage 5, 6 and 8 rows
  * (T-2025-405, 404, 407 and 415); the Stage 9 row carries outcome BA-O25 and
- * DG2 T-2025-120. dashboards.md §12.5 counts 4 in Stage 1: the fourth is the
- * scanned Arabic roads tender that plan 012 adds. Suggested titles that
- * repeated a past bid were renamed.
+ * DG2 T-2025-120. dashboards.md §12.5 counts 4 in Stage 1. T-2026-042 is the
+ * Arabic roads tender with three scanned pages (plan 023): validating, with its
+ * bid bond and section-length conflicts open. Suggested titles that repeated a
+ * past bid were renamed.
  */
 
 const K = liveKit('batinah', BATINAH, 'Tender Board portal');
@@ -28,10 +29,11 @@ export const LIVE_BATINAH: Lifecycle[] = [
     steps: intakeSteps('2026-03-08T08:40', '2026-03-08T08:41', '2026-03-08T08:52'),
     facts: s1(0, 0, 0, 'EN'),
   }),
+  // Plan 023: the Arabic document; eligibility from 007a (7 met · 1 at risk · 1 interpretation · 0 fail).
   K.story('T-2026-042', {
-    m1: '2026-03-08T07:41', now: { stage: 1, step: 'awaiting-dg1' },
+    now: { stage: 1, step: 'validating' },
     steps: intakeSteps('2026-03-08T07:30', '2026-03-08T07:31', '2026-03-08T07:41'),
-    facts: s1(6, 0, 0, 'EN', { dg1Due: '2026-03-09T07:41' }),
+    facts: s1Derived('AR'),
   }),
   K.story('T-2026-027', {
     m1: '2026-02-11T11:32', dg1: dg1Gate(dg1Record(BATINAH, 'T-2026-027')),

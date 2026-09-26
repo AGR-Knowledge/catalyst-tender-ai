@@ -16,7 +16,8 @@ const subtitle = (ctx: KpiCtx) => {
 
 const COLUMNS = ['tid', 'tender', 'stage', 'owner', 'team', 'value', 'due', 'nextGate', 'health', 'source'];
 const OPTIONAL = ['captured', 'country', 'sector', 'fit', 'win', 'lastActivity'];
-const METRICS = ['stages.count', 'stages.value', 'stages.inPeriod', 'stages.atRisk', 'stages.avgDays'];
+/** Tenders | Value | Weighted as buttons, the rest under More (dashboards.md §6, 2026-09-26). */
+const METRICS = ['stages.count', 'stages.value', 'stages.weighted', 'stages.inPeriod', 'stages.atRisk', 'stages.avgDays'];
 
 const base = {
   title: () => 'Dashboard',
@@ -39,7 +40,8 @@ export const DASHBOARDS: DashboardSpec[] = [
   {
     key: 'portfolio.hot', ...base,
     tiles: ['PF-1', 'PF-2', 'PF-3', 'PF-4', 'SCR-6', 'CAP-1'],
-    actions: ['dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge'],
+    actions: ['dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge',
+      'breakglass.review'],
     table: { ...table, scope: () => ({ kind: 'all' }) },
   },
   {

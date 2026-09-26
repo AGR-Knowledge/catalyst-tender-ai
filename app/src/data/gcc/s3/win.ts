@@ -87,4 +87,49 @@ export const WIN_MODELS: WinModel[] = [
       { text: '−5 pts if the bond pushes the facility below its warning level', points: -5 },
     ],
   },
+  // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package. 38 + 14 = 52; 12 comparables give ± 8.
+  {
+    tenant: 'corniche', tenderId: 'T-2026-061',
+    base: { pct: 38, label: 'Buildings MEP hit rate, trailing 12 months (5 of 13)' },
+    drivers: [
+      { key: 'client', label: 'Client history', points: 8, why: 'CBHH: its specialist hospital MEP, delivered in 2022', source: 'Client history: award records',
+        cites: ['corniche-cbhh-2020'] },
+      { key: 'value-band', label: 'Value band', points: 2, why: 'Inside the preferred band', source: 'Bid history; Fit model & rules' },
+      { key: 'geography', label: 'Geography and presence', points: 3, why: 'Abu Dhabi project office', source: 'Company profile: offices' },
+      { key: 'competitors', label: 'Competitor count', points: -5, why: 'Open tender: three other MEP contractors have downloaded the documents', source: 'Market-intelligence feed (EV-061-07)' },
+      { key: 'capacity', label: 'Capacity load', points: -2, why: 'Buildings MEP tendering team committed to two bids through April', source: 'Capacity: Buildings MEP tendering team' },
+      { key: 'price-position', label: 'Planned price position', points: 4, why: 'Levelled chiller and AHU quotes put the estimate below the median of past awards', source: 'Commercial input; levelled quotes' },
+      { key: 'local-content', label: 'Local content', points: 4, why: 'ICV certificate held; the ICV score carries 25% of the commercial evaluation', source: 'Credential: ICV certificate; ITT clause 16.3 (p. 7)' },
+      { key: 'jv', label: 'JV', points: 0, why: 'Bidding as prime: joint ventures are not accepted', source: 'ITT clause 2.2 (p. 4)' },
+    ],
+    comparables: 12,
+    movers: [
+      { text: '+5 pts with a named medical gas specialist, approved for medical gas pipeline systems, with a hospital record', points: 5 },
+      { text: '−4 pts if the chillers are confirmed at 1,750 TR and the P-01 quotes rise', points: -4 },
+    ],
+    bidders: ['tessaline-mep', 'sarab-bs', 'brevanne', 'corniche'],
+  },
+  // Plan 023: Batinah's T-2026-042. Base: the Roads hit rate from Batinah's history (4 of 18); drivers +39 → 61;
+  // 18 comparables → ± 8. The bid bond amount is a condition of the bid, not a win driver: it moves no points.
+  {
+    tenant: 'batinah', tenderId: 'T-2026-042',
+    base: { pct: 22, label: 'Roads hit rate, trailing 12 months (4 of 18)' },
+    drivers: [
+      { key: 'client', label: 'Client history', points: 11, why: 'The Authority: 4 awards from 5 bids since 2017', source: 'Client history: award records',
+        cites: ['batinah-ilra-2017', 'batinah-ilra-2019', 'batinah-ilra-2020', 'batinah-ilra-2021', 'batinah-ilra-2024'] },
+      { key: 'value-band', label: 'Value band', points: 4, why: 'Inside the preferred band, where the roads hit rate is highest', source: 'Bid history; Fit model & rules' },
+      { key: 'geography', label: 'Geography and presence', points: 9, why: 'Sohar: head office and home region, at the start of section 2', source: 'Company profile: offices' },
+      { key: 'competitors', label: 'Competitor count', points: -3, why: 'Open tender: three other likely bidders', source: 'Market intelligence: document purchases (EV-042-05)' },
+      { key: 'capacity', label: 'Capacity load', points: -2, why: 'Roads tendering team shares March with the Muscat interchange bid', source: 'Capacity: Roads tendering team' },
+      { key: 'price-position', label: 'Planned price position', points: 10, why: 'Asphalt and aggregate sources within 40 km of the site cut haulage against the other bidders', source: 'Commercial input; benchmark rates' },
+      { key: 'local-content', label: 'Local content', points: 10, why: 'Omanisation above the construction ratio, and an SME plan ready for clause 26', source: 'Credential: Omanisation compliance certificate' },
+      { key: 'jv', label: 'JV', points: 0, why: 'Bidding as prime, with a bridge subcontractor to be named', source: 'DG1 record: submission strategy' },
+    ],
+    comparables: 18,
+    movers: [
+      { text: '−10 pts if no bridge subcontractor with a 60 m span is named', points: -10 },
+      { text: '−3 pts if Mahda bids in a JV with a foreign bridge specialist', points: -3 },
+    ],
+    bidders: ['liwa-highways', 'shinas-bridges', 'mahda-infra', 'batinah'],
+  },
 ];

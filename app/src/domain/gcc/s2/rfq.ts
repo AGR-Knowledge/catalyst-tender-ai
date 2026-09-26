@@ -46,7 +46,10 @@ export function rfqsFor(tenant: string, tenderId: string, done: Done): LiveRfq[]
     return {
       ...r,
       nudges: r.nudges + nudged,
-      ...(sq && !answered ? { quoteId: quoteIdOf(r.id), repliedAt: sq.at, acknowledgedAt: r.acknowledgedAt ?? sq.at, openedAt: r.openedAt ?? sq.at } : {}),
+      ...(sq && !answered ? {
+        ...(sq.declined ? { declined: { at: sq.at, reason: sq.declined } } : { quoteId: quoteIdOf(r.id) }),
+        repliedAt: sq.at, acknowledgedAt: r.acknowledgedAt ?? sq.at, openedAt: r.openedAt ?? sq.at,
+      } : {}),
     };
   });
 }
@@ -56,7 +59,7 @@ function portalQuote(tenant: string, rfq: LiveRfq, sq: SupplierQuoteValue): Quot
   const s = supplierOf(tenant, rfq.supplierId);
   return {
     id: quoteIdOf(rfq.id), rfqId: rfq.id, supplierId: rfq.supplierId, packageId: rfq.packageId, tenderId: rfq.tenderId,
-    receivedAt: sq.at, level: sq.level, amount: sq.amount, ccy: sq.ccy, vatInclusive: false, incoterm: 'DAP site',
+    receivedAt: sq.at, level: sq.level, amount: sq.amount, ccy: sq.ccy, vatInclusive: sq.vatInclusive ?? false, incoterm: sq.incoterm ?? 'DAP site',
     ...(s ? { origin: s.country } : {}),
     validityDays: sq.validityDays, leadTimeWeeks: sq.leadTimeWeeks, exclusions: sq.exclusions,
     deviations: sq.deviations.map((text) => ({ text, nonCompliant: false })), page: 1,
@@ -71,7 +74,7 @@ export function quotesFor(tenant: string, tenderId: string, done: Done): Quote[]
   const portal = rfqsFor(tenant, tenderId, done).flatMap((r) => {
     if (seeded.some((q) => q.rfqId === r.id)) return [];
     const sq = readDone<SupplierQuoteValue>(done, K.sq(r.id));
-    return sq ? [portalQuote(tenant, r, sq)] : [];
+    return sq && !sq.declined ? [portalQuote(tenant, r, sq)] : [];
   });
   return [...seeded, ...portal];
 }
@@ -238,15 +241,18 @@ export function rfqClock(tenant: string, tenderId: string, done: Done, now = NOW
   const p = pursueOf(tenant, tenderId, done);
   if (!p) return null;
   const dueAt = addHours(p.at, RFQ_CLOCK_HOURS);
+  // The demo clock stands at 10:00 while a DG1 recorded in the demo is stamped a few minutes after it:
+  // a clock never starts in the future, so it never reads more than its 24 hours.
+  const at = now < p.at ? p.at : now;
   const total = packagesFor(tenant, tenderId, done).length;
   const first = firstSendByPackage(tenant, tenderId, done);
-  const sent = [...first.values()].filter((at) => at <= now).length;
-  const leftMin = minutesBetween(now, dueAt);
+  const sent = [...first.values()].filter((x) => x <= at).length;
+  const leftMin = minutesBetween(at, dueAt);
   if (leftMin <= 0 && sent >= total) return null;
   const tone: Tone = sent >= total ? 'green' : leftMin <= 0 ? 'red' : leftMin <= RFQ_CLOCK_WARN_HOURS * 60 ? 'orange' : 'ink';
   return {
     tenderId, startAt: p.at, dueAt, dueText: whenText(dateOf(dueAt), timeOf(dueAt), tenantOf(tenant).tzLabel),
-    sent, total, rfqsSent: rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= now).length,
+    sent, total, rfqsSent: rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= at).length,
     leftMin, left: leftMin < 0 ? `Late by ${durationText(-leftMin)}` : durationText(leftMin), tone,
   };
 }
@@ -259,7 +265,8 @@ export function rfqIssueLag(tenant: string, tenderId: string, done: Done): { min
   if (!p || !total || first.size < total) return null;
   const sends = [...first.values()].sort();
   const last = sends[sends.length - 1];
-  const minutes = minutesBetween(p.at, last);
+  // RFQs sent at the demo's 10:00 can sit a few minutes before a DG1 stamped after it: never a negative lag.
+  const minutes = Math.max(0, minutesBetween(p.at, last));
   return { minutes, text: durationText(minutes), within: minutes <= RFQ_CLOCK_HOURS * 60 };
 }
 

@@ -8,17 +8,21 @@ import './tender.css';
  * (Self-performed / Subcontract / Not covered) or pricing state (Quoted /
  * Derived / Estimated / Open). The shares are computed from the values given,
  * never typed. A segment under 8% has its label outside the bar only; screen
- * readers get every share in words.
+ * readers get every share in words. An optional `marker` draws a limit across
+ * the bar (Stage 2's subcontracting cap, plan 008b), with its words under it.
  */
 
 export interface CoverageSegment { label: string; value: MoneyVM | number; tone: Tone }
+
+/** A limit drawn across the bar, `pct` of the whole from the left; `label` says it in words. */
+export interface CoverageMarker { pct: number; label: string; tone?: Tone }
 
 const INLINE_MIN = 8;
 
 const amountOf = (v: MoneyVM | number) => (typeof v === 'number' ? v : v.amount);
 const pctText = (n: number) => `${(Math.round(n * 10) / 10).toFixed(1)}%`;
 
-export function CoverageBar({ segments, label = 'Share by value' }: { segments: CoverageSegment[]; label?: string }) {
+export function CoverageBar({ segments, label = 'Share by value', marker }: { segments: CoverageSegment[]; label?: string; marker?: CoverageMarker }) {
   const total = segments.reduce((s, x) => s + Math.max(0, amountOf(x.value)), 0);
   const parts = segments.map((s) => ({ ...s, pct: total ? (Math.max(0, amountOf(s.value)) / total) * 100 : 0 }));
   const words = parts.map((p, i) => `${i === 0 ? p.label : p.label.toLowerCase()} ${pctText(p.pct)}`).join(', ');
@@ -32,10 +36,13 @@ export function CoverageBar({ segments, label = 'Share by value' }: { segments: 
           return p.pct >= INLINE_MIN ? <span key={p.label} className="cov-in" style={{ left: `${at}%`, maxWidth: `${p.pct}%` }}>{pctText(p.pct)}</span> : null;
         })}
       </div>
-      <div className="cov-bar" aria-hidden>
-        {parts.map((p) => p.pct > 0 && <span key={p.label} className={`cov-seg bg-${p.tone}`} style={{ width: `${p.pct}%` }} title={`${p.label} ${pctText(p.pct)}`} />)}
+      <div className="cov-track">
+        <div className="cov-bar" aria-hidden>
+          {parts.map((p) => p.pct > 0 && <span key={p.label} className={`cov-seg bg-${p.tone}`} style={{ width: `${p.pct}%` }} title={`${p.label} ${pctText(p.pct)}`} />)}
+        </div>
+        {marker && <span className={`cov-mark t-${marker.tone ?? 'ink'}`} style={{ left: `${Math.max(0, Math.min(100, marker.pct))}%` }} title={marker.label} aria-hidden />}
       </div>
-      <figcaption className="sr-only">{words}</figcaption>
+      <figcaption className="sr-only">{words}{marker ? `. ${marker.label}` : ''}</figcaption>
       <ul className="cov-legend" aria-hidden>
         {parts.map((p) => (
           <li key={p.label} className={p.pct < INLINE_MIN ? 'small' : ''}>
@@ -46,6 +53,7 @@ export function CoverageBar({ segments, label = 'Share by value' }: { segments: 
           </li>
         ))}
       </ul>
+      {marker && <p className={`cov-cap t-${marker.tone ?? 'ink'}`} aria-hidden><span className="cov-cap-l" />{marker.label}</p>}
     </figure>
   );
 }

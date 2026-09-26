@@ -3,6 +3,7 @@ import { can, holdersOf, type CanCtx } from '@/data/access';
 import { personById, roleLine, type Person } from '@/data/people';
 import { HERO_FILE, HERO_ID, HERO_REF } from '@/data/gcc/hero';
 import type { GateRecord } from '@/data/gcc/lifecycle';
+import { whenText } from '@/domain/calendar';
 import { DEMO_NOW } from '@/domain/gcc/clock';
 import { DEFAULT_PERIOD, previousOf, windowOf } from '@/domain/gcc/period';
 import { queriesFor, tenderCtx, type DemoDone } from '@/domain/gcc/lifecycle.port';
@@ -72,6 +73,11 @@ export interface RailBlockerVM { variant: 'route' | 'block'; title: string; body
 
 export interface RailVM {
   recommendation: RailRecommendationVM | RailDecisionVM | null;
+  /**
+   * The recommendation a standing DG1 decision overrode, shown beside the
+   * decision with who overrode it, when and why (spec §5.2: both stay visible).
+   */
+  overridden?: (RailRecommendationVM & { overriddenBy: { name: string; at: string; reason: string; choice: string } }) | null;
   /** The document the page chips open: the hero's booklet, or the tender's own document. */
   doc: RailDoc | null;
   /** Rows that wait on the viewer. */
@@ -168,13 +174,15 @@ function stage3Card(tenant: string, id: string, done: DemoDone, viewer: Person, 
   };
 }
 
+/** A DG1 Pursue on a Discard recommendation, or a Discard on a Pursue or Pursue-with-conditions one (as `dg1Write` counts it). */
+const isDg1Override = (g: GateRecord) => g.gate === 'DG1' && !!g.recommendation
+  && (g.decision === 'discard' ? g.recommendation !== 'discard' : g.decision === 'pursue' && g.recommendation === 'discard');
+
 function decisionOf(g: GateRecord, viewer: Person, ctx: CanCtx): RailDecisionVM {
   const d = DECISION[g.decision];
   const by = personById(g.byId);
   const late = !g.onTime;
-  const override = g.gate === 'DG1' && g.recommendation
-    && ((g.decision === 'pursue' && g.recommendation === 'discard') || (g.decision === 'discard' && g.recommendation === 'pursue'))
-    ? `Override: the agent recommended ${REC_WORD[g.recommendation]}` : null;
+  const override = isDg1Override(g) ? `Override: the agent recommended ${REC_WORD[g.recommendation!]}` : null;
   const flag = override ?? (g.againstMajority && can(viewer, 'see.positions', ctx).ok ? AGAINST_MAJORITY_TEXT : null);
   const maskFigures = !!g.note && g.gate !== 'DG1' && HAS_FIGURE.test(g.note) && !can(viewer, 'see.margin', ctx).ok;
   // "Approved against the majority of positions" tells a viewer how the committee voted.
@@ -183,6 +191,29 @@ function decisionOf(g: GateRecord, viewer: Person, ctx: CanCtx): RailDecisionVM 
     kind: 'decision', gate: g.gate, label: d.label, tone: d.tone, byName: by?.name ?? g.byId, byRole: by ? roleLine(by) : null, at: g.at, onTime: g.onTime,
     timing: late ? `Recorded after the ${g.slaHours} h time limit` : `Recorded within the ${g.slaHours} h time limit`,
     reasons: g.reasonCodes.map(reasonText), note: maskFigures ? 'Note masked for your role: it states margin figures' : maskPositions ? 'Note masked for your role: it refers to committee positions' : g.note ?? null, flag,
+  };
+}
+
+/**
+ * The recommendation an overriding DG1 decision went against: the card as it
+ * reads now, with the verdict the record kept (the recommendation at that
+ * moment), and who overrode it. A tender no longer in the register keeps the
+ * verdict only.
+ */
+function overriddenOf(tenant: string, tenderId: string, g: GateRecord, done: DemoDone): NonNullable<RailVM['overridden']> {
+  const rec = g.recommendation!;
+  const card = stage1Card(tenant, tenderId, done);
+  const base: RailRecommendationVM = card ?? {
+    kind: 'card', stage: 1, heading: '', agent: 'Intake & Extraction', verdict: '', tone: 'ink', confidence: null, reasons: [], wouldChange: [], sources: [],
+  };
+  const by = personById(g.byId);
+  const [date, time] = g.at.split('T');
+  return {
+    ...base, heading: 'Recommendation at DG1', verdict: card && card.verdict.startsWith(REC_WORD[rec]) ? card.verdict : REC_WORD[rec], tone: VERDICT_TONE[rec] ?? 'ink',
+    overriddenBy: {
+      name: by?.name ?? g.byId, at: whenText(date, time).replace(/ \d{4}(?=,|$)/, ''),
+      reason: g.note ?? (g.reasonCodes.length ? g.reasonCodes.map(reasonText).join(', ') : 'No note recorded'), choice: DECISION[g.decision].label,
+    },
   };
 }
 
@@ -237,6 +268,8 @@ export function workspaceRail(input: RailInput): RailVM {
   if (live && row.stage === 1 && !decided('DG1')) recommendation = stage1Card(tenant, row.id, done);
   else if (live && row.stage === 3 && !decided('DG2')) recommendation = stage3Card(tenant, row.id, done, viewer, ctx);
   if (!recommendation && gates.length) recommendation = decisionOf(gates[gates.length - 1], viewer, ctx);
+  const shownGate = recommendation?.kind === 'decision' ? gates[gates.length - 1] : undefined;
+  const overridden = shownGate && isDg1Override(shownGate) ? overriddenOf(tenant, row.id, shownGate, done) : null;
 
   const { mine, waiting } = actionsFor(input);
 
@@ -250,6 +283,6 @@ export function workspaceRail(input: RailInput): RailVM {
     if (b.count) blockers.push({ variant: 'route', title: b.text, body: 'Pursue unlocks once the flagged fields are confirmed.' });
   }
 
-  return { recommendation, doc: docFor(row), actions: mine, waiting, dates, blockers };
+  return { recommendation, overridden, doc: docFor(row), actions: mine, waiting, dates, blockers };
 }
 

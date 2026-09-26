@@ -11,7 +11,9 @@ import { notDefinedText } from '@/domain/gcc/dashboards/build';
 
 /**
  * Needs your action (dashboards.md §1 Z4, §4): always now, most urgent first,
- * five rows and then "Show all". Each row has one primary button: it opens the
+ * five rows and then "Show all". Beside the main view it is a compact column
+ * whose rows scroll inside the main card's height (user decision 2026-09-26).
+ * Each row has one primary button: it opens the
  * exact screen, or does the action in place. An in-place action writes through
  * `mark()` (so it survives a reload and Reset clears it), adds an audit entry
  * and says what happened in a toast; the row then shows its done label until
@@ -73,12 +75,12 @@ export function ActionList({ zone, onRoute }: { zone: ActionsZoneVM; onRoute(to:
             const done = acted[row.id];
             return (
               <li key={row.id} className={`al-row ${done ? 'done' : ''}`}>
-                <span className={`ac-type ${row.typeTone ? `tone-${row.typeTone}` : ''}`}>{row.type}</span>
+                <div className="al-t">
+                  <span className={`ac-type ${row.typeTone ? `tone-${row.typeTone}` : ''}`}>{row.type}</span>
+                  {row.tenderId && <span className="mono al-tid">{row.tenderId}</span>}
+                </div>
                 <div className="al-main">
-                  <div className="al-t">
-                    {row.tenderId && <span className="mono al-tid">{row.tenderId}</span>}
-                    {row.shortTitle && <span className="al-title">{row.shortTitle}</span>}
-                  </div>
+                  {row.shortTitle && <div className="al-title" title={row.shortTitle}>{row.shortTitle}</div>}
                   <div className="al-what">{row.what}</div>
                   <div className="al-meta">
                     <Due due={row.due} />
@@ -89,15 +91,13 @@ export function ActionList({ zone, onRoute }: { zone: ActionsZoneVM; onRoute(to:
                   {done ? (
                     <span className="al-done t-green"><Check size={13} aria-hidden />{doneText(done)}</span>
                   ) : (
-                    <>
-                      <button
-                        type="button" className="btn btn-sm btn-invert" disabled={!!row.disabledReason} onClick={() => act(row)}
-                        aria-describedby={row.disabledReason ? `why-${row.id}` : undefined}
-                      >{row.primary.label}</button>
-                      {row.disabledReason && <span className="al-why" id={`why-${row.id}`}>{row.disabledReason}</span>}
-                    </>
+                    <button
+                      type="button" className="btn btn-sm btn-invert" disabled={!!row.disabledReason} onClick={() => act(row)}
+                      aria-describedby={row.disabledReason ? `why-${row.id}` : undefined}
+                    >{row.primary.label}</button>
                   )}
                 </div>
+                {!done && row.disabledReason && <span className="al-why" id={`why-${row.id}`}>{row.disabledReason}</span>}
               </li>
             );
           })}

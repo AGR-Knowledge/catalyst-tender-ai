@@ -61,6 +61,8 @@ export interface KeyPerson {
   years: number;
   /** Years in water and wastewater. */
   sectorYears: number;
+  /** Years in other sectors, by the sector a key-personnel role names (`KeyRoleSpec.sector`), e.g. { healthcare: 12 }. */
+  sectors?: Record<string, number>;
   saudiNational: boolean;
   availableFrom: string;
   /** Last day on a current assignment. */
@@ -114,9 +116,16 @@ export interface BondTerms {
   tenants: GccTenantKey[] | '*';
   /** Bid bond (initial guarantee) rate in %, when one rate is stated. The hero's comes from its conflict. */
   bidPct?: number;
+  /** A fixed bid bond, in the tender's currency, when the tender states an amount rather than a rate (plan 022). */
+  bidAmount?: number;
   bidPage?: number;
   /** Validation item that holds the rate while it is in conflict (the hero: VAL-118-1). */
   bidRateValidationId?: string;
+  /**
+   * Validation item that holds the bond's validity ("120 days") while it is in conflict (plan 022): the
+   * longer of the two is used until it is resolved, and the resolved value after.
+   */
+  bidValidityValidationId?: string;
   /**
    * How long the bid bond must stay valid, in calendar days from bid opening,
    * when the tender states it in days rather than as a key date.

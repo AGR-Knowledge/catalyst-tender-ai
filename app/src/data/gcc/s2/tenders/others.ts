@@ -1,5 +1,7 @@
 import type { RfqLine, S2Tender } from '../types';
 import { boq, packages, rfqs, type PackageInput, type RfqRow } from './build';
+import { BATINAH_T042 } from './batinah-042';
+import { CORNICHE_T061 } from './corniche-061';
 
 /**
  * Stage 2 records for tenants B–E (plan 008a Phase 8). Seeded so that on
@@ -1015,7 +1017,9 @@ export const QURAIN_T062: S2Tender = {
   documents: DOCUMENTS,
 };
 
-export const CORNICHE_S2: S2Tender[] = [CORNICHE_T044];
+// Plan 022 adds T-2026-061 (no RFQs until the demo pursues it).
+export const CORNICHE_S2: S2Tender[] = [CORNICHE_T044, CORNICHE_T061];
 export const DAFNA_S2: S2Tender[] = [DAFNA_T019];
-export const BATINAH_S2: S2Tender[] = [BATINAH_T027];
+// Plan 023: T-2026-042, whose Stage 2 starts in the demo after DG1 Pursue.
+export const BATINAH_S2: S2Tender[] = [BATINAH_T027, BATINAH_T042];
 export const QURAIN_S2: S2Tender[] = [QURAIN_T058, QURAIN_T062];

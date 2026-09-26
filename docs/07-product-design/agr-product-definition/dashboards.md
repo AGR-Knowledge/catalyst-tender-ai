@@ -36,6 +36,7 @@ KPI IDs refer to the dictionary in [kpi-and-screen-catalogue.md](kpi-and-screen-
 | DB-10 | **Stages 4–9** get real tenders, owners, dates and step status, and each has a stage dashboard. The working screens inside them (programme, cost build-up, drafting) stay out of the demo |
 | DB-11 | **Build order:** the shared kit and shell first, then the dashboards, then the Stage 1–3 working screens and the gate screens |
 | DB-12 | **New libraries, approved:** `ag-grid-community` and `ag-grid-react` (MIT; Community modules only, never Enterprise) and `recharts` (MIT) |
+| DB-13 | **User decision, 2026-09-26: less empty space.** The flow (Z3) is one thin line under the tiles, not a card. Z5 (Table or Graph) sits at two thirds of the width with Z4 (Needs your action) beside it at one third. The graph is one bar per stage or step, with buttons **Tenders · Value · Weighted** and the other measures under **More** (§1, §6) |
 
 ---
 
@@ -49,14 +50,13 @@ The same page, top to bottom, at 1440 px:
 │ Calendar     ││     Faisal Al-Harbi · Najd Arcline · As of Sun 8 Mar 2026, 10:00 AST      │
 │ STAGES       ││ Z2  ┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐   six KPI tiles     │
 │ 1 Intake   ▸ ││     └──────┘└──────┘└──────┘└──────┘└──────┘└──────┘                     │
-│ 2 Sourcing ▸ ││ Z3  ┌ Flow strip ⓘ (7/12) ─────────────┐ Z4 ┌ Needs your action (5/12) ─┐ │
-│ 3 Bid dec. ▸ ││     │ Captured → DG1 → DG2 → DG3 →      │    │ 5 rows, most urgent first │ │
-│ 4 Planning   ││     │ Submitted → Results               │    │ what · tender · due · [▶] │ │
-│ …            ││     └───────────────────────────────────┘    └───────────────────────────┘ │
-│ 9 Results    ││ Z5  [ Table | Graph ]   Sort: Newest ▾   Search · Filters · chips   n of m │
-│ Company      ││     ┌ Table: header + 10 rows visible, the rest scroll inside ──────────┐ │
-│              ││     │  … or the Graph, same box, same height                            │ │
-│ ──────────── ││     └───────────────────────────────────────────────────────────────────┘ │
+│ 2 Sourcing ▸ ││ Z3  Decision funnel ⓘ  Captured 176 › DG1 4 pursued · 7 discarded … ›     │
+│ 3 Bid dec. ▸ ││ Z5  ┌ Table | Graph (8/12) ───────────────────┐ Z4 ┌ Needs your ────────┐ │
+│ 4 Planning   ││     │ Table: 10 rows, the rest scroll inside  │    │ action (4/12)      │ │
+│ …            ││     │ … or Graph: Tenders | Value | Weighted  │    │ most urgent first  │ │
+│ 9 Results    ││     │ More ▾ · bars · ghost bar = compare     │    │ rows scroll inside │ │
+│ Company      ││     │                                         │    │ Show all (n)       │ │
+│ ──────────── ││     └─────────────────────────────────────────┘    └────────────────────┘ │
 │ Admin        ││ Z6  ┌ Tender tracker (after a row click) ───────────────────────────────┐ │
 │ Settings     ││     │ S1 ✓ · DG1 ✓ · S2 ● · S3 · DG2 · S4 … S9 · who · team · next      │ │
 └──────────────┘│     └───────────────────────────────────────────────────────────────────┘ │
@@ -74,12 +74,14 @@ The same page, top to bottom, at 1440 px:
 - Tile anatomy and the ⓘ are in §3.
 
 ### Z3 · Flow strip
+- **User decision, 2026-09-26:** one thin line under the tiles, not a card: the label and its ⓘ, then the steps separated by ›. The period is the page's filter (the ⓘ repeats it). It wraps to a second line only when the page is too narrow.
 - **One horizontal flow per dashboard, for the selected period:** the role's funnel. For the Head of Tendering it is the decision funnel: Captured → DG1 → DG2 → DG3 → Submitted → Results. Each gate shows what went through and what stopped ("4 pursued · 7 discarded · 1 held").
 - **Every number is a link.** It switches the main view to the Table, filtered to exactly those tenders (including closed ones).
 - The strip has its own ⓘ. It says the counts are decisions made in the period, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up.
 - **Stage dashboards use one rule:** the strip shows **how many tenders entered each step of the stage in the period**, then **Moved on** (entered the next stage) and **Stopped** (closed in this stage). A stage that ends in a gate shows the gate's decisions instead of Moved on and Stopped. All of it is derived from the stage log (§12.1), so every stage's strip is honest and needs no extra data. Stage 1 starts with the notices captured; My requests uses the request statuses.
 
 ### Z4 · Needs your action
+- **User decision, 2026-09-26:** a column beside Z5 at one third of the width, exactly as tall as the main card. Each row is compact (type chip and TID with the button on the first line, then the title, what is needed and the due), and the rows scroll inside the column.
 - **Always now; the period does not apply.**
 - **Rows are ordered:** hard blocks and breached SLAs first, then by time left, then by value.
 - **Five rows are visible**, then "Show all (n)", which expands in place.
@@ -92,15 +94,16 @@ The same page, top to bottom, at 1440 px:
 
 ### Z5 · Main view
 - **A segmented control, `Table | Graph`.** The choice is remembered per viewer in `localStorage` (`ctai.mainview`), in a try/catch, defaulting to Table. My requests has no graph, so the toggle is hidden there.
-- **Both views sit in the same box at the same height**, so the page doesn't jump when toggling. The table stays mounted under the graph and sets the box's height (its toolbar wraps to two rows on a stage table); the graph fills the box, with a plot of at least 440 px (plan 020 A6.3).
+- **Two thirds of the width, beside Z4** (user decision, 2026-09-26). The table scrolls horizontally inside it.
+- **Both views sit in the same box at the same height**, so the page doesn't jump when toggling, and only one is ever visible. The table stays mounted under the graph and sets the box's height (its toolbar wraps to two rows on a narrow or stage table); the graph fills the box, with a plot of at least 400 px.
 - The Table is described in §5, the Graph in §6.
 
 ### Z6 · Tender tracker
 It opens **below the main view** when a table row is selected (§7). Clicking the same row again, the ×, or Esc closes it. It doesn't open from the Graph, whose clicks navigate instead.
 
 ### Responsiveness
-- At 1280 px: Z3 and Z4 stay side by side, at 6/12 each.
-- Below 1100 px they stack, Z4 first.
+- At 1440 and 1280 px: Z5 and Z4 stay side by side, at 8/12 and 4/12 (2026-09-26). Z3 is one line at 1440 and may wrap to two at 1280.
+- Below 1100 px Z4 stacks under Z5 at its own height.
 - The table scrolls horizontally inside its box, with TID and Tender pinned left. The page never scrolls horizontally.
 
 ---
@@ -288,33 +291,40 @@ Synthetic tenders use URLs on the reserved `.example` domain (e.g. `https://etim
 
 ## 6. Main view: the Graph (Recharts)
 
-- **Library:** `recharts`. Line by default; a small "Line | Bar" switch in the graph toolbar.
+**User decision, 2026-09-26: bars per stage and a measure switch.** It replaces "Line by default" and the metric select.
+
+- **Library:** `recharts`. **Bars only:** one bar per stage (portfolio) or per step (stage dashboard), with its value above it.
 - **X-axis:**
   - **Portfolio dashboards:** the nine stages by short name, "1 Intake" … "9 Results". Gate markers sit between stages as dashed vertical reference lines labelled DG1 (after 1), DG2 (after 3) and DG3 (after 7).
   - **Stage dashboards:** the steps of that stage, in order (§8.2).
-- **Y-axis:** a select in the graph toolbar. Metrics per dashboard are listed in §10. The common set is:
+- **Measure:** three buttons in the graph toolbar, **Tenders · Value · Weighted**, then a small **More** select with the dashboard's other metrics (§10). A button shows only when the dashboard has that measure and the viewer may see it. The common set is:
 
-| Metric | Kind | Definition |
-| --- | --- | --- |
-| Tenders now (default) | state | Live tenders in each stage or step now |
-| Value now | state | Σ value in tenant currency, same set |
-| Tenders in the period | flow | Tenders that were in the stage or step at any time in the window |
-| At risk or overdue now | state | Health At risk, Overdue or Blocked |
-| Average days in stage | flow | For tenders that left the stage or step in the window: mean days spent there |
+| Metric | Where | Kind | Definition |
+| --- | --- | --- | --- |
+| Tenders now (default) | button | state | Live tenders in each stage or step now |
+| Value now | button | state | Σ value in tenant currency, same set |
+| Weighted value now | button | state | Σ value × win probability, DEC-4's rule (below) |
+| Tenders in the period | More | flow | Tenders that were in the stage or step at any time in the window |
+| At risk or overdue now | More | state | Health At risk, Overdue or Blocked |
+| Average days in stage | More | flow | For tenders that left the stage or step in the window: mean days spent there |
 
-- **Comparison series** (dashed, same hue at 50%), switchable with "Compare":
+- **Weighted** (portfolio and Stage 3): value × win probability over bids whose Bid / No-Bid pack has been issued, the same rule as DEC-4, so the Stage 3 bar equals the Weighted pipeline tile. No other stage carries a win probability, so those stages show no bar and one line under the toolbar says why. Win probability follows `see.positions` tender by tender: a tender the viewer may not see is left out and the line says "N tenders not counted: win probability is masked for your role". A viewer who can see none of them gets no Weighted button.
+- **Comparison** ("Compare", on by default): a ghost bar (dashed outline, same hue, light fill), a little wider, behind each bar:
   - for **state** metrics: the same metric **at the start of the window** (e.g. 7 Feb);
-  - for **flow** metrics: the **previous period**.
+  - for **flow** metrics: the **previous period**;
+  - Weighted and the "now only" metrics have no comparison, and the legend says so.
+- **Target line:** drawn only for a measure whose target is defined in `src/data`. None of the graph measures has one yet, so no line is drawn.
 - **Tooltip:** stage or step name · value · comparison value · count if the metric is value · "Click to open Sourcing" (portfolio) or "Click to see these tenders" (stage).
 - **Click:**
   - **Portfolio, and the viewer can open the stage's dashboard** (`can(person, 'stage.view', { stage })`): navigate to `/stages/:n?period=…`. This is **the same page the stage owner uses as home.**
   - **Otherwise, and on stage dashboards:** switch to the Table, filtered to that stage or step.
 - **Accessibility:**
-  - The chart has `role="img"` and an `aria-label` summary ("Tenders now by stage: Intake 12, Sourcing 2, …").
+  - The measure buttons are a radio group; More is a labelled select.
+  - The chart has `role="img"` and an `aria-label` summary ("Tenders now by stage: Intake 12, Sourcing 2, …"), including the note lines.
   - A visually hidden `<table>` carries the same data.
-  - Keyboard: Recharts' accessibility layer moves between points; Enter on a focused point does the click.
-- **Colours:** series use `var(--brand)`; the comparison uses the same at 50% opacity; gate lines use `var(--line-strong)`; axis text uses `var(--ink-4)` at 12 px.
-- **Empty:** "No tenders in these stages in this period."
+  - Keyboard: Recharts' accessibility layer moves between bars; Enter on a focused bar does the click.
+- **Colours:** bars use `var(--brand)`; the ghost bar the same at low opacity with a dashed outline; gate lines use `var(--line-strong)`; axis text uses `var(--ink-3)` at 11–11.5 px. No animation.
+- **Empty:** "No tenders in these stages in this period.", or the measure's own line (for Weighted: "No bid has a win probability yet: it is set when the Bid / No-Bid pack is issued.").
 
 ---
 
@@ -533,7 +543,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   - default sort: Newest first.
 - **Graph:**
   - x = the 9 stages;
-  - metrics: Tenders now (default) · Value now · Tenders in the period · At risk or overdue now · Average days in stage;
+  - metrics: Tenders now (default) · Value now · Weighted value now (the three buttons) · Tenders in the period · At risk or overdue now · Average days in stage (under More);
   - click → `/stages/n`.
 
 ### 10.2 CEO: Portfolio (all tenders, read only)
@@ -685,7 +695,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
 - **Table:**
   - columns: `tid` · `tender` · `stage` (step) · **Sections locked** (11 / 18) · **Late sections** · **Simulated score** (vs pass mark) · **SME tasks overdue** · **Red-team review** (date) · `owner` · `due`;
   - default sort: Due soonest.
-- **Graph:** x = Stage 6 steps; metrics: Tenders now · Late sections now · Average days in step.
+- **Graph:** x = Stage 6 steps; metrics: Tenders now · Value now · Late sections now · Average days in step.
 
 ### 10.10 Stage 7 · Compliance
 - **Home of:** `comp`. Scope: tenders in Stage 7.
@@ -704,7 +714,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
 - **Table:**
   - columns: `tid` · `tender` · `stage` (step) · **Evidenced** (%) · **Mandatory gaps** · **Redlines open** · **Risks without owner** · **DG3** (SLA or decision) · `owner` · `due`;
   - default sort: Due soonest.
-- **Graph:** x = Stage 7 steps; metrics: Tenders now · Mandatory gaps now · Average days in step.
+- **Graph:** x = Stage 7 steps; metrics: Tenders now · Value now · Mandatory gaps now · Average days in step.
 
 ### 10.11 Stage 8 · Submission
 - **Owner:** the Bid Manager (`bid`), who reaches it from the sidebar; their home stays the portfolio. Scope: tenders in Stage 8.

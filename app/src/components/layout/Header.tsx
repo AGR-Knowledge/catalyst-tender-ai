@@ -16,6 +16,7 @@ import { bg } from '@/components/ui/primitives';
 import { GlobalSearch } from './Search';
 import { GccSearch } from './GccSearch';
 import { UploadButton } from '@/components/intake/UploadButton';
+import { UploadGcc } from '@/pages/gcc/s1/UploadGcc';
 import { TenantSwitch } from './TenantSwitch';
 import { screenHead } from '@/pages/gcc/screens';
 
@@ -114,7 +115,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
         <TenantSwitch />
         {/* Search and upload read the Indian register; GCC tenants get their own with plans 006 and 007. */}
         {gcc ? <GccSearch /> : <GlobalSearch />}
-        {!gcc && <UploadButton />}
+        {gcc ? <UploadGcc /> : <UploadButton />}
 
         <span className="pop-anchor" ref={notifRef}>
           <button type="button" className="hd-pill" onClick={() => { setNotif(!notif); setProfile(false); }} aria-haspopup="dialog" aria-expanded={notif} aria-label={`Alerts, ${alerts.length} open`}>

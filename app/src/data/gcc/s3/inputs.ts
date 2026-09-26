@@ -2,6 +2,8 @@ import type { Facility } from '../types';
 import { KEY_PERSONNEL } from '../s1/personnel';
 import { NAJD } from '../tenants/najd';
 import { QURAIN } from '../tenants/qurain';
+import { CORNICHE } from '../tenants/corniche';
+import { BATINAH } from '../tenants/batinah';
 import type { InputField, InputKey, InputSpec, SeededInput } from './types';
 
 /**
@@ -170,6 +172,10 @@ const PACK_097 = { tenant: 'najd', tenderId: 'T-2026-097', requestedById: 'najd.
 const PACK_101 = { tenant: 'najd', tenderId: 'T-2026-101', requestedById: 'najd.bid', requestedAt: '2026-03-04T11:00' } as const;
 const PACK_029 = { tenant: 'corniche', tenderId: 'T-2026-029', requestedById: 'corniche.bid', requestedAt: '2026-03-03T10:00' } as const;
 const PACK_049 = { tenant: 'qurain', tenderId: 'T-2026-049', requestedById: 'qurain.bid', requestedAt: '2026-03-02T10:00' } as const;
+// Plan 022: Corniche T-2026-061, all six in before the pack was generated at 09:45 (demo script C).
+const PACK_061 = { tenant: 'corniche', tenderId: 'T-2026-061', requestedById: 'corniche.bid', requestedAt: '2026-03-08T08:05' } as const;
+// Plan 023: Batinah T-2026-042 (Arabic document). All six in on demo morning, before the pack was generated at 09:50.
+const PACK_042 = { tenant: 'batinah', tenderId: 'T-2026-042', requestedById: 'batinah.bid', requestedAt: '2026-03-08T07:50' } as const;
 
 export const SEEDED_INPUTS: SeededInput[] = [
   {
@@ -330,6 +336,157 @@ export const SEEDED_INPUTS: SeededInput[] = [
       bondCharges: 1,
       workingCapital: '5% advance against an advance payment guarantee; 10% retention; 90-day payment terms',
       fx: 'KWD contract: no FX exposure on the main contract',
+    },
+  },
+
+  {
+    ...PACK_061, key: 'commercial', itemId: 'T-2026-061:commercial', ownerId: 'corniche.comm', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:30',
+    fields: {
+      margin: [8, 11],
+      basis: 'benchmark rates and levelled quotes for 2 of 7 packages (chillers, AHUs)',
+      costRisks: [
+        'Chiller capacity: 1,500 TR or 1,750 TR changes the chiller package by about a sixth',
+        'Medical gas: no specialist named yet, so no firm price',
+        'Interface with the main contractor: builder\'s work, hoist time and access',
+      ],
+      confidence: 'medium',
+    },
+  },
+  {
+    ...PACK_061, key: 'planning', itemId: 'T-2026-061:planning', ownerId: 'corniche.plan', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:05',
+    fields: {
+      durationMonths: 25,
+      requiredMonths: 26,
+      longLead: 'Chillers 30 weeks: fits the central plant programme',
+      peakManpower: 420,
+      keyPlant: ['Chiller rigging into the basement plant room', 'Duct fabrication at the Dubai workshop', 'Pipe prefabrication yard on the campus'],
+      clash: 'Commissioning overlaps the Sharjah hospital MEP (T-2026-018) handover; the commissioning manager is needed on both',
+      deliveryImpact: 8,
+    },
+  },
+  {
+    ...PACK_061, key: 'pd', itemId: 'T-2026-061:pd', ownerId: 'corniche.dir', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:15',
+    fields: {
+      feasibility: 'with-conditions',
+      feasibilityNote: 'Name the medical gas specialist before submission, and keep the commissioning manager free for the ten weeks of integrated testing',
+      keyStaff: [staff('corniche-kp-5', 'Project Manager'), staff('corniche-kp-4'), staff('corniche-kp-3')],
+      site: 'Hospital campus under construction: the main contractor controls hoists and access; site office on the Crescent Bay campus',
+    },
+  },
+  {
+    ...PACK_061, key: 'hr', itemId: 'T-2026-061:hr', ownerId: 'corniche.hr', due: '2026-03-08T09:40', submittedAt: '2026-03-08T08:50',
+    fields: {
+      availability: [
+        availability('corniche-kp-5', 'Available', 'Project Manager'),
+        availability('corniche-kp-4', 'Available; also needed for the Sharjah hospital MEP handover'),
+        availability('corniche-kp-3', 'Available'),
+      ],
+      nationalisation: 'Emiratisation targets kept',
+    },
+  },
+  {
+    ...PACK_061, key: 'finance', itemId: 'T-2026-061:finance', ownerId: 'corniche.fin', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:20',
+    fields: {
+      ...facilityFields(CORNICHE.facility),
+      bankLeadDays: 5,
+      bondCharges: 0.8,
+      workingCapital: '10% advance against an advance payment guarantee; 10% retention, half released at taking-over; 60-day payment terms',
+      fx: 'AED contract: the EUR chiller and AHU quotes are the FX exposure; fix them at award',
+    },
+  },
+  {
+    ...PACK_061, key: 'legal', itemId: 'T-2026-061:legal', ownerId: 'corniche.comp', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:35',
+    fields: {
+      risks: [
+        { clause: '14.9', page: 9, risk: 'No price adjustment: equipment, materials, labour and exchange-rate risk stay with the Contractor', stance: 'price', category: 'commercial', rating: 'high',
+          mitigation: 'Fix the chiller and AHU prices at award; hedge the EUR quotes' },
+        { clause: '4.6', page: 8, risk: 'Interface with the Main Contractor, who controls the site, hoists and access routes', stance: 'qualify', category: 'technical', rating: 'high',
+          mitigation: 'Qualify the bid: hoist and access time per the interface schedule, with relief for delay by the Main Contractor' },
+        { clause: '8.8', page: 9, risk: 'Delay damages of 0.1% of the Contract Price a day, capped at 10%', stance: 'price', category: 'contractual', rating: 'medium',
+          mitigation: 'Price the exposure; keep float on the central plant and the commissioning window' },
+        { clause: '4.4', page: 8, risk: 'Named specialists (medical gas, fire) cannot be replaced without the Employer\'s consent', stance: 'accept', category: 'counterparty', rating: 'medium',
+          mitigation: 'Back-to-back terms and performance security from the named specialists' },
+        { clause: '4.8.2', page: 13, risk: 'Medical gas systems certified by an independent authorised person before use: a hold point before handover', stance: 'accept', category: 'technical', rating: 'low',
+          mitigation: 'Book the authorised person early, inside the ten-week commissioning window' },
+      ],
+      jvStatus: 'not-applicable',
+      redline: 'Qualify Sub-Clause 4.6; price Sub-Clauses 14.9 and 8.8; accept the rest with clarifications',
+    },
+  },
+
+  {
+    ...PACK_042, key: 'commercial', itemId: 'T-2026-042:commercial', ownerId: 'batinah.comm', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:15',
+    fields: {
+      margin: [7, 10],
+      basis: 'benchmark rates for all 6 packages; no levelled quotes yet',
+      costRisks: [
+        'Bitumen and polymer-modified binder prices: fixed unit rates for 30 months (clause 29)',
+        'Imported bridge bearings and joints: quoted in EUR, ex-works',
+        'Section length: 38 km or 36.5 km moves the paving, lighting and markings quantities',
+      ],
+      confidence: 'medium',
+    },
+  },
+  {
+    ...PACK_042, key: 'planning', itemId: 'T-2026-042:planning', ownerId: 'batinah.plan', due: '2026-03-08T09:40', submittedAt: '2026-03-08T08:55',
+    fields: {
+      durationMonths: 29,
+      requiredMonths: 30,
+      longLead: 'Bridge bearings 16 weeks and lighting columns 14 weeks: both fit the programme',
+      peakManpower: 420,
+      keyPlant: ['Two asphalt pavers with a material transfer vehicle', 'Bored-piling rig for the Wadi Al Jizzi bridge', 'Two 200 t crawler cranes for the precast deck beams, and falsework for the in-situ main span'],
+      clash: 'Shares the Bridges Lead with the Barka wadi bridges (T-2025-405) until its handover',
+      deliveryImpact: 8,
+    },
+  },
+  {
+    ...PACK_042, key: 'legal', itemId: 'T-2026-042:legal', ownerId: 'batinah.comp', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:30',
+    fields: {
+      risks: [
+        { clause: '12', page: 5, risk: 'Bid bond: 1% of the bid value in clause 12, but a fixed OMR 300,000 on the scanned bond form (Annex 4)', stance: 'qualify', category: 'contractual', rating: 'high',
+          mitigation: 'Query drafted; provide the higher of the two unless the employer answers' },
+        { clause: '29', page: 8, risk: 'Fixed unit rates for the whole contract: no price adjustment for bitumen, steel or labour', stance: 'price', category: 'commercial', rating: 'high',
+          mitigation: 'Fix the asphalt and aggregate prices at award; carry a bitumen allowance' },
+        { clause: '24', page: 8, risk: 'Delay damages of 0.05% of the contract value a day, capped at 10%', stance: 'price', category: 'contractual', rating: 'medium',
+          mitigation: 'Price the exposure; keep float on the bridge works and the traffic diversions' },
+        { clause: '26', page: 8, risk: 'At least 10% of the contract to registered SMEs, on a basis the document does not state', stance: 'qualify', category: 'contractual', rating: 'medium',
+          mitigation: 'Query drafted; plan the markings and signage package with registered SMEs' },
+        { clause: '7', page: 5, risk: 'Arabic-only bid, and the Arabic text prevails', stance: 'accept', category: 'technical', rating: 'low',
+          mitigation: 'Arabic bid documents prepared by the tender office; English working copies for the team' },
+      ],
+      jvStatus: 'not-applicable',
+      redline: 'Qualify clauses 12 and 26; price clauses 29 and 24; accept the rest with clarifications',
+    },
+  },
+  {
+    ...PACK_042, key: 'pd', itemId: 'T-2026-042:pd', ownerId: 'batinah.dir', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:05',
+    fields: {
+      feasibility: 'with-conditions',
+      feasibilityNote: 'Name the bridge subcontractor with a 60 m span before submission; keep the Bridges Lead free once the Barka bridges are handed over',
+      keyStaff: [staff('batinah-kp-1'), staff('batinah-kp-4'), staff('batinah-kp-2'), staff('batinah-kp-3')],
+      site: 'Live road: two lanes kept open throughout; site office at the Sohar interchange; Wadi Al Jizzi bridge works outside the flood season',
+    },
+  },
+  {
+    ...PACK_042, key: 'hr', itemId: 'T-2026-042:hr', ownerId: 'batinah.hr', due: '2026-03-08T09:40', submittedAt: '2026-03-08T08:40',
+    fields: {
+      availability: [
+        availability('batinah-kp-1', 'Available'),
+        availability('batinah-kp-4', 'Available once the Barka wadi bridges are handed over'),
+        availability('batinah-kp-2', 'Available'),
+        availability('batinah-kp-3', 'Available'),
+      ],
+      nationalisation: 'Omanisation ratio for construction kept',
+    },
+  },
+  {
+    ...PACK_042, key: 'finance', itemId: 'T-2026-042:finance', ownerId: 'batinah.fin', due: '2026-03-08T09:40', submittedAt: '2026-03-08T09:25',
+    fields: {
+      ...facilityFields(BATINAH.facility),
+      bankLeadDays: 5,
+      bondCharges: 0.9,
+      workingCapital: '10% advance against an advance payment guarantee; 5% retention, half released at provisional acceptance; payment within 56 days',
+      fx: 'OMR contract: the EUR bearings quote is the only FX exposure; fix it at award',
     },
   },
 ];

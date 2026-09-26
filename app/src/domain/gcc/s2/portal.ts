@@ -108,7 +108,8 @@ export function supplierView(tenant: string, personId: string, rfqId: string, do
         { name: 'leadTimeWeeks', label: 'Lead time from award (weeks)' },
         { name: 'fileName', label: 'Your quote document (PDF or Excel)' },
       ],
-      ...(sq ? { submitted: { amount: sq.amount, ccy: sq.ccy, at: sq.at, fileName: sq.fileName } } : {}),
+      // A decline is a reply but not a quote: the portal shows it as Declined, never as a sent quote.
+      ...(sq && !sq.declined ? { submitted: { amount: sq.amount, ccy: sq.ccy, at: sq.at, fileName: sq.fileName } } : {}),
     },
     deviations: { label: 'Deviations', hint: 'List each deviation from the specification. Anything not listed is taken as compliant.' },
     exclusions: { label: 'Exclusions', hint: 'List anything your price does not include.' },
@@ -126,6 +127,9 @@ export type SupplierQuoteInput = Omit<SupplierQuoteValue, 'at' | 'byId'>;
 /** A quote submitted in the portal. On the buyer's side it becomes a new quote to level, and the RFQ stops being overdue. */
 export function supplierQuoteWrite(rfqId: string, input: SupplierQuoteInput, personId: string, at = NOW): S2Write<SupplierQuoteValue> {
   const record: SupplierQuoteValue = { ...input, at, byId: personId };
+  if (input.declined) {
+    return write(K.sq(rfqId), record, { actorId: personId, action: 'RFQ declined in the Supplier Portal', target: rfqId, detail: `Reason: ${input.declined}` });
+  }
   return write(K.sq(rfqId), record, {
     actorId: personId, action: 'Quote submitted in the Supplier Portal', target: rfqId,
     detail: `${input.level === 'line' ? 'Line-level' : 'Package'} quote, ${input.ccy}, valid ${input.validityDays} days, lead time ${input.leadTimeWeeks} weeks. File: ${input.fileName}.`

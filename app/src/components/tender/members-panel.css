@@ -1,0 +1,57 @@
+/* ───────── MembersPanel: committee positions at DG2 (plan 009b, ui-direction §6.2) ───────── */
+
+.mp { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: 14px 16px 6px; }
+.mp-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.mp-t { margin: 0; font-size: 14px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink); }
+.mp-state { font-size: 12px; font-weight: 500; color: var(--ink-2); font-family: var(--font-mono); font-feature-settings: 'tnum' 1; }
+.mp-state.met { color: var(--green); }
+
+/* Five segments, the quorum tick after the third. */
+.mp-quorum { display: flex; align-items: center; gap: 4px; margin: 10px 0 4px; }
+.mp-q { position: relative; flex: 0 0 26px; height: 6px; border-radius: 3px; background: var(--track); }
+.mp-q.on { background: var(--green); }
+.mp-q.tick::after { content: ''; position: absolute; right: -3px; top: -4px; width: 2px; height: 14px; border-radius: 1px; background: var(--ink-3); }
+.mp-maj { margin-left: 10px; font-size: 12px; color: var(--ink-3); }
+
+.mp-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.mp-row { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px 0; border-top: 1px solid var(--line-3); }
+.mp-row:first-child { border-top: 0; }
+.mp-row.me { margin: 0 -8px; padding: 10px 8px; border-radius: var(--radius); background: var(--surface-sunken); border-top-color: transparent; }
+.mp-row.me + .mp-row { border-top-color: transparent; }
+.mp-main { min-width: 0; display: grid; gap: 4px; }
+.mp-who { display: flex; align-items: baseline; justify-content: space-between; gap: 2px 10px; flex-wrap: wrap; }
+.mp-name { font-size: 13px; font-weight: 600; color: var(--ink); }
+.mp-you { font-weight: 500; color: var(--ink-3); }
+.mp-seat { font-size: 11.5px; color: var(--ink-3); }
+.mp-line { display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; }
+.mp-chip {
+  display: inline-flex; align-items: center; gap: 5px; white-space: nowrap;
+  font-size: 11.5px; font-weight: 500; line-height: 18px; padding: 0 8px 0 7px; border-radius: var(--radius-pill);
+  background: var(--surface-active); color: var(--ink-2); border: 1px solid transparent;
+}
+.mp-chip .ic { font-size: 11px; font-weight: 700; width: 10px; text-align: center; }
+.mp-chip.tone-green { background: var(--green-soft); }
+.mp-chip.tone-green .ic { color: var(--green); }
+.mp-chip.tone-red { background: var(--red-soft); border-color: var(--red-line); }
+.mp-chip.tone-red .ic { color: var(--red); }
+.mp-chip.tone-orange { background: var(--orange-soft); }
+.mp-chip.tone-orange .ic { color: var(--orange); }
+.mp-chip.tone-grey .ic { color: var(--grey); }
+.mp-chip.tone-none { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-3); }
+.mp-at { font-size: 11.5px; color: var(--ink-3); }
+.mp-flag { font-size: 11px; font-weight: 500; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--orange-soft); color: var(--ink); }
+.mp-comment { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); padding-left: 8px; border-left: 2px solid var(--line-2); }
+.mp-coi { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink); padding-left: 8px; border-left: 2px solid var(--orange); }
+.mp-conds { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.mp-conds li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); line-height: 1.4; }
+.mp-conds li::before { content: '▸'; color: var(--ink-4); font-size: 10px; }
+.mp-conds li.masked-c { color: var(--ink-3); }
+.mp-conds li.masked-c svg { color: var(--ink-4); flex: none; }
+.mp-mtag { font-size: 10.5px; font-weight: 600; line-height: 16px; padding: 0 5px; border-radius: 3px; background: var(--cyan-soft); color: var(--ink-2); }
+.mp-sec { display: inline-flex; align-items: center; gap: 4px; margin: 0; font-size: 11.5px; color: var(--ink-3); }
+.mp-act { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 2px; }
+.mp-act .btn { display: inline-flex; align-items: center; gap: 5px; }
+.mp-why { font-size: 11.5px; color: var(--ink-3); }
+.mp-foot { margin: 4px 0 8px; font-size: 11.5px; color: var(--ink-3); }
+.mp-masked { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 10px 0 10px; font-size: 12.5px; color: var(--ink-3); }
+.mp-masked > svg { color: var(--ink-4); }

@@ -1,0 +1,71 @@
+/* ───────── DG2 gate screen (plan 009b, ui-direction §5 D) ───────── */
+
+.dg2 { display: grid; gap: var(--gap); }
+.dg2-head { display: grid; gap: 6px; }
+.dg2-crumb { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12.5px; }
+.dg2-crumb .btn-link { display: inline-flex; align-items: center; gap: 2px; }
+.dg2-l1 { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; min-width: 0; }
+.dg2-gate { font-size: 11px; font-weight: 600; letter-spacing: 0.4px; text-transform: uppercase; color: var(--ink-3); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--line-strong); }
+.dg2-title { margin: 0; flex: 1 1 320px; min-width: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.3px; line-height: 1.25; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dg2-clock { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; }
+.dg2-esc { margin: 0; padding: 6px 10px; border-radius: var(--radius-sm); background: var(--red-soft); color: var(--ink); font-size: 12.5px; }
+
+/* Evidence 7/12, the decision column 5/12 and sticky, from 1280 px. */
+.dg2-grid { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); align-items: start; }
+@media (min-width: 1280px) {
+  .dg2-grid { grid-template-columns: minmax(0, 7fr) minmax(360px, 5fr); }
+  .dg2-right { position: sticky; top: calc(var(--header-h) + 12px); max-height: calc(100vh - var(--header-h) - 24px); overflow-y: auto; overscroll-behavior: contain; padding-bottom: 4px; }
+}
+.dg2-left { min-width: 0; }
+/* The decision bar stays in view at the foot of the decision column. */
+.dg2-right > .dg2-bar { position: sticky; bottom: 0; z-index: 2; }
+.dg2-left .pk { --pk-offset: calc(var(--header-h) + 16px); }
+.dg2-right { display: grid; gap: 12px; align-content: start; min-width: 0; }
+.dg2-p { margin: 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+
+/* Decision bar */
+.dg2-bar { border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-lift); padding: 12px 16px 12px; display: grid; gap: 8px; }
+.dg2-bar.muted { border-color: var(--line); box-shadow: none; background: var(--surface-sunken); }
+.dg2-bar-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.dg2-bar-t { margin: 0; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dg2-bar.muted .dg2-bar-t { font-weight: 400; font-size: 12.5px; color: var(--ink-2); }
+.dg2-bar-s { font-size: 12px; color: var(--ink-3); }
+.dg2-bar-acts { display: flex; gap: 8px; flex-wrap: wrap; }
+.dg2-bar-acts .btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-size: 13px; }
+.dg2-why { margin: 0; font-size: 12px; color: var(--ink-2); }
+.dg2-hint { margin: 0; font-size: 11.5px; color: var(--ink-3); }
+.dg2-stale { margin: 0; padding: 8px 10px; border-radius: var(--radius-sm); background: var(--orange-soft); font-size: 12.5px; color: var(--ink); display: grid; gap: 6px; }
+.dg2-stale p { margin: 0; }
+.dg2-conds { margin: 0; padding-left: 18px; display: grid; gap: 3px; font-size: 13px; color: var(--ink); }
+.dg2-conds li { display: list-item; }
+.dg2-conds .mp-mtag { margin-left: 6px; }
+.dg2-preview { border: 1px dashed var(--line-strong); border-radius: var(--radius); padding: 10px 12px; display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
+.dg2-preview p { margin: 0; line-height: 1.45; }
+
+/* The record, conditions, the letter, re-open */
+.dg2-record { display: grid; gap: 8px; }
+.dg2-done { border-radius: var(--radius); padding: 10px 12px; background: var(--green-soft); display: grid; gap: 3px; }
+.dg2-done p { margin: 0; font-size: 13px; color: var(--ink); }
+.dg2-done p:first-child { font-weight: 600; }
+.dg2-card { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: 12px 16px; display: grid; gap: 8px; }
+.dg2-card-h { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.dg2-card-h h3 { margin: 0; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dg2-card-m { font-size: 12px; color: var(--ink-3); }
+.dg2-condlist { list-style: none; margin: 0; padding: 0; display: grid; }
+.dg2-condlist li { padding: 8px 0; border-top: 1px solid var(--line-3); display: grid; gap: 4px; }
+.dg2-condlist li:first-child { border-top: 0; }
+.dg2-condlist li.closed .dg2-cond-t > span:nth-child(2) { color: var(--ink-3); }
+.dg2-cond-t { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ink); }
+.dg2-cond-t svg { color: var(--ink-4); vertical-align: -1px; }
+.dg2-cid { font-size: 11px; color: var(--ink-3); }
+.dg2-cond-m { display: flex; align-items: center; gap: 4px 10px; flex-wrap: wrap; font-size: 12px; color: var(--ink-3); }
+.dg2-cond-m .btn { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+.dg2-subject { margin: 0; font-size: 12.5px; color: var(--ink); }
+.dg2-letter { margin: 0; white-space: pre-wrap; font-family: var(--font-sans); font-size: 12.5px; line-height: 1.55; color: var(--ink-2); padding: 10px 12px; border-radius: var(--radius-sm); background: var(--surface-sunken); border: 1px solid var(--line-2); max-height: 320px; overflow: auto; }
+.dg2-letter-in { font-size: 12.5px; line-height: 1.55; }
+.dg2-hist { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 12.5px; color: var(--ink-2); }
+
+/* The DG2 status card on the workspace's Bid / No-Bid tab */
+.dg2-strip { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; padding: 12px 18px; }
+.dg2-strip .dg2-strip-t { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dg2-strip .btn { margin-left: auto; }

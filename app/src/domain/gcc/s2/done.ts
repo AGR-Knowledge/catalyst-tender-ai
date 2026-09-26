@@ -1,4 +1,5 @@
 import type { Ccy } from '@/data/gcc/fx';
+import type { Incoterm } from '@/data/gcc/s2';
 import { DEMO_NOW } from '@/domain/gcc/clock';
 
 /**
@@ -97,6 +98,11 @@ export interface SupplierQuoteValue extends Stamp {
   deviations: string[];
   exclusions: string[];
   fileName: string;
+  /** As the supplier states it; the portal asks for prices excluding VAT, delivered to site (plan 008b). */
+  vatInclusive?: boolean;
+  incoterm?: Incoterm;
+  /** The supplier declined to quote, with this reason: the RFQ is answered, with no quote (plan 008b). */
+  declined?: string;
 }
 
 /** Plan 009a's request value: only the fields Stage 2 reads. */

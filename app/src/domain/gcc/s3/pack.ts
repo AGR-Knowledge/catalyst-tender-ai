@@ -333,7 +333,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
       asOf: port.asOf, currentPct: port.currentPct, safePct: port.safePct, totalPct, ofSafePct,
       ifWon,
       tone: ofSafePct <= 100 ? 'green' : ofSafePct <= 115 ? 'orange' : 'red',
-      text: `${totalPct}% of delivery capacity if ${n === 1 ? 'this bid wins' : n === 2 ? 'both bids win' : `all ${n} bids win`}, against a safe level of ${port.safePct}% (${ofSafePct}%)`
+      text: `${totalPct}% of delivery capacity if ${n === 1 ? 'this bid wins' : n === 2 ? 'both bids win' : `all ${n} bids win`}, against a safe level of ${port.safePct}% (at ${ofSafePct}% of the safe level)`
         + (estimates.length ? `. ${estimates.join(' and ')} ${estimates.length === 1 ? 'is an estimate' : 'are estimates'}: no Planning input` : ''),
     },
   };
@@ -347,7 +347,8 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   const bb = bidBondFor(tenant, tenderId, done);
   const terms = s1Data(tenant).bonds.find((x) => x.tenderId === tenderId);
   const rate = bb?.rate ?? 0;
-  const bond = pctOf(value, rate);
+  // A fixed bond (plan 022) is the tender's stated amount, in its currency: the same figure 007a's bond shows.
+  const bond: Money = bb?.fixed ? { amount: (bb.original ?? bb.amount).amount, ccy: value.ccy } : pctOf(value, rate);
   const alreadyCommitted = d.facility.committed.some((c) => c.tenderId === tenderId && c.kind === 'bid bond');
   const companyHeadroom = d.facility.limit.amount - d.facility.utilised.amount - d.facility.committed.reduce((s, c) => s + c.amount.amount, 0);
   const headroomBase: Money = fin ? mon(fin.headroom, { amount: 0, ccy: value.ccy }) : { amount: companyHeadroom, ccy: d.facility.limit.ccy };
@@ -369,7 +370,7 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
       tenderValue: value,
       bidBond: {
         amount: bond, pct: rate, validityDays: bb?.validityDays ?? null, validityText: bb?.validityText ?? 'Validity not stated', alreadyCommitted,
-        text: bb?.rate == null ? 'No bid bond stated' : `${mText(bond)} (${rate}% of the estimate), ${validity}`,
+        text: !bb || (!bb.fixed && bb.rate == null) ? 'No bid bond stated' : `${mText(bond)} (${bb.fixed ? 'a fixed amount' : `${rate}% of the estimate`}), ${validity}`,
         charges: `Bank charges ${num(fin.bondCharges)}% a year`,
         leadTime: `Bank lead time ${plural(num(fin.bankLeadDays), 'working day')}`,
       },

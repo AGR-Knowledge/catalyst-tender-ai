@@ -7,15 +7,20 @@ import type { ActionSource } from './types';
 
 /**
  * My requests, Needs your action (plan 013 Phase 5.4, dashboards.md §10.13):
- * each open request is a row, late ones first. The button opens the tender
- * until plan 009 builds the input forms ("Open form"); a renewal opens the
- * credentials vault once Company is built.
+ * each open request is a row, late ones first. A pack input opens its form
+ * ("Open form", plan 009b); a renewal opens the credentials vault once
+ * Company is built; anything else opens the tender.
  */
 
 const TYPE: Record<Request['kind'], string> = { 'pack-input': 'Pack input', renewal: 'Renewal', request: 'Request' };
 
 function primaryOf(r: Request): ActionPrimary {
   if (r.kind === 'renewal' && (isScreenBuilt('/company') || !r.tenderId)) return { kind: 'route', label: 'Open credentials', to: '/company' };
+  // A pack input opens its form on the tender's Inputs tab (plan 009b). The request id is `input:{TID}:{key}`.
+  if (r.kind === 'pack-input' && r.tenderId) {
+    const key = r.id.slice(r.id.lastIndexOf(':') + 1);
+    return { kind: 'route', label: 'Open form', to: `/tenders/${encodeURIComponent(r.tenderId)}?tab=inputs&input=${encodeURIComponent(key)}` };
+  }
   return openTender(r.tenderId);
 }
 

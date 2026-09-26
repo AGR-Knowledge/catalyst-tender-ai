@@ -2,12 +2,14 @@ import { suppliers, type SupplierTuple } from './build';
 
 /**
  * Corniche's supplier master: MEP and district cooling, 16 suppliers, all
- * fictional, with three sendable suppliers for each package of T-2026-044.
+ * fictional, with three sendable suppliers for each package of T-2026-044,
+ * and 13 more for T-2026-061's packages (plan 022): 29 in all.
  * One has sanctions screening due. Gulf Process Systems Co. is the Supplier
  * Portal persona's firm in every tenant.
  */
 
 const ECUC = 'Emirates Cooling Utilities Company';
+const CBHH = 'Crescent Bay Health Holding';
 
 const OK = (at: string): ['clear', string, 'clear', string] => ['clear', at, 'clear', at];
 
@@ -28,6 +30,22 @@ const ROWS: SupplierTuple[] = [
   ['liguria-valvole', 'Liguria Valvole S.p.A.', 'IT', 'Genoa', ['valves'], [], 4, 'approved', OK('2025-11-21'), [91, 0, 5, 1], 'low', [85, 4.5], false],
   ['nahda-chemicals', 'Nahda Water Chemicals LLC', 'AE', 'Sharjah', ['chem-dosing'], [], 30, 'approved', OK('2025-12-30'), [87, 1, 6, 2], 'low', [86, 4.0], false],
   ['marmoom-insulation', 'Marmoom Insulation Contracting LLC', 'AE', 'Dubai', ['insulation', 'hvac'], [], 42, 'approved', OK('2026-02-19'), [84, 2, 6, 1], 'medium', [82, 4.5], false],
+
+  // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package. Two AHU manufacturers (the hvac suppliers above are
+  // contractors), and three each for the packages no supplier above covers: medical gas, fire and plumbing.
+  ['qarn-air', 'Qarn Air Handling Industries LLC', 'AE', 'Abu Dhabi', ['hvac'], [CBHH], 46, 'approved', OK('2026-01-14'), [88, 1, 7, 2], 'medium', [87, 4.0], false],
+  ['kestrelwind', 'Kestrelwind Lufttechnik GmbH', 'DE', 'Kassel', ['hvac'], [], 5, 'approved', OK('2025-12-04'), [91, 0, 4, 1], 'low', [84, 5.0], false],
+  ['oskerwyn-medgas', 'Oskerwyn Medical Gas Systems Ltd', 'GB', 'Leeds', ['medical-gas'], [CBHH], 7, 'approved', OK('2025-11-26'), [94, 0, 5, 2], 'medium', [89, 4.5], false],
+  ['valmora-medgas', 'Valmora Gas Medicali S.r.l.', 'IT', 'Bergamo', ['medical-gas'], [], 4, 'approved', OK('2026-01-09'), [90, 1, 3, 1], 'low', [82, 5.0], false],
+  ['thalmira-medgas', 'Thalmira Medical Gas Services LLC', 'AE', 'Abu Dhabi', ['medical-gas'], [CBHH], 44, 'approved', OK('2026-02-05'), [86, 1, 6, 2], 'high', [85, 4.0], false],
+  ['pyrenta-fire', 'Pyrenta Fire and Safety LLC', 'AE', 'Dubai', ['fire'], [CBHH], 41, 'approved', OK('2026-01-20'), [89, 1, 9, 3], 'medium', [90, 3.5], false],
+  ['khalidiya-fire', 'Khalidiya Fire Protection LLC', 'AE', 'Abu Dhabi', ['fire'], [CBHH], 45, 'approved', OK('2025-12-18'), [85, 2, 7, 2], 'medium', [86, 4.0], false],
+  ['shamal-fire', 'Shamal Fire Systems Contracting LLC', 'AE', 'Sharjah', ['fire'], [], 37, 'approved', OK('2026-02-12'), [82, 2, 5, 1], 'low', [79, 5.0], false],
+  ['baniyas-plumbing', 'Baniyas Plumbing and Drainage LLC', 'AE', 'Abu Dhabi', ['plumbing'], [CBHH], 43, 'approved', OK('2026-01-28'), [87, 1, 8, 2], 'medium', [88, 4.0], false],
+  ['wathba-hydro', 'Wathba Hydro Services LLC', 'AE', 'Abu Dhabi', ['plumbing'], [], 39, 'approved', OK('2025-12-11'), [84, 2, 6, 1], 'medium', [83, 4.5], false],
+  ['galdrevin-plumbing', 'Galdrevin Plumbing Contracting LLC', 'AE', 'Abu Dhabi', ['plumbing'], [], 36, 'pending', OK('2026-02-24'), [80, 3, 4, 0], 'low', [76, 5.5], false],
+  ['reem-power', 'Reem Power Systems LLC', 'AE', 'Abu Dhabi', ['lv'], [CBHH], 42, 'approved', OK('2026-01-16'), [88, 1, 8, 2], 'medium', [89, 4.0], false],
+  ['corvane-elv', 'Corvane ELV Systems LLC', 'AE', 'Dubai', ['bms'], [], 35, 'approved', OK('2026-02-02'), [86, 1, 7, 2], 'medium', [85, 4.0], false],
 ];
 
 export const CORNICHE_SUPPLIERS = suppliers('corniche', ROWS);

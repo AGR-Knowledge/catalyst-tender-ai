@@ -1,8 +1,8 @@
 import type { Money } from '@/data/gcc/types';
 import type { TenderPackage } from '@/data/gcc/s2';
 import { HERO_ID, HERO_LINES } from '@/data/gcc/hero';
-import { K, NOW, readDone, write, type Done, type PackagingMerge, type PackagingSplit, type PackagingValue, type S2Write } from './done';
-import { boqTotal, lineValue, pct1, registerRow, s2TenderOf } from './context';
+import { K, NOW, readDone, write, type Done, type PackagingMerge, type PackagingSplit, type PackagingValue, type S2WriteResult } from './done';
+import { boqTotal, lineValue, NOT_PURSUED, pct1, pursueOf, registerRow, s2TenderOf } from './context';
 
 /**
  * Procurement packages (spec §8.2). The agent proposes them from the BOQ and
@@ -122,8 +122,11 @@ export function packagingFor(tenant: string, tenderId: string, done: Done): Pack
   };
 }
 
-/** Approve the packaging, optionally with splits and merges. */
-export function packagingWrite(tenderId: string, byId: string, opts: { splits?: PackagingSplit[]; merges?: PackagingMerge[] } = {}, at = NOW): S2Write<PackagingValue> {
+/** Approve the packaging, optionally with splits and merges. With `guard`, refused once the tender's DG1 pursue no longer stands. */
+export function packagingWrite(
+  tenderId: string, byId: string, opts: { splits?: PackagingSplit[]; merges?: PackagingMerge[] } = {}, at = NOW, guard?: { tenant: string; done: Done },
+): S2WriteResult<PackagingValue> {
+  if (guard && !pursueOf(guard.tenant, tenderId, guard.done)) return { error: NOT_PURSUED };
   const record: PackagingValue = { approved: true, ...(opts.splits?.length ? { splits: opts.splits } : {}), ...(opts.merges?.length ? { merges: opts.merges } : {}), at, byId };
   const changes = [
     ...(opts.splits ?? []).map((s) => `split ${s.from} into ${s.parts.map((p) => p.id).join(', ')}`),

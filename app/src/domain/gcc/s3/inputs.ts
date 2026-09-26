@@ -3,6 +3,7 @@ import { personById } from '@/data/people';
 import { INPUT_KEYS, INPUT_SPECS, SEEDED_INPUTS, type InputField, type InputKey } from '@/data/gcc/s3';
 import { durationText, minutesBetween } from '@/domain/gcc/clock';
 import { keysWithPrefix, nowIso, readDone, stampText, type Done, type WriteError, type WriteResult } from './done';
+import { seededPackReady } from './ready';
 
 /**
  * Contributor inputs (pack §9.9, DEC-7, catalogue §C.6): the seeded requests
@@ -53,7 +54,8 @@ function dueTextOf(state: InputState, due: string, submittedAt?: string): string
 }
 
 export function inputsFor(tenant: string, tenderId: string, done: Done): InputsVM {
-  const seeded = SEEDED_INPUTS.filter((i) => i.tenant === tenant && i.tenderId === tenderId);
+  // Inputs seeded with a pack wait for the pack (ready.ts); inputs requested in the demo always count.
+  const seeded = seededPackReady(tenant, tenderId, done) ? SEEDED_INPUTS.filter((i) => i.tenant === tenant && i.tenderId === tenderId) : [];
   const reqPrefix = `input-req:${tenderId}:`;
   const requested = new Set<InputKey>([
     ...seeded.map((i) => i.key),

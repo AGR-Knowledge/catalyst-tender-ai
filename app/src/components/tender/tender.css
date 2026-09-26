@@ -193,6 +193,10 @@
 .cov-sw { width: 9px; height: 9px; border-radius: 2px; flex: none; }
 .cov-p { font-weight: 600; }
 .cov-v { color: var(--ink-3); }
+.cov-track { position: relative; }
+.cov-mark { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; border-radius: 1px; background: currentColor; box-shadow: 0 0 0 2px var(--surface); }
+.cov-cap { display: flex; align-items: center; gap: 7px; margin: 2px 0 0; font-size: 12px; font-weight: 500; }
+.cov-cap-l { width: 2px; height: 12px; border-radius: 1px; background: currentColor; flex: none; }
 
 /* Threshold bar */
 .thr { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }

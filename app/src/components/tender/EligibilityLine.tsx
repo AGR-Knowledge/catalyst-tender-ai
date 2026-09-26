@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Tone } from '@/data/types';
 import type { EligibilityLine as Line, Evidence, LineState } from '@/domain/gcc/s1';
+import { termsOf } from '@/domain/gcc/workspace';
 import { StatusPill } from './StatusPill';
 import { SourceChip, type SourceChipRef } from './SourceChip';
 import type { SourceDoc } from './SourceHost';
@@ -37,7 +38,8 @@ export function EligibilityLine({ line, doc, actions }: { line: Line; doc?: Sour
       <div className="el-top">
         <span className="mono el-id">{line.reqId}</span>
         <span className="el-req">{line.text}</span>
-        <SourceChip source={{ kind: 'page', page: line.page, label: `p. ${line.page}`, terms: [line.text] }} doc={doc} />
+        {/* The requirement's figures and acronyms, which the page prints: its whole sentence rarely appears verbatim. */}
+        <SourceChip source={{ kind: 'page', page: line.page, label: `p. ${line.page}`, terms: termsOf(line.text) }} doc={doc} />
         {line.alsoOn?.map((p) => <SourceChip key={p} source={{ kind: 'page', page: p, label: `p. ${p}` }} doc={doc} />)}
         <span className="el-state"><StatusPill label={s.label} tone={s.tone} icon={s.icon} /></span>
       </div>

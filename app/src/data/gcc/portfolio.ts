@@ -40,9 +40,11 @@ export interface DeliveryLoad {
 
 export const DELIVERY_LOAD: Record<GccTenantKey, DeliveryLoad> = {
   najd: { asOf: '2026-03-05', currentPct: 58, ifWon: [{ tenderId: 'T-2026-097', addPct: 9 }, { tenderId: 'T-2026-101', addPct: 4 }] },
-  corniche: { asOf: '2026-03-05', currentPct: 55, ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }] },
+  // Plan 022: T-2026-061's pack adds its +8. DEC-5 counts it only while the tender is at Stage 3.
+  corniche: { asOf: '2026-03-05', currentPct: 55, ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }, { tenderId: 'T-2026-061', addPct: 8 }] },
   dafna: { asOf: '2026-03-05', currentPct: 52, ifWon: [] },
-  batinah: { asOf: '2026-03-05', currentPct: 57, ifWon: [] },
+  // Plan 023: T-2026-042's pack and Planning input add 8 points if it is won.
+  batinah: { asOf: '2026-03-05', currentPct: 57, ifWon: [{ tenderId: 'T-2026-042', addPct: 8 }] },
   qurain: { asOf: '2026-03-05', currentPct: 66, ifWon: [{ tenderId: 'T-2026-049', addPct: 12 }] },
 };
 

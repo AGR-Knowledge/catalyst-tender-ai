@@ -1,0 +1,57 @@
+item,package,description,unit,qty
+WP-0,WP-0,General requirements and preliminaries,,
+0.01,WP-0,"Mobilisation, site establishment and demobilisation",item,1
+0.03,WP-0,MEP site management and supervision staff,month,26
+0.06,WP-0,"MEP coordination and BIM model to LOD 400, with shop drawings",item,1
+0.09,WP-0,Temporary services and protection of installed plant,item,1
+0.12,WP-0,Insurances required under Sub-Clause 18,item,1
+0.x,WP-0,Remaining items in WP-0 (9 lines),,
+WP-1,WP-1,Chilled water plant,,
+1.01,WP-1,"Water-cooled centrifugal chillers, with starters and controls",nr,3
+1.03,WP-1,"Induced-draft cooling tower cells, with variable speed fans",nr,3
+1.06,WP-1,"Primary chilled water pumps, with variable speed drives",nr,4
+1.09,WP-1,"Condenser water pumps, split-case",nr,4
+1.12,WP-1,"Chilled water pipework, steel, pre-insulated, DN50–DN500",m,6850
+1.x,WP-1,Remaining items in WP-1 (17 lines),,
+WP-2,WP-2,Air-side HVAC,,
+2.02,WP-2,"Air handling units, 100% fresh air, with heat recovery",nr,14
+2.04,WP-2,"Air handling units, mixed air",nr,24
+2.07,WP-2,"Fan coil units, ceiling concealed, two-pipe",nr,1150
+2.11,WP-2,"Galvanised steel ductwork, with insulation",m2,41500
+2.15,WP-2,"HEPA terminal filter units, theatres and isolation rooms",nr,96
+2.x,WP-2,Remaining items in WP-2 (29 lines),,
+WP-3,WP-3,Medical gas pipeline systems,,
+3.01,WP-3,"Vacuum insulated evaporator, liquid oxygen, 20,000 litres",item,1
+3.03,WP-3,"Medical air plant, triplex compressors with dryers",nr,2
+3.05,WP-3,"Medical vacuum plant, triplex pumps with bacterial filters",nr,2
+3.08,WP-3,"Copper pipework for medical gases, cleaned for oxygen service",m,14200
+3.11,WP-3,Medical gas terminal units in bed-head units and pendants,nr,1480
+3.x,WP-3,Remaining items in WP-3 (11 lines),,
+WP-4,WP-4,"LV switchgear, standby power and UPS",,
+4.01,WP-4,"Main LV switchboards, 4,000 A, form 4 type 6",nr,6
+4.04,WP-4,"Standby diesel generator sets, 2,000 kVA, with fuel system",nr,3
+4.07,WP-4,"UPS systems, 400 kVA, modular, 15 minutes’ autonomy",nr,4
+4.09,WP-4,Isolated power supply panels for theatres and critical care,nr,34
+4.13,WP-4,"LV cables and busbar trunking, installed and tested",m,38600
+4.x,WP-4,Remaining items in WP-4 (19 lines),,
+WP-5,WP-5,Fire fighting and fire alarm,,
+5.02,WP-5,"Fire pump set: electric, diesel and jockey pumps",set,1
+5.05,WP-5,"Sprinkler heads, quick response, with pipework and valves",nr,9800
+5.08,WP-5,Wet risers with landing valves and hose reels,nr,48
+5.11,WP-5,Addressable fire alarm system with voice evacuation,item,1
+5.14,WP-5,"Clean agent suppression, data and imaging equipment rooms",nr,6
+5.x,WP-5,Remaining items in WP-5 (15 lines),,
+WP-6,WP-6,"Plumbing, drainage and water treatment",,
+6.02,WP-6,Domestic water transfer and booster pump sets,set,4
+6.05,WP-6,Hot water calorifiers with circulation pumps,nr,8
+6.08,WP-6,Reverse osmosis water treatment plant for renal dialysis,item,1
+6.11,WP-6,"Cold and hot water pipework, PPR and copper",m,22400
+6.19,WP-6,"Sanitary fixtures, hospital grade, with thermostatic mixing",nr,1620
+6.x,WP-6,Remaining items in WP-6 (25 lines),,
+WP-7,WP-7,"ELV, BMS and nurse call",,
+7.02,WP-7,"Building management system: controllers, devices and head-end",point,6400
+7.05,WP-7,Nurse call system with bed-head and bathroom call points,nr,262
+7.08,WP-7,"Structured cabling, Cat 6A, with outlets and racks",point,5900
+7.11,WP-7,CCTV and access control,item,1
+7.14,WP-7,"Public address, interfaced with the voice evacuation",item,1
+7.x,WP-7,Remaining items in WP-7 (21 lines),,

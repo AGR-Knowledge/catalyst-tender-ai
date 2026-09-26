@@ -38,6 +38,9 @@ import { RequestButton } from '@/components/tender/RequestButton';
 import { AuditEntry } from '@/components/tender/AuditEntry';
 import { LangBadge } from '@/components/tender/LangBadge';
 import { Tabs, tabPanelProps } from '@/components/tender/Tabs';
+import { MembersPanel } from '@/components/tender/MembersPanel';
+import { membersFor } from '@/pages/gcc/dg2/members';
+import { personById } from '@/data/people';
 
 const StageChart = lazy(() => import('@/components/dashboard/chart/StageChart'));
 
@@ -295,6 +298,24 @@ function KitPart2() {
           <div {...tabPanelProps('kit', tab)} style={{ padding: '12px 0', fontSize: 13 }}>Panel for <b>{tab}</b>. ← → Home End move between tabs.</div>
         </div>
       </Card>
+
+      <MembersKit />
     </SourceHost>
+  );
+}
+
+/** Plan 009b: the members panel on Najd's T-2026-097 as seeded, as the CFO sees it and as someone without sight of positions. */
+function MembersKit() {
+  const cfo = personById('najd.member.cfo');
+  const vm = cfo ? membersFor('najd', 'T-2026-097', {}, cfo, { canSeeMargin: true, canSeePositions: true }) : null;
+  const hidden = cfo ? membersFor('najd', 'T-2026-097', {}, cfo, { canSeeMargin: false, canSeePositions: false }) : null;
+  return (
+    <Card>
+      <CardHead title="Members panel" meta="membersFor('najd', T-2026-097, {}): the CFO's view, and masked" />
+      <div style={{ ...pad, display: 'grid', gap: 'var(--gap)', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', alignItems: 'start' }}>
+        {vm && <MembersPanel rows={vm.rows} headline={vm.headline} quorum={vm.quorum} majority={vm.majority} onRecord={() => console.info('[kit] record my position')} recordCheck={{ ok: true }} />}
+        {hidden && <MembersPanel rows={hidden.rows} masked={hidden.masked} />}
+      </div>
+    </Card>
   );
 }

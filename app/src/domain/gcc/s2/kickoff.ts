@@ -63,7 +63,7 @@ export function kickoffFor(tenant: string, tenderId: string, done: Done): Kickof
       state: pkgs.length && lists === pkgs.length ? 'done' : 'open', stateText: `${lists} of ${pkgs.length} approved` },
     { key: 'rfqs', label: 'Send RFQs', ownerId: proc, ownerName: name(proc), due: addHours(p.at, RFQ_CLOCK_HOURS),
       state: pkgs.length && sent === pkgs.length ? 'done' : 'open',
-      stateText: `${sent} of ${pkgs.length} packages issued${lag ? `, ${lag.text} after DG1` : ''}`, clock: rfqClock(tenant, tenderId, done) },
+      stateText: `${sent} of ${pkgs.length} packages issued${lag ? (lag.minutes < 60 ? ', within the hour of DG1' : `, ${lag.text} after DG1`) : ''}`, clock: rfqClock(tenant, tenderId, done) },
     ...KICKOFF_INPUTS.map(({ inputKey, label, ownerRole }): KickoffItem => {
       const req = readDone<InputReqRead>(done, K.inputReq(tenderId, inputKey)) ?? (done[K.inputReq(tenderId, inputKey)] ? {} : null);
       const sub = done[K.inputSub(tenderId, inputKey)] !== undefined;

@@ -7,9 +7,10 @@ import { kpi } from '../kpi';
 import { flow as flowDef } from '../flows';
 import { actionSource, type ActionSource } from '../actions';
 import { metric as metricDef } from '../metrics';
+import type { Measure } from '../metrics/types';
 import type { KpiCtx, KpiKind } from '../kpi/types';
 import type {
-  ActionVM, ActionsZoneVM, DashboardVM, DataPort, DrillVM, FlowZoneVM, GraphPointVM, GraphVM, InfoVM, TableZoneVM, TileVM,
+  ActionVM, ActionsZoneVM, DashboardVM, DataPort, DrillVM, FlowZoneVM, GraphMeasureVM, GraphPointVM, GraphVM, InfoVM, TableZoneVM, TileVM,
 } from '../viewmodels';
 import type { DashboardSpec } from './types';
 import { homeDashboardKey, stageOfKey } from './home';
@@ -146,6 +147,11 @@ function buildActions(spec: DashboardSpec, ctx: KpiCtx, title: string): ActionsZ
 
 const num = (v: number) => v.toLocaleString('en-GB', { maximumFractionDigits: 1 });
 
+/** The measure buttons, in this order, with their button words (dashboards.md §6, 2026-09-26). */
+const MEASURES: { measure: Measure; short: string }[] = [
+  { measure: 'tenders', short: 'Tenders' }, { measure: 'value', short: 'Value' }, { measure: 'weighted', short: 'Weighted' },
+];
+
 /** The graph for the chosen metric (or the spec's default). Null when the spec has no graph. */
 export function buildGraph(spec: DashboardSpec, ctx: KpiCtx, metricId?: string): GraphVM | null {
   const g = spec.graph;
@@ -158,23 +164,29 @@ export function buildGraph(spec: DashboardSpec, ctx: KpiCtx, metricId?: string):
     ? GCC_STAGES.filter((s) => s.gateAfter).map((s) => ({ after: String(s.n), label: s.gateAfter! }))
     : [];
 
+  const keys = axis.map((a) => a.key);
   const defs = spec.metrics.map((id) => ({ id, def: metricDef(id) }));
-  const offered = defs.filter((d) => d.def && holds(ctx, d.def.cap));
+  // A metric the viewer would see nothing of (every value masked) is left out, button and all.
+  const offered = defs.filter((d) => d.def && holds(ctx, d.def.cap) && safe(`Metric ${d.id} offered`, () => d.def!.offered?.(ctx, keys) ?? true, false));
   const metrics = offered.map((d) => ({ id: d.id, label: d.def!.label }));
+  const measures: GraphMeasureVM[] = MEASURES.flatMap((m) => {
+    const d = offered.find((x) => x.def!.measure === m.measure);
+    return d ? [{ id: d.id, label: d.def!.label, short: m.short }] : [];
+  });
+  const more = metrics.filter((m) => !measures.some((x) => x.id === m.id));
   const chosen = offered.find((d) => d.id === metricId) ?? offered.find((d) => d.id === spec.defaultMetric) ?? offered[0];
   const axisWord = g.axis === 'stages' ? 'stage' : 'step';
 
   if (!chosen?.def) {
     const id = metricId ?? spec.defaultMetric;
     return {
-      metric: id, metricLabel: notDefinedText(id), kind: 'state', axis: g.axis, metrics, markers, compareLabel: null, empty: true, missing: true,
+      metric: id, metricLabel: notDefinedText(id), kind: 'state', axis: g.axis, metrics, measures, more, markers, compareLabel: null, empty: true, missing: true,
       points: axis.map((a) => ({ key: a.key, label: a.label, value: null, compare: null, display: 'No data', drill: null, hint: '' })),
       summary: `${notDefinedText(id)}. No values by ${axisWord} yet.`,
     };
   }
 
   const def = chosen.def;
-  const keys = axis.map((a) => a.key);
   const res = safe(`Metric ${def.id}`, () => def.compute(ctx, keys), { values: keys.map(() => null) });
   const hasCompare = Array.isArray(res.compare);
   const points: GraphPointVM[] = axis.map((a, i) => {
@@ -186,16 +198,21 @@ export function buildGraph(spec: DashboardSpec, ctx: KpiCtx, metricId?: string):
       display: res.displays?.[i] ?? (value === null ? 'No data' : num(value)),
       compareDisplay: hasCompare ? res.compareDisplays?.[i] ?? (compare === null ? 'No data' : num(compare)) : undefined,
       count: res.counts?.[i],
+      barLabel: !value ? '' : res.shortDisplays?.[i] ?? res.displays?.[i] ?? num(value),
       drill,
       hint: !drill ? '' : drill.kind === 'route' ? `Click to open ${stageOf(Number(a.key))?.short ?? a.label}` : 'Click to see these tenders',
     };
   });
+  const notes = res.notes ?? [];
+  const empty = points.every((p) => !p.value);
   return {
-    metric: def.id, metricLabel: def.label, kind: def.kind, axis: g.axis, points, markers, metrics,
+    metric: def.id, metricLabel: def.label, kind: def.kind, axis: g.axis, points, markers, metrics, measures, more,
     compareLabel: !hasCompare ? null
       : def.kind === 'state' ? `At the start of the window (${ctx.window.startText})` : `${ctx.prev.label} (${ctx.prev.rangeText})`,
-    summary: `${def.label} by ${axisWord}: ${points.map((p) => `${p.label} ${p.display}`).join(', ')}`,
-    empty: points.every((p) => !p.value),
+    summary: `${def.label} by ${axisWord}: ${points.map((p) => `${p.label} ${p.display}`).join(', ')}${notes.map((n) => `. ${n.replace(/\.$/, '')}`).join('')}`,
+    notes, target: res.target ?? null, ...(res.unit ? { unit: res.unit } : {}),
+    empty,
+    ...(empty && notes.length ? { emptyText: notes[0] } : {}),
   };
 }
 

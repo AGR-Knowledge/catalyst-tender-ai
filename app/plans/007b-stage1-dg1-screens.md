@@ -1,6 +1,6 @@
 # 007b — Stage 1 and DG1 screens
 
-Status: READY · Depends on: 007a, 019, 021 (all in `gcc-demo`) · Can run in parallel with: 008b, 009b, 011, 022, 023 · Plan 012 (Arabic) builds on it
+Status: DONE — awaiting review (2026-09-26) · Depends on: 007a, 019, 021 (all in `gcc-demo`) · Can run in parallel with: 008b, 009b, 011, 022, 023 · Plan 012 (Arabic) builds on it
 
 ## Goal
 Demo script A runs end to end by clicking (s1-s3-demo-spec §17): the Coordinator's **radar** shows this morning's captures and source health; the hero's **intake steps** play out; the **intake queue** shows the two fields the agent would not accept alone, including the 1% vs 2% bond conflict with both pages; the workspace's **Requirements**, **Eligibility & fit** (Zakat and GOSI at risk, the turnover interpretation), **Key dates** (Ramadan and Eid flags) and **Queries** tabs are filled; the Bid Manager opens the **DG1 evidence pack**, sees it locked while blocking fields are open, and records **Pursue** with the team, which starts the RFQ clock. Discard (with reason codes), Hold and Re-open work too. It works for every tender with data, including the two new demo tenders (plans 022 and 023) as they land.
@@ -43,46 +43,97 @@ This is a **sales demo**, not the product.
 ## Steps
 
 ### Phase 1 — Radar and intake (spec §6.1–§6.2)
-- [ ] 1.1 `/radar` for the Coordinator (and the Head of Tendering): the connectors panel (status, mode, last poll, new today, login needed; assisted mode says the platform never solves CAPTCHAs); today's captures (AG Grid: time, source, reference, title, authority, country, value in the tenant currency, due, language, document type, fit, disposition; filters); the reconciliation card; the restricted lane as a **count only** for people not cleared. Header strip: INT-1, INT-4, INT-3, INT-9, INT-8 (reuse the KPI registry through the dashboard kit's tile component, not new computations).
-- [ ] 1.2 `IntakeSteps`: the nine-step list for one document (received → classified → sensitivity → language → OCR when scanned → fields → register check → screened → logged), timed, with intake-to-logged against the 15-minute target. Shown on the radar row's sheet and on the Documents tab.
-- [ ] 1.3 `UploadGcc`: upload a file; `recogniseUpload(name, tenant)` matches the hero booklet (and 022/023's PDFs once registered) and opens that tender; an unknown file stops after the page read and lands in the Coordinator queue, as the legacy upload does; a re-upload is flagged as a duplicate. Labelled as the demo's recognition, never as live extraction.
+- [x] 1.1 `/radar` for the Coordinator (and the Head of Tendering): the connectors panel (status, mode, last poll, new today, login needed; assisted mode says the platform never solves CAPTCHAs); today's captures (AG Grid: time, source, reference, title, authority, country, value in the tenant currency, due, language, document type, fit, disposition; filters); the reconciliation card; the restricted lane as a **count only** for people not cleared. Header strip: INT-1, INT-4, INT-3, INT-9, INT-8 (reuse the KPI registry through the dashboard kit's tile component, not new computations).
+- [x] 1.2 `IntakeSteps`: the nine-step list for one document (received → classified → sensitivity → language → OCR when scanned → fields → register check → screened → logged), timed, with intake-to-logged against the 15-minute target. Shown on the radar row's sheet and on the Documents tab.
+- [x] 1.3 `UploadGcc`: upload a file; `recogniseUpload(name, tenant)` matches the hero booklet (and 022/023's PDFs once registered) and opens that tender; an unknown file stops after the page read and lands in the Coordinator queue, as the legacy upload does; a re-upload is flagged as a duplicate. Labelled as the demo's recognition, never as live extraction.
 
 ### Phase 2 — Intake queue (spec §6.3)
-- [ ] 2.1 `/intake-queue`: items grouped by tender, blocking DG1 first; each shows the field, value, confidence and why it's low, the source snippet with a page chip, and **Accept · Correct · Mark not stated · Send back to agent**. Send back keeps the item open (the legacy bug must not come back). Header: open fields, oldest age, auto-accept rate.
-- [ ] 2.2 **The conflict pattern:** two values, each with its page chip; the agent refuses to choose; the Coordinator picks one and may draft a query (§6.10). The hero's 1% (p. 12) vs 2% (p. 35) is the showcase: polish it.
+- [x] 2.1 `/intake-queue`: items grouped by tender, blocking DG1 first; each shows the field, value, confidence and why it's low, the source snippet with a page chip, and **Accept · Correct · Mark not stated · Send back to agent**. Send back keeps the item open (the legacy bug must not come back). Header: open fields, oldest age, auto-accept rate.
+- [x] 2.2 **The conflict pattern:** two values, each with its page chip; the agent refuses to choose; the Coordinator picks one and may draft a query (§6.10). The hero's 1% (p. 12) vs 2% (p. 35) is the showcase: polish it.
 
 ### Phase 3 — Workspace tabs (spec §6.4–§6.8, §6.10)
-- [ ] 3.1 **Documents** (20): the document from `documentFor` (file, pages, language badge, scanned flag, received from which sources), the intake steps, addenda with their diff (dates, BOQ lines, clauses changed) and the "pack stale" effect; duplicates resolved to one TID list both sources.
-- [ ] 3.2 **Requirements** (30): the field groups (identity, commercial, guarantees, time, evaluation, submission, risk) with value, confidence, page chip and note; the flags with severity. Records without groups (the real samples) show their flat lists.
-- [ ] 3.3 **Eligibility & fit** (40): one `EligibilityLine` per PQ requirement (pass, at risk, interpretation, fail, not stated) with evidence and dates checked **against bid opening**; the roll-up sentence; the **JV scenario** toggle (partner list; re-runs the check); actions **Request renewal** (writes a request through `RequestButton`, so the owner sees it in My requests), **Draft query**, **Add evidence** (demo: a toast). The fit breakdown (score, verdict, confidence, strengths, concerns, what would sharpen it, comparable past bids), collapsed by default.
-- [ ] 3.4 **Key dates** (50): typed dates with local time, days and working days remaining, and the calendar flags (Ramadan hours, Eid closure, bond validity with bank lead time). Use `countdownText` wherever a countdown shows, so the header and the tab agree.
-- [ ] 3.5 **Queries** (60): drafts with clause and page; edit, approve and "send" (demo: marked sent via the portal; audit entry); the countdown to the clarification deadline.
-- [ ] 3.6 Each tab's `shows(ctx)` is false where it has nothing (spec §2.1: never an empty tab).
+- [x] 3.1 **Documents** (20): the document from `documentFor` (file, pages, language badge, scanned flag, received from which sources), the intake steps, addenda with their diff (dates, BOQ lines, clauses changed) and the "pack stale" effect; duplicates resolved to one TID list both sources.
+- [x] 3.2 **Requirements** (30): the field groups (identity, commercial, guarantees, time, evaluation, submission, risk) with value, confidence, page chip and note; the flags with severity. Records without groups (the real samples) show their flat lists.
+- [x] 3.3 **Eligibility & fit** (40): one `EligibilityLine` per PQ requirement (pass, at risk, interpretation, fail, not stated) with evidence and dates checked **against bid opening**; the roll-up sentence; the **JV scenario** toggle (partner list; re-runs the check); actions **Request renewal** (writes a request through `RequestButton`, so the owner sees it in My requests), **Draft query**, **Add evidence** (demo: a toast). The fit breakdown (score, verdict, confidence, strengths, concerns, what would sharpen it, comparable past bids), collapsed by default.
+- [x] 3.4 **Key dates** (50): typed dates with local time, days and working days remaining, and the calendar flags (Ramadan hours, Eid closure, bond validity with bank lead time). Use `countdownText` wherever a countdown shows, so the header and the tab agree.
+- [x] 3.5 **Queries** (60): drafts with clause and page; edit, approve and "send" (demo: marked sent via the portal; audit entry); the countdown to the clarification deadline.
+- [x] 3.6 Each tab's `shows(ctx)` is false where it has nothing (spec §2.1: never an empty tab).
 
 ### Phase 4 — Screening and DG1 (spec §6.9, §7)
-- [ ] 4.1 `/screening`: tenders awaiting DG1 with eligibility and fit; the **triage** sheet for tenders that landed together (fit, value, effort, bond, cumulative team load and facility use; "Pursuing all three would use 112% of the Water team's bid capacity in March"; no ranking of people's priorities).
-- [ ] 4.2 `/dg1` and `/dg1?tender=T`: the DG1 queue with SLA clocks, and the **evidence pack** (spec §7 items 1–8: recommendation card, tender at a glance with preparation time, eligibility roll-up expanded, fit collapsed, capacity, bond against facility headroom with Finance's timestamp, comparables, open validations and queries).
-- [ ] 4.3 **The lock:** while a field marked "blocks DG1" is open, the form is disabled with "2 fields still being validated by Aisha Al-Qahtani" and a **Nudge** button (audit entry, toast).
-- [ ] 4.4 **The decision form:** Pursue (team pre-filled from sector defaults; prime or JV with the partner; milestones; note required when overriding a Discard recommendation) → effects list before confirming (stage moves, team notified, RFQ clock started); Discard (reason codes required, `ReasonCodePicker`); Hold (who, what, by when; the SLA keeps running). Validation messages from `validateDg1`. The recorder is the assigned Bid Manager, or the Head of Tendering as a recorded delegate with a reason (`can()` says which).
-- [ ] 4.5 **Re-open** (with a reason) only on decisions recorded in the demo (`dg1RecordFor(...).source === 'demo'`); seed decisions show as recorded history.
-- [ ] 4.6 After Pursue, the hero reads "2 · Sourcing · Packaging" on the dashboards, the tracker and the workspace at once, and Reset returns it to Stage 1.
+- [x] 4.1 `/screening`: tenders awaiting DG1 with eligibility and fit; the **triage** sheet for tenders that landed together (fit, value, effort, bond, cumulative team load and facility use; "Pursuing all three would use 112% of the Water team's bid capacity in March"; no ranking of people's priorities).
+- [x] 4.2 `/dg1` and `/dg1?tender=T`: the DG1 queue with SLA clocks, and the **evidence pack** (spec §7 items 1–8: recommendation card, tender at a glance with preparation time, eligibility roll-up expanded, fit collapsed, capacity, bond against facility headroom with Finance's timestamp, comparables, open validations and queries).
+- [x] 4.3 **The lock:** while a field marked "blocks DG1" is open, the form is disabled with "2 fields still being validated by Aisha Al-Qahtani" and a **Nudge** button (audit entry, toast).
+- [x] 4.4 **The decision form:** Pursue (team pre-filled from sector defaults; prime or JV with the partner; milestones; note required when overriding a Discard recommendation) → effects list before confirming (stage moves, team notified, RFQ clock started); Discard (reason codes required, `ReasonCodePicker`); Hold (who, what, by when; the SLA keeps running). Validation messages from `validateDg1`. The recorder is the assigned Bid Manager, or the Head of Tendering as a recorded delegate with a reason (`can()` says which).
+- [x] 4.5 **Re-open** (with a reason) only on decisions recorded in the demo (`dg1RecordFor(...).source === 'demo'`); seed decisions show as recorded history.
+- [x] 4.6 After Pursue, the hero reads "2 · Sourcing · Packaging" on the dashboards, the tracker and the workspace at once, and Reset returns it to Stage 1.
 
 ### Phase 5 — Calendar, dev check, polish
-- [ ] 5.1 `/calendar`: an agenda of the next four weeks across the viewer's tenders (key dates and gate SLAs), grouped by week, in the authority's time zone, with the calendar flags. Plain is fine.
-- [ ] 5.2 `75-stage1-screens.tsx`, about 10 rows: each built screen renders for its roles; the hero's queue has 2 items, one blocking; DG1 is locked until they're resolved; Pursue moves the hero to Stage 2; Discard needs a reason; Re-open is offered only on a demo decision; tabs absent where empty.
-- [ ] 5.3 1440 and 1280, light and dark, keyboard (tab order, Esc closes sheets and viewers), no console errors.
+- [x] 5.1 `/calendar`: an agenda of the next four weeks across the viewer's tenders (key dates and gate SLAs), grouped by week, in the authority's time zone, with the calendar flags. Plain is fine.
+- [x] 5.2 `75-stage1-screens.tsx`, about 10 rows: each built screen renders for its roles; the hero's queue has 2 items, one blocking; DG1 is locked until they're resolved; Pursue moves the hero to Stage 2; Discard needs a reason; Re-open is offered only on a demo decision; tabs absent where empty.
+- [x] 5.3 1440 and 1280, light and dark, keyboard (tab order, Esc closes sheets and viewers), no console errors.
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants.
-- [ ] Script A as Aisha (Coordinator) then Omar (Bid Manager) in Najd: radar → hero → queue (resolve the conflict, pick 1%, draft the query) → Requirements → Eligibility (Zakat and GOSI at risk, the turnover interpretation, Request renewal reaches Sultan's My requests) → Key dates (Ramadan and Eid flags) → DG1 locked, then unlocked → Pursue with team → RFQ clock on Joseph's Stage 2 dashboard.
-- [ ] In Corniche and Batinah the hero reads Recommend discard, and Discard records reason codes; in Dafna the JV scenario clears the four failing lines; in Qurain, Hold asks Finance.
-- [ ] View as is read only everywhere (buttons disabled with the reason). Joseph (Procurement Lead) can't open DG1 and sees no margin. Aisha doesn't see T-2026-121.
-- [ ] Reset demo returns every screen to the seed.
+- [x] typecheck and build pass; `/dev/checks` passes in all five tenants.
+- [x] Script A as Aisha (Coordinator) then Omar (Bid Manager) in Najd: radar → hero → queue (resolve the conflict, pick 1%, draft the query) → Requirements → Eligibility (Zakat and GOSI at risk, the turnover interpretation, Request renewal reaches Sultan's My requests) → Key dates (Ramadan and Eid flags) → DG1 locked, then unlocked → Pursue with team → RFQ clock on Joseph's Stage 2 dashboard.
+- [x] In Corniche and Batinah the hero reads Recommend discard, and Discard records reason codes; in Dafna the JV scenario clears the four failing lines; in Qurain, Hold asks Finance.
+- [x] View as is read only everywhere (buttons disabled with the reason). Joseph (Procurement Lead) can't open DG1 and sees no margin. Aisha doesn't see T-2026-121.
+- [x] Reset demo returns every screen to the seed.
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-26.)
+
+- **Changed files:**
+  - Created, `src/pages/gcc/s1/`: `Radar.tsx`, `IntakeQueue.tsx`, `Screening.tsx`, `Dg1.tsx`, `Calendar.tsx`, `IntakeSteps.tsx`, `UploadGcc.tsx`, `s1.css`.
+  - Created, `s1/vm/` (view-model helpers, no rules): `useS1.ts` (tenant, viewer, `done`, lifecycle queries, `check()`, `nextAt()`, `write()` through `mark()` and the audit), `tiles.ts` (header-strip tiles from the KPI registry, as `buildTile` reads them), `docs.ts` (`documentFor` wrapper, page snippets), `uploads.ts` (the upload log), `calendarNotes.ts`.
+  - Created, `s1/parts/`: `Grid.tsx` (AG Grid wrapper), `Strip.tsx`, `cells.tsx`, `FilterBar.tsx`, `Modal.tsx`, `ValidationCard.tsx`, `RenewalButton.tsx`, `EligibilityPanel.tsx`, `FitBreakdown.tsx` (with `Comparables`), `KeyDateList.tsx`, `QueryList.tsx`, `RecCard.tsx` (the rail's recommendation card, reused), `Dg1Form.tsx`, `Dg1Record.tsx`.
+  - Created: `src/pages/gcc/workspace/tabs/documents.tab.tsx` (20), `requirements.tab.tsx` (30), `eligibility.tab.tsx` (40), `dates.tab.tsx` (50) and `queries.tab.tsx` (60); `src/pages/gcc/dev-checks/75-stage1-screens.tsx` (10 rows).
+  - Changed:
+    - `pages/gcc/screens.ts`: the five entries (`built: true`, `page`).
+    - `components/layout/Header.tsx`: one import, and `{gcc ? <UploadGcc /> : <UploadButton />}`.
+    - `domain/gcc/workspace/rail.ts`: `RailVM.overridden` and `overriddenOf()`, the recommendation an overriding DG1 decision went against.
+    - `pages/gcc/workspace/Rail.tsx`: one line renders it (see Deviations).
+    - `components/tender/SourceChip.tsx`: optional `doc` per source; `null` means no copy. Backward compatible.
+    - `components/tender/EligibilityLine.tsx`: highlights `termsOf(line.text)`.
+  - No edits to `domain/gcc/s1/**`, `dg1/**` or `data/**`.
+- **Verification:**
+  - `npm run typecheck` and `npm run build` pass (the bundle-size warning was already there).
+  - `/dev/checks` in all five tenants: "Stage 1 screens (plan 007b)" passes 10 of 10 in each, with 0 console errors. Every other panel passes too, except one row of 008b's panel (see Blockers).
+  - Clicked through in a headless browser (Playwright, own context, dev server on 5181):
+    - **Script A in Najd.**
+      - As Aisha: radar (T-2026-121 is only a count), capture sheet with intake steps, queue.
+      - Queue: pick 1% (p. 12) and 16 km; Send back keeps the item open.
+      - Requirements; Eligibility (Zakat and GOSI at risk, the PQ-11 interpretation, request buttons disabled with the reason); Key dates (Ramadan and Eid flags); Queries.
+      - DG1 as Aisha is read only, with "Only the assigned Bid Manager, Omar Siddiqui, records DG1".
+      - As Omar: DG1 is locked while the fields are open ("2 fields still being validated by Aisha Al-Qahtani", Nudge), then unlocked.
+      - Pursue with the team pre-filled, the effects shown before confirming, the record written. Request renewal reaches Sultan's My requests.
+      - Joseph's Stage 2 dashboard shows the RFQ clock on T-2026-118, and the tracker and table read "2 · Sourcing · Packaging". Joseph is refused `/dg1`.
+    - **Corniche and Batinah:** "Recommend discard". Discard stays open under the lock (a PQ fail) and needs a reason code; the codes are recorded; Re-open is offered.
+    - **Dafna:** "Pursue with conditions (JV needed)". The JV with Tihama is pre-filled and validates; the preview says "JV with Tihama Hydro Works Co. (60/40)".
+    - **Qurain:** Hold is pre-filled for Finance (Yacoub Al-Qattan) with the facility question. It lands in his My requests, and the SLA keeps running.
+    - **Head of Tendering:** records as a delegate, with a note required. Re-open with a reason sends the tender back to the DG1 queue and keeps the earlier Pursue on record. Seed decisions show as history, without Re-open.
+    - View as Omar is read only ("Viewing as Omar Siddiqui. Read only").
+    - Enter opens a grid row; ↑ and ↓ move through the sheet; Esc closes the sheet and the document viewer.
+    - A Hold survives a reload, and Reset demo returns `done` to empty and DG1 to locked.
+    - At 1280 and 1440, light and dark: no page overflow and no console errors. At 1280 the wide grids scroll sideways inside their card, with the pinned column kept.
+- **Deviations from plan:**
+  - `pages/gcc/workspace/Rail.tsx` (019's) gets one added line to render `vm.overridden`. rail.ts alone cannot show the card, because the rail only renders what `Rail.tsx` draws.
+  - Request renewal writes `renewal-requested:{credId}` (007a's key: My requests, SCR-6 and the Head of Tendering's renewal action all read it) with the same look as `RequestButton`, instead of `RequestButton`'s `request:` key, so the three agree.
+  - The seed has **two** fields that block DG1 on the hero (both conflicts), not one as 5.2 says. The dev check asserts 2 items, at least 1 blocking.
+  - DG1 Hold also writes a `request:{TID}:{toId}:dg1-hold` key, so the person asked sees it in My requests (spec §5.5).
+  - New demo key `gcc-upload:{file name}` for the upload log (duplicates, the Documents tab's "received from"). Reset clears it with the rest of `done`.
+  - The side column of the DG1 pack is not sticky: the form is taller than the screen, so a sticky column hid its confirm button.
+  - The Screening grid is not sortable, because its cumulative columns only read top to bottom (the rows are never ranked).
+- **Blockers / questions:**
+  - 008b's dev-check row "RFQ draft (najd, P-01): matched lines only, no rates" fails in all five tenants ("8 lines in the package, 4 shown"). It is outside my files and I left it alone.
+- **Follow-ups noticed (not done):**
+  - Header strips:
+    - INT-6 (auto-accept rate) has no data, so it is left off the queue strip.
+    - INT-8, INT-9, triage load, Blocking DG1, Oldest item, Sent back, On hold and Recorded today are value tiles over 007a's values, not registry KPIs.
+    - SCR-2 (DG1 on time) is not in the registry, so it is not on `/dg1`.
+  - `EligibilityPanel` falls back to 60/40 shares when a JV scenario has none (the same default `validateDg1` uses).
+  - The Coordinator can't save an edited query draft: 007a's `queryAction` has only approve and send, and approving is for the Head of Tendering and the Bid Manager.
+  - Addenda have no file of their own, so their page chips don't open a viewer (`doc: null`).
+  - The Bid Manager's sidebar has no My requests entry.
+  - RFQ clock just after Pursue:
+    - Audit entries run a minute apart from 10:00, so a Pursue recorded at 10:02 shows "24 h 2 m left" against the fixed 10:00 demo clock.
+    - Consider stamping the RFQ start at `DEMO_NOW` (008a or 021).

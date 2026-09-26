@@ -31,7 +31,10 @@ export const BOND_TERMS: BondTerms[] = [
     source: 'Instructions to Bidders cl. 16; Conditions of Contract cl. 4.2, 14.2 and 14.3' },
 
   // Corniche
-  { tenderId: 'T-2026-061', tenants: ['corniche'], bidPct: 2, performancePct: 10 },
+  // Plan 022: a fixed AED 2,000,000 tender bond (cl. 12.1, p. 6), its validity in conflict (VAL-061-1: 120 or 150 days).
+  { tenderId: 'T-2026-061', tenants: ['corniche'], bidAmount: 2_000_000, bidPage: 6, bidValidityValidationId: 'VAL-061-1',
+    performancePct: 10, performancePage: 8, advancePct: 10, advancePage: 9,
+    source: 'Instructions to Tenderers cl. 12; Particular Conditions Sub-Clauses 4.2, 14.2 and 14.3' },
   { tenderId: 'T-2026-063', tenants: ['corniche'], bidPct: 2, performancePct: 10 },
   { tenderId: 'T-2026-029', tenants: ['corniche'], bidPct: 2, bidValidityDays: 90, performancePct: 10, advancePct: 10,
     source: 'Invitation to tender cl. 12; Conditions of Contract cl. 4.2 and 14.2' },
@@ -41,7 +44,12 @@ export const BOND_TERMS: BondTerms[] = [
   { tenderId: 'T-2026-034', tenants: ['dafna'], bidPct: 2, performancePct: 10 },
 
   // Batinah
-  { tenderId: 'T-2026-042', tenants: ['batinah'], bidPct: 1, performancePct: 10 },
+  // Plan 023: clause 12 (p. 5) says 1% of the bid value; the scanned Form of Bid Bond (Annex 4, p. 17) says a fixed
+  // OMR 300,000. The blocking conflict VAL-042-1 holds both: until it is resolved the higher of the two bonds stands
+  // (1% of the estimate), and resolving it moves the bond everywhere.
+  { tenderId: 'T-2026-042', tenants: ['batinah'], bidAmount: 300_000, bidPage: 17, bidRateValidationId: 'VAL-042-1',
+    performancePct: 5, performancePage: 7, advancePct: 10, advancePage: 7,
+    source: 'Instructions to Bidders clause 12; Form of Bid Bond (Annex 4, scanned); Conditions of Contract clauses 19 and 20' },
 
   // Qurain
   { tenderId: 'T-2026-049', tenants: ['qurain'], bidPct: 2, bidValidityDays: 90, performancePct: 10, advancePct: 5,

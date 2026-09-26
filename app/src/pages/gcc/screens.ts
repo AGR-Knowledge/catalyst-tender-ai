@@ -24,16 +24,16 @@ export interface ScreenInfo {
 }
 
 export const SCREENS: Record<string, ScreenInfo> = {
-  '/calendar': { name: 'Calendar', line: 'Every deadline, site visit and gate across your tenders, in the authority’s time zone.', plan: '007', built: false, cap: 'tender.view' },
-  '/radar': { name: 'Tender radar', line: 'Every notice captured from your portals, mailboxes and scanned post, with the health of each source.', plan: '007', built: false, cap: 'radar.view' },
-  '/intake-queue': { name: 'Intake queue', line: 'Values the Intake Agent read with low confidence, for a person to check before DG1.', plan: '007', built: false, cap: 'queue.view' },
-  '/screening': { name: 'Screening', line: 'Eligibility against the credentials vault, and the fit score, for each tender.', plan: '007', built: false, cap: 'screening.view' },
-  '/dg1': { name: 'DG1 decisions', line: 'Pursue or discard, recorded by the assigned Bid Manager with the evidence pack.', plan: '007', built: false, cap: 'dg1.view' },
-  '/sourcing': { name: 'Packages & RFQs', line: 'Scope packages, supplier shortlists and RFQs, with their reply clock.', plan: '008', built: false, cap: 'sourcing.view' },
-  '/levelling': { name: 'Quote levelling', line: 'Supplier quotes made comparable: currency, VAT, delivery terms and exclusions.', plan: '008', built: false, cap: 'levelling.view' },
-  '/suppliers': { name: 'Suppliers', line: 'The supplier master, with each supplier’s screening status.', plan: '008', built: false, cap: 'supplier.view' },
-  '/packs': { name: 'Bid packs', line: 'The Bid / No-Bid pack for the committee, with its freshness and the inputs it waits on.', plan: '009', built: false, cap: 'pack.view' },
-  '/dg2': { name: 'DG2 approvals', line: 'Committee positions, then the final Bid / No-Bid approval by the Head of Tendering.', plan: '009', built: false, cap: 'dg2.view' },
+  '/calendar': { name: 'Calendar', line: 'Every deadline, site visit and gate across your tenders, in the authority’s time zone.', plan: '007', built: true, cap: 'tender.view', page: () => import('./s1/Calendar') },
+  '/radar': { name: 'Tender radar', line: 'Every notice captured from your portals, mailboxes and scanned post, with the health of each source.', plan: '007', built: true, cap: 'radar.view', page: () => import('./s1/Radar') },
+  '/intake-queue': { name: 'Intake queue', line: 'Values the Intake Agent read with low confidence, for a person to check before DG1.', plan: '007', built: true, cap: 'queue.view', page: () => import('./s1/IntakeQueue') },
+  '/screening': { name: 'Screening', line: 'Eligibility against the credentials vault, and the fit score, for each tender.', plan: '007', built: true, cap: 'screening.view', page: () => import('./s1/Screening') },
+  '/dg1': { name: 'DG1 decisions', line: 'Pursue or discard, recorded by the assigned Bid Manager with the evidence pack.', plan: '007', built: true, cap: 'dg1.view', page: () => import('./s1/Dg1') },
+  '/sourcing': { name: 'Packages & RFQs', line: 'Scope packages, supplier shortlists and RFQs, with their reply clock.', plan: '008', built: true, cap: 'sourcing.view', page: () => import('./s2/Sourcing') },
+  '/levelling': { name: 'Quote levelling', line: 'Supplier quotes made comparable: currency, VAT, delivery terms and exclusions.', plan: '008', built: true, cap: 'levelling.view', page: () => import('./s2/Levelling') },
+  '/suppliers': { name: 'Suppliers', line: 'The supplier master, with each supplier’s screening status.', plan: '008', built: true, cap: 'supplier.view', page: () => import('./s2/Suppliers') },
+  '/packs': { name: 'Bid packs', line: 'The Bid / No-Bid pack for the committee, with its freshness and the inputs it waits on.', plan: '009', built: true, cap: 'pack.view', page: () => import('./s3/Packs') },
+  '/dg2': { name: 'DG2 approvals', line: 'Committee positions, then the final Bid / No-Bid approval by the Head of Tendering.', plan: '009', built: true, cap: 'dg2.view', page: () => import('./dg2/Dg2') },
   '/dg3': { name: 'DG3 approvals', line: 'Final bid approval by the Head of Tendering.', plan: '018', built: false, cap: 'dg3.view' },
   '/company': { name: 'Company', line: 'The credentials vault, capability profile, bank facility and tendering teams.', plan: '010', built: false, cap: 'company.view' },
   '/admin': { name: 'Administration', line: 'Users and roles, committees and gates, sources, the fit model, targets, branding and the audit log.', plan: '010', built: false, cap: 'admin.view' },
@@ -43,7 +43,7 @@ export const SCREENS: Record<string, ScreenInfo> = {
   '/admin/fit': { name: 'Fit model & rules', line: 'Fit weights, the pursue threshold and the value band, with their live impact.', plan: '010', built: false, cap: 'admin.fit' },
   '/admin/targets': { name: 'Targets & SLAs', line: 'Gate time limits and the thresholds behind every dashboard tone.', plan: '010', built: false, cap: 'admin.targets' },
   '/admin/branding': { name: 'Branding', line: 'The company mark and accent colour.', plan: '010', built: false, cap: 'admin.branding' },
-  '/admin/audit': { name: 'Audit log', line: 'Every decision and action: who, when and why.', plan: '010', built: false, cap: 'audit.view' },
+  '/admin/audit': { name: 'Audit log', line: 'Every decision and action: who, when and why.', plan: '010', built: true, cap: 'audit.view', page: () => import('./admin/AuditLog') },
 };
 
 /** True once the screen at `path` exists, so an action can open it directly. */

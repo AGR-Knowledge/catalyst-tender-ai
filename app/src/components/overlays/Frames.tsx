@@ -24,7 +24,7 @@ function useOverlayBehaviour(onCloseProp: () => void) {
       if (stack[stack.length - 1] !== ref.current) return;
       if (e.key === 'Escape') { e.stopPropagation(); onClose(); }
       if (e.key === 'Tab' && ref.current) {
-        const f = Array.from(ref.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input, [tabindex]:not([tabindex="-1"])'));
+        const f = Array.from(ref.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
         if (!f.length) return;
         const [a, z] = [f[0], f[f.length - 1]];
         if (e.shiftKey && document.activeElement === a) { e.preventDefault(); z.focus(); }

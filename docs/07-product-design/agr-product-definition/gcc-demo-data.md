@@ -168,7 +168,8 @@ The reconciliation card counts **9 sources** (with the other portals it watches)
 - **Company:** Oman roads contractor, classified Excellent grade with the Tender Board [A]. No KSA presence; no water experience.
 - **Turnover:** average OMR 38 M (about SAR 371 M).
 - **Hero route:** the tender arrives by email from a prospective partner, not from a watched portal.
-- **Also the tenant for:** the scanned Arabic roads tender and the Lebanon roads tender (§9). Sector fit, but geography out.
+- **Also the tenant for:** the third demo tender, T-2026-042 Sohar–Buraimi road dualling (§4B): an Arabic document with three scanned pages, used for demo script E, and Batinah's Pursue story.
+  The Lebanon roads tender (§9) stays as intake variety: sector fit, but geography out. The scanned Lebanese roads tender is replaced by §4B.
 - **Hero result:** Recommend discard (§4.7).
 
 ### 2.6 Qurain Meridian Projects Co. (tenant E)
@@ -396,6 +397,123 @@ Exact pages of other facts the seed data cites (from plans 004 and 005, 2026-09-
 
 ---
 
+## 4A. Second demo tender: Abu Dhabi hospital MEP (Corniche)
+
+Plan 022 (2026-09-26). One synthetic English tender in **Corniche only**: it gives Corniche a Pursue story and a UAE prospect a UAE tender. The employer, hospital, reference and contacts are fictional. Generator: `app/scripts/demo-itt/cbhh-011/` → `app/public/bids/gcc/CBHH-PRJ-2026-011-ITT.pdf` (20 pp) and `…-BOQ.csv` (40 lines, no prices). Extraction record: `app/src/data/extracted/gcc/cbhh-011.ts`.
+
+### 4A.1 Facts
+| Field | Value |
+| --- | --- |
+| TID · reference | T-2026-061 · CBHH/PRJ/2026/011 |
+| Title | MEP works package for the 220-bed Crescent Bay Specialist Hospital, Abu Dhabi |
+| Issuer | Crescent Bay Health Holding (fictional), Capital Projects Office as Project Manager. A repeat client: Corniche delivered its specialist hospital MEP in 2022 |
+| Procurement | Open tender, one envelope with technical and commercial volumes, through the Abu Dhabi government procurement portal |
+| Contract | Measured MEP package, FIDIC 2017 Construction amended; the civil contractor is separate. 26 months, then 24 months' defects notification |
+| Estimate | Not published. Platform estimate **AED 185 M** (band 165–205 M) |
+| Language | English. **The English text governs** (cl. 7.2, p. 5; Sub-Clause 1.4, p. 8). No "Arabic prevails" clause, so the M-8 flag is not raised |
+
+**Key dates** (GST): published Sun 8 Mar (p. 3) · site visit Wed 11 Mar 10:00, hospital site gate (p. 4; flagged: Ramadan hours) · questions Thu 19 Mar (p. 4) · answers **not stated** (p. 4) · submission and original bond Tue 21 Apr 14:00 (p. 6) · opening 15:00 (p. 7) · validity 120 days, to Wed 19 Aug (p. 5).
+
+**Commercial:** tender bond **AED 2,000,000, fixed** (cl. 12.1, p. 6) · performance 10%, 5% after taking-over (p. 8) · advance up to 10% against an equal guarantee (p. 9) · retention 10%, half at taking-over (p. 9) · delay damages 0.1% a day, capped at 10% (p. 9) · payment in 60 days (p. 9) · VAT 5% shown separately (p. 5) · ICV score **25% of the commercial evaluation** [A] (p. 7) · subcontracting capped at 35% (p. 8).
+
+### 4A.2 Deliberate catches
+1. **Tender bond validity 120 days** (cl. 12.2, p. 6) **against 150 days** (Annex C, p. 19). Blocking validation VAL-061-1; query Q-061-01. Until it is resolved the bond is valid 150 days (the longer). Resolved, it follows the value picked.
+2. **Chillers 3 × 1,500 TR** (Scope 4.4.1, p. 11) **against 3 × 1,750 TR** (equipment schedule, p. 14). Non-blocking VAL-061-2; query Q-061-02.
+3. **No date for the answers**: "issued to all tenderers as a circular" (cl. 5.3, p. 4). The field reads "Not stated", with a flag.
+4. **Medical gas: an installer approved for medical gas pipeline systems, working to HTM 02-01 or NFPA 99** (p. 13; Q-09 on p. 15). Corniche has none in-house, so the line is met through a named specialist subcontractor: at risk until one is named.
+5. **"Chamber of Commerce and Industry" with no emirate** (Q-03, p. 15). Corniche holds Dubai Chamber only: an interpretation line; query Q-061-03.
+
+### 4A.3 Eligibility against Corniche's vault, and fit
+Q-01 trade licence · Q-02 Abu Dhabi classification, MEP first grade · Q-04 Civil Defence · Q-05 ICV certificate · Q-06 ISO · Q-07 two healthcare MEP projects ≥ AED 100 M in 7 years · Q-08 turnover ≥ AED 400 M · Q-10 a PM with 15 years, 10 in healthcare: **met**. Q-09 medical gas: **at risk**. Q-03 chamber: **interpretation**. Result **8 met · 1 at risk · 1 interpretation · 0 fail → eligible**. Vault additions: project corniche-p3 tagged "healthcare MEP"; new project corniche-p5 (Dubai rehabilitation hospital MEP, AED 158 M, 2024, prime); new key person corniche-kp-5 (Project Manager, 18 years, 12 in healthcare). **Fit 73.5 → Pursue.** What would change it: resolve VAL-061-1; name the medical gas specialist; confirm the Q-03 reading.
+
+### 4A.4 Stage 2 (after DG1 Pursue in the demo) and Stage 3
+| Package | AED M | Kind | Note |
+| --- | --- | --- | --- |
+| P-01 Chillers and cooling towers | 12.6 | supply, self-install | Long lead 30 weeks; capacity in conflict (catch 2) |
+| P-02 AHUs and fan coil units | 16.8 | supply, self-install | |
+| P-03 Medical gas pipeline systems | 9.4 | subcontract | An approved medical gas installer (HTM 02-01 or NFPA 99); the client's approved list |
+| P-04 LV switchgear, generators and UPS | 18.5 | supply, self-install | |
+| P-05 Fire fighting and fire alarm | 13.2 | subcontract | Civil Defence approved contractors only |
+| P-06 Plumbing, drainage and water treatment | 17.9 | subcontract | Includes the RO plant for dialysis |
+| P-07 ELV, BMS and nurse call | 11.6 | supply, self-install | In-house design, supply only |
+
+Self-performed AED 85.0 M; total AED 185.0 M; subcontract works 21.9% of the 35% cap. No RFQs or quotes are seeded. Scripted replies: P-01 Arctis (EUR ex-works, excludes the towers), Tilal (VAT included), Warsan (30-day validity); P-02 Qarn (clean), Barsha (excludes AHU controls), Kestrelwind (EUR, delivered). Required quote validity 150 days (120 + 30).
+
+**Stage 3 pack** (seeded v1, not issued): win **52 ± 8** (base 38, drivers +14; 12 comparables give ± 8: the band rule has no ± 9); competitors Tessaline MEP Contracting, Sarab Building Services Co., Brevanne Engineering Services (Gulf), all fictional; margin 8.0–11.0%; bond AED 2.0 M fixed; headroom after the bond AED 157.6 M; delivery load 55% now, 70% if T-2026-029 and T-2026-061 both win, against a safe 75%; **Bid with conditions**. All six contributor inputs are in. Above the AED 40 M referral, so DG2 would go to the Bid Committee. No demo action moves T-2026-061 past Stage 1 yet (plan 022 execution report, Blockers).
+
+### 4A.5 Page map as built
+| Page | Content | Page | Content |
+| --- | --- | --- | --- |
+| 1 | Cover | 11 | Scope 4.4 HVAC: **3 × 1,500 TR** |
+| 2 | Contents, tender documents | 12 | 4.5–4.7 electrical, plumbing, fire (Civil Defence) |
+| 3 | Invitation and timetable | 13 | 4.8 **medical gas (an approved installer, HTM 02-01 or NFPA 99)**, 4.9 ELV/BMS, 4.10 T&C |
+| 4 | ITT 1–5: site visit, questions, **answers undated** | 14 | Equipment schedule: **CH-01 to 03 at 1,750 TR** |
+| 5 | ITT 6–10: **English governs**, VAT 5%, validity 120 days | 15 | Section 6: Q-01 to Q-10 (**chamber** Q-03) |
+| 6 | ITT 11–13: **bond AED 2,000,000, 120 days**, submission | 16–17 | Vol. 2 BOQ summary: 8 work packages, 186 lines |
+| 7 | ITT 14–18: opening, evaluation (pass mark 70; ICV 25%) | 18 | Vol. 3 drawings list |
+| 8 | PC 1.4, 1.5, 4.2 (10%), 4.4 (35% cap), 4.6 | 19 | Annex C Form of Tender Bond: **150 days** |
+| 9–10 | PC 8.2–18; Scope 4.1–4.3 (220 beds, interfaces) | 20 | Annex D Form of Tender |
+
+---
+
+## 4B. Third demo tender: Sohar–Buraimi road dualling (Batinah, Arabic)
+
+Plan 023 (2026-09-26). One synthetic **Arabic** tender in **Batinah only**: it gives Batinah a Pursue story, an Omani prospect an Omani tender, and demo script E its Arabic, partly scanned document (it replaces the Lebanese scan of §9). The employer, reference, project and contacts are fictional. Generator: `app/scripts/demo-itt/ilra-042/` → `app/public/bids/gcc/ILRA-RD-2026-042-booklet-ar.pdf` (18 pp, 3 of them scanned images with no text layer) and `…-BOQ.csv` (38 lines, Arabic and English descriptions, no prices). Extraction record: `app/src/data/extracted/gcc/ilra-042.ts`: every value carries its Arabic source snippet and page.
+
+### 4B.1 Facts
+| Field | Value |
+| --- | --- |
+| TID · reference | T-2026-042 · ILRA/RD/2026/042 (Latin characters in every page header) |
+| Title | Dualisation of the Sohar–Buraimi road, section 2 (38 km), with two bridges, drainage and street lighting. Arabic as printed: ازدواجية طريق صحار – البريمي، القطاع الثاني (38 كم) |
+| Issuer | Interior Links Roads Authority, هيئة طرق الربط الداخلي (fictional), Directorate General of Projects, Sohar. A repeat client: Batinah won 4 of its last 5 bids since 2017 |
+| Procurement | Open public tender through the Tender Board e-tendering system; technical and financial envelopes; technical pass mark 70 of 100 |
+| Contract | Re-measured unit rates; 30 months, then 12 months' maintenance; two bridges (Wadi Al Jizzi, 192 m: a 64 m main span, an in-situ post-tensioned box girder, and four 32 m precast approach spans; the km 41 overpass, 2 × 34 m precast) |
+| Estimate | Not published. Platform estimate **OMR 32 M** (band 28–36 M) |
+| Language | **Arabic only**; the bid must be in Arabic (cl. 7, p. 5). Flag: "Arabic-only document: the English values are a reading aid" |
+
+**Key dates** (GST, Oman): published Sun 8 Mar (p. 1) · site visit Sun 15 Mar 09:00 from the Sohar interchange (p. 4; flagged: Ramadan hours) · questions Tue 24 Mar (p. 4) · answers within 7 days, Tue 31 Mar (p. 4) · submission and original bond Sun 26 Apr 12:00 (p. 6) · opening 12:30, technical envelopes only (p. 6) · validity 90 days, to Sat 25 Jul (p. 5) · bond valid to Sat 22 Aug, validity + 28 days (scanned form, p. 17).
+
+**Commercial:** bid bond **1% of the bid value** (cl. 12, p. 5) · performance 5% (p. 7) · advance 10% against an equal guarantee (p. 7) · payment within 56 days of certification (p. 7) · retention 5% (p. 7) · delay damages 0.05% a day, capped at 10% (p. 8) · **at least 10% subcontracted to registered SMEs** (cl. 26, p. 8) · Omanisation plan with the bid (p. 5) · OMR, VAT 5% shown separately (p. 5).
+
+### 4B.2 Deliberate catches
+1. **Bid bond 1% of the bid value** (cl. 12, p. 5) **against OMR 300,000 fixed** on the scanned Form of Bid Bond (p. 17, Eastern digits ٣٠٠٬٠٠٠). 1% of the estimate is about OMR 320,000. Blocking validation VAL-042-1; query Q-042-01. Until it is resolved the bond is the higher of the two (1% of the estimate, OMR 320,000); resolved, it follows the value picked (OMR 300,000 fixed if the form's amount is picked).
+2. **Section length 38 km** (cl. 31-1, p. 9) **against 36.5 km** (drawing G-001, p. 14). Non-blocking VAL-042-2; query Q-042-02.
+3. **Scanned pages 15–17** (BOQ summary, site-visit certificate, bond form): 7 fields read by OCR, all **low confidence** with the reason. A stamp covers the quantities of BOQ items 4.02 and 4.05 (P-03).
+4. **SME share** (cl. 26, p. 8; PQ-08, p. 13): "10% of the contract" without saying whether by value or by number of subcontracts. An interpretation line; query Q-042-03.
+5. **Bridge span of 60 m or more in 10 years** (PQ-07, p. 13), or a named specialist subcontractor. Batinah's best is 52 m: **at risk**, not a fail.
+
+### 4B.3 Eligibility against Batinah's vault, and fit
+PQ-01 commercial registration · PQ-02 Tender Board, roads and bridges, Excellent grade · PQ-03 chamber · PQ-04 ISO · PQ-05 approved contractor, national roads programme · PQ-06 two dual-carriageway projects of OMR 10 M or more in 10 years · PQ-09 average turnover OMR 20 M or more over 3 years: **met**. PQ-07 bridge span: **at risk**. PQ-08 SME share: **interpretation**. Result **7 met · 1 at risk · 1 interpretation · 0 fail → eligible**. The Omanisation certificate is a supporting document in the technical envelope, not a PQ line. Vault additions: projects batinah-p4 (Barka–Nakhal road dualling, OMR 14.5 M, 2019, 45 m span) and batinah-p5 (Ibri–Yanqul road dualling, OMR 12.8 M, 2023, 52 m span). **Fit 81 → Pursue**, medium confidence. What would change it: resolve the bond field; name the specialist for PQ-07; confirm the reading of PQ-08. Seed: Stage 1, **validating**, both fields open; DG1 is locked until VAL-042-1 is resolved.
+
+### 4B.4 Stage 2 (after DG1 Pursue in the demo) and Stage 3
+| Package | OMR M | Kind | Note |
+| --- | --- | --- | --- |
+| P-01 Asphalt and bitumen supply | 5.95 | supply, self-install | |
+| P-02 Aggregates (quarry supply) | 2.65 | supply, self-install | Quarry approved by the consultant first |
+| P-03 Precast box culverts and drainage pipes | 2.75 | supply, self-install | Two quantities under the stamp (catch 3) |
+| P-04 Bridge bearings and expansion joints | 0.60 | supply, self-install | Imported; approved makers; long lead 16 weeks |
+| P-05 Street lighting: poles and LED luminaires | 2.05 | supply, self-install | Long lead 14 weeks |
+| P-06 Road markings, signage and safety barriers | 1.60 | subcontract | |
+
+Self-performed (earthworks, paving, drainage installation, bridge structures, lighting cabling, preliminaries) OMR 16.4 M; total **OMR 32.0 M**. No RFQs or quotes are seeded. Scripted replies: P-04 Alpen (EUR ex-works), Emilia (EUR, 45-day validity), Karst (EUR ex-works, an exclusion); P-05 Samail (OMR, VAT included), Jebel Lumen (USD), Luminara (OMR, VAT not stated, a luminaire deviation).
+
+**Stage 3 pack** (seeded v1, not issued): win **61 ± 8** (base 22, drivers +39; 18 comparables give ± 8: the band rule has no ± 7); competitors Liwa Highways Contracting LLC, Shinas Bridges and Roads LLC, Mahda Infrastructure SAOC, all fictional; margin 7.0–10.0%; bond OMR 320,000 (1% of the estimate until VAL-042-1 is resolved); headroom after the bond OMR 11.0 M; delivery load 57% now, 65% if won, against a safe 70%; **Bid with conditions** (confirm the bond with the employer; name the bridge specialist). All six contributor inputs are in. Above the OMR 4 M referral, so DG2 goes to the Bid Committee. No demo action moves T-2026-042 past Stage 2 yet.
+
+### 4B.5 Page map as built
+| Page | Content | Page | Content |
+| --- | --- | --- | --- |
+| 1 | Cover | 10 | Technical cl. 32–36: specifications, earthworks, pavement, aggregates, drainage |
+| 2 | Invitation and key dates | 11 | Technical cl. 37–40: bridges, lighting, markings and barriers, QHSE |
+| 3 | Tender documents; order of precedence | 12 | Qualification: registration and certificates (PQ-01 to 05) |
+| 4 | ITB cl. 1–6: questions, answers, **site visit** | 13 | Qualification: **OMR 10 M projects, 60 m span, SME share**, turnover (PQ-06 to 09) |
+| 5 | ITB cl. 7–12: **Arabic bid**, VAT, validity 90 days, Omanisation, **bond 1%** | 14 | Annex 1 drawings list: **G-001 at 36.5 km** |
+| 6 | ITB cl. 13–18: envelopes, submission, opening, evaluation (pass 70) | 15 | *Scanned:* Annex 2 BOQ summary, Eastern digits, **stamp over 4.02 and 4.05** |
+| 7 | Conditions cl. 19–23: performance 5%, advance 10%, payment, retention | 16 | *Scanned:* Annex 3 site-visit certificate form, with the committee's approval stamp |
+| 8 | Conditions cl. 24–30: damages, subcontracting, **SME 10%**, Omanisation | 17 | *Scanned:* Annex 4 Form of Bid Bond: **OMR 300,000** |
+| 9 | Scope cl. 31: **38 km**, two bridges, 30 months | 18 | Annex 5 Form of Bid |
+
+---
+
 ## 5. Registers (seed story per tenant)
 
 ### 5.1 Najd (A): the full register, as of Sun 8 Mar 10:00 in preset "DG1 due"
@@ -508,8 +626,10 @@ Extraction drafts live **locally** in `docs/08-sample-tenders/middle-east/extrac
 | Wadi Zarqa WWTP Phase I DBO, prequalification (Water Authority of Jordan, public) | English | Intake variety; a PQ-stage document (no RFQs); geography outside the GCC | A (and E) | Done |
 | CDR Lebanon: Rehabilitation of Remaining Roads, Lot 3 Jezzine Entrance (World Bank, public) | English | Roads-tenant intake; blank deadline flagged; small value | D | Done |
 | Kuwait CITRA public tender 6-2024/2025, .kw ccTLD registry (public viewing copy) | **Arabic** (technical spec in English) | Arabic intake; "out of sector, low fit" (M-3 in Arabic); no dates printed → "Not stated" | E | Done |
-| Scanned Arabic road-works tender, south Lebanon (41 pp scan) | **Arabic, scanned** | Script E: OCR → bilingual fields → lower confidence with reasons | D | **Incomplete**: the extraction stopped on the rate limit; re-run it (plan 004 note) |
+| Scanned Arabic road-works tender, south Lebanon (41 pp scan) | **Arabic, scanned** | **Replaced by §4B for script E** (plan 023): the demo path is GCC only. Not used | D | Incomplete (the extraction stopped on the rate limit); no longer needed |
 | One private-sector RFP in the local samples (the file marked CONFIDENTIAL in extraction-drafts) | English | **Excluded.** The document binds recipients to confidentiality. Never put it in the public repo or the demo | none | Draft kept locally only |
+| CBHH/PRJ/2026/011, hospital MEP works package, Abu Dhabi (**synthetic**, not a real sample; §4A) | English | Second demo tender: UAE ITT with two conflicts and five catches; English governs, so M-8 is not raised; Pursue | B | Built (plan 022): `app/scripts/demo-itt/cbhh-011` |
+| ILRA/RD/2026/042, road dualling, Oman (**synthetic**, not a real sample; §4B) | **Arabic**, 3 scanned pages | Third demo tender and script E: OCR'd fields low confidence with reasons; two conflicts, one blocking; Pursue | D | Built (plan 023): `app/scripts/demo-itt/ilra-042` |
 
 All real documents are past-dated. They reach DG1 only through **"Treat as newly published"** (spec §16), which is labelled, with the original dates kept in the Documents tab.
 

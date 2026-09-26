@@ -25,7 +25,9 @@ export type Trade =
   // Batinah (roads and structures)
   | 'asphalt' | 'precast' | 'bearings' | 'barriers' | 'lighting' | 'signage' | 'earthworks'
   // Qurain (tunnelling and large pipelines)
-  | 'tbm' | 'segments' | 'grouting' | 'ventilation' | 'shafts';
+  | 'tbm' | 'segments' | 'grouting' | 'ventilation' | 'shafts'
+  // Plan 022: Corniche's hospital MEP (T-2026-061)
+  | 'medical-gas';
 
 export type ScreeningState = 'clear' | 'match' | 'due';
 export type AntiBriberyState = 'clear' | 'flag' | 'due';

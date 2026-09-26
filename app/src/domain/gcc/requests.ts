@@ -5,7 +5,9 @@ import { addDays, isWorkingDay } from '@/domain/calendar';
 import { DEMO_NOW } from './clock';
 import { queriesFor, type DemoDone } from './lifecycle.port';
 import { requestsTo } from './requestKeys';
+import { dg1RecordFor } from './dg1/record';
 import { eligibilityRisks, DONE_KEY, isFlagged, readDone, type RenewedValue } from './s1';
+import { inputsFor } from './s3/inputs';
 import type { RequestRowVM } from './viewmodels';
 
 /**
@@ -63,6 +65,17 @@ export function requestsFor(tenant: string, personId: string, done: DemoDone, vi
   // 1. Pack inputs asked of this person.
   for (const l of q.live()) {
     const f = l.facts;
+    // At Stage 2 the kick-off inputs (plan 009b) are asked through `input-req:` keys, before any pack exists.
+    if (f?.stage === 2) {
+      for (const i of inputsFor(tenant, l.tenderId, done as Record<string, string>).items.filter((x) => x.ownerId === personId)) {
+        out.push({
+          id: `input:${l.tenderId}:${i.key}`, kind: 'pack-input', tenderId: l.tenderId, shortTitle: l.shortTitle,
+          what: i.label, section: i.feeds, requestedById: i.requestedById, requestedAt: i.requestedAt, due: i.due,
+          status: i.submittedAt ? 'submitted' : openOrLate(i.due, now), ...(i.submittedAt ? { submittedAt: i.submittedAt } : {}),
+        });
+      }
+      continue;
+    }
     if (f?.stage !== 3) continue;
     for (const i of f.inputs.items.filter((x) => x.ownerId === personId)) {
       const accepted = !!i.submittedAt && f.pack === 'issued' && !!f.issuedAt && f.issuedAt > i.submittedAt;
@@ -97,6 +110,11 @@ export function requestsFor(tenant: string, personId: string, done: DemoDone, vi
 
   // 3. Requests made in the demo with the Request button (plan 019).
   for (const r of requestsTo(done as Record<string, string>, personId)) {
+    // A DG1 Hold's request closes once the hold no longer stands: DG1 decided, re-opened, or held with someone else.
+    if (r.topic === 'dg1-hold') {
+      const hold = dg1RecordFor(tenant, r.tenderId, done as Record<string, string>).hold;
+      if (!hold || !('request' in hold) || hold.request?.toId !== r.toId) continue;
+    }
     out.push({
       id: r.key, kind: 'request', tenderId: r.tenderId, shortTitle: titleOf(r.tenderId),
       what: r.what, section: r.section ?? '', requestedById: r.byId, requestedAt: r.at, due: r.due, status: openOrLate(r.due, now),

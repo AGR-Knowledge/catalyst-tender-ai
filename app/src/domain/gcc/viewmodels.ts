@@ -190,7 +190,12 @@ export interface GraphPointVM {
   drill: DrillVM | null;
   /** "Click to open Sourcing" or "Click to see these tenders". */
   hint: string;
+  /** The label above the bar ("SAR 262 M"); empty or absent draws none. */
+  barLabel?: string;
 }
+
+/** One measure button above the chart (dashboards.md §6, user decision 2026-09-26): Tenders | Value | Weighted. */
+export interface GraphMeasureVM { id: string; label: string; short: string }
 
 export interface GraphVM {
   metric: string;
@@ -202,10 +207,23 @@ export interface GraphVM {
   compareLabel: string | null;
   /** Gate markers between points: after the point with key `after`. */
   markers: { after: string; label: string }[];
+  /** Every metric this viewer is offered, in the spec's order. */
   metrics: { id: string; label: string }[];
+  /** The measure buttons this viewer gets, in order Tenders, Value, Weighted. Absent: every metric sits in one select. */
+  measures?: GraphMeasureVM[];
+  /** The offered metrics that are not a measure button, for the "More" select. */
+  more?: { id: string; label: string }[];
+  /** One-line notes under the toolbar: why some points have no bar, what was left out for this viewer. */
+  notes?: string[];
+  /** The values' unit ("SAR"), shown once in the legend. */
+  unit?: string;
+  /** A target line, only where a target for the measure is defined in `src/data`. */
+  target?: { value: number; display: string; label: string } | null;
   /** For `aria-label`: "Tenders now by stage: 1 Intake 5, 2 Sourcing 2, …". */
   summary: string;
   empty: boolean;
+  /** What an empty graph says, when the metric knows better than the generic line. */
+  emptyText?: string;
   missing?: boolean;
 }
 

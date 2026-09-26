@@ -100,7 +100,12 @@ export function standingGate(l: Lifecycle, gate: GateKind): GateRecord | undefin
 export const tenderCtx = (tenant: string, l: Lifecycle) => ({
   tender: {
     bidManagerId: l.bidManagerId ?? undefined, sector: l.sector, restricted: !!l.restricted,
-    invited: (isGccTenantKey(tenant) ? gccData(tenant).register.find((t) => t.id === l.tenderId)?.invited : undefined) ?? [],
+    // The register's invitations, the people asked in the demo, and the owners of a Stage 3 pack's inputs.
+    invited: [...new Set([
+      ...((isGccTenantKey(tenant) ? gccData(tenant).register.find((t) => t.id === l.tenderId)?.invited : undefined) ?? []),
+      ...(l.invited ?? []),
+      ...(l.facts?.stage === 3 ? l.facts.inputs.items.map((i) => i.ownerId).filter((x): x is string => !!x) : []),
+    ])],
   },
 });
 

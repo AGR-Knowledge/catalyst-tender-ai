@@ -1,5 +1,6 @@
 import type { Ccy } from './fx';
 import type { ExtractedTender, ExtractField } from '../extracted/types';
+import type { KeyPerson } from './s1/types';
 
 /**
  * Facts for the Stage 1–3 GCC demo (gcc-demo-data.md). Everything here is
@@ -89,6 +90,10 @@ export interface SimilarProject {
   om?: { from: string; to: string };
   /** Legal entity that delivered it, from `company.entities`. Absent = the tenant company itself. */
   holder?: string;
+  /** Fields of work it counts for on an experience line that names one (`threshold.field`), e.g. 'healthcare MEP'. */
+  fields?: string[];
+  /** Other measured quantities, by the unit an experience line states (`threshold.unit`), e.g. { 'm span': 52 }. */
+  measures?: Record<string, number>;
 }
 
 export interface Partner {
@@ -193,9 +198,36 @@ export interface PqRequirement {
   validAt?: 'opening' | 'submission' | 'validity';
   /** The credential must be issued in this country (ISO code). */
   country?: string;
-  threshold?: { value?: number; unit?: string; count?: number; years?: number; grade?: number; field?: string };
+  /**
+   * `unit`: 'm3/day' (or absent), a currency code (experience by contract value), or a unit named in the
+   * projects' `measures`. `field`: a certificate's activity field, or the field an experience project must list.
+   * `issuer`: the certificate must come from this issuer, e.g. one emirate's classification body.
+   */
+  threshold?: { value?: number; unit?: string; count?: number; years?: number; grade?: number; field?: string; issuer?: string };
   jvRule?: string;
   note?: string;
+  /**
+   * The tender can be read more than one way (plan 022). A line that passes, or that the rules cannot
+   * assess, reads 'interpretation' with this note, and a query is drafted.
+   */
+  reading?: string;
+  /**
+   * The line can be met through a named specialist subcontractor (plan 022). When the company's own
+   * record fails it, or the rules cannot assess it, it reads 'at-risk' until `named` is set.
+   */
+  specialist?: { what: string; named?: string };
+  /** Key-personnel roles this tender asks for, each with its own sector. Absent = the hero's PQ-13 roles. */
+  roles?: KeyRoleSpec[];
+}
+
+/** One key-personnel role a requirement asks for. `sector` names the years counted in `KeyPerson.sectors`; absent = water. */
+export interface KeyRoleSpec {
+  role: KeyPerson['role'];
+  label: string;
+  years: number;
+  sectorYears?: number;
+  sector?: string;
+  saudi?: boolean;
 }
 
 /** A field the agent would not accept alone (spec §6.3). `alt` is the second value of a conflict. */

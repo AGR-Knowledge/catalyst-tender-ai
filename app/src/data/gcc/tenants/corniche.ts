@@ -1,5 +1,6 @@
 import type { Credential, GccTender, TenantSeed } from '../types';
 import { heroTender } from '../hero';
+import { CBHH_CONFLICTS, CBHH_DOC_KEY, CBHH_KEY_DATES, CBHH_REQUIREMENTS } from '../../extracted/gcc/cbhh-011';
 import { dg1Records, dg2Records, fit, outcomes, type Dg1Tuple, type Dg2Tuple, type OutcomeTuple } from '../build';
 
 /**
@@ -105,20 +106,23 @@ const REGISTER: GccTender[] = [
     id: 'T-2026-061', title: 'Abu Dhabi hospital MEP package', shortTitle: 'Abu Dhabi hospital MEP', issuer: 'Crescent Bay Health Holding', issuerIsReal: false,
     country: 'United Arab Emirates', city: 'Abu Dhabi', sector: 'Buildings MEP', sourceId: 'abudhabi-portal', sourceDetail: 'Abu Dhabi government procurement portal', procurement: 'open',
     value: { amount: 185_000_000, ccy: 'AED', basis: 'estimate', band: [165_000_000, 205_000_000] },
-    stage: 'S1', stageNote: 'Validated; waiting for DG1', bidManagerId: 'corniche.bid', invited: [],
-    keyDates: [{ kind: 'published', date: '2026-03-08' }, { kind: 'questions', date: '2026-03-19' }, { kind: 'submission', date: '2026-04-21', time: '14:00' }],
+    // Plan 022: the second demo tender, with its own document (gcc-demo-data §4A). Two fields to validate before DG1.
+    stage: 'S1', stageNote: 'Extracted; two fields to validate before DG1', bidManagerId: 'corniche.bid', invited: [],
+    keyDates: CBHH_KEY_DATES,
+    docKey: CBHH_DOC_KEY,
+    requirements: CBHH_REQUIREMENTS,
     fit: fit([
       [9, 'Hospital MEP: a core buildings line', 'Capability profile'],
       [8, 'Inside the value band', 'Platform estimate'],
-      [8, 'Meets the classification and experience asked for', 'Eligibility check'],
-      [8, 'Abu Dhabi branch', 'Company profile: offices'],
-      [6, 'New client; healthcare developer', 'Client history'],
+      [8, 'Eligible: medical gas through a named specialist; the chamber reading to confirm', 'Eligibility check'],
+      [8, 'Abu Dhabi project office', 'Company profile: offices'],
+      [8, 'Repeat client: its specialist hospital MEP, delivered in 2022', 'Client history'],
       [6, 'Medical gas and commissioning liabilities', 'Extraction'],
       [7, 'Buildings MEP team has room', 'Capacity'],
       [7, 'Bid bond inside headroom', 'Bank guarantee facility'],
       [5, 'Healthcare is a steady market', 'Strategy: 2026 plan'],
     ]),
-    validations: [],
+    validations: CBHH_CONFLICTS,
     intake: { capturedAt: '2026-03-08T07:40', loggedAt: '2026-03-08T07:52', disposition: 'shortlisted' },
   },
   {
@@ -216,9 +220,12 @@ export const CORNICHE: TenantSeed = {
     { id: 'corniche-p2', title: 'Al Ain STP expansion: MEP package', client: 'Inland Sewerage Services Company', country: 'AE', capacityM3d: 120_000, tertiary: true,
       value: AED(95_000_000), completed: '2023-02-28', role: 'subcontractor', scope: 'MEP for process buildings and the control room' },
     { id: 'corniche-p3', title: 'Abu Dhabi specialist hospital MEP', client: 'Crescent Bay Health Holding', country: 'AE', value: AED(240_000_000),
-      completed: '2022-10-31', role: 'prime', scope: 'Full MEP including medical gases' },
+      completed: '2022-10-31', role: 'prime', scope: 'Full MEP including medical gases', fields: ['healthcare MEP'] },
     { id: 'corniche-p4', title: 'Dubai district cooling plant, 25,000 TR', client: 'Emirates Cooling Utilities Company', country: 'AE', value: AED(210_000_000),
       completed: '2024-06-30', role: 'prime', scope: 'Plant, thermal storage and distribution' },
+    // Plan 022: the second healthcare project T-2026-061's Q-07 asks for (two of AED 100 M or more in 7 years).
+    { id: 'corniche-p5', title: 'Dubai rehabilitation hospital MEP', client: 'Quellmar Health Developments', country: 'AE', value: AED(158_000_000),
+      completed: '2024-11-30', role: 'prime', scope: 'Full MEP, with the medical gases by a specialist subcontractor', fields: ['healthcare MEP'] },
   ],
   partners: [],
   teams: [
@@ -250,7 +257,7 @@ export const CORNICHE: TenantSeed = {
   ],
   reconciliation: { at: '2026-03-08T06:00', sources: 5, missed: 0 },
   intakeToday: [
-    { id: 'IN-0308-01', sourceId: 'abudhabi-portal', tenderId: 'T-2026-061', ref: 'CBHH/MEP/2026/004', title: 'Abu Dhabi hospital MEP package', docType: 'Tender', language: 'EN',
+    { id: 'IN-0308-01', sourceId: 'abudhabi-portal', tenderId: 'T-2026-061', ref: 'CBHH/PRJ/2026/011', title: 'Abu Dhabi hospital MEP package', docType: 'Tender', language: 'EN',
       receivedAt: '2026-03-08T07:40', loggedAt: '2026-03-08T07:52', disposition: 'shortlisted' },
     { id: 'IN-0308-02', sourceId: 'etimad-watch', tenderId: 'T-2026-118', ref: 'ECWS/PRJ/2026/0147', title: 'Expansion of Al-Rawdah STP, Phase 2', docType: 'Tender', language: 'EN',
       receivedAt: '2026-03-08T08:52', loggedAt: '2026-03-08T09:04', disposition: 'shortlisted' },

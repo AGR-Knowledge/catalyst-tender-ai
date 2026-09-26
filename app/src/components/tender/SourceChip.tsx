@@ -27,6 +27,11 @@ export interface SourceChipRef {
   detail?: string;
   /** Text to highlight on the page. */
   terms?: string[];
+  /**
+   * The document this chip opens, when it isn't the page's: an addendum's own
+   * file. `null` says the demo holds no copy of it; unset uses the chip's `doc`.
+   */
+  doc?: SourceDoc | null;
 }
 
 const RECORD: Record<Exclude<SourceKind, 'page' | 'addendum'>, string> = {
@@ -46,7 +51,8 @@ function whereText(s: SourceChipRef): string {
   return n ? `Page ${n} of ${of}` : s.kind === 'addendum' ? 'The addendum' : 'The tender documents';
 }
 
-export function SourceChip({ source, doc, detail }: { source: SourceChipRef; doc?: SourceDoc | null; detail?: string }) {
+export function SourceChip({ source, doc: pageDoc, detail }: { source: SourceChipRef; doc?: SourceDoc | null; detail?: string }) {
+  const doc = source.doc !== undefined ? source.doc : pageDoc;
   const host = useSourceHost();
   const btn = useRef<HTMLButtonElement | null>(null);
   const isPage = source.kind === 'page' || source.kind === 'addendum';

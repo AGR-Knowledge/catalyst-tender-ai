@@ -1,6 +1,7 @@
 import { NAJD } from '../tenants/najd';
 import { CORNICHE } from '../tenants/corniche';
 import { QURAIN } from '../tenants/qurain';
+import { BATINAH } from '../tenants/batinah';
 import type { PackVersion, RerunEffect } from './types';
 
 /**
@@ -24,6 +25,14 @@ const NAJD_PORTFOLIO = {
 };
 
 const RETENTION_10 = { retentionPct: 10 };
+
+/** Corniche's delivery capacity roll-up, shared by its packs as Najd's are (plan 022): the same figures as plan 015's `DELIVERY_LOAD`. */
+const CORNICHE_PORTFOLIO = {
+  asOf: '2026-03-05',
+  currentPct: 55,
+  ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }, { tenderId: 'T-2026-061', addPct: 8 }],
+  safePct: CORNICHE.fit.safeDeliveryPct,
+};
 const AED = (amount: number) => ({ amount, ccy: 'AED' as const });
 const KWD = (amount: number) => ({ amount, ccy: 'KWD' as const });
 
@@ -79,7 +88,7 @@ const OTHER_PACKS: PackVersion[] = [
     snapshot: {
       eligibility: { met: 11, of: 11, credentialIds: ['corniche-licence', 'corniche-class-dm', 'corniche-chamber', 'corniche-vat', 'corniche-icv', 'corniche-iso', 'corniche-civil-defence'] },
       sourcing: { packages: 8, levelled: 7 },
-      portfolio: { asOf: '2026-03-05', currentPct: 55, ifWon: [{ tenderId: 'T-2026-029', addPct: 7 }], safePct: CORNICHE.fit.safeDeliveryPct },
+      portfolio: CORNICHE_PORTFOLIO,
       effort: { toDateWeeks: 6, toGoWeeks: 7, externalCost: AED(95_000) },
       bonds: RETENTION_10,
       recommendation: {
@@ -103,6 +112,49 @@ const OTHER_PACKS: PackVersion[] = [
         rationale: 'A routine STP rehabilitation in the home market for a reliable payer. The bid bond would use most of the facility headroom and the Water team is over capacity in April, so bid only with both managed.',
         winThemes: ['Home-market STP record with the sanitation agency', 'Rehabilitation in a live plant without loss of treatment'],
         resourceAsk: 'Move one estimator from the Kuwait bids in Stage 2 for April, or agree extended hours with the Water team',
+      },
+    },
+  },
+  // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package, for demo script C after the demo's Stage 2 (P-01 and P-02 levelled).
+  // Not issued: the demo issues it to the committee (above the AED 40 M referral threshold).
+  {
+    tenant: 'corniche', tenderId: 'T-2026-061', version: 1, generatedAt: '2026-03-08T09:45',
+    snapshot: {
+      eligibility: { met: 8, of: 10, credentialIds: ['corniche-licence', 'corniche-class-ad', 'corniche-chamber', 'corniche-civil-defence', 'corniche-icv', 'corniche-iso'] },
+      sourcing: { packages: 7, levelled: 2 },
+      portfolio: CORNICHE_PORTFOLIO,
+      effort: { toDateWeeks: 2, toGoWeeks: 8, externalCost: AED(80_000) },
+      bonds: RETENTION_10,
+      recommendation: {
+        recommendation: 'bid-with-conditions',
+        rationale: 'Hospital MEP in the lead sector, for a client whose specialist hospital the company delivered in 2022. The tender bond is a fixed amount well inside the facility. Bid on condition that the medical gas specialist is named before submission and the chamber of commerce reading is confirmed with the employer.',
+        winThemes: [
+          { text: 'Delivery record with CBHH on a specialist hospital', cites: ['corniche-cbhh-2020'] },
+          'A named healthcare Project Manager and commissioning manager on the bid',
+          'Commissioning approach for theatres, isolation rooms and medical gases, inside the ten-week window',
+        ],
+        resourceAsk: 'Keep the Buildings MEP estimators on the bid to submission, and name the medical gas specialist within two weeks',
+      },
+    },
+  },
+  // Plan 023: T-2026-042, the Arabic Sohar–Buraimi road dualling, for demo script C. Not issued: the demo issues it to
+  // the committee (above the OMR 4 M referral threshold). Eligibility is live (the tender has requirements).
+  {
+    tenant: 'batinah', tenderId: 'T-2026-042', version: 1, generatedAt: '2026-03-08T09:50',
+    snapshot: {
+      sourcing: { packages: 6, levelled: 0 },
+      portfolio: { asOf: '2026-03-05', currentPct: 57, ifWon: [{ tenderId: 'T-2026-042', addPct: 8 }], safePct: BATINAH.fit.safeDeliveryPct },
+      effort: { toDateWeeks: 0, toGoWeeks: 7, externalCost: { amount: 35_000, ccy: 'OMR' } },
+      bonds: { retentionPct: 5 },
+      recommendation: {
+        recommendation: 'bid-with-conditions',
+        rationale: 'Dual carriageway work, the core business, for a repeat client in the home region and inside the value band. Bid on condition that the employer confirms the bid bond amount (1% of the bid or OMR 300,000) and that a bridge subcontractor with a 60 m span is named before submission.',
+        winThemes: [
+          { text: 'Four awards from five bids with the Authority since 2017', cites: ['batinah-ilra-2017', 'batinah-ilra-2019', 'batinah-ilra-2020', 'batinah-ilra-2021'] },
+          'Asphalt and aggregate sources within 40 km of section 2',
+          'Omanisation above the construction ratio, and an SME plan ready for clause 26',
+        ],
+        resourceAsk: 'Keep the Roads tendering team on the bid to submission; name the bridge subcontractor and free the Bridges Lead after the Barka handover',
       },
     },
   },

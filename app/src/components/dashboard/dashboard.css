@@ -76,75 +76,76 @@
 .info-pop dd { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
 .info-pop .ip-note { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line-2); font-size: 12px; color: var(--ink-3); line-height: 1.45; }
 
-/* Z3 · Z4: side by side 7/12 and 5/12 at 1440, 6/6 from 1100, stacked below with Z4 first */
-.db-mid { display: grid; grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); gap: var(--gap); align-items: start; margin-bottom: var(--gap); }
-.db-mid.no-flow { grid-template-columns: minmax(0, 1fr); }
-@media (max-width: 1439px) { .db-mid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 1099px) {
-  .db-mid { grid-template-columns: minmax(0, 1fr); }
-  .db-actions { order: -1; }
+/* Z3: the flow on one thin line under the tiles, not a card (dashboards.md §1, 2026-09-26). It wraps only when the page is narrow. */
+.fs {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 3px 10px; margin: calc(var(--gap) * -0.35) 0 12px; padding: 5px 10px 5px 12px;
+  border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--surface-sunken); min-width: 0;
 }
-.db-flow, .db-actions { min-width: 0; }
-
-/* Flow strip: one column per step; the counts stack so six steps fit in 7/12 at 1440 */
-.fs-title { display: inline-flex; align-items: center; gap: 4px; }
-.fs-steps { list-style: none; display: flex; align-items: stretch; padding: 14px 16px 16px; gap: 0; }
-.fs-step { display: flex; align-items: flex-start; min-width: 0; }
-.fs-arrow { flex: none; color: var(--ink-6); margin: 19px 6px 0; }
-.fs-box { display: grid; gap: 5px; align-content: start; min-width: 0; }
-.fs-label { font-size: 11.5px; font-weight: 500; color: var(--ink-3); white-space: nowrap; }
-.fs-parts { display: grid; gap: 2px; }
-.fs-dot { display: none; }
-.fs-link, .fs-static { display: inline-flex; align-items: baseline; gap: 4px; text-align: left; white-space: nowrap; border-radius: 5px; padding: 1px 4px; margin: -1px -4px; }
+.fs-title { display: inline-flex; align-items: center; gap: 2px; flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink); }
+.fs-title .info-btn { width: 22px; height: 22px; }
+.fs-steps { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; min-width: 0; }
+.fs-step { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
+.fs-arrow { flex: none; align-self: center; color: var(--ink-6); margin: 0 3px; }
+.fs-label { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.fs-part { display: inline-flex; align-items: baseline; gap: 3px; }
+.fs-dot { color: var(--ink-5); }
+.fs-link, .fs-static { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; border-radius: 5px; padding: 1px 4px; margin: -1px -4px; }
 .fs-link { transition: background-color var(--dur-fast) ease; }
 .fs-link:hover { background: var(--surface-active); }
 .fs-link:hover .fs-l { color: var(--link); }
-.fs-n { font-size: 16px; font-weight: 600; color: var(--ink); letter-spacing: -0.4px; }
+.fs-n { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.2px; }
 .fs-l { font-size: 12px; color: var(--ink-3); }
-.fs-miss { padding: 22px 18px; font-size: 12.5px; color: var(--ink-3); font-family: var(--font-mono); }
-/* Narrower than about 600 px (6/12 at 1280): two rows of three steps, arrows kept in line. */
-.fs { container-type: inline-size; }
-@container (max-width: 599px) {
-  .fs-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 14px; }
-  .fs-step:nth-child(3n + 1) .fs-arrow { visibility: hidden; }
+.fs-miss { font-size: 12px; color: var(--ink-3); }
+
+/*
+ * Z5 · Z4: one row, the main card at two thirds and Needs your action at one
+ * third (dashboards.md §1, 2026-09-26). The main card sets the row's height;
+ * the action list fills it and its rows scroll inside. Below 1100 px the list
+ * stacks under the main card at its own height.
+ */
+.db-row { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: var(--gap); align-items: stretch; margin-bottom: var(--gap); }
+.db-actions { position: relative; min-width: 0; }
+.db-actions > .al { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.db-actions .al-rows { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+@media (max-width: 1099px) {
+  .db-row { grid-template-columns: minmax(0, 1fr); }
+  .db-actions > .al { position: static; }
+  .db-actions .al-rows { overflow: visible; }
 }
 
-/* Needs your action */
+/* Needs your action: a compact column. Line 1 the type and TID with the button; then the title, what is needed, and the due. */
 .al { container-type: inline-size; }
+.al > .card-head { padding: 12px 16px 11px; flex: none; }
 .al-rows { list-style: none; }
 .al-row {
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 12px; align-items: start;
-  padding: 12px 18px; border-bottom: 1px solid var(--line-3); animation: rowIn 220ms var(--ease-out) both;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 't act' 'main main' 'why why'; gap: 3px 10px; align-items: center;
+  padding: 9px 16px 10px; border-bottom: 1px solid var(--line-3); animation: rowIn 220ms var(--ease-out) both;
 }
 .al-row:last-child { border-bottom: 0; }
 .al-row.done { background: var(--green-panel); }
+.al-t { grid-area: t; display: flex; align-items: center; gap: 7px; min-width: 0; }
 .ac-type {
-  font-size: 11px; font-weight: 500; line-height: 18px; color: var(--ink-2); white-space: nowrap; margin-top: 1px;
+  flex: none; font-size: 11px; font-weight: 500; line-height: 18px; color: var(--ink-2); white-space: nowrap;
   border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 4px; padding: 0 6px; background: var(--surface);
 }
 .ac-type.tone-red { border-left-color: var(--red); }
 .ac-type.tone-orange { border-left-color: var(--orange); }
 .ac-type.tone-green { border-left-color: var(--green); }
 .ac-type.tone-cyan { border-left-color: var(--cyan); }
-.al-main { min-width: 0; }
-.al-t { display: flex; align-items: baseline; gap: 7px; min-width: 0; }
-.al-tid { font-size: 11.5px; color: var(--ink-3); flex: none; }
+.al-tid { font-size: 11.5px; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.al-main { grid-area: main; min-width: 0; }
 .al-title { font-size: 13px; font-weight: 500; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.al-what { font-size: 12.5px; color: var(--ink-3); margin-top: 2px; line-height: 1.45; }
-.al-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-top: 5px; font-size: 12px; }
+.al-what { font-size: 12.5px; color: var(--ink-3); margin-top: 1px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.al-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 12px; margin-top: 3px; font-size: 12px; }
+.al-meta:empty { display: none; }
 .al-wait { color: var(--ink-3); }
 .ac-due-t { color: var(--ink-3); }
-.al-act { display: grid; justify-items: end; gap: 4px; }
-.al-why { font-size: 11.5px; color: var(--ink-3); max-width: 190px; text-align: right; line-height: 1.4; }
-.al-done { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; margin-top: 4px; }
-.al-foot { padding: 10px 18px; }
-.al-dev { font-family: var(--font-mono); font-size: 11px; }
-@container (max-width: 440px) {
-  .al-row { grid-template-columns: minmax(0, 1fr); }
-  .ac-type { justify-self: start; }
-  .al-act { justify-items: start; }
-  .al-why { text-align: left; max-width: none; }
-}
+.al-act { grid-area: act; display: flex; justify-content: flex-end; }
+.al-why { grid-area: why; font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
+.al-done { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; white-space: nowrap; }
+.al-foot { padding: 9px 16px; flex: none; }
+.al-dev { font-family: var(--font-mono); font-size: 11px; flex: none; }
+.al > .empty-state { flex: 1; display: grid; align-content: center; }
 
 /*
  * Z5: one box for Table and Graph. The grid body is a 40 px header plus ten 40 px
@@ -155,8 +156,8 @@
  * toolbar and rule, a 440 px plot and the card's borders.
  */
 .db-main {
-  position: relative; min-height: calc(48px + 1px + 440px + 2px); display: flex; flex-direction: column;
-  margin-bottom: var(--gap); scroll-margin-top: calc(var(--header-h) + 16px);
+  position: relative; min-width: 0; min-height: calc(48px + 1px + 440px + 2px); display: flex; flex-direction: column;
+  scroll-margin-top: calc(var(--header-h) + 16px);
 }
 .db-table { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 /* Hidden, not unmounted: the table keeps its search, filters and columns, and can't be reached by tab or pointer. */
@@ -252,15 +253,25 @@
 .src-url code { flex: 1; min-width: 0; font-size: 11.5px; word-break: break-all; background: var(--surface-sunken); border: 1px solid var(--line-2); padding: 4px 6px; border-radius: 5px; color: var(--ink-2); user-select: all; }
 .src-pop .btn { justify-self: start; }
 
-/* Graph */
-.sc-cmp { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); flex: none; cursor: pointer; }
+/* Graph: Tenders | Value | Weighted, More, Compare; a caption line with the legend and the notes; then the plot. */
+.sc-measures { flex: none; }
+.sc-more select { max-width: 200px; }
+.sc-more.on select { border-color: var(--line-strong); color: var(--ink); background: var(--surface-active); }
+.sc-cmp { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); flex: none; cursor: pointer; }
+.sc-cmp:has(input:disabled) { color: var(--ink-4); cursor: default; }
 .sc-cmp input { accent-color: var(--brand); }
-.sc-legend { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
-.sc-legend .k { width: 18px; height: 0; border-top: 2px solid var(--brand); flex: none; }
-.sc-legend .k.cmp { border-top-style: dashed; opacity: 0.55; margin-left: 8px; }
+.sc-cap { flex: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 8px 14px 0; min-height: 28px; }
+.sc-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; min-width: 0; }
+.sc-legend .k { width: 11px; height: 11px; border-radius: 2px; background: var(--brand); flex: none; }
+.sc-legend .k.cmp { background: color-mix(in srgb, var(--brand) 10%, transparent); border: 1px dashed color-mix(in srgb, var(--brand) 55%, transparent); margin-left: 8px; }
+.sc-legend .k.tgt { width: 16px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--orange); margin-left: 8px; }
+.sc-legend .none { margin-left: 8px; color: var(--ink-4); }
+.sc-legend .unit { color: var(--ink-4); }
+.sc-legend .unit::before { content: '·'; margin: 0 5px 0 1px; }
+.sc-note { font-size: 11.5px; color: var(--ink-3); line-height: 1.4; }
 .sc-fig { flex: 1; min-height: 0; margin: 0; position: relative; }
-.sc-plot { height: 100%; min-height: 440px; }
-.sc-empty { height: 100%; display: grid; place-items: center; }
+.sc-plot { height: 100%; min-height: 400px; }
+.sc-empty { height: 100%; display: grid; place-items: center; padding: 0 24px; text-align: center; }
 .sc-tip { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-pop); padding: 10px 12px; display: grid; gap: 3px; font-size: 12.5px; color: var(--ink-2); max-width: 280px; }
 .sc-tip b { font-size: 13px; color: var(--ink); }
 .sc-tip .cmp { color: var(--ink-3); }

@@ -4,6 +4,7 @@
  * plan 009b builds them on these functions. DG2 lives in `domain/gcc/dg2`.
  */
 export * from './done';
+export * from './ready';
 export * from './win';
 export * from './competitors';
 export * from './inputs';

@@ -1,0 +1,46 @@
+﻿item,bill,description_ar,description_en,unit,unit_en,qty,package
+Bill 1,1,أعمال عامة وتمهيدية,General and preliminaries,,,,
+1.01,1,تجهيز الموقع والمكاتب المؤقتة للمقاول والاستشاري,Site establishment and temporary offices for the contractor and the consultant,مقطوعية,item,1,in-house
+1.03,1,مختبر الموقع وتجهيزاته,Site laboratory and equipment,مقطوعية,item,1,in-house
+1.05,1,إدارة وتحويل حركة المرور طوال مدة التنفيذ,Traffic management and diversions for the contract period,شهر,month,30,in-house
+1.08,1,المسح الطبوغرافي وأعمال التوقيع,Topographic survey and setting out,كم,km,38,in-house
+Bill 2,2,أعمال الحفر والردم,Earthworks,,,,
+2.01,2,الحفر في جميع أنواع التربة ونقل الناتج,"Excavation in all materials, to spoil",م3,m3,680000,in-house
+2.04,2,الردم بمواد مختارة ودمكها على طبقات,"Embankment fill with selected material, compacted in layers",م3,m3,540000,in-house
+2.07,2,تجهيز طبقة التأسيس ودمكها,Subgrade preparation and compaction,م2,m2,836000,in-house
+2.09,2,إزالة الرصف القائم ونقل المخلفات,"Removal of the existing pavement, to spoil",م2,m2,312000,in-house
+Bill 3,3,أعمال الرصف,Pavement,,,,
+3.01,3,طبقة أساس سفلي حصوية، سماكة 200 مم,"Granular subbase, 200 mm",م3,m3,170000,P-02
+3.03,3,طبقة أساس حصوية، سماكة 150 مم,"Aggregate road base, 150 mm",م3,m3,125000,P-02
+3.05,3,ركام للأكتاف,Aggregate for shoulders,م3,m3,38000,P-02
+3.06,3,طبقة أساس أسفلتية، سماكة 120 مم على طبقتين,"Asphalt base course, 120 mm in two layers",طن,t,196000,P-01
+3.08,3,طبقة سطحية أسفلتية معدلة بالبوليمر، سماكة 50 مم,"Polymer-modified asphalt wearing course, 50 mm",طن,t,98500,P-01
+3.10,3,طبقة رش أولية وطبقة لاصقة,Prime coat and tack coat,م2,m2,1672000,P-01
+3.12,3,فرد ودمك الطبقات الأسفلتية,Laying and compacting the asphalt layers,طن,t,294500,in-house
+3.14,3,فرد ودمك الطبقات الحصوية,Laying and compacting the granular layers,م3,m3,333000,in-house
+Bill 4,4,أعمال تصريف مياه الأمطار,Stormwater drainage,,,,
+4.02,4,عبارات صندوقية مسبقة الصب بمقاسات مختلفة,"Precast box culverts, various sizes",م.ط,m,1860,P-03
+4.03,4,وحدات مداخل ومخارج مسبقة الصب للعبارات,Precast inlet and outlet units for the culverts,عدد,nr,124,P-03
+4.05,4,أنابيب خرسانية لتصريف مياه الأمطار، قطر 600–1200 مم,"Concrete stormwater pipes, 600–1200 mm",م.ط,m,4200,P-03
+4.08,4,تركيب العبارات والأنابيب والردم حولها,"Installing the culverts and pipes, with backfill",م.ط,m,6060,in-house
+4.10,4,تكسية مجاري الأودية بالحجارة,Rock protection to wadi channels,م3,m3,14500,in-house
+Bill 5,5,الجسور,Bridges,,,,
+5.03,5,خوازيق خرسانية محفورة، قطر 1200 مم,"Bored concrete piles, 1,200 mm",م.ط,m,2940,in-house
+5.06,5,خرسانة الدعامات والأكتاف,Concrete to piers and abutments,م3,m3,9800,in-house
+5.07,5,خرسانة الكمرة الصندوقية ذات الشد اللاحق للبحر الرئيسي، مصبوبة في الموقع,"In-situ post-tensioned concrete box girder, main span of the Wadi Al Jizzi bridge",م3,m3,1050,in-house
+5.09,5,كمرات خرسانية مسبقة الصب ومسبقة الإجهاد لبحور الاقتراب والجسر العلوي,Precast prestressed concrete beams for the approach spans and the overpass,عدد,nr,72,in-house
+5.12,5,مساند جسور من النوع الوعائي,Pot bearings,عدد,nr,48,P-04
+5.13,5,مساند مطاطية مسلحة,Laminated elastomeric bearings,عدد,nr,64,P-04
+5.14,5,فواصل تمدد معيارية,Modular expansion joints,م.ط,m,120,P-04
+Bill 6,6,إنارة الطريق,Street lighting,,,,
+6.01,6,أعمدة إنارة مجلفنة، ارتفاع 12 م، مزدوجة الذراع,"Galvanised lighting columns, 12 m, double arm",عدد,nr,1020,P-05
+6.03,6,وحدات إنارة من نوع LED للطرق,LED road luminaires,عدد,nr,1980,P-05
+6.05,6,لوحات توزيع وتغذية للإنارة,Lighting feeder pillars,عدد,nr,38,P-05
+6.06,6,كوابل التغذية وأعمال التمديد,Feeder cables and ducts,م.ط,m,46500,in-house
+Bill 7,7,العلامات الأرضية واللوحات وحواجز الأمان,"Road markings, signage and safety barriers",,,,
+7.01,7,علامات أرضية حرارية عاكسة,Reflective thermoplastic road markings,م.ط,m,310000,P-06
+7.02,7,عيون قطط عاكسة,Reflective road studs,عدد,nr,15200,P-06
+7.04,7,لوحات إرشادية وتحذيرية,Direction and warning signs,عدد,nr,420,P-06
+7.05,7,جسور لوحات علوية,Overhead sign gantries,عدد,nr,6,P-06
+7.06,7,حواجز أمان معدنية من النوع W,W-beam steel safety barriers,م.ط,m,18600,P-06
+7.08,7,وسائد امتصاص الصدمات,Crash cushions,عدد,nr,24,P-06

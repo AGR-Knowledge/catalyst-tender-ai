@@ -2,13 +2,13 @@ import type { Lifecycle, StepFacts } from '@/data/gcc/lifecycle';
 import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import { stageOf, stepLabel } from '@/data/gcc/stages';
 import { queueFor } from '../s1';
-import { stageAt, currentOf, tenderCtx } from '../lifecycle';
-import { can } from '@/data/access';
+import { stageAt, currentOf } from '../lifecycle';
 import { inWindow, type PeriodWindow } from '../period';
 import type { KpiCtx } from '../kpi/types';
 import type { DrillVM } from '../viewmodels';
-import { liveIn, moneyText, qOf, round1, scopeStage, staysOf, valueOf, type Stay } from '../kpi/stages';
+import { ccyOf, liveIn, moneyText, qOf, round1, scopeStage, staysOf, valueOf, type Stay } from '../kpi/stages';
 import type { MetricDef, MetricResult } from './types';
+import { NO_WIN_YET, shortMoney, weigh, weighedText, weightedNotes, weightedOffered } from './weighted';
 
 /**
  * Graph metrics across the steps of one stage (plan 013 Phase 1.2,
@@ -70,6 +70,8 @@ function value(ctx: KpiCtx, keys: string[]): MetricResult {
   return {
     values: now.map(sum), compare: start.map(sum),
     displays: now.map((ls) => moneyText(ctx.tenant, sum(ls))), compareDisplays: start.map((ls) => moneyText(ctx.tenant, sum(ls))),
+    shortDisplays: now.map((ls) => shortMoney(sum(ls), ccyOf(ctx.tenant))),
+    unit: ccyOf(ctx.tenant),
     counts: now.map((ls) => ls.length),
   };
 }
@@ -81,7 +83,7 @@ function inPeriod(ctx: KpiCtx, keys: string[]): MetricResult {
 }
 
 /** Mean time spent in each step by the tenders that left it in the window. */
-function average(ctx: KpiCtx, keys: string[], unitH: number, unit: string): MetricResult {
+function average(ctx: KpiCtx, keys: string[], unitH: number, unit: string, unitName: string): MetricResult {
   const mean = (stays: Stay[]) => (stays.length ? round1(stays.reduce((s, x) => s + hoursBetween(x.from, x.to!), 0) / stays.length / unitH) : null);
   const now = staysIn(ctx, keys, leftIn(ctx.window));
   const prev = staysIn(ctx, keys, leftIn(ctx.prev));
@@ -90,6 +92,7 @@ function average(ctx: KpiCtx, keys: string[], unitH: number, unit: string): Metr
   const compare = prev.map(mean);
   return {
     values, compare, displays: values.map(text), compareDisplays: compare.map(text), counts: now.map((s) => s.length),
+    shortDisplays: values.map((v) => (v === null ? '' : v.toLocaleString('en-GB'))), unit: unitName,
     drills: idsDrills(ctx, keys, now.map(uniqueTenders), 'left the step'),
   };
 }
@@ -109,12 +112,23 @@ function fieldsToCheck(ctx: KpiCtx, keys: string[]): MetricResult {
   return { values: nowByStep(ctx, keys).map((ls) => ls.reduce((s, l) => s + (open.get(l.tenderId) ?? 0), 0)), compare: null };
 }
 
+/**
+ * Value × win probability by step, DEC-4's rule (`weighted.ts`): bids whose
+ * pack is not issued yet have no probability and draw no bar; tenders whose
+ * probability this viewer may not see are left out, and the chart says how many.
+ */
 function weighted(ctx: KpiCtx, keys: string[]): MetricResult {
-  const w = (l: Lifecycle) => (l.facts?.stage === 3 ? (valueOf(ctx.tenant, l) * l.facts.win.p) / 100 : 0);
-  // Win probability per tender, only where this viewer may see it.
-  const now = nowByStep(ctx, keys).map((ls) => ls.filter((l) => can(ctx.viewer, 'see.positions', tenderCtx(ctx.tenant, l)).ok));
-  const values = now.map((ls) => ls.reduce((s, l) => s + w(l), 0));
-  return { values, compare: null, displays: values.map((v) => moneyText(ctx.tenant, v)), counts: now.map((ls) => ls.length) };
+  const points = nowByStep(ctx, keys).map((ls) => weigh(ctx, ls, (l) => valueOf(ctx.tenant, l)));
+  const none = points.every((w) => w.counted + w.masked === 0);
+  return {
+    values: points.map((w) => w.value),
+    compare: null,
+    displays: points.map((w) => weighedText(w, (v) => moneyText(ctx.tenant, v))),
+    shortDisplays: points.map((w) => (w.value === null ? '' : shortMoney(w.value, ccyOf(ctx.tenant)))),
+    counts: points.map((w) => w.counted),
+    unit: ccyOf(ctx.tenant),
+    notes: weightedNotes(points, none ? NO_WIN_YET : 'Bids whose pack is not issued yet have no win probability, so their steps show no bar.'),
+  };
 }
 
 const steps = (id: string, label: string, kind: MetricDef['kind'], compute: MetricDef['compute'], extra: Partial<MetricDef> = {}): MetricDef => ({
@@ -122,15 +136,17 @@ const steps = (id: string, label: string, kind: MetricDef['kind'], compute: Metr
 });
 
 export const METRICS: MetricDef[] = [
-  steps('steps.count', 'Tenders now', 'state', count),
-  steps('steps.value', 'Value now', 'state', value),
+  steps('steps.count', 'Tenders now', 'state', count, { measure: 'tenders' }),
+  steps('steps.value', 'Value now', 'state', value, { measure: 'value' }),
   steps('steps.inPeriod', 'Tenders in the period', 'flow', inPeriod),
-  steps('steps.avgDays', 'Average days in step', 'flow', (ctx, keys) => average(ctx, keys, 24, 'days')),
-  steps('steps.avgHours', 'Average hours in step', 'flow', (ctx, keys) => average(ctx, keys, 1, 'h')),
+  steps('steps.avgDays', 'Average days in step', 'flow', (ctx, keys) => average(ctx, keys, 24, 'days', 'days')),
+  steps('steps.avgHours', 'Average hours in step', 'flow', (ctx, keys) => average(ctx, keys, 1, 'h', 'hours')),
   steps('s1.fieldsToCheck', 'Fields to check now', 'state', fieldsToCheck),
   steps('s2.notCovered', 'Packages not covered now', 'state', factSum((f) => (f.stage === 2 ? f.packages.total - f.packages.covered : 0))),
   steps('s2.overdueRfqs', 'Overdue RFQs now', 'state', factSum((f) => (f.stage === 2 ? f.rfqs.overdue : 0))),
-  steps('s3.weighted', 'Weighted value now', 'state', weighted, { cap: 'see.positions' }),
+  steps('s3.weighted', 'Weighted value now', 'state', weighted, {
+    cap: 'see.positions', measure: 'weighted', offered: (ctx) => weightedOffered(ctx, liveIn(ctx, stageN(ctx))),
+  }),
   steps('s6.lateSections', 'Late sections now', 'state', factSum((f) => (f.stage === 6 ? f.sections.late : 0))),
   steps('s7.gaps', 'Mandatory gaps now', 'state', factSum((f) => (f.stage === 7 ? f.mandatoryGaps : 0))),
 ];

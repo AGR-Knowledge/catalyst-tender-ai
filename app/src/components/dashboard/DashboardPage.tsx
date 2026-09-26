@@ -17,9 +17,10 @@ import './dashboard.css';
 const StageChart = lazy(() => import('./chart/StageChart'));
 
 /**
- * One layout for every dashboard (dashboards.md §1): Z1 header and period,
- * Z2 tiles, Z3 flow strip beside Z4 Needs your action, Z5 Table | Graph, and
- * Z6 the tracker for a selected row. It renders the view model; it computes
+ * One layout for every dashboard (dashboards.md §1, amended 2026-09-26): Z1
+ * header and period, Z2 tiles, Z3 the flow on one thin line, then one row with
+ * Z5 Table | Graph at two thirds and Z4 Needs your action at one third, and Z6
+ * the tracker for a selected row. It renders the view model; it computes
  * nothing.
  */
 export interface DashboardPageProps {
@@ -91,41 +92,43 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
       {/* Z2 */}
       <KpiTiles tiles={vm.tiles} onDrill={drill} />
 
-      {/* Z3 · Z4 */}
-      <div className={`db-mid ${vm.flow ? '' : 'no-flow'}`}>
-        {vm.flow && <div className="db-flow"><FlowStrip flow={vm.flow} onDrill={drill} /></div>}
+      {/* Z3: one line, not a card */}
+      {vm.flow && <FlowStrip flow={vm.flow} onDrill={drill} />}
+
+      <div className="db-row">
+        {/* Z5: the table stays mounted and sets the box's height; the graph lies over it, so toggling never moves the page. */}
+        <section className={`card db-main ${showGraph ? 'on-graph' : ''}`} ref={main} aria-label={showGraph ? 'Graph' : 'Table'}>
+          <div className="db-table">
+            {rows === null ? (
+              <div className="db-nodata">
+                {toggle && <div className="tg-bar">{toggle}</div>}
+                <EmptyState title="Tender data is not loaded yet." body="The table fills in once the tender lifecycles are loaded." />
+              </div>
+            ) : (
+              <TenderGrid
+                kind={vm.table.kind} rows={rows} columns={vm.table.columns} optional={vm.table.optional}
+                defaultSort={vm.table.defaultSort} filters={vm.table.filters} statusDefault={vm.table.statusDefault}
+                selectedId={vm.table.kind === 'tenders' ? selected : null}
+                onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
+                onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
+                externalFilter={filter} onClearExternal={() => setFilter(null)}
+                empty={vm.table.empty}
+                lead={toggle}
+              />
+            )}
+          </div>
+          {showGraph && vm.graph && (
+            <div className="db-graph">
+              <Suspense fallback={<div className="db-box-wait">Loading the graph…</div>}>
+                <StageChart vm={vm.graph} onPoint={onPoint} metric={metric} setMetric={setMetric} lead={toggle} />
+              </Suspense>
+            </div>
+          )}
+        </section>
+
+        {/* Z4, beside Z5: as tall as the main card, its rows scroll inside */}
         <div className="db-actions"><ActionList zone={vm.actions} onRoute={navigate} /></div>
       </div>
-
-      {/* Z5: the table stays mounted and sets the box's height; the graph lies over it, so toggling never moves the page. */}
-      <section className={`card db-main ${showGraph ? 'on-graph' : ''}`} ref={main} aria-label={showGraph ? 'Graph' : 'Table'}>
-        <div className="db-table">
-          {rows === null ? (
-            <div className="db-nodata">
-              {toggle && <div className="tg-bar">{toggle}</div>}
-              <EmptyState title="Tender data is not loaded yet." body="The table fills in once the tender lifecycles are loaded." />
-            </div>
-          ) : (
-            <TenderGrid
-              kind={vm.table.kind} rows={rows} columns={vm.table.columns} optional={vm.table.optional}
-              defaultSort={vm.table.defaultSort} filters={vm.table.filters} statusDefault={vm.table.statusDefault}
-              selectedId={vm.table.kind === 'tenders' ? selected : null}
-              onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
-              onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
-              externalFilter={filter} onClearExternal={() => setFilter(null)}
-              empty={vm.table.empty}
-              lead={toggle}
-            />
-          )}
-        </div>
-        {showGraph && vm.graph && (
-          <div className="db-graph">
-            <Suspense fallback={<div className="db-box-wait">Loading the graph…</div>}>
-              <StageChart vm={vm.graph} onPoint={onPoint} metric={metric} setMetric={setMetric} lead={toggle} />
-            </Suspense>
-          </div>
-        )}
-      </section>
 
       {/* Z6 */}
       {tracker && <TenderTracker vm={tracker} onClose={() => setSelected(null)} onOpen={openTender} />}

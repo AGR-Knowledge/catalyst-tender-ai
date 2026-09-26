@@ -119,6 +119,7 @@ type Action =
   | { type: 'person'; id: string }
   | { type: 'viewAs'; id: string | null }
   | { type: 'audit'; value: Omit<AuditEvent, 'id' | 'at'> }
+  | { type: 'auditTo'; tenant: string; value: Omit<AuditEvent, 'id' | 'at'>; set?: (at: string) => Record<string, string> }
   | { type: 'banner'; value: boolean }
   | { type: 'drawer'; value: DrawerSpec | null }
   | { type: 'modal'; value: ModalSpec | null }
@@ -202,6 +203,22 @@ function appendAudit(auditBy: Record<string, AuditEvent[]>, tenant: string, e: O
   return { ...auditBy, [tenant]: [...list, event].slice(-AUDIT_CAP) };
 }
 
+/**
+ * `auditTo`'s step (plan 011), pure so a dev check can run it: the entry, and
+ * any `done` keys `set` returns for the entry's demo time, land in the named
+ * tenant, whichever tenant is active. An unknown tenant changes nothing.
+ */
+export function writeTo(
+  doneBy: Record<string, Record<string, string>>, auditBy: Record<string, AuditEvent[]>,
+  tenant: string, e: Omit<AuditEvent, 'id' | 'at'>, set?: (at: string) => Record<string, string>,
+): { doneBy: Record<string, Record<string, string>>; auditBy: Record<string, AuditEvent[]> } {
+  if (!TENANTS.some((t) => t.key === tenant && t.world === 'gcc')) return { doneBy, auditBy };
+  const next = appendAudit(auditBy, tenant, e);
+  const list = next[tenant];
+  const add = set?.(list[list.length - 1].at);
+  return { auditBy: next, doneBy: add ? { ...doneBy, [tenant]: { ...doneBy[tenant], ...add } } : doneBy };
+}
+
 const tenantName = (key: string) => TENANTS.find((t) => t.key === key)?.name ?? key;
 
 /** v1 held one `done` map for the Indian demo. Its progress moves to `gen-in`, and onboarding ticks to the platform. */
@@ -277,6 +294,7 @@ function reducer(s: Inner, a: Action): Inner {
       };
     }
     case 'audit': return { ...s, auditBy: appendAudit(s.auditBy, s.tenant, a.value) };
+    case 'auditTo': return { ...s, ...writeTo(s.doneBy, s.auditBy, a.tenant, a.value, a.set) };
     case 'banner': return { ...s, showBanner: a.value };
     case 'tenant': {
       if (!isSwitchable(a.value) || a.value === s.tenant) return s;
@@ -328,6 +346,13 @@ interface Api {
   stopViewAs: () => void;
   /** Adds an entry to the active tenant's audit trail, on the demo clock. */
   logAudit: (e: Omit<AuditEvent, 'id' | 'at'>) => void;
+  /**
+   * Adds an entry to a named tenant's audit trail, not necessarily the active
+   * one, and writes `set(at)` into that tenant's `done` in the same step (plan
+   * 011: Catalyst's break-glass request lands in the tenant it targets). The
+   * tenant's Reset clears both.
+   */
+  auditTo: (tenant: string, e: Omit<AuditEvent, 'id' | 'at'>, set?: (at: string) => Record<string, string>) => void;
   setBanner: (v: boolean) => void;
   openDrawer: (d: DrawerSpec) => void;
   closeDrawer: () => void;
@@ -402,6 +427,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       startViewAs: (id) => dispatch({ type: 'viewAs', id }),
       stopViewAs: () => dispatch({ type: 'viewAs', id: null }),
       logAudit: (e) => dispatch({ type: 'audit', value: e }),
+      auditTo: (tenant, e, set) => dispatch({ type: 'auditTo', tenant, value: e, set }),
       setBanner: (v) => dispatch({ type: 'banner', value: v }),
       openDrawer: (d) => dispatch({ type: 'drawer', value: d }),
       closeDrawer: () => dispatch({ type: 'drawer', value: null }),

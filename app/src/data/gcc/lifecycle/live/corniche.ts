@@ -22,10 +22,12 @@ export const LIVE_CORNICHE: Lifecycle[] = [
     // Eligibility from 007a (gcc-demo-data §4.7): no Saudi registrations, classification, STP or O&M record.
     facts: s1Derived('EN', { dg1Due: '2026-03-09T09:04' }),
   }),
+  // Plan 022: the second demo tender. Its document is extracted and two fields wait in the intake queue
+  // (VAL-061-1 blocks DG1); its eligibility is 007a's, from the extracted requirements.
   K.story('T-2026-061', {
-    m1: '2026-03-08T07:52', now: { stage: 1, step: 'awaiting-dg1' },
+    m1: '2026-03-08T07:52', now: { stage: 1, step: 'validating' },
     steps: intakeSteps('2026-03-08T07:40', '2026-03-08T07:42', '2026-03-08T07:52'),
-    facts: s1(6, 0, 0, 'EN', { dg1Due: '2026-03-09T07:52' }),
+    facts: s1Derived('EN', { dg1Due: '2026-03-09T07:52' }),
   }),
   K.story('T-2026-063', {
     now: { stage: 1, step: 'screened' },

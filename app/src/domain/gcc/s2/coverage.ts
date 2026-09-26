@@ -5,7 +5,7 @@ import { DEFAULT_SUBCONTRACT_CAP_PCT, QUOTES_TO_COVER } from '@/data/gcc/s2';
 import { dateText } from '@/domain/calendar';
 import { personById } from '@/data/people';
 import { K, NOW, readDone, write, type Done, type GapValue, type S2Write } from './done';
-import { boqTotal, dateOf, HERO_NOT_COVERED_LINES, lineValue, liveS2Tenders, pct1, s2TenderOf } from './context';
+import { boqTotal, dateOf, HERO_NOT_COVERED_LINES, lineValue, liveS2Tenders, NOT_PURSUED, pct1, pursueOf, s2TenderOf } from './context';
 import { packagesFor } from './packaging';
 import { levelledFor } from './levelling';
 import { quotesFor, rfqsFor } from './rfq';
@@ -153,8 +153,9 @@ export function coverageAcross(tenant: string, done: Done): { covered: number; t
   return { covered: byTender.reduce((s, x) => s + x.covered, 0), total: byTender.reduce((s, x) => s + x.total, 0), byTender };
 }
 
-/** Accept a coverage gap: the reason is required. */
-export function gapWrite(tenderId: string, pkgId: string, reason: string, byId: string, at = NOW): S2Write<GapValue> | { error: string } {
+/** Accept a coverage gap: the reason is required. With `guard`, refused once the tender's DG1 pursue no longer stands. */
+export function gapWrite(tenderId: string, pkgId: string, reason: string, byId: string, at = NOW, guard?: { tenant: string; done: Done }): S2Write<GapValue> | { error: string } {
+  if (guard && !pursueOf(guard.tenant, tenderId, guard.done)) return { error: NOT_PURSUED };
   if (!reason.trim()) return { error: 'Give a reason for accepting the gap.' };
   return write(K.gap(tenderId, pkgId), { reason: reason.trim(), at, byId }, {
     actorId: byId, action: 'Coverage gap accepted', target: `${tenderId} ${pkgId}`, detail: reason.trim(),

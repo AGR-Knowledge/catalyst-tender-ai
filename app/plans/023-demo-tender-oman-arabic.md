@@ -98,40 +98,85 @@ Earthworks and paving are in-house (not packaged). Shortlists from Batinah's sup
 ## Steps
 
 ### Phase 1 — The Arabic tender document
-- [ ] 1.1 Write `content.mjs`: about 18 pages in Arabic, right to left, A4, in the order of an Omani public tender document: cover; invitation; instructions to bidders (bond 1%, validity, questions, site visit, submission in Arabic, evaluation); general and particular conditions (bonds, damages, payment, retention, SME share, Omanisation); scope of works (38 km, two bridges); technical requirements; qualification requirements (the ~9 lines); drawings list (36.5 km); **scanned:** BOQ summary, site-visit certificate, Form of Bid Bond (OMR 300,000); Form of Bid.
-  - [ ] 1.1.1 Plain, formal Modern Standard Arabic, as a real Omani document would read. Numbers in the text pages use Western digits; the scanned BOQ uses Eastern Arabic digits (٠١٢٣٤٥٦٧٨٩).
-  - [ ] 1.1.2 Every page carries a watermark, in Arabic and English: "مستند اصطناعي لأغراض العرض / Synthetic document for demonstration".
-  - [ ] 1.1.3 The reference `ILRA/RD/2026/042` appears in Latin characters in the header of every page.
-- [ ] 1.2 **The scanned pages:** render those three pages to PNG (`pdftoppm`), make them look scanned (slight rotation, grey paper, softer contrast, a stamp over two BOQ quantities; CSS filters on an `<img>` are enough), and put them back as full-page images, so they have **no text layer**.
-- [ ] 1.3 Build and verify (`npm --prefix app run demo-itt:ilra`): exact page count; the scanned pages yield no text from `pdftotext`; every text-page anchor on its page (match on digits, the reference and Latin tokens where Arabic shaping makes `pdftotext` output unreliable, and say so in the README); the watermark on every page; no prices. Render the cover, one text page and one scanned page to PNG and look at them.
-- [ ] 1.4 The BOQ CSV: about 35 lines across the 6 packages plus earthworks and paving, with `description_ar` and `description_en` columns.
+- [x] 1.1 Write `content.mjs`: about 18 pages in Arabic, right to left, A4, in the order of an Omani public tender document: cover; invitation; instructions to bidders (bond 1%, validity, questions, site visit, submission in Arabic, evaluation); general and particular conditions (bonds, damages, payment, retention, SME share, Omanisation); scope of works (38 km, two bridges); technical requirements; qualification requirements (the ~9 lines); drawings list (36.5 km); **scanned:** BOQ summary, site-visit certificate, Form of Bid Bond (OMR 300,000); Form of Bid.
+  - [x] 1.1.1 Plain, formal Modern Standard Arabic, as a real Omani document would read. Numbers in the text pages use Western digits; the scanned BOQ uses Eastern Arabic digits (٠١٢٣٤٥٦٧٨٩).
+  - [x] 1.1.2 Every page carries a watermark, in Arabic and English: "مستند اصطناعي لأغراض العرض / Synthetic document for demonstration".
+  - [x] 1.1.3 The reference `ILRA/RD/2026/042` appears in Latin characters in the header of every page.
+- [x] 1.2 **The scanned pages:** render those three pages to PNG (`pdftoppm`), make them look scanned (slight rotation, grey paper, softer contrast, a stamp over two BOQ quantities; CSS filters on an `<img>` are enough), and put them back as full-page images, so they have **no text layer**.
+- [x] 1.3 Build and verify (`npm --prefix app run demo-itt:ilra`): exact page count; the scanned pages yield no text from `pdftotext`; every text-page anchor on its page (match on digits, the reference and Latin tokens where Arabic shaping makes `pdftotext` output unreliable, and say so in the README); the watermark on every page; no prices. Render the cover, one text page and one scanned page to PNG and look at them.
+- [x] 1.4 The BOQ CSV: about 35 lines across the 6 packages plus earthworks and paving, with `description_ar` and `description_en` columns.
 
 ### Phase 2 — Stage 1 data
-- [ ] 2.1 The record `ilra-042.ts` (`ExtractedTenderGccAr`, `language: 'Arabic'`, `scanned: true`): every field has the English value, its Arabic `source` snippet and its page; OCR'd fields are `low` confidence with the reason in `note`; the two conflicts (conflict 1 `blocksDg1: true`); the flags (Arabic-only document; SME share; scanned pages). A short English summary for plan 012's "Read in English" goes in `summary`. Register it in `index.ts`.
-- [ ] 2.2 The register row: `docKey: 'ilra-042'`, `requirements` (the ~9 lines, each with its page), `validations`, key dates (site visit, answers, validity).
-- [ ] 2.3 The lifecycle story: language `'AR'`; Stage 1, step **validating**, with the two validation items open; captured 07:30 and logged 07:41 as today; `documentHref` to the PDF. Update the Batinah targets this moves.
-- [ ] 2.4 Queries: three drafted, in English with the Arabic clause reference (bond amount; section length; SME share basis), plus bond and effort records.
-- [ ] 2.5 **Check:** in the browser, as Batinah's Head of Tendering, `/tenders/T-2026-042` shows the document in the rail's source chips (the PDF opens at the cited page), the recommendation reads Pursue with its conditions, and the eligibility counts read 7 · 1 · 1 · 0.
+- [x] 2.1 The record `ilra-042.ts` (`ExtractedTenderGccAr`, `language: 'Arabic'`, `scanned: true`): every field has the English value, its Arabic `source` snippet and its page; OCR'd fields are `low` confidence with the reason in `note`; the two conflicts (conflict 1 `blocksDg1: true`); the flags (Arabic-only document; SME share; scanned pages). A short English summary for plan 012's "Read in English" goes in `summary`. Register it in `index.ts`.
+- [x] 2.2 The register row: `docKey: 'ilra-042'`, `requirements` (the ~9 lines, each with its page), `validations`, key dates (site visit, answers, validity).
+- [x] 2.3 The lifecycle story: language `'AR'`; Stage 1, step **validating**, with the two validation items open; captured 07:30 and logged 07:41 as today; `documentHref` to the PDF. Update the Batinah targets this moves.
+- [x] 2.4 Queries: three drafted, in English with the Arabic clause reference (bond amount; section length; SME share basis), plus bond and effort records.
+- [x] 2.5 **Check:** in the browser, as Batinah's Head of Tendering, `/tenders/T-2026-042` shows the document in the rail's source chips (the PDF opens at the cited page), the recommendation reads Pursue with its conditions, and the eligibility counts read 7 · 1 · 1 · 0.
 
 ### Phase 3 — Stage 2 and Stage 3 data
-- [ ] 3.1 Six packages, shortlists and the scripted replies. **Check:** after the demo keys for DG1 Pursue, Batinah's Stage 2 dashboard lists T-2026-042 with 6 packages.
-- [ ] 3.2 The Stage 3 pack inputs, win probability, competitors and contributor inputs. **Check:** `packFor` for T-2026-042 has no gaps, and margin is masked for Batinah's Procurement Lead.
+- [x] 3.1 Six packages, shortlists and the scripted replies. **Check:** after the demo keys for DG1 Pursue, Batinah's Stage 2 dashboard lists T-2026-042 with 6 packages.
+- [x] 3.2 The Stage 3 pack inputs, win probability, competitors and contributor inputs. **Check:** `packFor` for T-2026-042 has no gaps, and margin is masked for Batinah's Procurement Lead.
 
 ### Phase 4 — Docs and dev check
-- [ ] 4.1 gcc-demo-data §4B, and the §2.5 and §9 edits.
-- [ ] 4.2 About 8 dev-check rows (document resolves and is Arabic; 3 scanned pages; OCR'd fields low confidence with reasons; 2 conflicts, 1 blocking; eligibility 7/1/1/0; verdict Pursue; 6 packages; margin masked for Procurement).
+- [x] 4.1 gcc-demo-data §4B, and the §2.5 and §9 edits.
+- [x] 4.2 About 8 dev-check rows (document resolves and is Arabic; 3 scanned pages; OCR'd fields low confidence with reasons; 2 conflicts, 1 blocking; eligibility 7/1/1/0; verdict Pursue; 6 packages; margin masked for Procurement).
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `npm --prefix app run demo-itt:ilra` passes; `hero-itt` still passes.
-- [ ] `/dev/checks` passes in all five tenants; **Najd's, Corniche's, Dafna's and Qurain's readings are unchanged** (Corniche may move only through plan 022).
-- [ ] In Batinah, as the Head of Tendering and the Bid Manager: the tender opens; cited pages open in the PDF viewer (the scanned pages too); the recommendation shows Pursue with its reasons; Reset demo returns the tender to Stage 1.
-- [ ] As Batinah's Procurement Lead: margin and price are masked.
-- [ ] The Arabic reads as a native, formal document (have a second look at the cover and the instructions page as images). No real company, person or price in any tracked file.
+- [x] typecheck and build pass; `npm --prefix app run demo-itt:ilra` passes; `hero-itt` still passes.
+- [x] `/dev/checks` passes in all five tenants; **Najd's, Corniche's, Dafna's and Qurain's readings are unchanged** (Corniche may move only through plan 022).
+- [x] In Batinah, as the Head of Tendering and the Bid Manager: the tender opens; cited pages open in the PDF viewer (the scanned pages too); the recommendation shows Pursue with its reasons; Reset demo returns the tender to Stage 1.
+- [x] As Batinah's Procurement Lead: margin and price are masked.
+- [x] The Arabic reads as a native, formal document (have a second look at the cover and the instructions page as images). No real company, person or price in any tracked file.
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+Executor, 2026-09-26.
+
+- **Changed files:**
+  - **New:**
+    - `app/scripts/demo-itt/ilra-042/` (`content.mjs`, `template.mjs`, `build.mjs`, `verify.mjs`, `README.md`, `.gitignore` for `.out/`);
+    - `app/public/bids/gcc/ILRA-RD-2026-042-booklet-ar.pdf` (18 pp, 877 KB; pp. 15–17 scanned images) and `ILRA-RD-2026-042-BOQ.csv` (37 lines, no prices);
+    - `app/src/data/extracted/gcc/ilra-042.ts` (the record, 103 Arabic sources);
+    - `app/src/data/gcc/tenants/batinah-042.ts` (key dates, PQ-01 to PQ-09, the two conflicts, projects batinah-p4 and p5);
+    - `app/src/data/gcc/s2/tenders/batinah-042.ts` (6 packages, BOQ);
+    - `app/src/pages/gcc/dev-checks/72-tender-042.tsx` (10 rows).
+  - **Changed (T-2026-042 or Batinah entries only, appended):**
+    - `app/package.json` (`demo-itt:ilra`);
+    - `extracted/gcc/types-ar.ts` (`ExtractedTenderGccAr`) and `extracted/gcc/index.ts`;
+    - `tenants/batinah.ts` (the row, the fit scores and reasons, the projects, the intake entry);
+    - `lifecycle/live/batinah.ts` (the story: AR, Stage 1 validating);
+    - `s1/queries.ts` (Q-042-01 to 03), `s1/bonds.ts`, `s1/effort.ts` (note);
+    - `s2/tenders/others.ts` (export list), `s2/suppliers/batinah.ts` (jebel-lumen), `s2/replies.ts` (6 replies);
+    - `s3/competitors.ts` (3 competitors, EV-042-01 to 05), `s3/clients.ts` (5 bids with the Authority), `s3/win.ts`, `s3/packs.ts`, `s3/inputs.ts`;
+    - `data/gcc/portfolio.ts` (Batinah `ifWon`);
+    - `gcc-demo-data.md` (§4B, 58 lines; §2.5; §9).
+- **Verification:**
+  - `typecheck` and `build` pass. `demo-itt:ilra` passes 45 of 45 checks, and `hero-itt` still passes 57 of 57.
+  - `/dev/checks` passes in all five tenants (20 panels each; the new panel passes 10 of 10 everywhere), with no console errors. The Najd, Corniche, Dafna and Qurain panels all meet their targets. No existing target constant needed changing, including Batinah's.
+  - In headless Chrome on port 5186, as `batinah.hot` and `batinah.bid`:
+    - `/tenders/T-2026-042` opens at "1 · Intake · Validating".
+    - Pursue shows with its three reasons and three would-change items, and the fit reads 81.
+    - Eligibility reads 7 · 1 · 1 · 0.
+    - Chips open the PDF viewer at the cited page: p. 17 (the scanned bond form) as the Head of Tendering, and p. 15 (the scanned BOQ) as the Bid Manager.
+    - The pack shows 61 ± 8, margin 7.0–10.0% and "Bid with conditions".
+  - As `batinah.proc`: the Bid / No-Bid tab reads "masked for your role", and the win, margin and positions figures are absent.
+  - Seeding the resolve and Pursue writes gives "2 · Sourcing · Packaging" with all six packages on `/sourcing`. Settings → Reset demo → Reset this company clears `doneBy` and returns the tender to Stage 1, and it stays there after a reload.
+  - I looked at the cover, the instructions page (p. 5) and the scanned pages 15 and 17 as images.
+- **Deviations from plan:**
+  1. **Win 61 ± 8, not ± 7.** The band rule gives ± 6, 8, 12 or 15, so 18 comparables give ± 8.
+  2. **9 eligibility lines.** The Omanisation compliance certificate is a supporting document in the technical envelope (p. 12), not a PQ line, so the target 7 · 1 · 1 · 0 holds.
+  3. **The bond uses 022's `bidAmount: 300_000` (p. 17)**, as the orchestrator's note said. Resolving VAL-042-1 either way doesn't change the bond amount the rule shows (see Follow-ups).
+  4. **Files beyond the plan's list:**
+     - `s3/clients.ts`: the client history behind the win model's +11 driver.
+     - `data/gcc/portfolio.ts`: the Batinah `ifWon` entry, so the pack's §9.4 ties to DELIVERY_LOAD in the 50-portfolio check.
+     - A new dev-check panel file under `src/pages/gcc/dev-checks/`: a new file only, as GccPending asks.
+  5. **The row's `title` is now the English reading of the long title**; `shortTitle` keeps "Sohar–Buraimi road dualling". Procurement is 'two-file'. The intake disposition is 'needs-validation' and `dg1Due` is removed, because the tender is validating, not awaiting DG1.
+  6. **Aggregates (P-02) use the existing 'earthworks' trade**, since there is no aggregates trade and adding one would change a type.
+  7. The 90-stage3 evidence-count target already read 24, with a "+5 for T-2026-042 (plan 023)" comment, so I didn't change it.
+- **Blockers / questions (decisions for the orchestrator):**
+  1. **The pack and inputs show out of sequence.** The seeded v1 pack and the six contributor inputs appear in Bid packs and in My requests while T-2026-042 is still in Stage 1, because no demo action moves a tender from Stage 2 to Stage 3. Plan 022 did the same for T-2026-061. Accept this for the demo, or have a later plan filter packs by stage or add the transition?
+  2. Do you accept deviations 1, 3 and 4 (± 8; the fixed bond amount; the clients.ts and portfolio.ts entries)?
+- **Follow-ups noticed (not done):**
+  - The bond rule reads `bidAmount` and ignores the VAL-042-1 pick. Picking "1% of the bid value" still shows OMR 300,000, and `bidRateValidationId` parses percentages only, so a fixed-amount alternative would read "null%" if it were used. This is for the owner of `domain/gcc/s1/bond.ts`.
+  - The workspace's Bid / No-Bid tab is fully masked for the Commercial Manager, although `packFor` lets that role see margin. This is an access question for 009b and `access.ts`.
+  - Source highlighting can't mark text on the scanned pages (they have no text layer). Plan 012 could show the OCR reading there instead.
+  - s1-s3-demo-spec §17 script E ("Upload the scanned Arabic tender") could now name T-2026-042 and its PDF.

@@ -35,7 +35,7 @@ export const EFFORT: EffortEstimate[] = [
 
   // Batinah
   { tenant: 'batinah', tenderId: HERO_ID, teamId: 'batinah-roads', hoursPerWeek: 50, from: '2026-03-08', to: '2026-05-10', note: 'Outside the team\'s sector: process works need a partner' },
-  { tenant: 'batinah', tenderId: 'T-2026-042', teamId: 'batinah-roads', hoursPerWeek: 60, from: '2026-03-08', to: '2026-04-26', note: 'Dual carriageway BOQ' },
+  { tenant: 'batinah', tenderId: 'T-2026-042', teamId: 'batinah-roads', hoursPerWeek: 60, from: '2026-03-08', to: '2026-04-26', note: 'Two-envelope bid in Arabic: dual carriageway BOQ and two bridges' },
 
   // Qurain
   { tenant: 'qurain', tenderId: HERO_ID, teamId: 'qurain-water', hoursPerWeek: 60, from: '2026-03-08', to: '2026-05-10', note: 'Two-file bid through the KSA subsidiary' },

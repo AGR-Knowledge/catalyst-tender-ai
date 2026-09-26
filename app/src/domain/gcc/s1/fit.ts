@@ -155,7 +155,7 @@ export function fitFor(tenant: string, tenderId: string, done: Done): FitResult 
   }
   if (capacity && capacity.share > 1) wouldChange.push(`${capacity.teamName} peaks at ${capacity.pct}% in ${capacity.month}: release a bid or add estimators`);
   const bond = bidBondFor(tenant, tenderId, done);
-  if (bond?.facilityTight && bond.rate !== null) {
+  if (bond?.facilityTight && (bond.fixed || bond.rate !== null)) {
     // One format for every amount in the sentence: millions to 2 dp ("KWD 0.79 M", never "KWD 785,920" beside "KWD 1.96 M").
     const m = (x: Money) => money(x.amount, x.ccy, { millions: true, dp: 2 });
     const onAward = [bond.performanceIfWon && `a ${m(bond.performanceIfWon)} performance bond`,
@@ -168,6 +168,11 @@ export function fitFor(tenant: string, tenderId: string, done: Done): FitResult 
   if (renew.length) {
     const labels = renew.flatMap((l) => l.renew!.map((r) => r.label));
     wouldChange.push(`Renew the ${listText(labels)} before ${dayMonth(renew.map((l) => l.checkedAgainst.date).sort()[0])}`);
+  }
+  // A line met through a specialist subcontractor stays at risk until one is named (plan 022).
+  for (const l of eligibility?.lines.filter((x) => x.state === 'at-risk') ?? []) {
+    const sp = t.requirements?.find((r) => r.id === l.reqId)?.specialist;
+    if (sp && !sp.named) wouldChange.push(`Name the specialist subcontractor for ${l.reqId}: ${sp.what}`);
   }
   for (const l of eligibility?.lines.filter((x) => x.state === 'interpretation') ?? []) {
     const drafted = s1Data(tenant).queries.some((q) => q.tenderId === tenderId && q.relatesTo === l.reqId);

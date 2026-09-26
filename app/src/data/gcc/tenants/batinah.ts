@@ -1,14 +1,16 @@
 import type { Credential, GccTender, TenantSeed } from '../types';
 import { heroTender } from '../hero';
 import { dg1Records, dg2Records, fit, outcomes, type Dg1Tuple, type Dg2Tuple, type OutcomeTuple } from '../build';
+import { T042_CONFLICTS, T042_DOC_KEY, T042_KEY_DATES, T042_PROJECTS, T042_REF, T042_REQUIREMENTS, T042_TITLE_EN } from './batinah-042';
 
 /**
  * Batinah Waypoint Roads LLC (tenant D): an Omani roads contractor with no KSA
  * presence and no water experience (gcc-demo-data §2.5, §5.2). The hero
  * arrives by email from a prospective partner and scores low on size,
  * geography and eligibility; it is flagged for a person, never auto-discarded.
- * The Lebanese CDR roads tender is a real document. The scanned Arabic roads
- * tender is added by plan 012.
+ * The Lebanese CDR roads tender is a real document. T-2026-042, the Sohar–Buraimi
+ * road dualling, is the third demo tender: a synthetic Arabic document with three
+ * scanned pages (plan 023; its facts are in `batinah-042.ts`).
  */
 
 const OMR = (amount: number) => ({ amount, ccy: 'OMR' as const });
@@ -133,24 +135,27 @@ const REGISTER: GccTender[] = [
     intake: { capturedAt: '2026-03-08T08:40', loggedAt: '2026-03-08T08:52', disposition: 'needs-validation' },
   },
   {
-    id: 'T-2026-042', title: 'Sohar–Buraimi road dualling', shortTitle: 'Sohar–Buraimi road dualling', issuer: 'Interior Links Roads Authority', issuerIsReal: false,
-    country: 'Oman', city: 'Sohar', sector: 'Roads', sourceId: 'tender-board', sourceDetail: 'Tender Board e-tendering', procurement: 'open',
+    // Plan 023: the Arabic document (ILRA/RD/2026/042), its requirements, dates and two open conflicts.
+    id: 'T-2026-042', title: T042_TITLE_EN, shortTitle: 'Sohar–Buraimi road dualling', issuer: 'Interior Links Roads Authority', issuerIsReal: false,
+    country: 'Oman', city: 'Sohar', sector: 'Roads', sourceId: 'tender-board', sourceDetail: 'Tender Board e-tendering', procurement: 'two-file',
     value: { amount: 32_000_000, ccy: 'OMR', basis: 'estimate', band: [28_000_000, 36_000_000] },
-    stage: 'S1', stageNote: 'Validated; waiting for DG1', bidManagerId: 'batinah.bid', invited: [],
-    keyDates: [{ kind: 'published', date: '2026-03-08' }, { kind: 'questions', date: '2026-03-24' }, { kind: 'submission', date: '2026-04-26', time: '12:00' }],
+    stage: 'S1', stageNote: 'Validating: bid bond amount and section length', bidManagerId: 'batinah.bid', invited: [], docKey: T042_DOC_KEY,
+    keyDates: T042_KEY_DATES,
+    requirements: T042_REQUIREMENTS,
+    // Weighted about 81 on Batinah's model: Pursue (75), with the bridge span and the SME reading to settle.
     fit: fit([
       [10, 'Dual carriageway: the core business', 'Capability profile'],
       [8, 'Inside the value band', 'Platform estimate'],
-      [9, 'Meets every PQ line', 'Eligibility check'],
+      [7, '7 met; the 60 m bridge span needs a named subcontractor; the SME share needs a reading', 'Eligibility check'],
       [10, 'Sohar: home region', 'Company profile: offices'],
-      [7, 'Roads authority; payments on time', 'Client history'],
-      [6, 'Standard terms', 'Extraction'],
-      [6, 'Roads team has room', 'Capacity'],
-      [7, 'Bid bond inside headroom', 'Bank guarantee facility'],
+      [7, 'The Authority is a repeat client; payments on time', 'Client history'],
+      [4, 'Arabic-only bid, fixed unit rates, the bid bond amount in conflict', 'Extraction'],
+      [5, 'Roads team shares the Muscat interchange load until 12 Apr', 'Capacity'],
+      [6, 'Bid bond inside headroom; performance bond and advance guarantee to follow if won', 'Bank guarantee facility'],
       [8, 'Key corridor for the Batinah region', 'Strategy: 2026 plan'],
     ]),
-    validations: [],
-    intake: { capturedAt: '2026-03-08T07:30', loggedAt: '2026-03-08T07:41', disposition: 'shortlisted' },
+    validations: T042_CONFLICTS,
+    intake: { capturedAt: '2026-03-08T07:30', loggedAt: '2026-03-08T07:41', disposition: 'needs-validation' },
   },
   {
     id: 'T-2026-027', title: 'Muscat interchange upgrade', shortTitle: 'Muscat interchange upgrade', issuer: 'Capital Area Roads Directorate', issuerIsReal: false,
@@ -205,6 +210,8 @@ export const BATINAH: TenantSeed = {
       completed: '2024-02-29', role: 'prime', scope: 'Widening and drainage, 24 km' },
     { id: 'batinah-p3', title: 'Wadi crossing bridges, Saham', client: 'Interior Links Roads Authority', country: 'OM', value: OMR(9_500_000),
       completed: '2021-11-30', role: 'prime', scope: 'Four wadi bridges' },
+    // Plan 023: two dual-carriageway projects, for T-2026-042's PQ-06 (and PQ-07's 45 m and 52 m spans).
+    ...T042_PROJECTS,
   ],
   partners: [
     {
@@ -248,8 +255,8 @@ export const BATINAH: TenantSeed = {
   ],
   reconciliation: { at: '2026-03-08T06:00', sources: 4, missed: 0 },
   intakeToday: [
-    { id: 'IN-0308-01', sourceId: 'tender-board', tenderId: 'T-2026-042', ref: 'ILRA/RD/2026/07', title: 'Sohar–Buraimi road dualling', docType: 'Tender', language: 'EN',
-      receivedAt: '2026-03-08T07:30', loggedAt: '2026-03-08T07:41', disposition: 'shortlisted' },
+    { id: 'IN-0308-01', sourceId: 'tender-board', tenderId: 'T-2026-042', ref: T042_REF, title: 'Sohar–Buraimi road dualling', docType: 'Tender', language: 'AR',
+      receivedAt: '2026-03-08T07:30', loggedAt: '2026-03-08T07:41', disposition: 'needs-validation' },
     { id: 'IN-0308-02', sourceId: 'mail-bids', tenderId: 'T-2026-041', ref: 'RFB No. PW015 RE', title: 'Jezzine Entrance road rehabilitation (Lot 3)', docType: 'Tender', language: 'EN',
       receivedAt: '2026-03-08T08:40', loggedAt: '2026-03-08T08:52', disposition: 'needs-validation' },
     { id: 'IN-0308-03', sourceId: 'mail-bids', tenderId: 'T-2026-118', ref: 'ECWS/PRJ/2026/0147', title: 'Expansion of Al-Rawdah STP, Phase 2', docType: 'Tender', language: 'EN',

@@ -2,7 +2,7 @@ import type { Money } from '@/data/gcc/types';
 import { BEST_FIT_WEIGHTS, type BestFitWeights } from '@/data/gcc/s2';
 import { money } from '@/domain/money';
 import { K, NOW, readDone, write, type Done, type MixOption, type MixOverride, type MixValue, type S2WriteResult } from './done';
-import { bidCcy, supplierName, supplierOf, tenantOf } from './context';
+import { bidCcy, NOT_PURSUED, pursueOf, supplierName, supplierOf, tenantOf } from './context';
 import { packagesFor } from './packaging';
 import { screeningOf } from './shortlist';
 import { quotesFor } from './rfq';
@@ -175,6 +175,7 @@ export function mixFor(tenant: string, tenderId: string, done: Done): ApprovedMi
 
 /** Approve a mix. Each override of the option's pick in a package needs a reason. */
 export function mixWrite(tenant: string, tenderId: string, option: MixOption, overrides: MixOverride[], byId: string, done: Done, at = NOW): S2WriteResult<MixValue> {
+  if (!pursueOf(tenant, tenderId, done)) return { error: NOT_PURSUED };
   const opts = mixOptions(tenant, tenderId, done);
   const chosen = opts.options.find((o) => o.option === option);
   if (!chosen || !chosen.picks.length) return { error: 'No covered package has a levelled, compliant quote to choose yet.' };

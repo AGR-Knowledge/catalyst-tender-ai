@@ -37,7 +37,7 @@ export interface GateRecord {
   /** Trigger of a later re-open, if the decision was re-opened. */
   reopened?: string;
   note?: string;
-  /** DG1 only: the agent's recommendation. Pursue on a Discard one, or Discard on a Pursue one, is an override. */
+  /** DG1 only: the agent's recommendation. Pursue on a Discard one, or Discard on a Pursue or Pursue-with-conditions one, is an override. */
   recommendation?: 'pursue' | 'conditions' | 'discard';
 }
 
@@ -233,6 +233,12 @@ export interface Lifecycle {
   /** Live tenders only: the current step's numbers. */
   facts?: StepFacts;
   restricted?: boolean;
+  /**
+   * People asked to contribute in the demo (the DG1 bid team, and whoever an
+   * input or a request went to): they open the tender as if invited. Set by
+   * `domain/gcc/demo/90-invited.apply.ts`, never by the seed.
+   */
+  invited?: string[];
   origin: LifecycleOrigin;
 }
 

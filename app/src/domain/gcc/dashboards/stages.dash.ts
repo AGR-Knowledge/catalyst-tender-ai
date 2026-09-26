@@ -77,14 +77,14 @@ const SPECS: Record<StageN, StageSpec> = {
     actions: ['sections.late', 'score.below', 'review.due'],
     columns: ['tid', 'tender', 'stage', 's6.sections', 's6.late', 's6.score', 's6.sme', 's6.redTeam', 'owner', 'due'],
     sort: 'due',
-    metrics: ['steps.count', 's6.lateSections', 'steps.avgDays'],
+    metrics: ['steps.count', 'steps.value', 's6.lateSections', 'steps.avgDays'],
   },
   7: {
     tiles: ['CMP-1', 'CMP-2', 'CMP-3', 'CMP-4', 'CMP-5', 'CMP-6'],
     actions: ['dg3.approve', 'gaps.open', 'redlines.open', 'dg3.issue'],
     columns: ['tid', 'tender', 'stage', 's7.evidenced', 's7.gaps', 's7.redlines', 's7.risks', 's7.dg3', 'owner', 'due'],
     sort: 'due',
-    metrics: ['steps.count', 's7.gaps', 'steps.avgDays'],
+    metrics: ['steps.count', 'steps.value', 's7.gaps', 'steps.avgDays'],
   },
   8: {
     tiles: ['SUB-1', 'SUB-2', 'SUB-3', 'SUB-4', 'SUB-5', 'SUB-6'],

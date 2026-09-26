@@ -106,6 +106,7 @@ export function Rail({ vm, ctx }: { vm: RailVM; ctx: WorkspaceCtx }) {
         />
       )}
       {rec?.kind === 'decision' && <Decision d={rec} />}
+      {vm.overridden && <RecommendationCard heading={vm.overridden.heading} agent={vm.overridden.agent} verdict={vm.overridden.verdict} tone={vm.overridden.tone} confidence={vm.overridden.confidence} confidenceWhy={vm.overridden.confidenceWhy} reasons={vm.overridden.reasons} wouldChange={vm.overridden.wouldChange} changeLimit={3} sources={vm.overridden.sources} doc={vm.doc} overriddenBy={vm.overridden.overriddenBy} />}
 
       {vm.blockers.length > 0 && (
         <section className="rl-sec" aria-label="Open blockers">

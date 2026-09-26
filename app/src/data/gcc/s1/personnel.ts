@@ -31,6 +31,9 @@ export const KEY_PERSONNEL: KeyPerson[] = [
     availableFrom: '2026-03-01' },
   { id: 'corniche-kp-4', tenant: 'corniche', name: 'Luis Ortega', role: 'commissioning-manager', title: 'Commissioning Manager', years: 16, sectorYears: 6, saudiNational: false,
     availableFrom: '2026-03-01' },
+  // Plan 022: the healthcare Project Manager T-2026-061's Q-10 asks for (15 years, 10 in healthcare). Too few years for PQ-13.
+  { id: 'corniche-kp-5', tenant: 'corniche', name: 'Nadia Farouk', role: 'project-manager', title: 'Project Manager, Healthcare', years: 18, sectorYears: 0,
+    sectors: { healthcare: 12 }, saudiNational: false, availableFrom: '2026-03-01' },
 
   // Dafna: the Riyadh branch employs the HSE Manager
   { id: 'dafna-kp-1', tenant: 'dafna', name: 'Khalil Mansour', role: 'project-manager', title: 'Project Manager', years: 22, sectorYears: 12, saudiNational: false,

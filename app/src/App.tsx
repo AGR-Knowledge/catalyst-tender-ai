@@ -21,6 +21,7 @@ import { ComingNext } from '@/pages/gcc/ComingNext';
 import { SCREENS } from '@/pages/gcc/screens';
 import { LEGACY_TENANT, TENANTS } from '@/data/tenants';
 import { useWorld } from '@/domain/tenancy';
+import { can } from '@/data/access';
 
 /*
  * GCC dashboards, the tender summary and the dev pages load on demand, so AG
@@ -30,8 +31,12 @@ import { useWorld } from '@/domain/tenancy';
 const DashboardRoute = lazy(() => import('@/pages/gcc/DashboardRoute'));
 const StageRoute = lazy(() => import('@/pages/gcc/StageRoute'));
 const Workspace = lazy(() => import('@/pages/gcc/workspace/Workspace'));
+const SupplierPortal = lazy(() => import('@/pages/gcc/supplier/SupplierPortal'));
 const GccPending = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/GccPending').then((m) => ({ default: m.GccPending }))) : null;
 const KitPreview = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/dev/KitPreview')) : null;
+/* The Catalyst Platform Console (plan 011): its own shell, outside the tenant's. */
+const PlatformShell = lazy(() => import('@/pages/platform/PlatformShell'));
+const PlatformConsole = lazy(() => import('@/pages/platform/Console'));
 
 function Loading() {
   return <div className="view" aria-busy="true"><p className="eyebrow">Loading…</p></div>;
@@ -81,6 +86,10 @@ function LegacyDashboard() {
 function Home() {
   const { state } = useDemo();
   const gcc = useWorld() === 'gcc';
+  // The Catalyst operator has no tenant home: theirs is the Platform Console (plan 011).
+  if (can(state.realPerson, 'platform.console').ok) return <Navigate to="/platform" replace />;
+  // The supplier persona has no dashboard: it lands in the Supplier Portal (plan 008b).
+  if (gcc && can(state.person, 'portal.rfq').ok) return <Navigate to="/supplier-portal" replace />;
   return gcc ? lazyEl(<DashboardRoute />) : <Navigate to={`/dashboard/${state.role}`} replace />;
 }
 
@@ -115,6 +124,8 @@ export function App() {
       <DemoProvider>
         <BrowserRouter>
           <Routes>
+            {/* The Supplier Portal preview has its own light shell (plan 008b). */}
+            <Route path="supplier-portal" element={<GccOnly>{lazyEl(<SupplierPortal />)}</GccOnly>} />
             <Route element={<AppShell />}>
               <Route index element={<Home />} />
               <Route path="dashboard" element={<Home />} />
@@ -138,6 +149,12 @@ export function App() {
               {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}
 
               <Route path="*" element={<NotFound />} />
+            </Route>
+
+            {/* Catalyst Platform Console (plan 011): a separate shell, for Catalyst operators only */}
+            <Route path="platform" element={lazyEl(<PlatformShell />)}>
+              <Route index element={lazyEl(<PlatformConsole />)} />
+              <Route path="*" element={<Navigate to="/platform" replace />} />
             </Route>
           </Routes>
         </BrowserRouter>

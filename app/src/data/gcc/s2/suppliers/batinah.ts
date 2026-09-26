@@ -1,8 +1,9 @@
 import { suppliers, type SupplierTuple } from './build';
 
 /**
- * Batinah's supplier master: roads and structures, 16 suppliers, all
- * fictional, with three sendable suppliers for each package of T-2026-027.
+ * Batinah's supplier master: roads and structures, 17 suppliers, all
+ * fictional, with three sendable suppliers for each package of T-2026-027
+ * and of T-2026-042 (plan 023).
  * One has anti-bribery screening due. Gulf Process Systems Co. is the
  * Supplier Portal persona's firm in every tenant; here it supplies the
  * stormwater pumps for underpasses.
@@ -29,6 +30,8 @@ const ROWS: SupplierTuple[] = [
   ['seeb-piling', 'Seeb Piling Contractors LLC', 'OM', 'Seeb', ['piling'], [CARD], 42, 'approved', OK('2026-02-12'), [88, 1, 7, 2], 'medium', [86, 4.0], false],
   ['amerat-foundations', 'Amerat Foundation Engineering LLC', 'OM', 'Muscat', ['piling'], [], 44, 'approved', OK('2025-12-21'), [86, 1, 6, 2], 'medium', [85, 4.0], false],
   ['bidbid-foundations', 'Bidbid Foundations LLC', 'OM', 'Bidbid', ['piling', 'earthworks'], [], 39, 'pending', OK('2025-12-08'), [81, 3, 5, 1], 'low', [77, 5.5], false],
+  // Plan 023: a third street-lighting supplier for T-2026-042's P-05 (it quotes in USD).
+  ['jebel-lumen', 'Jebel Lumen Lighting FZE', 'AE', 'Dubai', ['lighting'], [], 18, 'approved', OK('2026-01-12'), [88, 1, 5, 1], 'low', [82, 4.5], false],
 ];
 
 export const BATINAH_SUPPLIERS = suppliers('batinah', ROWS);

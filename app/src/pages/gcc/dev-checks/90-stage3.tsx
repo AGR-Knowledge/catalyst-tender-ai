@@ -42,7 +42,8 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     '097 · Calibration': 'Calibrated on 33 decided bids: bands within ±10 points except under 30%, where the model is over-confident (0 of 13 won)',
     '097 · Competitors (bidders incl. us)': '5 (6)',
     '097 · Uncited claims suppressed': '1 uncited claim suppressed (no source, no claim)',
-    '097 · Evidence records': '12 · all synthetic, .example hosts',
+    // plan 022: the count is of every tenant's evidence: 12 (009a) + 7 for T-2026-061 (plan 022) + 5 for T-2026-042 (plan 023).
+    '097 · Evidence records': '24 · all synthetic, .example hosts',
     '097 · Margin range': '8.5–11.5%',
     '097 · Margin masked': 'Masked for your role · no digits',
     '097 · Positions': '2 of 5 · quorum needs 3',
@@ -101,7 +102,7 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
   },
   qurain: {
     'T-2026-049 · Sections with no input requested': '9.4, 9.6',
-    'T-2026-049 · Delivery load': '78% of delivery capacity if this bid wins, against a safe level of 75% (104%). +12 for this bid is an estimate: no Planning input',
+    'T-2026-049 · Delivery load': '78% of delivery capacity if this bid wins, against a safe level of 75% (at 104% of the safe level). +12 for this bid is an estimate: no Planning input',
   },
 };
 

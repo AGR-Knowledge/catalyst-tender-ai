@@ -1,4 +1,4 @@
-import type { Credential, CredentialKind, Criterion, Financials, GccTender, Partner, PqKind, PqRequirement, SimilarProject } from '@/data/gcc/types';
+import type { Credential, CredentialKind, Criterion, Financials, GccTender, KeyRoleSpec, Partner, PqKind, PqRequirement, SimilarProject } from '@/data/gcc/types';
 import { CRITERIA } from '@/data/gcc/types';
 import { isCcy, type Ccy } from '@/data/gcc/fx';
 import { s1Data, type KeyPerson, type S1Data } from '@/data/gcc/s1';
@@ -78,6 +78,8 @@ export interface RenewedValue extends Stamped { validTo: string }
 
 const CERTIFICATE_KINDS = new Set<PqKind>([
   'cr', 'zakat', 'gosi', 'chamber', 'classification', 'contractors-authority', 'saudization', 'vat', 'iso', 'engineers-council', 'avl',
+  // A certificate that must be held and valid, with no minimum score (plan 022: the UAE ICV certificate).
+  'lc-baseline',
 ]);
 
 const KIND_NAME: Partial<Record<CredentialKind, string>> = {
@@ -211,9 +213,11 @@ interface CertEval { state: 'pass' | 'at-risk' | 'fail'; cred?: Credential; why:
 function evalCert(m: Member, r: PqRequirement, check: Check, done: Done): CertEval {
   const field = r.threshold?.field;
   const grade = r.threshold?.grade;
+  const issuer = r.threshold?.issuer;
   const ofKind = m.credentials.filter((c) => c.kind === r.kind);
   const inCountry = ofKind.filter((c) => !r.country || c.country === r.country);
-  const inField = inCountry.filter((c) => !field || c.field === field);
+  const byIssuer = inCountry.filter((c) => !issuer || c.issuer === issuer);
+  const inField = byIssuer.filter((c) => !field || c.field === field);
   const atGrade = inField.filter((c) => !grade || (c.grade !== undefined && c.grade <= grade));
 
   const pass = atGrade.filter((c) => isValidOn(c, check.date)).sort(byLatestExpiry)[0];
@@ -233,6 +237,9 @@ function evalCert(m: Member, r: PqRequirement, check: Check, done: Done): CertEv
   const adj = r.country ? `${countryAdjective(r.country)} ` : '';
   const expired = atGrade.sort(byLatestExpiry)[0];
   if (expired?.validTo) return { state: 'fail', cred: expired, why: `${expired.label} expired on ${dateText(expired.validTo)}. Renew before submission.` };
+  if (issuer && inCountry.length && !byIssuer.length) {
+    return { state: 'fail', why: `${capitalise(`${adj}${name}`)} from ${issuer} required; held from ${listText([...new Set(inCountry.map((c) => c.issuer))])} only` };
+  }
   if (inField.length && grade) {
     const best = Math.min(...inField.map((c) => c.grade ?? Infinity));
     return { state: 'fail', why: `Classified ${field}, Grade ${best}; Grade ${grade} required` };
@@ -270,8 +277,9 @@ function certLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
 function classificationJvLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
   const field = r.threshold?.field;
   const grade = r.threshold?.grade ?? 1;
+  const issuer = r.threshold?.issuer;
   const bestOf = (m: Member) => m.credentials
-    .filter((c) => c.kind === 'classification' && (!r.country || c.country === r.country) && (!field || c.field === field) && isValidOn(c, DEMO_TODAY))
+    .filter((c) => c.kind === 'classification' && (!r.country || c.country === r.country) && (!issuer || c.issuer === issuer) && (!field || c.field === field) && isValidOn(c, DEMO_TODAY))
     .sort((a, b) => (a.grade ?? 99) - (b.grade ?? 99))[0];
   const best = ctx.members.map((m) => ({ m, c: bestOf(m) }));
   const evidence = best.flatMap((x) => (x.c ? [credEvidence(x.c)] : []));
@@ -300,43 +308,67 @@ function classificationJvLine(r: PqRequirement, check: Check, ctx: Ctx): Eligibi
 
 interface Qualifying { m: Member; p: SimilarProject; measure: number }
 
+/** An experience line stated as a contract value (plan 022): its unit is a currency code. */
+const valueCcy = (r: PqRequirement): Ccy | undefined => (r.threshold?.unit && isCcy(r.threshold.unit) ? r.threshold.unit : undefined);
+
+/**
+ * Projects that count: as prime or consortium lead, completed in the window, in the line's field when it
+ * names one, measured in m³/day, by contract value, in kilometres (the tender's scope and project lengths),
+ * or by another unit the projects' `measures` hold.
+ */
 function qualifying(r: PqRequirement, check: Check, ctx: Ctx): Qualifying[] {
   const th = r.threshold ?? {};
   const from = addYears(check.date, -(th.years ?? 10));
   const perM3 = !th.unit || th.unit === 'm3/day';
+  const ccy = valueCcy(r);
   const scope = ctx.s1.scopes.find((s) => s.tenderId === ctx.t.id && s.reqId === r.id);
   const out: Qualifying[] = [];
   for (const m of ctx.members) {
     for (const p of m.projects) {
       if (p.role !== 'prime' && p.role !== 'jv-lead') continue;
       if (p.completed < from || p.completed > check.date) continue;
+      if (th.field && !p.fields?.includes(th.field)) continue;
       let measure: number | undefined;
       if (perM3) measure = p.capacityM3d;
+      else if (ccy) measure = convert(p.value.amount, p.value.ccy, ccy);
       else if (scope) {
         const len = ctx.s1.lengths.find((l) => l.projectId === p.id && scope.kinds.includes(l.kind) && (!scope.minDiameterMm || (l.diameterMm ?? 0) >= scope.minDiameterMm));
         measure = len?.km;
-      }
+      } else measure = p.measures?.[th.unit!];
       if (measure !== undefined && measure >= (th.value ?? 0)) out.push({ m, p, measure });
     }
   }
   return out.sort((a, b) => b.measure - a.measure);
 }
 
+/** The best project in the window that falls short, for the fail text of a line with a named measure. */
+function bestShort(r: PqRequirement, check: Check, ctx: Ctx): Qualifying | undefined {
+  const th = r.threshold ?? {};
+  if (!th.unit || th.unit === 'm3/day' || valueCcy(r)) return undefined;
+  const from = addYears(check.date, -(th.years ?? 10));
+  return ctx.members.flatMap((m) => m.projects
+    .filter((p) => (p.role === 'prime' || p.role === 'jv-lead') && p.completed >= from && p.completed <= check.date && (!th.field || p.fields?.includes(th.field)))
+    .flatMap((p) => (p.measures?.[th.unit!] !== undefined && p.measures[th.unit!] < (th.value ?? 0) ? [{ m, p, measure: p.measures[th.unit!] }] : [])))
+    .sort((a, b) => b.measure - a.measure)[0];
+}
+
 function experienceLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
   const th = r.threshold ?? {};
   const count = th.count ?? 1;
   const perM3 = !th.unit || th.unit === 'm3/day';
+  const ccy = valueCcy(r);
   const unitText = perM3 ? 'm³/day' : (th.unit ?? '');
-  const noun = perM3 ? (count === 1 ? 'STP' : 'STPs') : (count === 1 ? 'contract' : 'contracts');
+  const noun = `${th.field ? `${th.field} ` : ''}${perM3 ? (count === 1 ? 'STP' : 'STPs') : (count === 1 ? 'contract' : 'contracts')}`;
   const needTertiary = /at least one with tertiary treatment/i.test(r.note ?? '');
-  const measureText = (q: Qualifying) => (perM3 ? `${numberText(q.measure)} m³/day` : `${numberText(q.measure)} ${th.unit}`);
+  const thrText = ccy ? roundMoney(th.value ?? 0, ccy) : `${numberText(th.value ?? 0)} ${unitText}`;
+  const measureText = (q: Qualifying) => (perM3 ? `${numberText(q.measure)} m³/day` : ccy ? money(q.measure, ccy) : `${numberText(q.measure)} ${th.unit}`);
   const long = (q: Qualifying) => `${q.p.title} (${measureText(q)}${q.p.tertiary ? ', tertiary' : ''}, ${yearOf(q.p.completed)})`;
   const short = (q: Qualifying) => `${measureText(q)}${q.p.tertiary ? ', tertiary' : ''}, ${yearOf(q.p.completed)}`;
   const meets = (qs: Qualifying[]) => qs.length >= count && (!needTertiary || qs.some((q) => q.p.tertiary));
 
   const qs = qualifying(r, check, ctx);
   const evidence: Evidence[] = qs.map((q) => ({ kind: 'project', id: q.p.id, label: q.p.title }));
-  const asked = `${capitalise(countWord(count))} completed ${noun} ≥ ${numberText(th.value ?? 0)} ${unitText} in ${th.years ?? 10} years`;
+  const asked = `${capitalise(countWord(count))} completed ${noun} ≥ ${thrText} in ${th.years ?? 10} years`;
 
   if (meets(qs)) {
     if (!ctx.jv) return { ...base(r, check), state: 'pass', why: `${qs.length} on record: ${qs.map(long).join(', ')}`, evidence, actions: [] };
@@ -347,15 +379,17 @@ function experienceLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLi
     const by = who === 'partner' ? partner.name : who === 'self' ? self(ctx).name : 'members together';
     return {
       ...base(r, check), state: 'pass', satisfiedBy: who, evidence, actions: [],
-      why: `Pass (${who}): ${by}, ${pool.length} ${perM3 ? (pool.length === 1 ? 'STP' : 'STPs') : 'contracts'} ≥ ${numberText(th.value ?? 0)} ${unitText}`,
+      why: `Pass (${who}): ${by}, ${pool.length} ${perM3 ? (pool.length === 1 ? 'STP' : 'STPs') : 'contracts'} ≥ ${thrText}`,
     };
   }
   const noTertiary = qs.length >= count && needTertiary ? ', none with tertiary treatment' : '';
-  const listed = qs.length ? ` (${qs.map(short).join('; ')})` : '';
+  const near = qs.length ? undefined : bestShort(r, check, ctx);
+  const listed = qs.length ? ` (${qs.map(short).join('; ')})` : near ? ` (best ${measureText(near)}: ${near.p.title}, ${yearOf(near.p.completed)})` : '';
   const where = ctx.jv ? ' across the JV members' : '';
+  // A line a specialist subcontractor can meet does not need a JV partner (plan 022).
   return {
     ...base(r, check), state: 'fail', evidence, actions: ['find-partner', 'add-evidence'],
-    why: `${asked}: ${qs.length} on record${where}${listed}${noTertiary}.${ctx.jv ? '' : ' JV partner needed.'}`,
+    why: `${asked}: ${qs.length} on record${where}${listed}${noTertiary}.${ctx.jv || r.specialist ? '' : ' JV partner needed.'}`,
   };
 }
 
@@ -512,12 +546,23 @@ function ratiosLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
 // ---------------------------------------------------------------------------
 // Key personnel (step 2.2.8)
 
+/** A requirement's own roles (plan 022), each with its sector and the text a missing role reads. */
+const rolesOf = (r: PqRequirement): (KeyRoleSpec & { asked: string })[] =>
+  r.roles?.map((k) => ({
+    ...k,
+    asked: `${k.saudi ? 'Saudi national ' : ''}${k.label} (${k.years} years${k.sectorYears ? `, ${k.sectorYears} in ${k.sector ?? 'water'}` : ''})`,
+  })) ?? KEY_ROLES;
+
+/** Years a person has in the role's sector: `sectors[sector]`, or water and wastewater when the role names none. */
+const sectorYearsOf = (p: KeyPerson, k: KeyRoleSpec) => (k.sector ? p.sectors?.[k.sector] ?? 0 : p.sectorYears);
+
 function personnelLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLine {
   const people = self(ctx).people;
-  const found = KEY_ROLES.map((k) => ({
+  const roles = rolesOf(r);
+  const found = roles.map((k) => ({
     k,
     p: people
-      .filter((p) => p.role === k.role && p.years >= k.years && (!k.sectorYears || p.sectorYears >= k.sectorYears) && (!k.saudi || p.saudiNational))
+      .filter((p) => p.role === k.role && p.years >= k.years && (!k.sectorYears || sectorYearsOf(p, k) >= k.sectorYears) && (!k.saudi || p.saudiNational))
       .sort((a, b) => b.years - a.years)[0],
   }));
   const missing = found.filter((x) => !x.p);
@@ -525,8 +570,10 @@ function personnelLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLin
   if (missing.length) {
     return { ...base(r, check), state: 'fail', evidence, actions: ['add-evidence'], why: `Missing: ${listText(missing.map((x) => x.k.asked))}` };
   }
-  const who = found.map(({ k, p }) => `${p!.name}, ${k.label} (${k.saudi ? 'Saudi national, ' : ''}${p!.years} years${k.sectorYears ? `, ${p!.sectorYears} in water` : ''})`);
-  return { ...base(r, check), state: 'pass', evidence, actions: [], why: `All four roles on record (p. ${KEY_ROLES_PAGE}): ${who.join('; ')}` };
+  const who = found.map(({ k, p }) => `${p!.name}, ${k.label} (${k.saudi ? 'Saudi national, ' : ''}${p!.years} years${k.sectorYears ? `, ${sectorYearsOf(p!, k)} in ${k.sector ?? 'water'}` : ''})`);
+  const page = r.roles ? r.page : KEY_ROLES_PAGE;
+  const head = roles.length === 1 ? `On record (p. ${page})` : `All ${countWord(roles.length)} roles on record (p. ${page})`;
+  return { ...base(r, check), state: 'pass', evidence, actions: [], why: `${head}: ${who.join('; ')}` };
 }
 
 // ---------------------------------------------------------------------------
@@ -578,7 +625,9 @@ function consortiumLine(r: PqRequirement, check: Check, ctx: Ctx): EligibilityLi
 // ---------------------------------------------------------------------------
 // One line per requirement
 
-function lineFor(r: PqRequirement, ctx: Ctx): EligibilityLine {
+const UNASSESSED = 'Not assessed automatically: check by hand';
+
+function assessed(r: PqRequirement, ctx: Ctx): EligibilityLine {
   const check = checkFor(ctx.t, r);
   if (CERTIFICATE_KINDS.has(r.kind)) return certLine(r, check, ctx);
   switch (r.kind) {
@@ -590,9 +639,34 @@ function lineFor(r: PqRequirement, ctx: Ctx): EligibilityLine {
     case 'lc': return lcLine(r, check, ctx);
     case 'consortium': return consortiumLine(r, check, ctx);
     default:
-      return { ...base(r, check), state: 'na', evidence: [], actions: [], why: 'Not assessed automatically: check by hand' };
+      return { ...base(r, check), state: 'na', evidence: [], actions: [], why: UNASSESSED };
   }
 }
+
+const sentence = (s: string) => (/[.!?]$/.test(s) ? s : `${s}.`);
+
+/**
+ * The tender's own qualifiers on a line (plan 022), both optional:
+ * - `specialist`: a line the company fails on its own record, or that the rules cannot assess, is met
+ *   through a named specialist subcontractor: at risk until one is named, then met through it;
+ * - `reading`: a line that passes, or that the rules cannot assess, depends on how the tender is read.
+ */
+function qualified(r: PqRequirement, ctx: Ctx, line: EligibilityLine): EligibilityLine {
+  const unassessed = line.state === 'na' && line.why === UNASSESSED;
+  const sp = r.specialist;
+  if (sp && (line.state === 'fail' || unassessed)) {
+    if (sp.named) return { ...line, state: 'pass', actions: [], why: `Met through ${sp.named}, a named specialist subcontractor (${sp.what})` };
+    const own = unassessed ? `No ${sp.what} in the credential vault.` : sentence(line.why);
+    return { ...line, state: 'at-risk', actions: ['find-partner', 'add-evidence'], why: `${own} Met through a named specialist subcontractor: at risk until one is named.` };
+  }
+  if (r.reading && (line.state === 'pass' || unassessed)) {
+    const query = hasQuery(ctx, r.id) ? ' Suggested query to the employer drafted.' : '';
+    return { ...line, state: 'interpretation', actions: ['draft-query'], why: `${unassessed ? '' : `${sentence(line.why)} `}${sentence(r.reading)}${query}` };
+  }
+  return line;
+}
+
+const lineFor = (r: PqRequirement, ctx: Ctx): EligibilityLine => qualified(r, ctx, assessed(r, ctx));
 
 function countsOf(lines: EligibilityLine[]): EligibilityCounts {
   const n = (s: LineState) => lines.filter((l) => l.state === s).length;
