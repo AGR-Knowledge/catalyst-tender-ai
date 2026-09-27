@@ -211,6 +211,7 @@ What a Tender Coordinator wants first thing in the morning: *did anything come i
 - **Today's captures feed:**
   - Columns: time · source · reference · title · authority · country · estimated value (tenant currency) · due date · language · document type (Tender / PQ / Addendum / Clarification / Award notice) · fit · disposition.
   - Dispositions: Auto-shortlisted → DG1 queue · Low fit, flagged · Duplicate, merged into T-… · Addendum, linked to T-… · Restricted lane · Needs validation.
+  - A Needs validation tender joins the DG1 queue once one of its flagged fields is resolved and none that blocks DG1 is still open. Its DG1 time limit counts from logging, like a shortlisted tender's; until then its DG1 pack reads "Validating", with no clock.
   - Filters: country, sector, value band, fit, language, source.
 - **Reconciliation card.** "Last reconciliation 06:00. 0 missed across 9 sources." Tenders are compared against each portal's daily listing.
 - **Restricted lane.** A count only. Titles are hidden from everyone not cleared; see roles §9.

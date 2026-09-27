@@ -9,14 +9,16 @@ import './tender.css';
  * right, over a list. ↑ and ↓ (or the buttons) move through the list the
  * caller passes, which is the filtered list; the header says "n of m". Esc
  * closes, focus stays inside, and goes back to the row that opened it. Full
- * screen below 900 px. It uses the drawer's motion tokens.
+ * screen below 900 px. It uses the drawer's motion tokens. A sheet opened by
+ * a link from another page has no opener here: `returnFocus` names where
+ * focus goes instead (plan 026).
  */
 
 export interface SheetItem { id: string; title: string }
 
 const FOCUSABLE = 'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
-export function Sheet({ items, index, onIndex, onClose, render, primary, eyebrow = 'Triage' }: {
+export function Sheet({ items, index, onIndex, onClose, render, primary, eyebrow = 'Triage', returnFocus }: {
   items: SheetItem[];
   /** The open item, or null when the sheet is closed. */
   index: number | null;
@@ -26,6 +28,8 @@ export function Sheet({ items, index, onIndex, onClose, render, primary, eyebrow
   /** "Open workspace", with where it goes. */
   primary?: { label: string; onClick(id: string): void };
   eyebrow?: string;
+  /** Where focus goes on close when the element focused at open is gone or is the page body: the last item's row, say. */
+  returnFocus?(id: string): HTMLElement | null | undefined;
 }) {
   const open = index !== null && index >= 0 && index < items.length;
   const { shown, closing } = usePresence(open ? index : null);
@@ -33,6 +37,11 @@ export function Sheet({ items, index, onIndex, onClose, render, primary, eyebrow
   const opener = useRef<HTMLElement | null>(null);
   const idx = shown ?? 0;
   const item = items[idx];
+  // The item open last and the fallback, read when the sheet closes.
+  const lastId = useRef<string | null>(null);
+  if (open) lastId.current = items[index].id;
+  const fallback = useRef(returnFocus);
+  fallback.current = returnFocus;
 
   const mounted = shown !== null;
 
@@ -44,7 +53,12 @@ export function Sheet({ items, index, onIndex, onClose, render, primary, eyebrow
     document.body.style.overflow = 'hidden';
     return () => {
       document.body.style.overflow = overflow;
-      opener.current?.focus?.({ preventScroll: true });
+      const prev = opener.current;
+      // Gone: removed, the page body, or the sheet's own control (a sheet open on arrival, its effect re-run by StrictMode).
+      const gone = !prev || prev === document.body || !prev.isConnected || !!ref.current?.contains(prev);
+      const to = gone && fallback.current && lastId.current ? fallback.current(lastId.current) : null;
+      if (to) to.focus({ preventScroll: false });
+      else prev?.focus?.({ preventScroll: true });
     };
   }, [open]);
 

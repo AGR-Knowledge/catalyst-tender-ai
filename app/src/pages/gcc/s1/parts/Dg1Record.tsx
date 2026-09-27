@@ -21,7 +21,11 @@ const TEAM_LABEL: Record<string, string> = { proc: 'Procurement', plan: 'Plannin
 const isDemo = (d: AnyDg1): d is Dg1Decision => 'snapshot' in d;
 const nameOf = (id: string) => personById(id)?.name ?? id;
 
-export function Dg1Record({ s1, state, focusHead = false }: { s1: S1; state: Dg1State; focusHead?: boolean }) {
+export function Dg1Record({ s1, state, focusHead = false, onReopened }: {
+  s1: S1; state: Dg1State; focusHead?: boolean;
+  /** Called when DG1 is re-opened, so the form that replaces the record can take focus (plan 026). */
+  onReopened?: () => void;
+}) {
   const c = state.current!;
   const id = state.tenderId;
   const [reason, setReason] = useState('');
@@ -38,6 +42,7 @@ export function Dg1Record({ s1, state, focusHead = false }: { s1: S1; state: Dg1
 
   const reopen = () => {
     const w = dg1Reopen(s1.tenant, id, reason, s1.viewer.id, s1.done, s1.nextAt());
+    onReopened?.();
     s1.write(id, w.writes, w.audit, { msg: 'DG1 re-opened. The tender is back in the DG1 queue.' });
     setReason('');
     setAsking(false);

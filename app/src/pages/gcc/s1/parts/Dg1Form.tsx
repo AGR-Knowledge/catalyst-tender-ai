@@ -37,10 +37,12 @@ const CHOICES: { id: Choice; label: string; hint: string }[] = [
 ];
 const RULE_CODES = DISCARD_REASONS.map((r) => ({ id: r.code, label: r.label }));
 
-export function Dg1Form({ s1, pack, state, dueAt, onRecorded }: {
+export function Dg1Form({ s1, pack, state, dueAt, onRecorded, focusHead = false }: {
   s1: S1; pack: Dg1Pack; state: Dg1State; dueAt?: string;
   /** Called when a decision is confirmed, so the record that replaces the form can take focus (plan 025b). */
   onRecorded?: () => void;
+  /** Just re-opened: the form replaces the record, so its heading takes focus (plan 026). */
+  focusHead?: boolean;
 }) {
   const { tenant, viewer, done } = s1;
   const id = pack.tenderId;
@@ -75,6 +77,8 @@ export function Dg1Form({ s1, pack, state, dueAt, onRecorded }: {
   // A Hold keeps the form, with "Recorded" at its top: its heading takes focus from the Confirm button.
   const head = useRef<HTMLSpanElement>(null);
   useEffect(() => { if (last) head.current?.focus({ preventScroll: true }); }, [last]);
+  // After a re-open the form mounts in the record's place: bring its heading into view with focus.
+  useEffect(() => { if (focusHead) head.current?.focus({ preventScroll: false }); }, [focusHead]);
 
   const overrides = choice === 'pursue' ? rec.verdict === 'discard' : choice === 'discard' ? rec.verdict !== 'discard' : false;
   const input: Dg1Input | null = choice ? {

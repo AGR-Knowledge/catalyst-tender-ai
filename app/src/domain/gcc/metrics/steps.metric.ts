@@ -3,7 +3,7 @@ import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import { stageOf, stepLabel } from '@/data/gcc/stages';
 import { queueFor } from '../s1';
 import { stageAt, currentOf } from '../lifecycle';
-import { inWindow, type PeriodWindow } from '../period';
+import { inWindow, windowEnd, type PeriodWindow } from '../period';
 import type { KpiCtx } from '../kpi/types';
 import type { DrillVM } from '../viewmodels';
 import { ccyOf, liveIn, moneyText, qOf, round1, scopeStage, staysOf, valueOf, type Stay } from '../kpi/stages';
@@ -46,7 +46,7 @@ function staysIn(ctx: KpiCtx, keys: string[], pick: (s: Stay) => boolean): Stay[
   return byStep(keys, stays, (s) => s.step);
 }
 
-const overlaps = (w: Win) => (s: Stay) => s.from <= w.to && (s.to ?? NOW) >= w.from;
+const overlaps = (w: Win) => (s: Stay) => s.from <= windowEnd(w) && (s.to ?? NOW) >= w.from;
 const leftIn = (w: Win) => (s: Stay) => !!s.to && inWindow(s.to, w);
 
 const uniqueTenders = (stays: Stay[]) => [...new Set(stays.map((s) => s.l.tenderId))];

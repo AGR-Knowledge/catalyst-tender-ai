@@ -169,8 +169,8 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 
 **Batinah, T-2026-042:**
 1. **Shamsa Al-Hinai.** Intake queue › T-2026-042 › Bid bond amount: pick a value.
-   - T-2026-042 moves to "1 · Intake · Screened". The queue says the Bid Manager can record DG1 now.
-2. **Imran Sheikh.** Intake queue › T-2026-042 › Open the DG1 pack › Pursue. T-2026-042 isn't listed under DG1 decisions.
+   - T-2026-042 moves to "1 · Intake · Awaiting DG1", with Imran Sheikh, its Bid Manager. DG1 is due Mon 9 Mar 07:41, 24 h from logging.
+2. **Imran Sheikh.** DG1 decisions › T-2026-042 › Pursue.
 3. Open T-2026-042's workspace › Demo › Advance T-2026-042 to Stage 3.
 
 ---
@@ -188,13 +188,12 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 - Agent timings are simulated on a fixed clock: demo "today" is Sun 8 Mar 2026, 10:00 in each company's time zone.
 - Advance agent work stamps supplier replies later on demo day, while the clock stays at 10:00.
 - The seeded input times of T-2026-061 and T-2026-042 read before the demo's DG1 Pursue.
-- In Batinah, T-2026-042's DG1 pack reads "Waiting for DG1" while DG1 decisions lists nothing. Open the pack from the intake queue.
-- Don't Hold or Re-open DG1 on a tender whose fields were just confirmed and that has no DG1 deadline in the seed (T-2026-042, T-2026-041, T-2026-120, T-2026-072): it reads "Validating" again.
+- T-2026-041, T-2026-120 and T-2026-072 have no field that blocks DG1: their packs read "Validating" but still take a DG1 decision. Resolve one of their fields first.
+- In Batinah the hero is low fit, so DG1 decisions doesn't list it, yet its DG1 pack (Start: DG1 due) counts the DG1 time from logging. Record DG1 from the pack.
 - The hero has no nudges or escalations on demo day. Show them on T-2026-104.
 - The PDF viewer doesn't highlight Arabic words, and scanned pages can't be highlighted at all (the chip says so).
 - The supplier's "Ask a question" in the Supplier Portal is not wired.
 - Break-glass access doesn't expire: revoke it in the audit log.
 - View as ends on a browser reload.
 - Switching company while on another company's tender shows "No … here". Open the hero instead, which exists in all five companies.
-- Keyboard: after Cancel in a queue card's Correct or Send back form, and after a DG1 Re-open, focus returns to the top of the page.
 - T-2026-119's questions deadline falls inside the expected Eid closure. The screen flags it; it's a talking point, not a mistake.

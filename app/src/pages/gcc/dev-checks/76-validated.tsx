@@ -22,7 +22,8 @@ import { DataTable } from '@/components/ui/DataTable';
  * Dev check for plan 025b: a tender at Stage 1 · Validating moves on once the
  * Coordinator resolves its last field that blocks DG1: to Awaiting DG1 with
  * its Bid Manager when it waits for DG1, else to Screened. The DG1 gate stays
- * where the seed had it. It reads fixed tenants, so the panel is the same in
+ * where the seed had it, or opens at logging for a tender routed to
+ * validation, which has no DG1 due time in the seed (plan 026). It reads fixed tenants, so the panel is the same in
  * every tenant; `done` is in memory. Values are typed only in `EXPECT`.
  */
 
@@ -53,15 +54,15 @@ const EXPECT: Record<string, string> = {
   'Corniche T-2026-061 · Advance to Stage 3': 'Stage 3 · Pack in preparation',
   'Batinah T-2026-042 · seed': 'Stage 1 · Validating · Shamsa Al-Hinai',
   'Batinah T-2026-042 · only the field that does not block resolved': 'Stage 1 · Validating · Shamsa Al-Hinai',
-  'Batinah T-2026-042 · every blocking field resolved': 'Stage 1 · Screened · Shamsa Al-Hinai · at the later resolution',
-  'Batinah T-2026-042 · DG1 due': 'none before or after · not in the DG1 list',
-  'Batinah T-2026-042 · Stage 1 dashboard': 'Screened 1 → 2',
-  'Batinah T-2026-042 · after DG1 Pursue': 'Stage 2 · Packaging · DG1 opened Sun 8 Mar 07:35, on time',
-  'Batinah T-2026-042 · DG1 record as without the move': 'same opening, same on-time result',
+  'Batinah T-2026-042 · every blocking field resolved': 'Stage 1 · Awaiting DG1 · Imran Sheikh · at the later resolution',
+  'Batinah T-2026-042 · DG1 due': 'none → Mon 9 Mar 07:41 · the DG1 list agrees',
+  'Batinah T-2026-042 · Stage 1 dashboard': 'Awaiting DG1 0 → 1',
+  'Batinah T-2026-042 · after DG1 Pursue': 'Stage 2 · Packaging · DG1 opened Sun 8 Mar 07:41, on time',
+  'Batinah T-2026-042 · DG1 record as without the move': 'opened Sun 8 Mar 07:41, not Sun 8 Mar 07:35 · same on-time result',
   'Batinah T-2026-042 · Advance to Stage 3': 'Stage 3 · Pack in preparation',
   'A resolution without a time: the current step’s': 'Awaiting DG1 at the Validating step’s time',
   'A field sent back: still validating': 'Stage 1 · Validating',
-  'Hold on a tender without a DG1 due time': 'Stage 1 · Validating · Hold opened Sun 8 Mar 07:35',
+  'Hold on a tender with no DG1 due time in the seed': 'Stage 1 · Awaiting DG1 · Hold opened Sun 8 Mar 07:41',
   'Decisions on time, Najd Head of Tendering, 30 days': 'same before and after the move',
 };
 
@@ -150,7 +151,7 @@ function compute(): Record<string, string> {
     const listed = dg1Queue(tenant, all).find((q) => q.tenderId === id)?.dueAt;
     got[`${label} · DG1 due`] = before === after
       ? `${before ? `${shortWhen(before)} before and after` : 'none before or after'} · ${listed ? (listed === before ? 'the DG1 list agrees' : `the DG1 list says ${shortWhen(listed)}`) : 'not in the DG1 list'}`
-      : `${before ?? 'none'} → ${after ?? 'none'}`;
+      : `${before ? shortWhen(before) : 'none'} → ${after ? shortWhen(after) : 'none'} · ${listed ? (listed === after ? 'the DG1 list agrees' : `the DG1 list says ${shortWhen(listed)}`) : 'not in the DG1 list'}`;
 
     // The Stage 1 dashboard: the steps whose counts change.
     const [f0, f1] = [flowCounts(tenant, {}), flowCounts(tenant, all)];
@@ -163,7 +164,8 @@ function compute(): Record<string, string> {
     const bare = Object.fromEntries(Object.entries(pursued).filter(([k]) => !k.startsWith('val:')));
     const g0 = dg1Of(tenant, id, bare);
     got[`${label} · DG1 record as without the move`] = g && g0 && g.openedAt === g0.openedAt && g.onTime === g0.onTime
-      ? 'same opening, same on-time result' : `${g?.openedAt} ${g?.onTime} vs ${g0?.openedAt} ${g0?.onTime}`;
+      ? 'same opening, same on-time result'
+      : g && g0 ? `opened ${shortWhen(g.openedAt)}, not ${shortWhen(g0.openedAt)} · ${g.onTime === g0.onTime ? 'same on-time result' : 'the on-time result differs'}` : 'no record';
 
     if (tenant !== 'najd') {
       const w = stage3EntryWrite(tenant, id, `${tenant}.bid`, plusMin(DEMO_NOW, 25), pursued);
@@ -182,12 +184,12 @@ function compute(): Record<string, string> {
   const sent = hero.validations.filter((v) => v.blocksDg1).map((v, i) => (i === 0 ? validationAction(v, 'send-back', { hint: 'Dev check' }, 'najd.coord') : resolve('najd', v)));
   got['A field sent back: still validating'] = where('najd', hero.id, put({}, sent));
 
-  // Without a DG1 due time, a DG1 action keeps the seed's step, so the record opens where the seed had it.
+  // No DG1 due time in the seed: once validated it waits for DG1 from logging (plan 026), so a Hold keeps it at Awaiting DG1.
   const t042 = gccData('batinah').register.find((t) => t.id === CASES[2].id)!;
   const r042 = put({}, t042.validations.filter((v) => v.blocksDg1).map((v) => resolve('batinah', v, plusMin(DEMO_NOW, 2))));
   const held = put(r042, dg1Write({ tenderId: t042.id, decision: 'hold', request: { toId: 'batinah.fin', what: 'Dev check', due: plusMin(DEMO_NOW, 240) }, at: plusMin(DEMO_NOW, 20) }, t042.bidManagerId, dg1PackFor('batinah', t042.id, r042)!, r042).writes);
   const h = dg1Of('batinah', t042.id, held);
-  got['Hold on a tender without a DG1 due time'] = `${where('batinah', t042.id, held)} · ${h ? `${h.decision === 'hold' ? 'Hold' : h.decision} opened ${shortWhen(h.openedAt)}` : 'no record'}`;
+  got['Hold on a tender with no DG1 due time in the seed'] = `${where('batinah', t042.id, held)} · ${h ? `${h.decision === 'hold' ? 'Hold' : h.decision} opened ${shortWhen(h.openedAt)}` : 'no record'}`;
 
   // PF-4 reads the gate records' on-time results: the same whether or not the hero moved first.
   const heroPursued = pursue('najd', hero.id, put({}, hero.validations.filter((v) => v.blocksDg1).map((v) => resolve('najd', v))));

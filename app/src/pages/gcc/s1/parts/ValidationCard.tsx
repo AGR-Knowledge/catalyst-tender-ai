@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MessageSquareText } from 'lucide-react';
 import type { Tone } from '@/data/types';
@@ -46,6 +46,15 @@ export function ValidationCard({ q, s1, doc, record, showTender = false, onActed
   const { item } = q;
   const [mode, setMode] = useState<null | 'correct' | 'send-back'>(null);
   const [text, setText] = useState('');
+  // Cancel closes the form: focus goes back to the button that opened it (plan 026).
+  const opener = { correct: useRef<HTMLButtonElement>(null), 'send-back': useRef<HTMLButtonElement>(null) };
+  const back = useRef<null | 'correct' | 'send-back'>(null);
+  const cancel = () => { back.current = mode; setMode(null); };
+  useEffect(() => {
+    if (mode || !back.current) return;
+    opener[back.current].current?.focus();
+    back.current = null;
+  });
   const right = s1.check('field.validate', item.tenderId);
   const st = STATE[stateOf(q)];
   const resolved = q.state === 'resolved';
@@ -142,7 +151,7 @@ export function ValidationCard({ q, s1, doc, record, showTender = false, onActed
         <form className="vq-form" onSubmit={(e) => { e.preventDefault(); if (text.trim()) act('correct', { value: text.trim() }); }}>
           <label className="vq-in"><span>Correct value</span><input autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder={item.value} /></label>
           <button type="submit" className="btn btn-sm btn-primary" disabled={!text.trim()}>Save correction</button>
-          <button type="button" className="btn btn-sm" onClick={() => setMode(null)}>Cancel</button>
+          <button type="button" className="btn btn-sm" onClick={cancel}>Cancel</button>
           <span className="vq-note">The extracted value {item.value} is kept on record.</span>
         </form>
       )}
@@ -150,7 +159,7 @@ export function ValidationCard({ q, s1, doc, record, showTender = false, onActed
         <form className="vq-form" onSubmit={(e) => { e.preventDefault(); act('send-back', { hint: text.trim() || undefined }); }}>
           <label className="vq-in"><span>Hint for the agent (optional)</span><input autoFocus value={text} onChange={(e) => setText(e.target.value)} placeholder="e.g. the special conditions prevail" /></label>
           <button type="submit" className="btn btn-sm btn-primary">Send back</button>
-          <button type="button" className="btn btn-sm" onClick={() => setMode(null)}>Cancel</button>
+          <button type="button" className="btn btn-sm" onClick={cancel}>Cancel</button>
           <span className="vq-note">The item stays in the queue until a person decides.</span>
         </form>
       )}
@@ -158,9 +167,9 @@ export function ValidationCard({ q, s1, doc, record, showTender = false, onActed
       {!resolved && !mode && (
         <div className="vq-acts">
           {!q.conflict && <button type="button" className="btn btn-sm btn-primary" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => act('accept')}>Accept</button>}
-          <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => { setMode('correct'); setText(''); }}>Correct</button>
+          <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => { setMode('correct'); setText(''); }} ref={opener.correct}>Correct</button>
           <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => act('not-stated')}>Mark not stated</button>
-          <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => { setMode('send-back'); setText(''); }}>Send back to agent</button>
+          <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => { setMode('send-back'); setText(''); }} ref={opener['send-back']}>Send back to agent</button>
           {disabled && <span className="s1-why" id={whyId}>{right.reason}</span>}
         </div>
       )}

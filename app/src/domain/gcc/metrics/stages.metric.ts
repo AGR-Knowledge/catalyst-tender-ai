@@ -2,7 +2,7 @@ import type { Lifecycle } from '@/data/gcc/lifecycle';
 import { convert, money } from '@/domain/money';
 import { minutesBetween } from '../clock';
 import { currentOf, healthOf, queriesFor, stageAt } from '../lifecycle';
-import type { PeriodWindow } from '../period';
+import { windowEnd, type PeriodWindow } from '../period';
 import { inScope, tenantCcy } from '../actions/portfolio.actions';
 import type { KpiCtx } from '../kpi/types';
 import type { MetricDef, MetricResult } from './types';
@@ -38,7 +38,7 @@ function spanIn(l: Lifecycle, n: number): { from: string; to: string | null } | 
   return { from: l.log[i].at, to: next?.at ?? l.closedAt ?? null };
 }
 
-const overlaps = (s: { from: string; to: string | null }, w: Win) => s.from <= w.to && (s.to === null || s.to >= w.from);
+const overlaps = (s: { from: string; to: string | null }, w: Win) => s.from <= windowEnd(w) && (s.to === null || s.to >= w.from);
 
 const perStage = (keys: string[], f: (n: number) => number | null) => keys.map((k) => f(Number(k)));
 
@@ -131,7 +131,7 @@ const AVG_DAYS: MetricDef = {
     const mean = (w: Win) => perStage(keys, (n) => {
       const days = all.flatMap((l) => {
         const s = spanIn(l, n);
-        return s?.to && s.to >= w.from && s.to <= w.to ? [minutesBetween(s.from, s.to) / 1440] : [];
+        return s?.to && s.to >= w.from && s.to <= windowEnd(w) ? [minutesBetween(s.from, s.to) / 1440] : [];
       });
       return days.length ? round1(days.reduce((a, b) => a + b, 0) / days.length) : null;
     });

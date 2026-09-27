@@ -37,7 +37,16 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
 | 025a | [Records on the demo clock](025a-demo-clock.md): Stage 2, Stage 3, DG2 and DG3 records stamped with their audit entry's minute; focus after a DG2 or DG3 decision | 7 | wave 6 | DONE (2026-09-27, reviewed) |
 | 025b | [A tender moves on once validated](025b-validated-step.md): Validating → Awaiting DG1 when the last blocking field is resolved; focus after a queue card and after DG1 | 7 | wave 6 | DONE (2026-09-27, reviewed) |
-| 026 | [Validated tenders join DG1](026-dg1-after-validation.md): the four tenders routed to validation join DG1 decisions once validated, with one DG1 due on every screen; focus after Cancel, DG1 Re-open and a drawer opened from another page; the stage graph's last point | 8 | wave 7 | READY |
+| 026 | [Validated tenders join DG1](026-dg1-after-validation.md): the four tenders routed to validation join DG1 decisions once validated, with one DG1 due on every screen; focus after Cancel, DG1 Re-open and a drawer opened from another page; the stage graph's last point | 8 | wave 7 | DONE (2026-09-27, reviewed) |
+
+**Wave 8 review of 026 (orchestrator, 2026-09-27): accepted.**
+- Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 805, Corniche 396, Dafna 377, Batinah 385 and Qurain 400. That is wave 7's counts plus 77's 33 rows. The only targets that moved are six rows in 76, all T-2026-042 once validated: its DG1 record opens at logging (07:41), not at the Validating step (07:35), still on time.
+- Clicked through in Batinah: at seed T-2026-042's pack reads "Validating" with no clock. Shamsa picks the bid bond value (Cancel in Correct and in Send back returns focus to its button). T-2026-042 moves to Awaiting DG1 with Imran, and DG1 decisions, the pack, the workspace, the tracker and Needs your action all read 21 h 41 m left. Imran pursues from DG1 decisions, then Re-opens: focus goes to "Record DG1", and the tender stays at Awaiting DG1, listed as re-opened. In Najd, the credential drawer opened by its link returns focus to the credential's row on Esc; a click-opened drawer, and a Screening triage sheet, return focus to the clicked cell as before. No console errors.
+- Deviations accepted: `Sheet.tsx` also treats an opener inside the sheet as gone (StrictMode re-runs the open effect); `dg1PackStatus` holds the pack header rule, so the page and 77 read one rule.
+- Orchestrator: runbook (Batinah T-2026-042 steps back to DG1 decisions; three known limits removed, two added: T-2026-041, 120 and 072 take a DG1 decision while "Validating", and the Batinah hero's pack counts DG1 time though DG1 decisions doesn't list it); spec §6.1 gains the Needs validation routing rule.
+- Open:
+  - Low-fit and restricted tenders: the pack counts a DG1 time limit, but DG1 decisions doesn't list them (Najd T-2026-119, 121, 123 to 128; Corniche T-2026-063; the Batinah hero; Qurain T-2026-071). Decide whether they join the list, or read without a clock.
+  - T-2026-041, 120 and 072 have no field that blocks DG1, so DG1 can be recorded while the pack reads "Validating"; the record then opens at the Validating step.
 
 **Wave 7 review of 025a and 025b (orchestrator, 2026-09-27): both accepted, committed as one milestone.**
 - Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 772, Corniche 363, Dafna 344, Batinah 352 and Qurain 367. That is wave 6's counts plus 025b's 28 rows (76) and 025a's 15 (99). No existing target moved.
@@ -294,7 +303,7 @@ Plan 001 was verified with a click audit:
 - **Wave 8 (orchestrator, 2026-09-27):** 026 alone, one session, from the wave 7 review's Open list. The pieces share Stage 1 files, so they are not split. 026 owns:
   - `domain/gcc/dg1/record.ts`, `demo/05-validated.apply.ts` (and `10-dg1.apply.ts` if needed);
   - `pages/gcc/s1/Dg1.tsx`, `parts/Dg1Form.tsx`, `Dg1Record.tsx`, `ValidationCard.tsx`;
-  - `components/overlays/Frames.tsx` and `pages/gcc/company/Credentials.tsx` (finding 9 only);
+  - `components/tender/Sheet.tsx` (an optional focus fallback, added 2026-09-27: the credential drawer is a Sheet, not a Frames overlay) and `pages/gcc/company/Credentials.tsx` (finding 9 only);
   - `domain/gcc/period.ts` (`windowEnd`), `metrics/stages.metric.ts`, `steps.metric.ts`;
   - the dev checks whose targets it moves, and the new 77.
 - **Wave 7 (orchestrator, 2026-09-27):** 025a and 025b in parallel, from 016c's open findings. File ownership:

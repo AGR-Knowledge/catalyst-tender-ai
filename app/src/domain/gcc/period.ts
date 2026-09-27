@@ -101,11 +101,14 @@ const DEMO_CLOCK = `${DEMO_TODAY}T${DEMO_TIME}`;
  */
 export const DEMO_MINUTES_END = `${DEMO_TODAY}T11:59`;
 
+/** Where a window stops counting: `DEMO_MINUTES_END` for one that ends at the demo clock, else its end (plan 026). */
+export const windowEnd = (w: Pick<PeriodWindow, 'to'>): string => (w.to === DEMO_CLOCK ? DEMO_MINUTES_END : w.to);
+
 /** True when the moment falls in the window, both ends included. A window ending at the demo clock runs to `DEMO_MINUTES_END`. */
 export function inWindow(iso: string | null | undefined, w: Pick<PeriodWindow, 'from' | 'to'>): boolean {
   if (!iso) return false;
   const t = norm(iso);
-  return t >= w.from && t <= (w.to === DEMO_CLOCK ? DEMO_MINUTES_END : w.to);
+  return t >= w.from && t <= windowEnd(w);
 }
 
 /* ------------------------------------------------------------------- the hook */

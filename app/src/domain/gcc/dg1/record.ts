@@ -3,6 +3,7 @@ import type { Tone } from '@/data/types';
 import { DEMO_NOW, addHours, durationText, minutesBetween, slaState } from '@/domain/gcc/clock';
 import { DONE_KEY, readDone, type Done, type Stamped } from '@/domain/gcc/s1/done';
 import { dataOf, tenderOf } from '@/domain/gcc/s1/common';
+import { validatedOf } from '@/domain/gcc/s1/validation';
 import type { Dg1Decision } from './decision';
 
 /**
@@ -121,13 +122,54 @@ export interface Dg1QueueItem {
 export const slaTextOf = (leftMin: number) => (leftMin >= 0 ? `${durationText(leftMin)} left` : `Overdue by ${durationText(-leftMin)}`);
 
 /**
- * Tenders waiting for DG1: in Stage 1 (or re-opened back to it), routed to the
- * DG1 queue by intake, with no standing Pursue or Discard. Held tenders stay,
- * with `held: true`. Soonest SLA first.
+ * Whether a logged tender waits for DG1 (plan 026): intake shortlisted it, or
+ * routed it to validation and its fields are validated (`validatedOf`). It
+ * reads only the register and `done`, never a lifecycle, because the
+ * validated-step applier calls it while lifecycles are built.
+ */
+export function waitsForDg1(tenant: string, tenderId: string, done: Done): boolean {
+  const t = tenderOf(tenant, tenderId);
+  if (!t?.intake.loggedAt) return false;
+  if (t.intake.disposition === 'shortlisted') return true;
+  return t.intake.disposition === 'needs-validation' && validatedOf(tenant, tenderId, done) !== null;
+}
+
+export interface Dg1PackStatus {
+  label: string;
+  tone: Tone;
+  /** The DG1 time limit the header counts: logging to logging + the SLA. Null once decided, or while validating. */
+  clock: { start: string; end: string } | null;
+  /** A line beside the status, when there is one. */
+  note?: string;
+}
+
+/**
+ * The DG1 pack header's status (plan 026 step 1.5). A tender intake routed to
+ * validation reads "Validating", with no clock, until it waits for DG1: the
+ * DG1 list doesn't show it yet. Every other undecided tender counts the DG1
+ * time limit from logging, as before.
+ */
+export function dg1PackStatus(tenant: string, tenderId: string, done: Done): Dg1PackStatus {
+  const t = tenderOf(tenant, tenderId);
+  const s = dg1RecordFor(tenant, tenderId, done);
+  if (s.current) return s.current.decision === 'pursue' ? { label: 'Pursued', tone: 'green', clock: null } : { label: 'Discarded', tone: 'grey', clock: null };
+  if (t?.intake.disposition === 'needs-validation' && !waitsForDg1(tenant, tenderId, done)) {
+    return { label: 'Validating', tone: 'grey', clock: null, note: 'Joins DG1 decisions once its fields are confirmed.' };
+  }
+  const loggedAt = t?.intake.loggedAt;
+  const clock = loggedAt ? { start: loggedAt, end: addHours(loggedAt, DG1_SLA_HOURS) } : null;
+  if (s.hold) return { label: 'On hold', tone: 'orange', clock };
+  return s.reopen ? { label: 'Re-opened', tone: 'cyan', clock } : { label: 'Waiting for DG1', tone: 'cyan', clock };
+}
+
+/**
+ * Tenders waiting for DG1: in Stage 1 (or re-opened back to it), shortlisted
+ * by intake or validated after it (`waitsForDg1`), with no standing Pursue or
+ * Discard. Held tenders stay, with `held: true`. Soonest SLA first.
  */
 export function dg1Queue(tenant: string, done: Done): Dg1QueueItem[] {
   return dataOf(tenant).register
-    .filter((t) => t.intake.disposition === 'shortlisted' && t.intake.loggedAt)
+    .filter((t) => waitsForDg1(tenant, t.id, done))
     .flatMap((t) => {
       const s = dg1RecordFor(tenant, t.id, done);
       if (s.current) return [];

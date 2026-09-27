@@ -10,6 +10,7 @@ import { addHours } from '@/domain/gcc/clock';
 import { blockingOpen, recommendationFor } from '@/domain/gcc/s1';
 import { authorityCalendar, capitalise, dataOf, shortDate, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
 import { dg1PackFor, dg1Queue, dg1RecordFor, DG1_SLA_HOURS, reasonLabel, type Dg1Pack, type Dg1QueueItem } from '@/domain/gcc/dg1';
+import { dg1PackStatus } from '@/domain/gcc/dg1/record';
 import { Card, CardHead, KV } from '@/components/ui/primitives';
 import { StatusPill } from '@/components/tender/StatusPill';
 import { SlaClock } from '@/components/tender/SlaClock';
@@ -262,6 +263,8 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
   const rail = useRail(s1, id);
   // After Confirm the record replaces the form: it takes keyboard focus (plan 025b).
   const [recorded, setRecorded] = useState(false);
+  // After Re-open the form replaces the record: its heading takes focus (plan 026).
+  const [reopened, setReopened] = useState(false);
   const t = tenderOf(tenant, id);
   const back =<Link to="/dg1" className="btn btn-sm"><ChevronLeft size={13} aria-hidden />DG1 decisions</Link>;
 
@@ -271,8 +274,8 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
   const loggedAt = t.intake.loggedAt;
   const dueAt = loggedAt ? addHours(loggedAt, DG1_SLA_HOURS) : undefined;
   const c = state.current;
-  const status = c ? (c.decision === 'pursue' ? { label: 'Pursued', tone: 'green' as Tone } : { label: 'Discarded', tone: 'grey' as Tone })
-    : state.hold ? { label: 'On hold', tone: 'orange' as Tone } : state.reopen ? { label: 'Re-opened', tone: 'cyan' as Tone } : { label: 'Waiting for DG1', tone: 'cyan' as Tone };
+  // A tender routed to validation reads Validating, with no clock, until it joins DG1 decisions (plan 026).
+  const status = dg1PackStatus(tenant, id, done);
   const bm = personById(t.bidManagerId);
 
   return (
@@ -287,7 +290,8 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
             </div>
             <div className="dg1-head-r">
               <StatusPill label={status.label} tone={status.tone} />
-              {!c && loggedAt && dueAt && <SlaClock start={loggedAt} end={dueAt} />}
+              {status.clock && <SlaClock start={status.clock.start} end={status.clock.end} />}
+              {status.note && <span className="s1-sub-i">{status.note}</span>}
               <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5 }}>
                 <span className="t-muted" style={{ fontSize: 12 }}>Fit</span>
                 <FitNum tenant={tenant} fit={pack.fit.result.weighted} />
@@ -301,7 +305,7 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
           <div className="s1-stack dg1-side">
             {c ? (
               <>
-                <Dg1Record s1={s1} state={state} focusHead={recorded} />
+                <Dg1Record s1={s1} state={state} focusHead={recorded} onReopened={() => setReopened(true)} />
                 {rail && <RecCard rail={rail} overridden />}
               </>
             ) : (
@@ -312,7 +316,7 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
                     {state.reopen.reason.replace(/[.\s]+$/, '')}{state.reopen.previous ? `. The earlier ${state.reopen.previous.decision === 'pursue' ? 'Pursue' : 'Discard'} of ${shortWhen(state.reopen.previous.at)} stays on record.` : '.'}
                   </Callout>
                 )}
-                <Dg1Form key={`${id}:${state.round}`} s1={s1} pack={pack} state={state} dueAt={dueAt} onRecorded={() => setRecorded(true)} />
+                <Dg1Form key={`${id}:${state.round}`} s1={s1} pack={pack} state={state} dueAt={dueAt} onRecorded={() => setRecorded(true)} focusHead={reopened} />
               </>
             )}
           </div>

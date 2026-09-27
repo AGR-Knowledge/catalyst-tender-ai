@@ -277,6 +277,8 @@ export function Credentials({ s1, vault }: { s1: S1; vault: Vault }) {
 
       <Sheet
         items={rows.map((r) => ({ id: r.id, title: r.cred.label }))} index={index >= 0 ? index : null} onIndex={openAt} onClose={close} eyebrow="Credential"
+        // Opened from My requests, there is no control on this page to go back to: the credential's row takes focus (plan 026).
+        returnFocus={(id) => document.querySelector<HTMLElement>(`.co-grid [row-id="${CSS.escape(id)}"] .ag-cell`)}
         render={(id) => { const r = rows.find((x) => x.id === id); return r ? <CredentialPanel s1={s1} row={r} company={company} onUpload={() => setUploadId(r.id)} /> : null; }}
       />
       <RenewalModal s1={s1} row={upload} onClose={() => setUploadId(null)} />
