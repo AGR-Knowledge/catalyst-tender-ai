@@ -165,7 +165,7 @@ function PackBody({ s1, pack }: { s1: S1; pack: Dg1Pack }) {
 
   return (
     <div className="s1-stack">
-      <Section n={2} title="The tender at a glance">
+      <Section n={1} title="The tender at a glance">
         <div className="s1-kv">
           <KV k="Authority" v={g.authority} />
           <KV k="Value" v={<PairMoney v={g.value ?? undefined} basis={g.valueBasis} />} />
@@ -184,15 +184,15 @@ function PackBody({ s1, pack }: { s1: S1; pack: Dg1Pack }) {
         <KeyDateList s1={s1} tenderId={id} doc={doc} compact />
       </Section>
 
-      <Section n={3} title="Eligibility">
+      <Section n={2} title="Eligibility">
         <EligibilityPanel s1={s1} tenderId={id} doc={doc} mode="pack" onQueries={() => navigate(`/tenders/${id}?tab=queries`)} />
       </Section>
 
-      <Section n={4} title="Fit">
+      <Section n={3} title="Fit">
         <FitBreakdown s1={s1} tenderId={id} />
       </Section>
 
-      <Section n={5} title="Capacity" meta={cap ? <span className="num">{cap.windowLabel}</span> : undefined}>
+      <Section n={4} title="Capacity" meta={cap ? <span className="num">{cap.windowLabel}</span> : undefined}>
         {cap ? (
           <>
             <p className="s1-muted"><b>{capitalise(cap.teamName)}</b>: {cap.nowPct}% committed now, {cap.withPct}% with this bid. Busiest month: {cap.peak.month}, {cap.peak.pct}%.</p>
@@ -208,7 +208,7 @@ function PackBody({ s1, pack }: { s1: S1; pack: Dg1Pack }) {
         ) : <p className="s1-muted">No effort estimate for this tender yet, so its load on a bid team is not shown.</p>}
       </Section>
 
-      <Section n={6} title="Bid bond and the facility">
+      <Section n={5} title="Bid bond and the facility">
         {b ? (
           <>
             <div className="s1-kv">
@@ -230,11 +230,11 @@ function PackBody({ s1, pack }: { s1: S1; pack: Dg1Pack }) {
         ) : <p className="s1-muted">The tender states no bid bond.</p>}
       </Section>
 
-      <Section n={7} title="Comparable past bids" meta={<span className="num">{pack.comparables.length}</span>}>
+      <Section n={6} title="Comparable past bids" meta={<span className="num">{pack.comparables.length}</span>}>
         {pack.comparables.length ? <Comparables items={pack.comparables} heading={false} /> : <p className="s1-muted">No comparable past bids in the company's history.</p>}
       </Section>
 
-      <Section n={8} title="Open validations and queries">
+      <Section n={7} title="Open validations and queries">
         {open.validations.length ? (
           <ul className="dg1-list">
             {open.validations.map((q) => (
@@ -286,7 +286,10 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
             <div className="dg1-head-r">
               <StatusPill label={status.label} tone={status.tone} />
               {!c && loggedAt && dueAt && <SlaClock start={loggedAt} end={dueAt} />}
-              <FitNum tenant={tenant} fit={pack.fit.result.weighted} />
+              <span style={{ display: 'inline-flex', alignItems: 'baseline', gap: 5 }}>
+                <span className="t-muted" style={{ fontSize: 12 }}>Fit</span>
+                <FitNum tenant={tenant} fit={pack.fit.result.weighted} />
+              </span>
             </div>
           </div>
         </Card>

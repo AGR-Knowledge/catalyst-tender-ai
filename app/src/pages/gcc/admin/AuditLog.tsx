@@ -111,7 +111,7 @@ export default function AuditLog() {
               </span>
             )}
           >
-            Break-glass, read only, for up to {r.hours} h. Reason: “{r.reason}”. Second approver: {approverLine(r.approverId)}.
+            Break-glass, read only, for up to {r.hours} h. Reason: “{r.reason.replace(/\.$/, '')}”. Second approver: {approverLine(r.approverId)}.
             Requested {stampText(r.at)}. Every screen Catalyst views is written to this log, and you can revoke the access at any time.
           </Callout>
         </div>

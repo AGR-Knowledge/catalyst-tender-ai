@@ -133,7 +133,7 @@ export const COLUMNS: ColumnDef[] = [
     valueGetter: (p) => (p.data ? p.data.stage * 100 : null),
     cellRenderer: (p: P) => p.data && (
       <span className="cell-two">
-        <span className="stage-chip">{stageLabel(p.data.stage)}</span>
+        <span className="tk-stage">{stageLabel(p.data.stage)}</span>
         <span className="tk-sub">{stepLabel(p.data.stage, p.data.step)}</span>
       </span>
     ),

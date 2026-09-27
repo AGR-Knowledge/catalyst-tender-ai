@@ -211,7 +211,8 @@
 .tg-chip:hover { border-color: var(--line-strong); color: var(--ink); }
 .tg-chip svg { color: var(--ink-4); }
 .tg-clear { font-size: 12px; flex: none; }
-.tg-grid { flex: none; height: calc(440px + var(--tg-hscroll, 10px)); position: relative; }
+/* Its height is set inline from the row count (TenderGrid.tsx). */
+.tg-grid { flex: none; position: relative; }
 .tg-empty { position: absolute; inset: 40px 0 0; display: grid; place-items: center; background: var(--surface); z-index: 2; }
 
 .popover.tip-pop.tg-menu-pop, .tip-pop:has(.tg-menu) { padding: 6px; }
@@ -234,7 +235,8 @@
 .cell-two { display: flex; flex-direction: column; justify-content: center; min-width: 0; gap: 1px; }
 .cell-two .tk-main, .src-btn .tk-main { font-size: 13px; font-weight: 500; color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tk-sub { font-size: 11.5px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.stage-chip { align-self: flex-start; font-size: 11.5px; font-weight: 500; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); white-space: nowrap; }
+/* The stage label in the tender table. Not `.stage-chip`, which is the legacy Workflow card (pages.css). */
+.tk-stage { align-self: flex-start; font-size: 11.5px; font-weight: 500; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); white-space: nowrap; }
 .owner-cell { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .avatar.xs { width: 22px; height: 22px; font-size: 9px; }
 .value-cell { display: flex; flex-direction: column; align-items: flex-end; }
@@ -315,3 +317,4 @@
 .tt-kv dd { color: var(--ink-2); line-height: 1.45; }
 .tt-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
 .tt-foot.pad { padding: 0 18px 16px; margin-top: 0; }
+.cell-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; font-size: 12.5px; line-height: 1.3; }

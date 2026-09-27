@@ -261,13 +261,18 @@ const dg3Approve: ActionSource = {
       const wd = deadlineWd(l, ctx.tenant);
       // The gate's own readiness (plan 018), so this row and /dg3 never disagree.
       const s = dg3State(ctx.tenant, l.tenderId, ctx.done);
+      // Sent back: the pack is with Compliance until it is re-issued, so the row waits on them, not on the approver.
+      const back = s?.sentBack;
+      const onViewer = back ? back.toId === ctx.viewer.id : mine;
+      const on = back ? personById(back.toId) : hot;
       return {
-        u: { source: 'dg3.approve', blocking: !g.onTime || (wd !== null && wd <= NEAR_WD), waiting: !mine, minutesLeft: left(ctx, g.slaEnd), value: l.value.amount },
+        u: { source: 'dg3.approve', blocking: !g.onTime || (wd !== null && wd <= NEAR_WD), waiting: !onViewer, minutesLeft: left(ctx, g.slaEnd), value: l.value.amount },
         row: {
           id: `dg3.approve:${l.tenderId}`, source: 'dg3.approve', type: 'DG3 approval', typeTone: 'orange', tenderId: l.tenderId, shortTitle: l.shortTitle,
           what: s ? dg3Readiness(s, mine) : gaps ? `Evidence incomplete: ${count(gaps, 'mandatory gap')}` : `${mine ? 'Ready for your approval' : 'Ready for approval'}: evidence complete`,
           due: sla(g),
-          ...(mine ? {} : { waitingOn: waitingOn(hot), disabledReason: 'The Head of Tendering approves' }),
+          ...(onViewer ? {} : { waitingOn: waitingOn(on) }),
+          ...(mine ? {} : { disabledReason: 'The Head of Tendering approves' }),
           primary: route('/dg3', 'Open DG3', l.tenderId),
         },
       };
@@ -351,7 +356,7 @@ const bookletApprove: ActionSource = {
         u: { source: 'booklet.approve', blocking: false, waiting: !mine, minutesLeft: left(ctx, closes), value: l.value.amount },
         row: {
           id: `booklet.approve:${l.tenderId}`, source: 'booklet.approve', type: 'Booklet purchase', tenderId: l.tenderId, shortTitle: l.shortTitle,
-          what: `${fee} via ${portal} · purchase closes ${dayText(doc.purchaseBy)} · requested by ${requester}`,
+          what: `${fee} via ${portal} · purchase closes ${dayText(doc.purchaseBy)} · requested by ${doc.requestedById === ctx.viewer.id ? 'you' : requester}`,
           due: { kind: 'date', date: doc.purchaseBy },
           ...(mine ? {} : { waitingOn: waitingOn(hot), disabledReason: 'The Head of Tendering approves' }),
           primary: {
@@ -395,19 +400,20 @@ const dg1Oversee: ActionSource = {
   id: 'dg1.oversight',
   cap: 'dg1.view',
   rows(ctx) {
-    const delegate = can(ctx.viewer, 'dg1.delegate');
+    // Only a delegate (the Head of Tendering) is offered to record it; others (the CEO) open DG1 and see who it waits on.
+    const delegate = can(ctx.viewer, 'dg1.delegate').ok;
     return ranked(dg1Oversight(ctx).filter(({ l }) => l.bidManagerId !== ctx.viewer.id).map(({ l, g }) => {
       const bm = personById(l.bidManagerId);
-      const primary = route('/dg1', 'Record as delegate', l.tenderId);
+      const primary = route('/dg1', delegate ? 'Record as delegate' : 'Open DG1', l.tenderId);
+      const overdue = `Overdue by ${durationText(-left(ctx, g.slaEnd))}`;
       return {
-        u: { source: 'dg1.oversight', blocking: !g.onTime, waiting: !!bm, minutesLeft: left(ctx, g.slaEnd), value: l.value.amount },
+        u: { source: 'dg1.oversight', blocking: !g.onTime, waiting: !!bm || !delegate, minutesLeft: left(ctx, g.slaEnd), value: l.value.amount },
         row: {
           id: `dg1.oversight:${l.tenderId}`, source: 'dg1.oversight', type: 'DG1 due', typeTone: g.onTime ? undefined : 'red', tenderId: l.tenderId, shortTitle: l.shortTitle,
-          what: !bm ? 'No Bid Manager assigned: record it as delegate or assign one'
-            : g.onTime ? `Due ${dueText(g.slaEnd)}` : `Overdue by ${durationText(-left(ctx, g.slaEnd))}: you can record it as ${bm.name}'s delegate`,
+          what: !bm ? (delegate ? 'No Bid Manager assigned: record it as delegate or assign one' : 'No Bid Manager assigned')
+            : g.onTime ? `Due ${dueText(g.slaEnd)}` : delegate ? `${overdue}: you can record it as ${bm.name}'s delegate` : overdue,
           due: sla(g),
-          ...(bm ? { waitingOn: waitingOn(bm) } : {}),
-          ...(delegate.ok ? {} : { disabledReason: `${bm?.name ?? 'The Bid Manager'} records DG1` }),
+          ...(bm ? { waitingOn: waitingOn(bm) } : delegate ? {} : { waitingOn: waitingOn(hotOf(ctx.tenant)) }),
           primary,
         },
       };
@@ -566,7 +572,7 @@ export const ACTION_SOURCES: ActionSource[] = [
  * - DG1: the assigned Bid Manager, and the Head of Tendering once a DG1 is
  *   breached, has a quarter of its SLA or less left, or has no Bid Manager;
  * - DG2: the Head of Tendering once quorum is met, and members without a position;
- * - DG3: the Head of Tendering.
+ * - DG3: the Head of Tendering, except while the pack is back with Compliance.
  */
 export function gateChipState(gate: GateKey, ctx: PortfolioCtx): GateChipState {
   const v = ctx.viewer;
@@ -582,7 +588,8 @@ export function gateChipState(gate: GateKey, ctx: PortfolioCtx): GateChipState {
     const position = seat && can(v, 'dg2.position', { seat }).ok ? open.filter((x) => !x.f.positions.bySeat[seat]) : [];
     waits = [...approve, ...position].map((x) => x.g);
   } else if (can(v, 'dg3.decide').ok) {
-    waits = dg3Open(ctx).map((x) => x.g);
+    // A pack sent back waits on Compliance's re-issue, not on the approver (the row says so too).
+    waits = dg3Open(ctx).filter(({ l }) => !dg3State(ctx.tenant, l.tenderId, ctx.done)?.sentBack).map((x) => x.g);
   }
   if (!waits.length) return 'open';
   return waits.some((g) => !g.onTime) ? 'breached' : 'waiting-on-me';

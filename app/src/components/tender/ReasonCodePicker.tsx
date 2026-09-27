@@ -68,7 +68,9 @@ export function ReasonCodePicker({ codes = [], value, required, onChange, noteLa
         </fieldset>
       )}
       <label className="rcp-note" htmlFor={`${id}-note`}>
-        <span className="rcp-l">{noteLabel ?? (codes.length ? (noteNeeded ? 'Note (required)' : 'Note (optional)') : prompt(required, false))}</span>
+        <span className="rcp-l">{noteLabel ?? (codes.length
+          ? (!noteNeeded ? 'Note (optional)' : required === 'code-or-note' ? 'Note (or pick a reason above)' : 'Note (required)')
+          : prompt(required, false))}</span>
         <textarea
           id={`${id}-note`} rows={3} value={value.note} onChange={(e) => onChange({ ...value, note: e.target.value })}
           placeholder="In a sentence: why you decided this way."

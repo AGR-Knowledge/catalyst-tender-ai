@@ -7,8 +7,13 @@ import { useTenantKey } from '@/domain/tenancy';
 import { plural } from '@/domain/format';
 import { addHours, DEMO_NOW } from '@/domain/gcc/clock';
 import { pendingRepliesAll } from '@/domain/gcc/s2/simulate';
-import { isPlan, presetFor, presets } from '@/domain/gcc/demo/presets';
+import { isPlan, presetFor, presets, type PresetPlan } from '@/domain/gcc/demo/presets';
+import { BRANDING_KEY } from '@/domain/gcc/admin/branding';
 import { stage3Candidates, stage3Entry, stage3EntryWrite } from '@/domain/gcc/demo/25-stage3-entry.apply';
+import { can } from '@/data/access';
+import { firstWithRole } from '@/data/people';
+import { nameStop } from '@/data/tenants';
+import { SCREENS } from '@/pages/gcc/screens';
 
 /**
  * The presenter's Demo menu (plan 014, spec §16), beside the company switch
@@ -31,6 +36,33 @@ interface Item {
   run?: () => void;
 }
 
+/**
+ * Runs a preset's plan and lands on its screen with its toast. The Demo menu
+ * uses it directly; the preset's confirm (Modals.tsx) uses it when the
+ * company had demo activity to clear.
+ */
+export function useStartPreset() {
+  const { applyPreset, toast, state, setPerson } = useDemo();
+  const tenant = useTenantKey();
+  const navigate = useNavigate();
+  return (r: PresetPlan) => {
+    // The prospect branding is the presenter's setup, not demo activity: a preset keeps it (Reset demo still clears it).
+    const branding = state.done[BRANDING_KEY];
+    applyPreset(tenant, branding ? [{ key: BRANDING_KEY, value: branding }, ...r.writes] : r.writes, r.audit);
+    // When the persona can't open the preset's screen, act as the Head of Tendering, who can, and say so.
+    const screen = SCREENS[r.to.split('?')[0]];
+    const me = state.realPerson;
+    const hot = screen?.cap && !can(me, screen.cap).ok ? firstWithRole(tenant, 'hot') : undefined;
+    if (hot) setPerson(hot.id);
+    navigate(r.to);
+    window.scrollTo({ top: 0 });
+    toast(hot ? `${r.message} ${screen.name} isn’t part of ${me.name}’s role, so you now act as ${nameStop(`${hot.name}, ${hot.title}`)} Demo control` : r.message, 'ink3');
+  };
+}
+
+/** Store entries that only record the presenter's setup (who they act as; branding, which a preset keeps): a preset loses nothing by clearing them. */
+const SWITCHES = new Set(['Persona switched (demo control)', 'Company switched (demo control)', 'View as started', 'View as ended']);
+
 /** The tender the screen is about: `/tenders/:id`, or `?tender=` on a desk or gate page. */
 function tenderOnScreen(pathname: string, search: string): string | null {
   const m = /^\/tenders\/([^/?#]+)/.exec(pathname);
@@ -39,7 +71,8 @@ function tenderOnScreen(pathname: string, search: string): string | null {
 }
 
 export function DemoMenu() {
-  const { state, applyPreset, openModal, toast, mark, logAudit } = useDemo();
+  const { state, openModal, toast, mark, logAudit } = useDemo();
+  const startPreset = useStartPreset();
   const tenant = useTenantKey();
   const navigate = useNavigate();
   const { pathname, search } = useLocation();
@@ -87,12 +120,15 @@ export function DemoMenu() {
       toast(message, 'ink3');
     };
 
+    // A preset first resets the company, so it asks when there is demo activity to lose (plan 016b).
+    const inProgress = Object.keys(done).some((k) => k !== BRANDING_KEY) || state.uploads.length > 0
+      || state.audit.some((e) => !SWITCHES.has(e.action) && !e.action.startsWith('Branding '));
     const start: Item[] = presets().map((p) => {
       const r = presetFor(p, tenant);
       return {
         id: `preset:${p.id}`, icon: <Play size={13} aria-hidden />, label: p.label, line: p.line,
         ...(isPlan(r)
-          ? { run: () => { applyPreset(tenant, r.writes, r.audit); finish(r.to, r.message); } }
+          ? { run: () => { close(inProgress); if (inProgress) openModal({ type: 'preset', id: p.id }); else startPreset(r); } }
           : { reason: r.unavailable }),
       };
     });
@@ -146,7 +182,8 @@ export function DemoMenu() {
     const reset: Item[] = [{
       id: 'reset', icon: <RotateCcw size={13} aria-hidden />, label: 'Reset demo…',
       line: 'This company or all companies. Asks first.',
-      run: () => { close(false); openModal({ type: 'reset' }); },
+      // The modal hands the focus back to the Demo button when it closes.
+      run: () => { close(true); openModal({ type: 'reset' }); },
     }];
 
     return [
@@ -155,7 +192,7 @@ export function DemoMenu() {
       { title: 'Views', items: views },
       { title: 'Reset', items: reset },
     ];
-  }, [open, tenant, state.done, state.audit, state.realPerson.id, pathname, search]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [open, tenant, state.done, state.audit, state.uploads, state.realPerson.id, pathname, search]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     const items = [...(menu.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];

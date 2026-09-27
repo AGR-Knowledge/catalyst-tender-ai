@@ -116,7 +116,7 @@ export function breakGlassRequest(done: Record<string, string>, input: BreakGlas
     event: {
       actorId: input.requestedById,
       action: requestedAction(input.hours),
-      detail: `Reason: ${reason}. Second approver: ${approverLine(input.approverId)}. Every screen viewed would be logged here`,
+      detail: `Reason: ${reason.replace(/\.$/, '')}. Second approver: ${approverLine(input.approverId)}. Every screen viewed would be logged here`,
     },
     set: (at) => ({
       [`breakglass:${n}`]: JSON.stringify({

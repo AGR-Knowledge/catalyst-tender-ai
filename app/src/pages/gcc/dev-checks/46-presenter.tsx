@@ -5,7 +5,7 @@ import { currentOf, lifecycle, type DemoDone } from '@/domain/gcc/lifecycle';
 import { dataPort } from '@/domain/gcc/port';
 import { validationAction } from '@/domain/gcc/s1';
 import { bidBondFor, facilityHeadroom } from '@/domain/gcc/s1/bond';
-import { dg1PackFor, dg1RecordFor, dg1Write } from '@/domain/gcc/dg1';
+import { dg1PackFor, dg1RecordFor, dg1Reopen, dg1Write } from '@/domain/gcc/dg1';
 import { approvedShortlist, packagesFor, rfqClock, rfqsFor } from '@/domain/gcc/s2';
 import { pendingReplies, pendingRepliesAll } from '@/domain/gcc/s2/simulate';
 import { freshnessFor, inputsFor, packVersionsFor } from '@/domain/gcc/s3';
@@ -41,6 +41,9 @@ const EXPECT: Record<string, string> = {
   'Compare: the five answers of dev-check 70': 'najd 82 Pursue · corniche 63 Recommend discard · dafna 71 Pursue with conditions (JV needed) · batinah 38 Recommend discard · qurain 78 Pursue with conditions',
   'Advance to Stage 3: T-2026-061 (Corniche)': 'before DG1: Stage 1 refused · after: Stage 3 · pack-in-preparation · pack v1 · 6 inputs · port stage 3 · hero still Stage 1',
   'Advance to Stage 3: T-2026-042 (Batinah)': 'before DG1: Stage 1 refused · after: Stage 3 · pack-in-preparation · pack v1 · 6 inputs · port stage 3 · hero still Stage 1',
+  // Plan 016a 3.2: a DG1 re-open after the move sends the tender back; a new Pursue stops at Stage 2 and the control is offered again.
+  'DG1 re-open after Advance to Stage 3: T-2026-061 (Corniche)': 'after re-open: Stage 1 · no pack · new Pursue: Stage 2 · no pack · Advance offered · after it: Stage 3 · pack v1',
+  'DG1 re-open after Advance to Stage 3: T-2026-042 (Batinah)': 'after re-open: Stage 1 · no pack · new Pursue: Stage 2 · no pack · Advance offered · after it: Stage 3 · pack v1',
 };
 
 // ---------------------------------------------------------------------------
@@ -58,15 +61,15 @@ const stageRow = (k: GccTenantKey, id: string, d: DemoDone) => {
   return l ? currentOf(l) : null;
 };
 
-/** A demo tender pursued at DG1 in the demo: its blocking fields resolved, then Pursue by its Bid Manager. */
-function pursued(k: GccTenantKey, id: string): Done {
+/** A demo tender pursued at DG1 in the demo: its blocking fields resolved, then Pursue by its Bid Manager. With `from`, a later Pursue on that state. */
+function pursued(k: GccTenantKey, id: string, from?: { done: Done; at: string }): Done {
   const t = gccData(k).register.find((x) => x.id === id)!;
-  let d = put({}, t.validations.filter((v) => v.blocksDg1).map((v) => validationAction(v, v.alt ? 'pick' : 'accept', v.alt ? { pick: 'value' } : {}, `${k}.coord`)));
+  let d = from?.done ?? put({}, t.validations.filter((v) => v.blocksDg1).map((v) => validationAction(v, v.alt ? 'pick' : 'accept', v.alt ? { pick: 'value' } : {}, `${k}.coord`)));
   const pack = dg1PackFor(k, id, d)!;
   const note = pack.recommendation.verdict === 'discard' ? 'Dev check: pursue whatever the recommendation' : undefined;
   const elig = pack.eligibility?.result;
   const strategy = elig?.verdict === 'eligible-with-jv' && elig.jvPartner ? { kind: 'jv' as const, partnerId: elig.jvPartner.id } : { kind: 'prime' as const };
-  d = put(d, dg1Write({ tenderId: id, decision: 'pursue', strategy, ...(note ? { note } : {}) }, t.bidManagerId ?? `${k}.bid`, pack, d).writes);
+  d = put(d, dg1Write({ tenderId: id, decision: 'pursue', strategy, ...(note ? { note } : {}), ...(from ? { at: from.at } : {}) }, t.bidManagerId ?? `${k}.bid`, pack, d).writes);
   return d;
 }
 
@@ -197,6 +200,26 @@ function checks(): Check[] {
         `${f?.inputs.requested ?? inputsFor(k, id, d).totals.requested} inputs`,
         `port stage ${port?.stage}`,
         `hero still Stage ${hero}`,
+      ].join(' · ');
+    });
+    // Plan 016a 3.2: Advance to Stage 3, then DG1 re-opened, then a new Pursue, then Advance again (demo times a minute apart).
+    add(`DG1 re-open after Advance to Stage 3: ${id} (${label})`, () => {
+      const d0 = pursued(k, id);
+      const w = stage3EntryWrite(k, id, `${k}.bid`, '2026-03-08T10:05', d0);
+      if ('error' in w) throw new Error(w.error);
+      const d1 = put(d0, w.writes);
+      const d2 = put(d1, dg1Reopen(k, id, 'Dev check: the client re-issued the scope', `${k}.hot`, d1, '2026-03-08T10:06').writes);
+      const d3 = pursued(k, id, { done: d2, at: '2026-03-08T10:07' });
+      const again = stage3Entry(k, id, d3);
+      const w2 = stage3EntryWrite(k, id, `${k}.bid`, '2026-03-08T10:08', d3);
+      if ('error' in w2) throw new Error(w2.error);
+      const d4 = put(d3, w2.writes);
+      const pack = (d: Done) => { const v = packVersionsFor(k, id, d).current?.version; return v ? `pack v${v}` : 'no pack'; };
+      return [
+        `after re-open: Stage ${stageRow(k, id, d2)?.stage}`, pack(d2),
+        `new Pursue: Stage ${stageRow(k, id, d3)?.stage}`, pack(d3),
+        `Advance ${again?.ok ? 'offered' : 'not offered'}`,
+        `after it: Stage ${stageRow(k, id, d4)?.stage}`, pack(d4),
       ].join(' · ');
     });
     // Info: the facility figure the Stage 3 facts carry (the pack's §9.5), beside the plan's reading of it.

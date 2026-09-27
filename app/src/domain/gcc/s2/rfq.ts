@@ -200,7 +200,7 @@ export function rfqWrite(tenant: string, tenderId: string, pkgId: string, suppli
   const reply = replyByFor(tenant, at);
   return write(K.rfqSent(tenderId, pkgId, batch), record, {
     actorId: byId, action: 'RFQs sent', target: `${tenderId} ${pkgId}`,
-    detail: `Sent to ${supplierIds.map((id) => supplierName(tenant, id)).join(', ')}. Reply by ${whenText(dateOf(reply), timeOf(reply), tenantOf(tenant).tzLabel)}.`,
+    detail: `Sent to ${supplierIds.map((id) => supplierName(tenant, id)).join(', ').replace(/\.$/, '')}. Reply by ${whenText(dateOf(reply), timeOf(reply), tenantOf(tenant).tzLabel)}.`,
   });
 }
 

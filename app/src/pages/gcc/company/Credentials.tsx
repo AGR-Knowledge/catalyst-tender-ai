@@ -105,7 +105,7 @@ function CredentialPanel({ s1, row, company, onUpload }: { s1: S1; row: VaultRow
         <p className="co-line">
           <StatusPill label={REQUEST[req.status].label} tone={REQUEST[req.status].tone} />
           <span>
-            Requested by {req.by?.name ?? 'the Head of Tendering'}, {shortWhen(req.at)}{row.owner ? ` · asked of ${row.owner.name}` : ''}
+            Requested by {req.by?.id === s1.viewer.id ? 'you' : req.by?.name ?? 'the Head of Tendering'}, {shortWhen(req.at)}{row.owner ? ` · asked of ${row.owner.id === s1.viewer.id ? 'you' : row.owner.name}` : ''}
             {row.renewal ? ` · submitted ${shortWhen(row.renewal.at)}` : req.due ? ` · due ${shortWhen(req.due)}` : ''}
           </span>
         </p>

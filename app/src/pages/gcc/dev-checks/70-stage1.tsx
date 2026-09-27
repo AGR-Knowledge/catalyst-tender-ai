@@ -119,6 +119,7 @@ const EXPECT: Record<string, string> = {
   'Flow 6: Hold, request to qurain.fin': 'in queue · held',
   'Flow 7: re-open after Discard': 'in queue · previous 1 · S1',
   'Determinism: same JSON twice': 'yes',
+  'Triage totals over the rows shown (one hidden)': 'hidden row left out · bonds equal the rows shown · last row ↓ equals the facility share',
 
   // Plan 020, lane C (review fixes)
   'C1: Corniche PQ-15 (UAE certificate, KSA tender)':
@@ -354,6 +355,12 @@ function reviewFixes(): Check[] {
   const tri = triageFor('najd', {});
   add('C11: triage capacity window',
     `${tri.windowLabel}: ${tri.teams.find((t) => t.id === 'najd-water')!.basePct}% → ${tri.rows.find((r) => r.tenderId === H)!.cumulative.teamLoadPct}% with the hero`);
+  // Plan 016a 2.2: with a row hidden from the viewer, every total is over the rows shown (no seed row is hidden, so hide the first).
+  const hidden = tri.rows[0].tenderId;
+  const shown = triageFor('najd', {}, (id) => id !== hidden);
+  const bondsShown = shown.rows.reduce((n, r) => n + r.bidBond.amount, 0);
+  add('Triage totals over the rows shown (one hidden)',
+    `${shown.rows.some((r) => r.tenderId === hidden) ? 'hidden row shown' : 'hidden row left out'} · bonds ${shown.facility.allBonds.amount === bondsShown ? 'equal' : 'differ from'} the rows shown · last row ↓ ${shown.rows[shown.rows.length - 1].cumulative.facilityUsePct === shown.facility.usePct ? 'equals' : 'differs from'} the facility share`);
   return out;
 }
 

@@ -7,7 +7,7 @@ import { dg1Gate, dg1Record, dg2Gate, dg2Record, intakeSteps, liveKit, s1, s1Der
  * Batinah (tenant D, Oman: Fri–Sat weekend), hand-authored (plan 017 §2.2).
  * Plan 004's pursued DG1 records become the Stage 5, 6 and 8 rows
  * (T-2025-405, 404, 407 and 415); the Stage 9 row carries outcome BA-O25 and
- * DG2 T-2025-120. dashboards.md §12.5 counts 4 in Stage 1. T-2026-042 is the
+ * DG2 T-2025-120. dashboards.md §12.5 counts 3 in Stage 1. T-2026-042, one of them, is the
  * Arabic roads tender with three scanned pages (plan 023): validating, with its
  * bid bond and section-length conflicts open. Suggested titles that repeated a
  * past bid were renamed.

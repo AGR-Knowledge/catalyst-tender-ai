@@ -11,9 +11,12 @@ import type { DeskCtx } from './vm/desk';
 
 /** Small pieces the Stage 2 panels share (plan 008b). No rules here: formatting and masking only. */
 
-/** A quote amount: the value with `see.quotes`, otherwise "Masked for your role" naming who can see it. */
-export function QuoteAmount({ desk, value, full = false, original }: { desk: DeskCtx; value: MoneyT; full?: boolean; original?: MoneyT }) {
-  if (!desk.seesQuotes) return <Masked by={desk.quotesBy} />;
+/**
+ * A quote amount: the value with `see.quotes`, otherwise "Masked for your role" naming who can see it.
+ * A `levelled` total (a levelled quote or a mix) also shows with `see.quotes.summary`.
+ */
+export function QuoteAmount({ desk, value, full = false, original, levelled = false }: { desk: DeskCtx; value: MoneyT; full?: boolean; original?: MoneyT; levelled?: boolean }) {
+  if (!(levelled ? desk.seesLevelled : desk.seesQuotes)) return <Masked by={desk.quotesBy} />;
   return <Money value={original && original.ccy !== value.ccy ? { ...value, original } : value} full={full} />;
 }
 

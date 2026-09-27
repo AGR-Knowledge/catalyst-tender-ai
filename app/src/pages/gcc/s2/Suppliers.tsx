@@ -11,6 +11,7 @@ import { EmptyState } from '@/components/tender/EmptyState';
 import { S2Grid } from './S2Grid';
 import { PanelHead } from './ui';
 import './s2.css';
+import { plural } from '@/domain/format';
 
 /**
  * Suppliers (`/suppliers`, archetype B): the tenant's supplier master with
@@ -106,7 +107,7 @@ export default function Suppliers() {
               <li>{selected.sc.reason ?? `Sanctions and anti-bribery screening current, last checked ${selected.sc.label.replace('Screened ', '')}.`}</li>
             </ul>
             <ul className="s2-list">
-              <li>{selected.s.performance.onTimePct}% on time · {selected.s.performance.ncrs12m} NCRs in 12 months</li>
+              <li>{selected.s.performance.onTimePct}% on time · {plural(selected.s.performance.ncrs12m, 'NCR')} in 12 months</li>
               <li>{selected.s.performance.quotes12m} quotes in 12 months, {selected.s.performance.awards12m} awarded</li>
               <li>Replies to {selected.s.response.ratePct}% of RFQs, in {selected.s.response.avgDays} days on average · load {selected.s.load}</li>
               {held.rows.filter((h) => h.supplierId === selected.id).map((h) => (

@@ -64,7 +64,7 @@ export default function PlatformShell() {
     setPerson(p.id);
     navigate('/');
     window.scrollTo({ top: 0 });
-    toast(`Now acting as ${p.name}, ${p.title}. Demo control`, 'ink3');
+    toast(`Now acting as ${p.name}, ${p.title.replace(/\.$/, '')}. Demo control`, 'ink3');
   };
   const go = (id: string) => {
     setOn(id);

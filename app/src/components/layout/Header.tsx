@@ -11,6 +11,7 @@ import { useLive, FOCUS_ID } from '@/domain/live';
 import { TODAY_LABEL, plural } from '@/domain/format';
 import { useClickOutside, useGo } from '@/state/nav';
 import { useTenant } from '@/domain/tenancy';
+import { nameStop } from '@/data/tenants';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { bg } from '@/components/ui/primitives';
 import { GlobalSearch } from './Search';
@@ -32,7 +33,6 @@ function usePageHead() {
   // GCC tenants: titles come from the GCC screen map; the legacy alerts read Indian data, so they are not shown.
   if (tenant.world === 'gcc') {
     if (path === 'settings') return { title: 'Settings', sub: 'Sources, people, appearance and the demo session.' };
-    if (pathname === '/demo/compare') return { title: 'Compare tenants', sub: 'Demo view: the same tender in five companies.' };
     const head = screenHead(pathname);
     return head ? { title: head.title, sub: head.sub ?? `${dateText(DEMO_TODAY)} · ${tenant.hqCity}` } : { title: 'Not found', sub: 'This page does not exist in the workspace.' };
   }
@@ -98,7 +98,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
     setPerson(p.id);
     // Settings stays where it is, as with a company switch.
     if (!pathname.startsWith('/settings')) goPage('/');
-    toast(`Now acting as ${p.name}, ${p.title}. Demo control`, 'ink3');
+    toast(`Now acting as ${nameStop(`${p.name}, ${p.title}`)} Demo control`, 'ink3');
   };
   const pickView = (p: Person) => {
     setProfile(false);
@@ -208,7 +208,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
               </div>
               <div className="pop-foot">
                 <span style={{ flex: 1 }}>In production each user signs in to their own view.</span>
-                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
+                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); profileRef.current?.querySelector<HTMLElement>('.profile-btn')?.focus(); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
                 <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={() => { setProfile(false); toast('Session ended. Sign in again to resume', 'ink3'); }}>Sign out</button>
               </div>
             </div>
@@ -244,7 +244,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
               </div>
               <div className="pop-foot">
                 <span style={{ flex: 1 }}>In production each user signs in to their own view.</span>
-                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
+                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); profileRef.current?.querySelector<HTMLElement>('.profile-btn')?.focus(); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
                 <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={() => { setProfile(false); toast('Session ended. Sign in again to resume', 'ink3'); }}>Sign out</button>
               </div>
             </div>

@@ -244,6 +244,8 @@ export interface TableZoneVM {
   statusDefault: TableStatus;
   /** Shown when the default view has no rows and no filter is set; the grid's generic text otherwise. */
   empty?: { title: string; body?: string };
+  /** Request rows: where a row click or Enter goes, the same place as the request's action in Needs your action. */
+  routeOf?(id: string): string | null;
 }
 
 /** A whole dashboard, Z1–Z6 (dashboards.md §1). */

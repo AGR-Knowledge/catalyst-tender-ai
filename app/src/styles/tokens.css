@@ -57,8 +57,9 @@
   --shadow-drawer: -18px 0 50px rgba(0, 0, 0, 0.16);
   --scrollbar: #dedee4;
 
-  --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Plex Sans Arabic after the Latin face: Arabic text outside a lang="ar" span (a file name) reads in it too; Latin keeps its font (plan 016b). */
+  --font-sans: 'IBM Plex Sans', 'IBM Plex Sans Arabic', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'IBM Plex Sans Arabic', ui-monospace, 'SF Mono', Menlo, monospace;
   /* Arabic content inside the English UI (plan 012, ui-direction §3.2 and §8). */
   --font-arabic: 'IBM Plex Sans Arabic', var(--font-sans);
 

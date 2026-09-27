@@ -22,8 +22,9 @@ import { docOf } from '../vm/docs';
  * date on a scanned page says it was read by OCR (plan 012).
  */
 export function KeyDateList({ s1, tenderId, doc, compact = false }: { s1: S1; tenderId: string; doc: SourceDoc | null; compact?: boolean }) {
-  const { tenant } = s1;
-  const rows = useMemo(() => keyDatesFor(tenant, tenderId), [tenant, tenderId]);
+  const { tenant, done } = s1;
+  // The full list (the Dates tab) adds the guarantee's validity where the tender gives it in days (plan 016a 2.4).
+  const rows = useMemo(() => keyDatesFor(tenant, tenderId, compact ? undefined : done), [tenant, tenderId, compact, done]);
   const record = useMemo(() => docOf(tenant, tenderId)?.record ?? null, [tenant, tenderId]);
   const t = tenderOf(tenant, tenderId);
   if (!t || !rows.length) return null;

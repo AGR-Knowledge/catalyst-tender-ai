@@ -75,7 +75,7 @@ export const LIVE_TARGETS: Record<GccTenantKey, Record<StageN, number>> = {
   najd: { 1: 12, 2: 2, 3: 2, 4: 2, 5: 2, 6: 2, 7: 1, 8: 4, 9: 2 },
   corniche: { 1: 3, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 2, 9: 1 },
   dafna: { 1: 3, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 2, 9: 1 },
-  // §12.5 says 4: the fourth is the scanned Arabic roads tender, which plan 012 adds.
+  // Three in Stage 1, one of them T-2026-042, the Arabic roads tender with scanned pages (plan 023).
   batinah: { 1: 3, 2: 1, 3: 0, 4: 1, 5: 1, 6: 1, 7: 1, 8: 2, 9: 1 },
   qurain: { 1: 3, 2: 2, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 3, 9: 1 },
 };

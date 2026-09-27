@@ -3,7 +3,7 @@ import { personById } from '@/data/people';
 import { dateText } from '@/domain/calendar';
 import { addendaFor, pipelineFor, DISPOSITION_LABEL, type AddendumVM } from '@/domain/gcc/s1';
 import { dataOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
-import { ocrOf, pagesText } from '@/domain/gcc/arabic';
+import { ocrOf, pagesText, readingOf } from '@/domain/gcc/arabic';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { SourceChip } from '@/components/tender/SourceChip';
 import { useSourceHost } from '@/components/tender/SourceHost';
@@ -78,6 +78,8 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
   const sourceName = (id: string) => data.sources.find((s) => s.id === id)?.name ?? id;
   const file = d ? decodeURIComponent(d.url.split('/').pop() ?? d.url) : null;
   const ocr = ocrOf(d?.record);
+  // A document read from Arabic shows its Arabic title above the English working title, as Read in English does (plan 016b).
+  const titleAr = readingOf(d?.record)?.titleAr;
 
   return (
     <div className="ws-tab">
@@ -87,8 +89,9 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
           <div className="s1-pad doc">
             <FileText size={22} aria-hidden className="doc-ic" />
             <div className="doc-m">
+              {titleAr && <div className="rie-title-ar" lang="ar" dir="rtl">{titleAr}</div>}
               <div className="doc-t">{d.title}</div>
-              <div className="doc-s"><span className="mono">{file}</span> · {d.record.docType} · {d.record.pages} pages</div>
+              <div className="doc-s"><bdi dir="auto" className="mono">{file}</bdi> · {d.record.docType} · {d.record.pages} pages</div>
               <div className="doc-b"><LangBadge lang={d.lang === 'ar' ? 'AR' : 'EN'} />{d.scanned && <span className="wsh-badge">{ocr.pages.length ? `OCR: ${pagesText(ocr.pages)} scanned` : 'OCR: scanned pages'}</span>}{d.record.issued && <span className="doc-s">Issued {dateText(d.record.issued)}</span>}</div>
             </div>
             {d.lang === 'ar' && <ReadInEnglish record={d.record} doc={doc} />}
@@ -108,7 +111,7 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
           {uploads.flatMap((u) => u.times.map((x, i) => (
             <li key={`${u.key}:${i}`}>
               <span className="num doc-when">{shortWhen(x.at)}</span>
-              <span>{i === 0 ? 'Uploaded' : 'Uploaded again'} by {personById(x.byId)?.name ?? x.byId}: <span className="mono">{u.file}</span>{i === 0 ? ', recognised by file name (demo)' : ', flagged as a duplicate'}</span>
+              <span>{i === 0 ? 'Uploaded' : 'Uploaded again'} by {personById(x.byId)?.name ?? x.byId}: <bdi dir="auto" className="mono">{u.file}</bdi>{i === 0 ? ', recognised by file name (demo)' : ', flagged as a duplicate'}</span>
             </li>
           )))}
         </ul>

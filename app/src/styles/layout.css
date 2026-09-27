@@ -119,10 +119,21 @@
 }
 .header .hd-menu { display: none; }
 .hd-title { min-width: 0; flex: 1 1 auto; }
-.hd-title h1 { font-size: 19px; font-weight: 600; letter-spacing: -0.35px; line-height: 1.3; }
+.hd-title h1 { font-size: 19px; font-weight: 600; letter-spacing: -0.35px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .hd-title p { font-size: 12.5px; color: var(--ink-4); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hd-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex: none; }
 .hd-sep { width: 1px; height: 22px; background: var(--line); }
+/*
+ * The top bar at 1280–1440 (plan 016b): the ⌘K search pill narrows, then
+ * becomes an icon button (its aria-label names it; ⌘K still opens it), so
+ * the page title and the company name both keep their room.
+ * Two classes, because `.gs-btn` (tender.css) may load later.
+ */
+@media (max-width: 1500px) { .hd-actions .gs-btn { width: 190px; } }
+@media (max-width: 1400px) {
+  .hd-actions .gs-btn { width: 32px; padding: 0; justify-content: center; }
+  .hd-actions .gs-btn .gs-l, .hd-actions .gs-btn .gs-k { display: none; }
+}
 
 /* ───────── Content ───────── */
 .content {

@@ -1,4 +1,5 @@
 import { gccData, isGccTenantKey } from '@/data/gcc';
+import { DONE_KEY } from '../s1/done';
 import type { Done } from './done';
 
 /**
@@ -7,6 +8,28 @@ import type { Done } from './done';
  * the stage move; dev checks pass it to read a demo tender's pack.
  */
 export const packReadyKey = (tenderId: string) => `pack-ready:${tenderId}`;
+
+/** The `at` of a `{ at, … }` value, or null (dev checks write '1'; anything unreadable has none). */
+const atOf = (raw: string | undefined): string | null => {
+  if (!raw) return null;
+  try {
+    const v = JSON.parse(raw) as { at?: unknown } | null;
+    return v && typeof v.at === 'string' ? v.at : null;
+  } catch { return null; }
+};
+
+/**
+ * Whether a `pack-ready:` or `stage3-entry:` value still stands (plan 016a 3.2): a DG1 re-open sends the
+ * tender back, so a value counts only when its `at` is later than the latest `dg1-reopen:{TID}`. With no
+ * re-open, any value counts, with or without an `at`.
+ */
+export function standsAfterDg1Reopen(done: Done, tenderId: string, raw: string | undefined): boolean {
+  if (raw === undefined) return false;
+  const reopenAt = atOf(done[DONE_KEY.dg1Reopen(tenderId)]);
+  if (!reopenAt) return true;
+  const at = atOf(raw);
+  return at !== null && at > reopenAt;
+}
 
 /**
  * A seeded Bid / No-Bid pack, and the inputs seeded with it, exist only once
@@ -19,5 +42,5 @@ export function seededPackReady(tenant: string, tenderId: string, done: Done): b
   if (!isGccTenantKey(tenant)) return false;
   const t = gccData(tenant).register.find((x) => x.id === tenderId);
   if (!t) return false;
-  return (t.stage !== 'S1' && t.stage !== 'S2') || done[packReadyKey(tenderId)] !== undefined;
+  return (t.stage !== 'S1' && t.stage !== 'S2') || standsAfterDg1Reopen(done, tenderId, done[packReadyKey(tenderId)]);
 }

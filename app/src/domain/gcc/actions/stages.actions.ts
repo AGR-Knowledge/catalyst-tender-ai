@@ -398,7 +398,7 @@ const debriefHold: ActionSource = {
       if (at && at <= ctx.now) return [];
       const r = l.result!;
       const why = [r.lossReason && `lost on ${r.lossReason === 'local-content' ? 'local content' : r.lossReason === 'pq' ? 'prequalification' : r.lossReason}`,
-        r.rank && `${r.rank[0]} of ${r.rank[1]}`, r.gapToWinnerPct !== undefined && `${r.gapToWinnerPct}% above the winner`].filter(Boolean).join(', ');
+        r.rank && `ranked ${r.rank[0]} of ${r.rank[1]}`, r.gapToWinnerPct !== undefined && `${r.gapToWinnerPct}% above the winner`].filter(Boolean).join(', ');
       return [row('debrief.hold', {
         id: `debrief.hold:${l.tenderId}`, type: 'Debrief', ...tender(l),
         what: at ? `Debrief with the employer booked ${dayTimeText(at)}: prepare the questions (${why})` : `Ask the employer for a debrief (${why})`,

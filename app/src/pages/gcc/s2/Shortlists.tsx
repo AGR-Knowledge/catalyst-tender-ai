@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/primitives';
 import { Callout } from '@/components/tender/Callout';
 import { PanelHead, Tag, Why, byLine, refusal } from './ui';
 import type { DeskCtx } from './vm/desk';
+import { plural } from '@/domain/format';
 
 /**
  * Supplier shortlists per package (spec §8.3). The agent recommends four to
@@ -145,7 +146,7 @@ function ShortlistEditor({ desk, pkgId, onDone }: { desk: DeskCtx; pkgId: string
             <li>{i.onAvl ? 'On the client’s approved list' : 'Not on the client’s list'}</li>
             {i.icv !== undefined && <li>ICV {i.icv}</li>}
             <li>Prequalification {s.prequal === 'approved' ? 'approved' : s.prequal === 'pending' ? 'pending' : 'none'}</li>
-            <li>{s.performance.onTimePct}% on time · {s.performance.ncrs12m} NCRs in 12 months</li>
+            <li>{s.performance.onTimePct}% on time · {plural(s.performance.ncrs12m, 'NCR')} in 12 months</li>
             <li>{s.performance.quotes12m} quotes, {s.performance.awards12m} awarded</li>
             <li>Load {s.load}</li>
             <li>Replies to {s.response.ratePct}% of RFQs, in {s.response.avgDays} days</li>

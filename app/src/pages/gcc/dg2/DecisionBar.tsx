@@ -73,7 +73,7 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
       const told = [firstWithRole(tenant, 'plan'), firstWithRole(tenant, 'comm')].filter(Boolean).map((p) => `${p!.name} (${p!.title})`);
       logAudit({ actorId: person.id, action: 'Planning and Commercial notified', target: tenderId, detail: `${told.join(' and ')}: start the Stage 4 baselines` });
     }
-    toast(r.effects[0], 'green');
+    toast(r.effects[0].replace(/\.?$/, '.'), 'green'); // an effect is a list item; the toast is a sentence
     close();
   };
 
@@ -155,7 +155,8 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
           <div className="dg2-preview" aria-label="Record preview">
             <div className="s3-effects-h">The record will say</div>
             <p><b>{DECISION_LABEL[pv.decision.decision]}</b>{pv.decision.conditions.length ? ` with ${pv.decision.conditions.length} condition${pv.decision.conditions.length === 1 ? '' : 's'}` : ''}, by {personById(pv.decision.byId)?.name}, on pack v{pv.decision.packVersion}.</p>
-            <p>{pv.audit[0].detail}</p>
+            {/* The detail after its first segment, which repeats the name and pack version above. */}
+            <p>{(pv.audit[0].detail ?? '').split(' · ').slice(1).join(' · ')}</p>
           </div>
         )}
       </ConfirmModal>

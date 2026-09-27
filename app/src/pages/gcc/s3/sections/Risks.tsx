@@ -64,7 +64,7 @@ export function MarginSection({ sec, collapsible, open, lens }: { sec: PackSecti
             <div className="pk-hero">
               <div className="pk-big num">{m.range}</div>
               <div className="pk-hero-side">
-                <p className="pk-lede">On {m.basis}.{m.note && <> <span className="pk-tag warn">{m.note}</span></>}</p>
+                <p className="pk-lede">On {m.basis}.{m.note && <> <span className="pk-tag warn">{m.note.charAt(0).toUpperCase() + m.note.slice(1)}</span></>}</p>
                 <p className="pk-note">A range, not a price. Confidence: <b>{m.confidence}</b>.</p>
               </div>
             </div>

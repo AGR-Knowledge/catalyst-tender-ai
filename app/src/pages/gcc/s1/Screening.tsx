@@ -71,13 +71,12 @@ export default function Screening() {
   const s1 = useS1();
   const { tenant, viewer, viewAs, done } = s1;
   const navigate = useNavigate();
-  const triage = useMemo(() => triageFor(tenant, done), [tenant, done]);
+  // Only the rows the viewer may open, so the ↓ columns, the teams and the facility add up to what the table shows.
+  const triage = useMemo(() => triageFor(tenant, done, s1.canOpen), [tenant, done, s1.canOpen]);
   const queue = useMemo(() => dg1Queue(tenant, done), [tenant, done]);
   const [open, setOpen] = useState<number | null>(null);
 
-  // Restricted rows count in the totals (the teams and the facility are shared) but are shown only to people who can open them.
-  const rows: Row[] = useMemo(() => triage.rows.filter((r) => s1.canOpen(r.tenderId)).map((r) => ({ ...r, id: r.tenderId })), [triage, s1]);
-  const hidden = triage.rows.length - rows.length;
+  const rows: Row[] = useMemo(() => triage.rows.map((r) => ({ ...r, id: r.tenderId })), [triage]);
   const elig = useMemo(() => new Map(rows.map((r) => [r.tenderId, eligibilityFor(tenant, r.tenderId, done)])), [rows, tenant, done]);
   const slaOf = (id: string) => queue.find((q) => q.tenderId === id);
 
@@ -157,7 +156,6 @@ export default function Screening() {
           {rows.length
             ? <S1Grid rows={rows} columns={columns} onOpen={(id) => setOpen(rows.findIndex((r) => r.tenderId === id))} label="Tenders waiting for DG1" rowClassRules={{ 's1-row-muted': (p) => p.data?.queue === 'low-fit' }} />
             : <EmptyState title="Nothing is waiting for DG1." body="Tenders appear here once intake logs them and routes them to DG1." compact />}
-          {hidden > 0 && <p className="s1-foot"><Lock size={11} aria-hidden /> {hidden === 1 ? 'One restricted tender is' : `${hidden} restricted tenders are`} counted in the totals and not shown: cleared people only.</p>}
         </Card>
 
         <div className="s1-cols">

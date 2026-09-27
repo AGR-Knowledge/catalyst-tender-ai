@@ -44,7 +44,7 @@ export default function SupplierPortal() {
   const back = () => {
     const p = personById(backTo);
     setPerson(backTo);
-    if (p) toast(`Back in ${tenant.name} as ${p.name}, ${p.title}. Demo control`, 'ink3');
+    if (p) toast(`Back in ${tenant.name} as ${p.name}, ${p.title.replace(/\.$/, '')}. Demo control`, 'ink3');
     navigate(params.get('from') ?? '/sourcing');
   };
 

@@ -44,22 +44,26 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
   const right = can(viewer, 'tender.create', { viewAs });
   const granted = can(viewer, 'tender.create').ok;
 
-  // The documents this demo holds a copy of, for a presenter who has no file to hand.
+  // The documents this demo holds a copy of, for a presenter who has no file to hand. Only tenders the viewer may open are named.
+  const { canOpen } = s1;
   const demoFiles = useMemo(() => {
     const reg = dataOf(tenant).register;
     const out: { name: string; title: string }[] = [];
     for (const t of reg) {
-      const d = t.docKey ? documentFor(tenant, t.id) : null;
+      const d = t.docKey && canOpen(t.id) ? documentFor(tenant, t.id) : null;
       if (!d) continue;
       const names = t.id === HERO_ID ? [HERO_FILE_NAME] : d.record.fileNames;
       out.push({ name: names[names.length - 1], title: `${t.id} · ${d.record.shortName}` });
     }
     return out;
-  }, [tenant]);
+  }, [tenant, canOpen]);
 
   if (!granted) return null;
 
   const coord = firstWithRole(tenant, 'coord');
+
+  // A file name may be Arabic: isolated (U+2068 … U+2069, as `<bdi dir="auto">`) so it keeps its order inside an English line.
+  const iso = (file: string) => `\u2068${file}\u2069`;
 
   const take = (file: string) => {
     const at = s1.nextAt();
@@ -68,7 +72,9 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
     const what = w.duplicate ? 'flagged as a duplicate' : w.hit ? (tid ? `recognised as ${tid}` : 'recognised; not on the register') : 'not recognised; sent to the intake queue';
     s1.mark(w.key, undefined, undefined, w.value);
     s1.logAudit({ actorId: viewer.id, action: 'Uploaded a tender document', ...(tid ? { target: tid } : {}), detail: `${file}: ${what} (demo recognition by file name)` });
-    s1.toast(w.duplicate ? `${file} was uploaded before: flagged as a duplicate.` : w.hit ? `${file} recognised${tid ? ` as ${tid}` : ''}.` : `${file} isn't in the demo set. It waits in ${coord?.name ?? 'the Coordinator'}'s queue.`, w.duplicate ? 'ink3' : w.hit ? 'green' : 'orange');
+    // A tender outside the viewer's role is logged, never named (plan 016b).
+    const named = !!tid && canOpen(tid);
+    s1.toast(w.duplicate ? `${iso(file)} was uploaded before: flagged as a duplicate.` : w.hit ? `${iso(file)} recognised${named ? ` as ${tid}` : tid ? ' and logged to the register' : ''}.` : `${iso(file)} isn't in the demo set. It waits in ${coord?.name ?? 'the Coordinator'}'s queue.`, w.duplicate ? 'ink3' : w.hit ? 'green' : 'orange');
     setResult({
       file, duplicate: w.duplicate, docKey: w.hit?.docKey, ...(tid ? { tenderId: tid } : {}),
       ...(w.previous ? { firstAt: w.previous.times[0].at, firstBy: personById(w.previous.times[0].byId)?.name } : {}),
@@ -86,7 +92,7 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
   const t = result?.tenderId ? dataOf(tenant).register.find((x) => x.id === result.tenderId) : undefined;
   const ev = t ? dataOf(tenant).intakeToday.find((e) => e.tenderId === t.id && e.disposition !== 'addendum') : undefined;
   const pipeline = ev ? pipelineFor(tenant, ev.id) : null;
-  const opens = !!result?.tenderId && s1.canOpen(result.tenderId);
+  const opens = !!result?.tenderId && canOpen(result.tenderId);
 
   const trigger = variant === 'header'
     ? (
@@ -107,7 +113,7 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
     <>
       {trigger}
       <S1Modal
-        open={open} onClose={close} eyebrow="Intake" title={result ? result.file : 'Upload a tender document'}
+        open={open} onClose={close} eyebrow="Intake" title={result ? iso(result.file) : 'Upload a tender document'}
         sub={result ? undefined : 'The Intake & Extraction agent reads it, checks the register and screens it for your company.'}
         actions={result
           ? [
@@ -137,7 +143,11 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
           </>
         ) : result.duplicate ? (
           <Callout variant="route" word="Duplicate" title={`Uploaded before${result.firstAt ? `, ${shortWhen(result.firstAt)}` : ''}${result.firstBy ? ` by ${result.firstBy}` : ''}`}>
-            Flagged as a duplicate and not added again{result.tenderId ? `: it stays one record, ${result.tenderId}` : ''}.
+            Flagged as a duplicate and not added again{opens ? `: it stays one record, ${result.tenderId}` : ''}.
+          </Callout>
+        ) : result.docKey && t && !opens ? (
+          <Callout variant="route" word="Recognised" title="Logged to the register">
+            It is outside your role.
           </Callout>
         ) : result.docKey && t ? (
           <>

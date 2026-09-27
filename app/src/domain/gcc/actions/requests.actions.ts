@@ -32,6 +32,12 @@ function primaryOf(r: Request): ActionPrimary {
   return openTender(r.tenderId);
 }
 
+/** Where a request goes: its primary action's route. My requests' table rows open the same place (plan 016b). */
+export function requestRoute(r: Request): string {
+  const p = primaryOf(r);
+  return p.kind === 'route' ? p.to : `/tenders/${encodeURIComponent(r.tenderId ?? '')}`;
+}
+
 const REQUEST_OPEN: ActionSource = {
   id: 'request.open',
   rows: (ctx) => requestsFor(ctx.tenant, ctx.viewer.id, ctx.done, ctx.viewer, ctx.now).filter(isOutstanding).map((r) => {

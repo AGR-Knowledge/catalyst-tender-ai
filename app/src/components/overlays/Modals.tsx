@@ -8,6 +8,10 @@ import { useTenant } from '@/domain/tenancy';
 import { nameStop } from '@/data/tenants';
 import { cr, dayMonth, pct } from '@/domain/format';
 import { ModalFrame } from './Frames';
+import { isGccTenantKey } from '@/data/gcc';
+import { isPlan, presetFor, presets } from '@/domain/gcc/demo/presets';
+import { useBranding } from '@/domain/gcc/admin/useBranding';
+import { useStartPreset } from '@/components/layout/DemoMenu';
 
 export function ModalHost() {
   const { state } = useDemo();
@@ -26,6 +30,7 @@ function ModalSwitch({ spec }: { spec: ModalSpec }) {
     case 'submit': return <SubmitModal />;
     case 'sme': return <SmeModal />;
     case 'reset': return <ResetModal />;
+    case 'preset': return <PresetModal id={spec.id} />;
     case 'upload': return <UploadModal />;
     case 'handover': return <HandoverModal from={spec.from} />;
     case 'tenant-add': return <TenantAddModal />;
@@ -238,6 +243,31 @@ function ResetModal() {
       actions={[
         { label: 'Reset this company', primary: true, onClick: () => reset('tenant') },
         { label: 'Reset all companies', onClick: () => reset('all') },
+        { label: 'Cancel', onClick: closeModal },
+      ]}
+    />
+  );
+}
+
+/** A scenario preset asks before it clears the company's demo activity (plan 016b). With none, the Demo menu runs it at once. */
+function PresetModal({ id }: { id: string }) {
+  const { closeModal } = useDemo();
+  const tenant = useTenant();
+  const branding = useBranding();
+  const start = useStartPreset();
+  const p = presets().find((x) => x.id === id);
+  const r = p && isGccTenantKey(tenant.key) ? presetFor(p, tenant.key) : null;
+  if (!p || !r || !isPlan(r)) return null;
+  const name = p.label.replace(/^Start:\s*/, '');
+  return (
+    <ModalFrame
+      onClose={closeModal}
+      eyebrow="Demo controls"
+      title={`Start from ‘${name}’?`}
+      sub={`It first clears the actions recorded in this demo for ${nameStop(branding?.displayName ?? tenant.name)}`}
+      note={branding ? `${p.line} The prospect branding set in Administration is kept.` : p.line}
+      actions={[
+        { label: 'Reset and start', primary: true, onClick: () => start(r) },
         { label: 'Cancel', onClick: closeModal },
       ]}
     />

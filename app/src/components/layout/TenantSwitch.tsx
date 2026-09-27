@@ -39,11 +39,12 @@ export function TenantSwitch() {
 
   return (
     <span className="pop-anchor" ref={ref}>
-      <button type="button" className={`hd-pill hd-tenant ${open ? 'open' : ''}`} onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} aria-label={`Company: ${nameStop(shownName)} Switch company (demo control)`}>
+      <button type="button" className={`hd-pill hd-tenant ${branding?.logo ? 'has-logo' : ''} ${open ? 'open' : ''}`} onClick={() => setOpen(!open)} aria-haspopup="menu" aria-expanded={open} aria-label={`Company: ${nameStop(shownName)} Switch company (demo control)`} title={shownName}>
         {branding?.logo
           ? <img src={branding.logo.dataUrl} alt="" style={{ height: 20, maxHeight: LOGO_MAX_PX, maxWidth: 72, objectFit: 'contain', flex: 'none' }} />
           : <TenantMark t={current} small accent={branding?.accent} />}
-        <span className="hide-md">{shownName}</span>
+        {/* The prospect's name always shows, capped with an ellipsis on narrower screens (components.css). */}
+        <span className="hd-tenant-name">{shownName}</span>
         <ChevronDown size={12} className="t-muted" aria-hidden />
       </button>
       {open && (

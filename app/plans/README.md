@@ -25,9 +25,9 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 014 | [Presenter controls and the Compare tenants lens](014-presenter-controls.md): the Demo menu, four scenario presets, Advance agent work, Advance to Stage 3 for T-2026-061 and T-2026-042, Compare tenants | 5 | 007b, 008b, 009b, 021, 022, 023 | DONE (2026-09-27, reviewed) |
 | 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | DONE (2026-09-26) |
-| 016a | [Polish: rules, counts and seed fixes](016a-fixes-rules-data.md) carried from waves 3–5: screening totals, the DG3 chip, Stage 8 facts after DG3, DG1 re-open after Stage 3 entry, levelled totals for `see.quotes.summary`, the workspace audit tab, seed slips | 6 | waves 1–5 | READY |
-| 016b | [Polish: the top bar, the dashboard kit, workspace and gate screens](016b-fixes-screens-copy.md): the top bar at 1280 and 1440, table heights, stage chips, My requests row click, preset confirmation, Arabic file names, copy slips | 6 | waves 1–5 | READY |
-| 016c | [Script QA](016c-script-qa.md): scripts A–F end to end (spec §17, §19), the presenter runbook, the spec brought up to date | 6 | 016a, 016b | READY after 016a and 016b are reviewed |
+| 016a | [Polish: rules, counts and seed fixes](016a-fixes-rules-data.md) carried from waves 3–5: screening totals, the DG3 chip, Stage 8 facts after DG3, DG1 re-open after Stage 3 entry, levelled totals for `see.quotes.summary`, the workspace audit tab, seed slips | 6 | waves 1–5 | DONE (2026-09-27, reviewed) |
+| 016b | [Polish: the top bar, the dashboard kit, workspace and gate screens](016b-fixes-screens-copy.md): the top bar at 1280 and 1440, table heights, stage chips, My requests row click, preset confirmation, Arabic file names, copy slips | 6 | waves 1–5 | DONE (2026-09-27, reviewed) |
+| 016c | [Script QA](016c-script-qa.md): scripts A–F end to end (spec §17, §19), the presenter runbook, the spec brought up to date | 6 | 016a, 016b | DONE (2026-09-27, reviewed) |
 | 018 | [DG3 approval](018-dg3-approval.md): the Head of Tendering's final gate (evidence left, decision right), send back to Compliance and re-issue, Qurain's guarantee catch | 5 | 009b, 013, 015, 017 | DONE (2026-09-27, reviewed) |
 | 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | DONE (2026-09-26) |
 | 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
@@ -35,6 +35,41 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
+
+**Wave 6 review of 016c (orchestrator, 2026-09-27): accepted. Wave 6 is committed as one milestone.**
+- Typecheck and build pass. `/dev/checks` has no failing row in any tenant, with the same counts as after 016a and 016b.
+- The Findings table has 31 rows: 24 fixed and 7 left. The three findings carried from the 016a/016b review (rows 24–26) are fixed.
+- Browser checks at 1440 light:
+  - "Start: DG1 due" as `najd.proc` switches to Faisal Al-Harbi and lands on DG1;
+  - as `najd.bid`, levelling on T-2026-104 names "VAT removed" without its rate, and quoted prices are masked.
+- The runbook (`demo-runbook.md`) and the spec changes (§1 M-6, §17, §19) were read. The confidentiality scan of the whole diff is clean: no prices or costs, and only synthetic people.
+- Orchestrator fix: spec §3 no longer calls the CEO the DG2 gate chair. The CEO is a committee member, and the Head of Tendering approves DG2 and DG3.
+- **Left, open for a follow-up plan** (each is in the runbook's known limits):
+  - 016c finding 1: the hero reads "Intake · Validating" until DG1, after its fields are resolved;
+  - finding 10: Stage 2, Stage 3, DG2 and DG3 records are stamped 10:00, while the audit log runs on the minute clock;
+  - finding 20: the Jezzine tender is in Batinah's upload list;
+  - finding 30: T-2026-042's Overview and DG1 pack show a page chip, not the Arabic quotation, so §19's Arabic box stays open;
+  - findings 8, 9 and 27: keyboard focus falls to the top of the page after a card is resolved or a gate is decided.
+
+**Wave 6 review of 016a and 016b (orchestrator, 2026-09-27): both accepted.** Committed with 016c, which started before this review and shared the checkout.
+- Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 729, Corniche 320, Dafna 301, Batinah 309 and Qurain 324 passing targets.
+- Browser checks:
+  - the top bar at 1280 light and 1440 dark;
+  - Corniche `/stages/3` fits its one row;
+  - a My requests row, as `najd.fin`, opens the T-2026-101 finance input form;
+  - a preset runs at once on a fresh company and asks when there is activity.
+- Orchestrator fixes:
+  - `TenderGrid.tsx`: a grid with rows fits them exactly (1 to 10); only an empty grid keeps three rows for its message. Before, a one-row table showed two blank rows with the scrollbar between them.
+  - `DemoMenu.tsx` and `Modals.tsx`: a preset keeps the prospect branding, which is setup and not demo activity. Branding alone doesn't count as a demo in progress. Settings › Reset demo still clears it.
+  - The preset confirm reads "It first clears the actions recorded in this demo for {name}", using the branded name. This fixes the "Co.:" punctuation.
+- Decisions:
+  - **016b 2.2:** the card keeps its 491 px minimum, so Table ⇄ Graph never moves the page (dashboards.md §1).
+  - **016a 2.5:** it can't be shown with the seed data, because no persona has only `see.quotes.summary`. Accepted as proven by the dev check.
+  - **Najd T-2026-119's questions deadline in the expected Eid closure** stays: the screen flags it, which shows the calendar rule. It is a talking point for the runbook.
+- **Carried to 016c** (sent to its session):
+  - Presets land on a page the current persona may not open. For example, "DG1 due" as `najd.fin` shows "This page isn't part of your role".
+  - The same approved-list slip as P-04 appears in T-2026-104's P-03 and P-06, Corniche's T-2026-044 and Qurain's T-2026-058.
+  - For `see.quotes.summary` without `see.quotes`, the levelling trace shows its rates ("VAT 15% removed"), so a Bid Manager can work back to the quoted price.
 
 **Wave 5 review (orchestrator, 2026-09-27): 010, 012, 014, 018 and 024 accepted.**
 - Typecheck and build pass on the combined checkout. `/dev/checks` has no failing row in any tenant (Najd 722, Corniche 314, Dafna 296, Batinah 303, Qurain 319 passing targets; the new panels 66-company, 73-arabic, 46-presenter, 97-dg3 and 67-admin included).

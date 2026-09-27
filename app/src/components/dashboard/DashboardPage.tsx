@@ -62,6 +62,8 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
   };
 
   const openTender = (id: string) => navigate(`/tenders/${encodeURIComponent(id)}`);
+  // A My requests row opens what it asks for: the form, the credential or the gate (plan 016b).
+  const openRequest = (id: string | null) => { const to = id ? vm.table.routeOf?.(id) : null; if (to) navigate(to); };
   const tracker = !showGraph && selected ? vm.trackerFor(selected) : null;
   const toggle = hasGraph ? <ViewToggle value={showGraph ? 'graph' : 'table'} onChange={setView} /> : null;
   const rows = vm.table.rows;
@@ -109,7 +111,7 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
                 kind={vm.table.kind} rows={rows} columns={vm.table.columns} optional={vm.table.optional}
                 defaultSort={vm.table.defaultSort} filters={vm.table.filters} statusDefault={vm.table.statusDefault}
                 selectedId={vm.table.kind === 'tenders' ? selected : null}
-                onSelect={(id) => vm.table.kind === 'tenders' && setSelected(id)}
+                onSelect={(id) => (vm.table.kind === 'tenders' ? setSelected(id) : openRequest(id))}
                 onOpen={(id) => vm.table.kind === 'tenders' && openTender(id)}
                 externalFilter={filter} onClearExternal={() => setFilter(null)}
                 empty={vm.table.empty}

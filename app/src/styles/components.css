@@ -281,6 +281,9 @@
 /* Tenant switcher */
 .hd-tenant.open { border-color: var(--line-strong); color: var(--ink); }
 .hd-tenant > span { max-width: 170px; overflow: hidden; text-overflow: ellipsis; }
+/* The company name holds at every desktop width, capped so the page title keeps its room (plan 016b). A prospect's logo is wider than the mark. */
+@media (max-width: 1500px) { .hd-tenant.has-logo > .hd-tenant-name { max-width: 120px; } }
+@media (max-width: 1280px) { .hd-tenant > .hd-tenant-name, .hd-tenant.has-logo > .hd-tenant-name { max-width: 110px; } }
 .tn-pop { width: 330px; left: 0; right: auto; transform-origin: top left; }
 .tn-opt { align-items: flex-start; }
 .tn-mark { width: 28px; height: 28px; flex: none; border-radius: 7px; border: 1px solid var(--line); background: var(--brand-soft); display: grid; place-items: center; font-size: 10.5px; font-weight: 600; color: var(--brand-ink); letter-spacing: 0.2px; }

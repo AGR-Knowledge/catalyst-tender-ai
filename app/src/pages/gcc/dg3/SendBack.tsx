@@ -25,7 +25,7 @@ function useCommit(): Commit {
   return (r) => {
     for (const w of r.writes) mark(w.key, undefined, undefined, w.value);
     r.audit.forEach((a) => logAudit(a));
-    toast(r.effects[0], 'green');
+    toast(r.effects[0].replace(/\.?$/, '.'), 'green'); // an effect is a list item; the toast is a sentence
   };
 }
 

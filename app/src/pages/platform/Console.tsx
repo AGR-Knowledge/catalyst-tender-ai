@@ -11,6 +11,7 @@ import { TenantPanel } from './TenantPanel';
 import { BreakGlassModal } from './BreakGlassModal';
 import '@/components/dashboard/dashboard.css';
 import './platform.css';
+import { nameStop } from '@/data/tenants';
 
 /**
  * The Platform Console (plan 011, spec §13, catalogue §C.8): PLT-1…6, the
@@ -30,7 +31,7 @@ export default function Console() {
     const w = breakGlassRequest(state.doneBy[key] ?? {}, input);
     auditTo(key, w.event, w.set);
     setOpen(false);
-    toast(`Request sent to ${row?.name ?? key}. ${row?.admin ?? 'Their Head of Tendering'} sees it in the audit log and can revoke it`, 'green');
+    toast(`Request sent to ${nameStop(row?.name ?? key)} ${row?.admin ?? 'Their Head of Tendering'} sees it in the audit log and can revoke it`, 'green');
   };
 
   const g = vm.guardrails;
@@ -42,7 +43,7 @@ export default function Console() {
           <div>
             <div className="plc-promise-t">Counts and health only. Tender content stays locked in each tenant.</div>
             <div className="plc-promise-b">
-              Catalyst sees no tender, price, margin, quote or document. Looking inside a tenant needs a break-glass request: one tenant, read only,
+              Catalyst sees no tender, price, margin, quote or document. Looking inside a tenant needs a break-glass request: one tenant, read only,{' '}
               {BREAKGLASS_MAX_HOURS} hours at most, a second approver, and the tenant’s Head of Tendering sees it in their audit log and can revoke it.
             </div>
           </div>

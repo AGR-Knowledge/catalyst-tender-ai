@@ -29,6 +29,8 @@ export type ModalSpec =
   | { type: 'submit' }
   | { type: 'sme' }
   | { type: 'reset' }
+  /** A scenario preset (plan 014) asking first, because the company has demo activity it would clear (plan 016b). */
+  | { type: 'preset'; id: string }
   | { type: 'upload' }
   | { type: 'tenant-add' }
   | { type: 'handover'; from: RoleKey };

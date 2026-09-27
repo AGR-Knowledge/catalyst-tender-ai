@@ -245,7 +245,8 @@ export function sideBySide(tenant: string, q: Quote, done: Done): { quoteId: str
     { field: 'Deviations', original: q.deviations.map((d) => d.text).join('; ') || 'None', levelled: vm.compliant ? 'Compliant' : 'Non-compliant', trace: trace('deviations') },
     { field: 'Payment', original: q.paymentAdvancePct ? `${q.paymentAdvancePct}% advance` : 'As the RFQ', levelled: 'As the RFQ', trace: trace('payment') },
     { field: 'Lead time', original: q.leadTimeWeeks !== undefined ? `${q.leadTimeWeeks} weeks` : 'Not stated', levelled: q.leadTimeWeeks !== undefined ? `${q.leadTimeWeeks} weeks` : 'Not stated', trace: trace('lead-time') },
-    { field: 'Received', original: dateText(dateOf(q.receivedAt)), levelled: '' },
+    // Levelling doesn't change when a quote arrived: the levelled column repeats it.
+    { field: 'Received', original: dateText(dateOf(q.receivedAt)), levelled: dateText(dateOf(q.receivedAt)) },
   ];
   return { quoteId: q.id, rows, vm };
 }

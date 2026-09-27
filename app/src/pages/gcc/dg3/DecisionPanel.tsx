@@ -64,7 +64,7 @@ export function DecisionPanel({ s, check, holds, issues }: {
     if (isWriteError(r)) { toast(r.error, 'red'); return; }
     for (const w of r.writes) mark(w.key, undefined, undefined, w.value);
     r.audit.forEach((a) => logAudit(a));
-    toast(r.effects[0], 'green');
+    toast(r.effects[0].replace(/\.?$/, '.'), 'green'); // an effect is a list item; the toast is a sentence
     close();
   };
   const ev = s.evaluation;
@@ -117,7 +117,8 @@ export function DecisionPanel({ s, check, holds, issues }: {
           <div className="dg2-preview" aria-label="Record preview">
             <div className="s3-effects-h">The record will say</div>
             <p><b>{DG3_LABEL[preview.decision.decision]}</b>, by {person.name}, {stamp(preview.decision.at)}, round {preview.decision.round}.</p>
-            <p>{preview.audit[0].detail}</p>
+            {/* The audit detail after its "name, round" part, which the line above already says: the evidence, and the note when there is one. */}
+            <p>{preview.audit[0].detail?.split(' · ').slice(1).join(' · ')}</p>
           </div>
         ) : <p className="s3-hint">The record preview appears once the form is complete.</p>}
       </ConfirmModal>

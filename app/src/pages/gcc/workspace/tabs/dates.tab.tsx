@@ -17,7 +17,7 @@ import '@/pages/gcc/s1/s1.css';
 function Dates({ ctx }: { ctx: WorkspaceCtx }) {
   const s1 = useS1();
   const doc = sourceDocOf(docOf(ctx.tenant, ctx.tenderId));
-  const rows = keyDatesFor(ctx.tenant, ctx.tenderId);
+  const rows = keyDatesFor(ctx.tenant, ctx.tenderId, ctx.done);
   const t = tenderOf(ctx.tenant, ctx.tenderId);
   const cal = t ? authorityCalendar(t, ctx.tenant) : null;
   const last = rows.map((r) => r.date).sort().pop() ?? DEMO_TODAY;
@@ -43,9 +43,9 @@ function Dates({ ctx }: { ctx: WorkspaceCtx }) {
 
 export const TABS: WorkspaceTabDef[] = [{
   id: 'dates', label: 'Key dates', order: 50, plan: '007b',
-  shows: (ctx) => keyDatesFor(ctx.tenant, ctx.tenderId).length > 0,
+  shows: (ctx) => keyDatesFor(ctx.tenant, ctx.tenderId, ctx.done).length > 0,
   badge: (ctx) => {
-    const n = keyDatesFor(ctx.tenant, ctx.tenderId).filter((r) => r.flags.length).length;
+    const n = keyDatesFor(ctx.tenant, ctx.tenderId, ctx.done).filter((r) => r.flags.length).length;
     return n ? { text: `${n} flagged`, tone: 'orange' } : null;
   },
   Panel: Dates,

@@ -10,7 +10,7 @@ import type { S3Facts } from '@/data/gcc/lifecycle';
 import { lifecyclesOf } from '@/domain/gcc/lifecycle';
 import {
   applyWrites, clientHistoryText, competitorsFor, compareVersions, extractionFlagsFor, freshnessFor, inputsFor, isMasked, isWriteError, issueBlockers, lensFor,
-  marginRangeText, packFor, packIssueWrite, packRerunWrite, packVersionsFor, winFor, type Done, type PackVM, type PackViewer, type Write,
+  marginRangeText, packFor, packIssueWrite, packReadyKey, packRerunWrite, packVersionsFor, winFor, type Done, type PackVM, type PackViewer, type Write,
 } from '@/domain/gcc/s3';
 import {
   conditionCloseWrite, conditionsFor, decisionState, declineLetter, dg2Overlay, dg2RecordFor, dg2Write, NO_BID_REASONS, positionsFor, positionWrite,
@@ -96,9 +96,17 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     'Flow 7 · Two re-opens keep their own reasons': 'No-Bid · A competitor withdrew: Hijr Al-Watan Contracting withdrew from the tender | Bid · A partner offered a JV: Tihama Hydro Works offered a JV on the process package',
     'Flow 9 · Conditions after a re-open': 'T-2026-097-R1-C1 closed · then T-2026-097-R2-C1 open, T-2026-097-R2-C2 open',
     'Sent-back flag stays in the pack risks (T-2026-104)': 'open 1 · sent back 1 (sent-back) · resolved 0',
+    // Plan 016a 1.6: T-2026-097's pack reads its frozen roll-up (no live requirements), so its 9.3 is unchanged.
+    '097 · 9.3 PQ lines': 'All PQ lines met at generation (16 of 16)',
   },
   corniche: {
     'T-2026-029 · Sections with no input requested': '9.6',
+    // Plan 016a 1.6: was "8 of 10 PQ lines met, 2 at risk" (the interpretation line counted as at risk).
+    'T-2026-061 · 9.3 PQ lines (live)': '8 of 10 PQ lines met, 1 at risk, 1 to interpret',
+  },
+  batinah: {
+    // Plan 016a 1.6: was "7 of 9 PQ lines met, 2 at risk".
+    'T-2026-042 · 9.3 PQ lines (live)': '7 of 9 PQ lines met, 1 at risk, 1 to interpret',
   },
   qurain: {
     'T-2026-049 · Sections with no input requested': '9.4, 9.6',
@@ -224,6 +232,8 @@ function najdRows(): Record<string, string> {
   got['097 · Facility basis'] = `${pack.summary.facilityAfterBasis} · ${pack.summary.facilityAfterNote ?? 'confirmed'}`;
   const s95 = pack.sections['9.5'].body;
   got['097 · Bid bond (007a)'] = s95?.bidBond.text ?? 'no 9.5';
+  // Plan 016a 1.6: lines to interpret are reported apart from lines at risk.
+  got['097 · 9.3 PQ lines'] = pack.sections['9.3'].body?.text ?? 'no 9.3';
   const theme = pack.sections['9.8'].body.winThemes.find((x) => x.cites.length);
   got['097 · Win theme citing WCWS'] = theme ? `${theme.text} (${theme.cites.map((c) => `${c.year} ${c.result}`).join(', ')})` : 'none';
   const clientDriver = win.drivers.find((x) => x.key === 'client');
@@ -393,6 +403,17 @@ function tenderRows(tenant: GccTenantKey): Record<string, string> {
   return rows;
 }
 
+/** Plan 016a 1.6: 9.3 on packs read against live eligibility (register requirements), opened with `pack-ready:`. */
+function eligibilityRows(tenant: GccTenantKey): Record<string, string> {
+  const rows: Record<string, string> = {};
+  const ids = [...new Set(PACK_VERSIONS.filter((p) => p.tenant === tenant).map((p) => p.tenderId))];
+  for (const id of ids.filter((x) => gccData(tenant).register.find((t) => t.id === x)?.requirements?.length)) {
+    const p = packFor(tenant, id, { [packReadyKey(id)]: '1' }, ALL);
+    rows[`${id} · 9.3 PQ lines (live)`] = p?.sections['9.3'].body?.text ?? 'no 9.3';
+  }
+  return rows;
+}
+
 /** Plan 020 lane E rows that tie Stage 3's seed to other plans' facts, for any tenant. */
 function tieRows(tenant: GccTenantKey): Record<string, string> {
   const d = gccData(tenant);
@@ -464,7 +485,7 @@ export default function Stage3Check() {
   const key = useTenantKey();
   if (!isGccTenantKey(key)) return <CardHead title="Stage 3 and DG2 rules" meta="No GCC seed for this tenant" />;
 
-  const got: Record<string, string> = { ...(key === 'najd' ? najdRows() : {}), ...tenderRows(key), ...tieRows(key), ...agreementRows(key) };
+  const got: Record<string, string> = { ...(key === 'najd' ? najdRows() : {}), ...tenderRows(key), ...eligibilityRows(key), ...tieRows(key), ...agreementRows(key) };
   const labelsOff = KICKOFF_INPUTS.filter((k) => INPUT_SPECS[k.inputKey].label !== k.label);
   got['Kick-off input labels match 008a'] = agree(!labelsOff.length, labelsOff.map((k) => `${k.inputKey}: "${INPUT_SPECS[k.inputKey].label}" vs "${k.label}"`).join('; '));
   got['Stale warning asks only for the acknowledgement'] = agree(STALE_WARNING.includes(STALE_ACK_LABEL) && !/reason/i.test(STALE_WARNING), STALE_WARNING);

@@ -244,7 +244,7 @@ export function dg1Write(input: Dg1Input, byId: string, pack: Dg1Pack, done: Don
       detail: [
         `Recommendation: ${rec.recommendation}`,
         decision.reasonCodes.length ? `reasons: ${decision.reasonCodes.map(reasonLabel).join(', ')}` : '',
-        decision.note ? `note: ${decision.note}` : '',
+        decision.note ? `note: ${decision.note.replace(/[.\s]+$/, '')}` : '',
         decision.delegate ? `recorded by ${by} as delegate` : '',
         override ? 'overrides the recommendation' : '',
         // Plan 021 4.3: the PQ-fail wording only when a PQ-fail reason was chosen.

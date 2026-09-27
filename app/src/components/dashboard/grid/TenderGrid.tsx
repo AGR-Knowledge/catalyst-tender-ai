@@ -108,6 +108,17 @@ const ROW_SELECTION: RowSelectionOptions = { mode: 'singleRow', checkboxes: fals
 const CONTAINER_STYLE = { height: '100%', width: '100%' };
 const always = () => true;
 
+/*
+ * The grid box fits its rows (dashboards.md DB-13): the header, 1 to 10 rows,
+ * and the strip AG Grid keeps for the horizontal scrollbar (16 px on macOS,
+ * 17 px on Windows). More than ten rows scroll inside the box. An empty grid
+ * keeps three rows, the room its empty message needs.
+ */
+const HEADER_H = 40;
+const ROW_H = 40;
+const SCROLL_GUTTER = 17;
+const gridHeight = (rows: number) => HEADER_H + (rows ? Math.min(rows, 10) : 3) * ROW_H + SCROLL_GUTTER;
+
 /* ----------------------------------------------------------------- the grid */
 
 export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R>) {
@@ -362,7 +373,7 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
           <button type="button" className="btn-link tg-clear" onClick={clearAll}>Clear all</button>
         </div>
       )}
-      <div className="tg-grid">
+      <div className="tg-grid" style={{ height: gridHeight(n) }}>
         <AgGridReact<R>
           theme={gridTheme}
           containerStyle={CONTAINER_STYLE}
@@ -384,8 +395,8 @@ export function TenderGrid<R extends Row = TenderRowVM>(props: TenderGridProps<R
           suppressNoRowsOverlay
           suppressCellFocus={false}
           animateRows={false}
-          headerHeight={40}
-          rowHeight={40}
+          headerHeight={HEADER_H}
+          rowHeight={ROW_H}
         />
         {n === 0 && (
           <div className="tg-empty">

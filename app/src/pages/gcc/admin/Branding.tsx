@@ -60,11 +60,11 @@ export default function Branding() {
   };
   const save = () => {
     const input: BrandingInput = { accent: draft.accent ?? undefined, logo: draft.logo, displayName: draft.displayName };
-    write(input, 'Branding changed', `Branding saved: ${brandingChangeText(tenant, input).replace(/^./, (c) => c.toLowerCase())}. Every page shows it now`);
+    write(input, 'Branding changed', `Branding saved: ${brandingChangeText(tenant, input).replace(/^./, (c) => c.toLowerCase())}. Every page shows it now.`);
   };
   const restore = () => {
     setProblem(null);
-    write({}, 'Branding restored', `${profile.name}’s own brand is back on every page`);
+    write({}, 'Branding restored', `${profile.name}’s own brand is back on every page.`);
   };
 
   const onSwatchKey = (e: KeyboardEvent, i: number) => {

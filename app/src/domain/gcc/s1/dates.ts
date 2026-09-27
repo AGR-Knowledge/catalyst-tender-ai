@@ -1,11 +1,12 @@
-import type { KeyDateKind } from '@/data/gcc/types';
+import type { KeyDate, KeyDateKind } from '@/data/gcc/types';
 import type { Tone } from '@/data/types';
 import { CALENDARS } from '@/data/gcc/calendar';
 import { s1Data } from '@/data/gcc/s1';
 import { firstWithRole } from '@/data/people';
 import { DEMO_TIME, DEMO_TODAY, addDays, calendarDaysBetween, dayFlags, weekendText, workingDaysBetween } from '@/domain/calendar';
 import { DEMO_NOW, addHours } from '@/domain/gcc/clock';
-import { BANK_LEAD_DAYS } from './bond';
+import { BANK_LEAD_DAYS, bidBondFor } from './bond';
+import type { Done } from './done';
 import { authorityCalendar, dayMonthYear, keyDate, openingOf, profileOf, shortDate, tenderOf } from './common';
 
 /**
@@ -52,14 +53,34 @@ export interface KeyDateRow {
 
 const closureName = (iso: string, cc: keyof typeof CALENDARS) => CALENDARS[cc].closures.find((c) => iso >= c.from && iso <= c.to)?.name ?? 'holiday';
 
-/** Key dates of one tender, in the order the tender gives them. */
-export function keyDatesFor(tenant: string, tenderId: string): KeyDateRow[] {
+/**
+ * The initial guarantee's validity as a key date, for a tender that states it in days or in a conflict held
+ * in the intake queue rather than as a date (T-2026-061's VAL-061-1): the bond rule's date, so the Dates tab
+ * and the bond never disagree. Placed after bid opening and bid validity.
+ */
+function withBondValidity(tenant: string, tenderId: string, keyDates: KeyDate[], done: Done): KeyDate[] {
+  if (keyDates.some((k) => k.kind === 'bond-validity-end')) return keyDates;
+  const terms = s1Data(tenant).bonds.find((x) => x.tenderId === tenderId);
+  if (!terms?.bidValidityDays && !terms?.bidValidityValidationId) return keyDates;
+  const b = bidBondFor(tenant, tenderId, done);
+  if (!b?.validTo) return keyDates;
+  const after = Math.max(...keyDates.map((k, i) => (k.kind === 'opening' || k.kind === 'validity-end' ? i : -1)));
+  const at = after < 0 ? keyDates.length : after + 1;
+  return [...keyDates.slice(0, at), { kind: 'bond-validity-end', date: b.validTo, note: b.validityText }, ...keyDates.slice(at)];
+}
+
+/**
+ * Key dates of one tender, in the order the tender gives them. With `done` (the Dates tab), the initial
+ * guarantee's validity is added where the tender states it only in days (plan 016a 2.4); without it, nothing changes.
+ */
+export function keyDatesFor(tenant: string, tenderId: string, done?: Done): KeyDateRow[] {
   const t = tenderOf(tenant, tenderId);
   if (!t) return [];
   const { cc, tz, fallback } = authorityCalendar(t, tenant);
   const opening = openingOf(t);
+  const keyDates = done ? withBondValidity(tenant, tenderId, t.keyDates, done) : t.keyDates;
 
-  return t.keyDates.map((k) => {
+  return keyDates.map((k) => {
     const label = KEY_DATE_LABEL[k.kind];
     const past = k.date < DEMO_TODAY || (k.date === DEMO_TODAY && !!k.time && k.time < DEMO_TIME);
     const flags: KeyDateFlag[] = [];

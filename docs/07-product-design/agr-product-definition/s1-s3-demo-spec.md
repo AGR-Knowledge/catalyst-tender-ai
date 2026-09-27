@@ -38,7 +38,7 @@ A prospect in a GCC contractor's tendering department should leave having *felt*
 | M-3 | "It never threw anything away. The low-fit tender is flagged, and a person decides, with a reason we can learn from." | Weak decision memory; a black box | DG1 |
 | M-4 | "RFQs went to screened, approved suppliers within a day of pursue. Nobody chased: the agent nudged and escalated, and we compared quotes *levelled* for VAT, currency, delivery terms, validity and exclusions." | Buyers chasing instead of evaluating; incomparable quotes | S2 |
 | M-5 | "The committee pack shows win probability *with its uncertainty and its drivers*, competitors with sources, bond and facility exposure, and the capacity clash with another bid, on one page." | Bid/no-bid on anecdote | S3 |
-| M-6 | "Each committee member recorded a position. The CEO decided, conditions were captured, and the audit trail shows exactly what everyone saw." | No record of decisions or rationale | DG2 |
+| M-6 | "Each committee member recorded a position. The Head of Tendering approved, conditions were captured, and the audit trail shows exactly what everyone saw." | No record of decisions or rationale | DG2 |
 | M-7 | "The same tender gives five different answers for five different companies, because it's *their* credentials, capacity and strategy, not a generic score." | "Will it fit *us*?" | Multi-tenant |
 | M-8 | "It read an Arabic, scanned tender and gave us English fields with the Arabic source beside each one, and it warned us that the Arabic text prevails." | Arabic-only documents | Bonus |
 | M-9 | "Catalyst runs the platform, but cannot see our prices. That's enforced and logged." | Trust, data sovereignty | Platform Console |
@@ -92,11 +92,11 @@ Personas active in the Stage 1–3 demo. Names are per tenant; see gcc-demo-data
 
 | Persona | Kind | Home screen | Demo moments |
 | --- | --- | --- | --- |
-| **Head of Tendering** | Top persona: everything in the tenant, plus administration | *Awaiting the user's sketch* (§14) | M-1…M-7 from the top; "View as" any role |
+| **Head of Tendering** | Top persona: everything in the tenant, plus administration; approves DG2 and DG3 | *Awaiting the user's sketch* (§14) | M-1…M-7 from the top; "View as" any role |
 | **Tender Coordinator** | Core | Intake desk | M-1, M-2 |
 | **Bid Manager** | Core | Bid desk | M-2, M-3, M-5 |
 | **Procurement Lead** | Core | Sourcing desk | M-4 |
-| **Executive Sponsor** (CEO; chairs the Bid Committee) | Core, gate chair | Committee desk | M-5, M-6 |
+| **Executive Sponsor** (CEO; a Bid Committee member. The Head of Tendering approves DG2, §10) | Core, committee member | Committee desk | M-5, M-6 |
 | **Bid Committee members**: CFO, Technical Director, Operations Director, Sector Head | Group members | "My committee items": pack plus position | M-6 |
 | **Commercial Manager**, **Planning Manager**, **Compliance / Legal Lead**, **Project Director (designate)**, **Finance / Treasury** | Contributors in this demo | My requests | Inputs to the S3 pack |
 | **Supplier** | External, preview | Supplier Portal: one RFQ | M-4 |
@@ -635,15 +635,15 @@ Facts such as portal names, classification systems, guarantee norms, VAT, the wo
 
 ## 17. Demo scripts
 
-Each script is 8–12 minutes, and they can be combined.
+Each script is 8–12 minutes, and they can be combined. The tested click path for each, with persona switches, recovery and known limits, is in the presenter runbook: [demo-runbook.md](demo-runbook.md).
 
 | Script | Tenant | Path | Moments |
 | --- | --- | --- | --- |
 | **A. From portal to Pursue** | A (KSA) | Radar → capture of the hero tender → booklet purchase approved by a person → intake steps → queue (2 fields; the initial-guarantee 1% vs 2% conflict) → Eligibility (Zakat and GOSI at risk; turnover years) → queries drafted (VAT; turnover years) → DG1 Pursue with team → RFQ clock | M-1, M-2, M-3 |
 | **B. Quotes without chasing** | A | Packages → shortlist (screening blocks one supplier) → RFQs → nudges → levelling (VAT, EUR, ex-works, validity) → best-fit, override → Supplier Portal preview | M-4 |
-| **C. The committee decides** | A | Pack (win probability 58 ± 8, competitors, facility, capacity clash, margin range) → issue → switch to CFO and Technical Director to vote → CEO decides Bid with conditions → audit | M-5, M-6 |
+| **C. The committee decides** | A | Pack (win probability 58 ± 8, competitors, facility, capacity clash, margin range) → issue → switch to the CFO, the Technical Director and the CEO to record positions → the Head of Tendering approves Bid with conditions → audit | M-5, M-6 |
 | **D. Same tender, five companies** | A–E | Switch tenants and open the hero tender → Compare tenants lens | M-7 |
-| **E. Arabic in, English out** | D or A | Upload the scanned Arabic tender → OCR → bilingual fields → "Arabic prevails" flag | M-8 |
+| **E. Arabic in, English out** | D (Batinah) | The Tender Coordinator uploads T-2026-042, the scanned Arabic tender → OCR → bilingual fields, as the Bid Manager → "Arabic prevails" flag | M-8 |
 | **F. Who can see what** | A, Platform | Head of Tendering "View as"; margin masked for Procurement; Platform Console break-glass | M-9 |
 
 ---
@@ -657,11 +657,15 @@ Each script is 8–12 minutes, and they can be combined.
 
 ## 19. Acceptance criteria for the Stage 1–3 demo
 
-- [ ] Scripts A–F run end to end without dead ends, as the personas listed, in both themes, at 1440 and 1280 widths.
-- [ ] Every number traces to `src/data` and is derived in `live.ts`, or its equivalent per stage module. No hard-coded numbers in pages.
-- [ ] Every action is permission-checked through `can()`. Masked data shows a masked state.
-- [ ] DG1 and DG2 records contain who, when, what was seen and why. Overrides and reason codes are captured.
-- [ ] Tenant switch changes the data, users, currency, branding and portals. Nothing leaks between tenants.
-- [ ] Reset (all or current tenant) returns to seed. Scenario presets land in their stated state.
+Checked item by item in plan 016c (2026-09-27); what was checked is in that plan's Phase 2.
+
+- [x] Scripts A–F run end to end without dead ends, as the personas listed, in both themes, at 1440 and 1280 widths.
+- [x] Every number traces to `src/data` and is derived in `live.ts`, or its equivalent per stage module. No hard-coded numbers in pages.
+- [x] Every action is permission-checked through `can()`. Masked data shows a masked state.
+- [x] DG1 and DG2 records contain who, when, what was seen and why. Overrides and reason codes are captured.
+- [x] Tenant switch changes the data, users, currency, branding and portals. Nothing leaks between tenants.
+- [x] Reset (all or current tenant) returns to seed. Scenario presets land in their stated state.
 - [ ] Arabic documents show the English value with the Arabic source for every field.
+  - *Plan 016c:* met on Requirements, Key dates and the intake queue. The Overview and the DG1 pack give the English value with a page chip into the Arabic document, not the Arabic quotation (016c finding 30, left for a decision).
 - [ ] Demo scope mode hides Stage 4–9 surfaces completely, with no placeholders.
+  - *Superseded by dashboards.md DB-10 (plan 016c, 2026-09-27).* The rule now: in a GCC tenant, Stages 4–9 have real tenders, owners, dates and step status, and a stage dashboard each, but no working screens. No placeholder (`ComingNext`) is reachable from the sidebar, search or a link. GCC tenants are always in Stage 1–3 scope, so Settings shows no Demo scope toggle for them; the toggle shows only for the Indian preview (`gen-in`, gcc-demo-data §3).

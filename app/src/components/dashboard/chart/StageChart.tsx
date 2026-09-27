@@ -78,7 +78,8 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
   const measures = vm.measures ?? [];
   const more = vm.more ?? (measures.length ? [] : vm.metrics);
   const onMore = more.some((m) => m.id === metric);
-  const notes = vm.notes ?? [];
+  // An empty chart shows its note as the empty message (build.ts `emptyText`), so the caption doesn't repeat it.
+  const notes = (vm.notes ?? []).filter((n) => !((vm.missing || vm.empty) && n === vm.emptyText));
 
   const click = (p: GraphPointVM | null) => { if (p?.drill) onPoint(p.key); };
   const onKey = (e: KeyboardEvent) => {

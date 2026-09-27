@@ -23,15 +23,21 @@ export const dg3Waiting = (ctx: KpiCtx) => liveIn(ctx, 7)
   .flatMap((l) => { const g = openGate(l, ctx.now); return g?.gate === 'DG3' ? [{ l, g }] : []; })
   .sort((a, b) => a.g.slaEnd.localeCompare(b.g.slaEnd));
 
-/** A count over Stage 7 tenders, with the tender that has most. */
-function sumOf(ctx: KpiCtx, pick: (f: S7Facts) => number) {
-  const rows = s7Of(ctx).filter((x) => pick(x.f) > 0);
+/** A count over Stage 7 rows, with the tender that has most. */
+export function countOver(all: S7[], pick: (f: S7Facts) => number) {
+  const rows = all.filter((x) => pick(x.f) > 0);
   const n = rows.reduce((s, x) => s + pick(x.f), 0);
   const most = [...rows].sort((a, b) => pick(b.f) - pick(a.f))[0];
-  return { rows, n, most, nearAny: rows.some((x) => near(ctx, x.l)) };
+  return { rows, n, most };
 }
 
-const on = (rows: S7[]) => (rows.length === 1 ? `on ${rows[0].l.tenderId}` : `Most: ${rows[0]?.l.tenderId}`);
+function sumOf(ctx: KpiCtx, pick: (f: S7Facts) => number) {
+  const s = countOver(s7Of(ctx), pick);
+  return { ...s, nearAny: s.rows.some((x) => near(ctx, x.l)) };
+}
+
+/** The tile's sub-line: "on T-…" for one tender, else "Most: T-…", the tender with the largest count. */
+export const on = (s: { rows: S7[]; most?: S7 }) => (s.rows.length === 1 ? `on ${s.rows[0].l.tenderId}` : `Most: ${s.most?.l.tenderId}`);
 
 export const KPIS: KpiDef[] = [
   {
@@ -45,7 +51,7 @@ export const KPIS: KpiDef[] = [
       const s = sumOf(ctx, (f) => f.mandatoryGaps);
       if (!s.n) return { display: '0', sub: s7Of(ctx).length ? 'Every mandatory line is evidenced' : 'No bids in compliance', tone: 'green' };
       const tone: Tone = s.nearAny ? 'red' : 'orange';
-      return { display: String(s.n), sub: on(s.rows), tone };
+      return { display: String(s.n), sub: on(s), tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Mandatory gaps'), sumOf(ctx, (f) => f.mandatoryGaps).rows.map((x) => x.l.tenderId)),
   },
@@ -75,7 +81,7 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.redlinesOpen);
       if (!s.n) return { display: '0', sub: 'Every contract position is decided' };
-      return { display: String(s.n), sub: on(s.rows), ...(s.nearAny ? { tone: 'orange' as const } : {}) };
+      return { display: String(s.n), sub: on(s), ...(s.nearAny ? { tone: 'orange' as const } : {}) };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Redlines open'), sumOf(ctx, (f) => f.redlinesOpen).rows.map((x) => x.l.tenderId)),
   },
@@ -88,7 +94,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.risksWithoutOwner);
-      return s.n ? { display: String(s.n), sub: on(s.rows), tone: 'red' } : { display: '0', sub: 'Every risk has an owner', tone: 'green' };
+      return s.n ? { display: String(s.n), sub: on(s), tone: 'red' } : { display: '0', sub: 'Every risk has an owner', tone: 'green' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Risks without owner'), sumOf(ctx, (f) => f.risksWithoutOwner).rows.map((x) => x.l.tenderId)),
   },

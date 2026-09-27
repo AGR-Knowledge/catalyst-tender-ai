@@ -10,6 +10,7 @@ import { queriesFor, tenderCtx, type DemoDone } from '@/domain/gcc/lifecycle.por
 import { hoursText } from '@/domain/gcc/lifecycle';
 import { hoursBetween } from '@/data/gcc/lifecycle/chain';
 import { AGAINST_MAJORITY_TEXT } from '@/domain/gcc/dg2/decision';
+import { auditOfTender } from '@/domain/gcc/auditTargets';
 import { reasonText } from './rail';
 
 /**
@@ -121,7 +122,8 @@ export function auditTimeline(tenant: string, tenderId: string, done: DemoDone, 
   const tctx = l ? tenderCtx(tenant, l) : {};
   const sees = { margin: can(viewer, 'see.margin', tctx).ok, positions: can(viewer, 'see.positions', tctx).ok, quotes: can(viewer, 'see.quotes', tctx).ok };
   const hidden = (e: AuditEvent) => !!e.sensitive && !sees[e.sensitive];
-  for (const e of audit.filter((x) => x.target === tenderId)) {
+  // Stage 1 queries, Stage 2 packages, RFQs, quotes and clarifications name the tender in their own ways (plan 016a 2.3).
+  for (const e of auditOfTender(audit, tenderId, tenant)) {
     const detail = e.detail && hidden(e) ? `Details masked for your role (${e.sensitive === 'positions' ? 'committee positions' : e.sensitive})` : e.detail;
     out.push({ key: e.id, at: e.at, actor: who(e.actorId), system: false, from: 'demo', action: e.action, ...(detail ? { detail } : {}) });
   }

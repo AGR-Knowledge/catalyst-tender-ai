@@ -13,6 +13,8 @@ import { homeDashboardKey } from '@/domain/gcc/dashboards/home';
 import { requestWrite } from '@/domain/gcc/requestKeys';
 import { DONE_KEY } from '@/domain/gcc/s1';
 import type { DashboardVM, TenderRowVM } from '@/domain/gcc/viewmodels';
+import { countOver, on as mostOn } from '@/domain/gcc/kpi/stage7.kpi';
+import type { Lifecycle, S7Facts } from '@/data/gcc/lifecycle';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -119,6 +121,10 @@ function checks(tenant: GccTenantKey): Check[] {
     add('Stage 2 · same tiles, flow and rows for its owner and the Head of Tendering', String(same), 'true');
     add('Stage 2 · action zone, owner | Head of Tendering', `${own.actions.title} | ${hot.actions.title}`, 'Needs your action | Waiting in Sourcing');
   }
+
+  // Stage 7's "Most:" names the tender with the largest count, not the first row (plan 016a 1.4). Two synthetic rows, the larger second.
+  const s7 = (id: string, gaps: number) => ({ l: { tenderId: id } as Lifecycle, f: { stage: 7, requirements: { evidenced: 0, total: 1 }, mandatoryGaps: gaps, redlinesOpen: 0, risksWithoutOwner: 0 } as S7Facts });
+  add('Stage 7 · sub-line names the most, not the first', mostOn(countOver([s7('T-A', 1), s7('T-B', 3)], (f) => f.mandatoryGaps)), 'Most: T-B');
 
   // Masking and visibility.
   add('Procurement Lead · open Stage 5', can(proc, 'stage.view', { stage: 5 }).reason ?? 'allowed', 'Stage 5 is outside your role');

@@ -32,6 +32,8 @@ export interface DeskCtx {
   check(cap: Capability, extra?: Partial<CanCtx>): CanResult;
   /** Quote amounts, levelled prices and adjustment amounts (`see.quotes`). Without it, counts and states only. */
   seesQuotes: boolean;
+  /** Levelled totals and the mix total (`see.quotes` or `see.quotes.summary`, "Levelled quote summaries"); the suppliers' quoted amounts stay masked. */
+  seesLevelled: boolean;
   quotesBy: string;
   doc: SourceDoc | null;
   /** Record one write; a refused write toasts its reason. True when recorded. */
@@ -82,9 +84,10 @@ export function useDesk(tenderId: string, from?: { check?: DeskCtx['check'] }): 
   }, [tenant, tenderId]);
 
   const seesQuotes = check('see.quotes').ok;
+  const seesLevelled = seesQuotes || check('see.quotes.summary').ok;
   return {
     tenant, tenderId, title: registerRow(tenant, tenderId)?.title ?? tenderId, viewer: person, viewAs, done, audit, now: DEMO_NOW,
-    check, seesQuotes, quotesBy: holdersOf('see.quotes'), doc, apply, applyAll,
+    check, seesQuotes, seesLevelled, quotesBy: holdersOf('see.quotes'), doc, apply, applyAll,
   };
 }
 
@@ -127,5 +130,5 @@ export function nudgeWrite(tenant: string, r: LiveRfq, byId: string, done: Done,
   };
 }
 
-/** Only the tender's own entries in the demo audit trail: its packages, RFQs and quotes carry its id. */
-export const auditOfTender = (audit: AuditEvent[], tenderId: string) => audit.filter((e) => e.target?.includes(tenderId));
+/** Only the tender's own entries in the demo audit trail: its packages, RFQs, quotes and clarifications (the domain's matcher, shared with the workspace). */
+export { auditOfTender } from '@/domain/gcc/auditTargets';

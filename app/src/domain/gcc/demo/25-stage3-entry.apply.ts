@@ -2,7 +2,7 @@ import type { S3Facts } from '@/data/gcc/lifecycle';
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { PACK_VERSIONS } from '@/data/gcc/s3';
 import { stageOf } from '@/data/gcc/stages';
-import { freshnessFor, inputsFor, isMasked, packFor, packReadyKey, packVersionsFor, readDone } from '@/domain/gcc/s3';
+import { freshnessFor, inputsFor, isMasked, packFor, packReadyKey, packVersionsFor, readDone, standsAfterDg1Reopen } from '@/domain/gcc/s3';
 import { currentOf, lifecycle, type DemoDone } from '@/domain/gcc/lifecycle';
 import type { AuditDraft, Write } from './presets/types';
 import { asDone, later, type Applier } from './types';
@@ -17,6 +17,9 @@ import { asDone, later, type Applier } from './types';
  * Stage 3 facts read from the seeded pack and inputs, as `30-stage3` reads
  * them. It runs before `30-stage3`, which keeps the facts current from then on.
  * Pure and idempotent: a tender already past Stage 2 is left as it is.
+ * A DG1 re-open after the move sends the tender back: the entry counts only
+ * when written after the latest re-open (`standsAfterDg1Reopen`), so a new
+ * Pursue leaves it in Stage 2 and the control is offered again.
  */
 
 export const stage3EntryKey = (tenderId: string) => `stage3-entry:${tenderId}`;
@@ -67,9 +70,9 @@ export const applier: Applier = {
   id: 'stage3-entry',
   apply(tenant, l, done) {
     const id = l.tenderId;
-    const v = readDone<EntryValue>(asDone(done), stage3EntryKey(id));
-    if (!v || l.closedAt || currentOf(l).stage !== 2) return l;
     const d = asDone(done);
+    const v = readDone<EntryValue>(d, stage3EntryKey(id));
+    if (!v || !standsAfterDg1Reopen(d, id, d[stage3EntryKey(id)]) || l.closedAt || currentOf(l).stage !== 2) return l;
     const pv = packVersionsFor(tenant, id, d);
     const pack = packFor(tenant, id, d, ALL);
     const win = pack?.sections['9.1'].body;

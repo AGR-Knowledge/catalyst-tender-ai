@@ -24,7 +24,7 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
         <button type="button" className="btn-link wsh-back" onClick={onBack}><ChevronLeft size={13} aria-hidden />Back</button>
         <span className="wsh-stage">{vm.stage}</span>
         {/* Plan 014: the presenter's way into script D, on the hero only. */}
-        {vm.id === HERO_ID && <Link className="btn-link" style={{ marginLeft: 'auto', color: 'var(--ink-3)' }} to="/demo/compare"><DemoTag title="A presenter view: in the product nobody sees across companies" />Compare tenants</Link>}
+        {vm.id === HERO_ID && <Link className="btn-link" style={{ marginLeft: 'auto', color: 'var(--ink-3)' }} to="/demo/compare" aria-label="Compare tenants (demo view)"><DemoTag title="A presenter view: in the product nobody sees across companies" />Compare tenants</Link>}
       </div>
 
       <div className="wsh-l1">
@@ -69,9 +69,10 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
             </>
           ) : <span className="wsh-cd">{vm.dueNote}</span>}
         </span>
+        {/* A closed tender reads its outcome in place of the countdown, so there is no "With …" line. */}
         <span className="wsh-owner">
-          {vm.owner ? <>With <b>{vm.owner.name}</b>{vm.owner.role ? `, ${vm.owner.role}` : ''}</> : 'With nobody now'}
-          {vm.bidManager && <> · Bid Manager <b>{vm.bidManager.name}</b></>}
+          {!vm.closed && (vm.owner ? <>With <b>{vm.owner.name}</b>{vm.owner.role ? `, ${vm.owner.role}` : ''}</> : 'With nobody now')}
+          {vm.bidManager && <>{vm.closed ? '' : ' · '}Bid Manager <b>{vm.bidManager.name}</b></>}
         </span>
       </div>
 

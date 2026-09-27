@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { Plus, X } from 'lucide-react';
 import type { Seat } from '@/data/people';
 import { personById, SEAT_LABEL } from '@/data/people';
@@ -57,6 +57,15 @@ export function PositionForm({ tenant, tenderId, seat, asSecretary, onClose }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seat, tenderId]);
 
+  // A radio group (plan 016b): Tab reaches the chosen position, the arrow keys move and choose, Space or Enter chooses.
+  const shown = coi ? 'abstain' : stance;
+  const group = useRef<HTMLDivElement>(null);
+  // Focus follows the chosen position, including when the saved one loads just after the form opens.
+  useEffect(() => {
+    const g = group.current;
+    if (g && g.contains(document.activeElement)) g.querySelector<HTMLElement>('[aria-checked="true"]')?.focus();
+  }, [shown]);
+
   if (!seat || !sv) return null;
 
   const input: PositionInput = {
@@ -93,6 +102,17 @@ export function PositionForm({ tenant, tenderId, seat, asSecretary, onClose }: {
   };
 
   const need = input.stance !== 'support';
+  const onSegKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    const i = STANCES.indexOf(shown);
+    const to = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? i + 1
+      : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? i - 1
+      : e.key === 'Home' ? 0 : e.key === 'End' ? STANCES.length - 1 : null;
+    if (to === null) return;
+    e.preventDefault();
+    const n = (to + STANCES.length) % STANCES.length;
+    setStance(STANCES[n]);
+    e.currentTarget.querySelectorAll<HTMLElement>('[role="radio"]')[n]?.focus();
+  };
   return (
     <ConfirmModal
       open={!!seat} eyebrow={`DG2 position · pack v${positions.issuedVersion ?? 1}`}
@@ -102,9 +122,12 @@ export function PositionForm({ tenant, tenderId, seat, asSecretary, onClose }: {
     >
       <fieldset className="s3-field" disabled={coi}>
         <legend className="s3-l">Position</legend>
-        <div className="s3-seg" role="radiogroup" aria-label="Position">
-          {STANCES.map((s, i) => (
-            <button key={s} type="button" role="radio" aria-checked={(coi ? 'abstain' : stance) === s} onClick={() => setStance(s)} data-autofocus={i === 0 ? true : undefined}>{STANCE_LABEL[s]}</button>
+        <div className="s3-seg" role="radiogroup" aria-label="Position" onKeyDown={onSegKey} ref={group}>
+          {STANCES.map((s) => (
+            <button
+              key={s} type="button" role="radio" aria-checked={shown === s} tabIndex={shown === s ? 0 : -1}
+              onClick={() => setStance(s)} data-autofocus={shown === s ? true : undefined}
+            >{STANCE_LABEL[s]}</button>
           ))}
         </div>
       </fieldset>

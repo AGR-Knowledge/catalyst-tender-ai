@@ -7,6 +7,7 @@ import { S2_SUPPLIERS } from '@/data/gcc/s2';
 import { LIFECYCLES, type S2Facts } from '@/data/gcc/lifecycle';
 import * as S2 from '@/domain/gcc/s2';
 import { dg1Reopen } from '@/domain/gcc/dg1';
+import { tenderTargetMatcher } from '@/domain/gcc/auditTargets';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -84,6 +85,8 @@ const EXPECT: Record<string, string> = {
   '4.4: shortlist on the hero before DG1': 'This tender is no longer pursued (DG1 was re-opened).',
   '4.4: after DG1 re-opened on T-104 (RFQ · levelling)': 'refused · refused',
   '4.5: RFQ due at exactly now': 'ahead · not overdue',
+  // Plan 016a 2.3: the tender's own audit targets (itself, package, query, RFQ, quote), never T-2026-011's; a clarification by its seed.
+  'Audit matcher: T-2026-01 against T-2026-011 · CL-104-01': '5 of 10 · T-2026-104',
 };
 
 /** Inputs to the simulated flows (not targets). */
@@ -333,6 +336,12 @@ function compute(key: GccTenantKey) {
     got['Supplier view: another firm’s RFQ'] = S2.supplierView(key, 'najd.supplier', `${T104}-P-02-rhein-aqua`, seed) ? 'shown' : 'not shown';
     got['Supplier view hero P-02: leaks'] = heroView ? leaksIn(key, heroView, HERO_ID, 'P-02').join(', ') || 'none' : 'no view';
   }
+  // Plan 016a 2.3: the audit matcher the workspace and the Stage 2 desk share.
+  const targets = ['T-2026-01', 'T-2026-01 P-04', 'T-2026-01 · Bond validity', 'T-2026-01-P-04-castellan', 'Q-T-2026-01-P-04-castellan',
+    'T-2026-011', 'T-2026-011 P-04', 'T-2026-011 · Bond validity', 'T-2026-011-P-04-castellan', 'CL-104-01'];
+  const m01 = tenderTargetMatcher('T-2026-01', key);
+  const clarOf = ['T-2026-104', 'T-2026-10'].filter((tid) => tenderTargetMatcher(tid, 'najd')('CL-104-01')).join(', ') || 'none';
+  got['Audit matcher: T-2026-01 against T-2026-011 · CL-104-01'] = `${targets.filter(m01).length} of ${targets.length} · ${clarOf}`;
   return { got, info, trace, facts };
 }
 
@@ -353,7 +362,7 @@ export default function Stage2Check() {
   // The hero's packages are the same in every tenant; its shortlists depend on each tenant's master, so only Najd's are targeted.
   // The levelling-note rules hold wherever a quote has an estimated adjustment to decide.
   const LEVEL_NOTES = ['Levelling: reject without a note', 'Levelling: change an amount without a note', 'Levelling: change an amount with a note'];
-  const everyTenant = (name: string) => name.startsWith('Determinism') || LEVEL_NOTES.includes(name)
+  const everyTenant = (name: string) => name.startsWith('Determinism') || name.startsWith('Audit matcher') || LEVEL_NOTES.includes(name)
     || (name.startsWith('Hero') && !name.startsWith('Hero shortlists') && !name.startsWith('Hero P-09 approved'));
   const expected = (name: string) => {
     if (r.facts[name]) return r.facts[name];

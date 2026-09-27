@@ -79,7 +79,9 @@ export interface Section93 {
   text: string;
   met: number;
   of: number;
+  /** Lines at risk. Lines that need an interpretation are counted apart. */
   atRisk: number;
+  interpretation: number;
   /** Live result differs from what the pack froze. */
   refreshed: boolean;
   jv: string;
@@ -285,15 +287,16 @@ export function packFor(tenant: string, tenderId: string, done: Done, viewer: Pa
   let s93source = 'No eligibility on record';
   const live = t.requirements?.length ? eligibilityFor(tenant, tenderId, done) : null;
   if (live) {
-    const { met, na, atRisk: risky, interpretation } = live.counts;
+    const { met, na, atRisk, interpretation } = live.counts;
     const of = live.lines.length - na;
-    const atRisk = risky + interpretation;
     const refreshed = !!snap.eligibility && (snap.eligibility.met !== met || snap.eligibility.of !== of);
-    s93body = { kind: 'live', met, of, atRisk, refreshed, jv: jvText, text: `${met} of ${of} PQ lines met${atRisk ? `, ${atRisk} at risk` : ''}${refreshed ? ' (refreshed since the pack was generated)' : ''}` };
+    // "12 of 16 PQ lines met, 2 at risk, 1 to interpret": an interpretation line is not an at-risk line.
+    const text = `${met} of ${of} PQ lines met${atRisk ? `, ${atRisk} at risk` : ''}${interpretation ? `, ${interpretation} to interpret` : ''}${refreshed ? ' (refreshed since the pack was generated)' : ''}`;
+    s93body = { kind: 'live', met, of, atRisk, interpretation, refreshed, jv: jvText, text };
     s93source = 'Eligibility check against the credential vault (live)';
   } else if (snap.eligibility) {
     const { met, of } = snap.eligibility;
-    s93body = { kind: 'snapshot', met, of, atRisk: 0, refreshed: false, jv: jvText, text: met === of ? `All PQ lines met at generation (${met} of ${of})` : `${met} of ${of} PQ lines met at generation` };
+    s93body = { kind: 'snapshot', met, of, atRisk: 0, interpretation: 0, refreshed: false, jv: jvText, text: met === of ? `All PQ lines met at generation (${met} of ${of})` : `${met} of ${of} PQ lines met at generation` };
     s93source = `S1 eligibility roll-up, as at ${stampText(cur.generatedAt)}`;
   }
   const s93 = section('9.3', s93source, s93body, staleAll);

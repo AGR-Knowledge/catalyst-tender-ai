@@ -99,8 +99,12 @@ export interface TriageResult {
   flags: string[];
 }
 
-/** Tenders waiting for DG1 (soonest SLA first), then the low-fit ones a person may still take (oldest first). */
-export function triageFor(tenant: string, done: Done): TriageResult {
+/**
+ * Tenders waiting for DG1 (soonest SLA first), then the low-fit ones a person may still take (oldest first).
+ * With `visible`, only the rows the viewer may open are kept, and every running sum, team and facility total
+ * is over those rows alone: a total never counts a row its table hides (plan 016a 2.2).
+ */
+export function triageFor(tenant: string, done: Done, visible?: (tenderId: string) => boolean): TriageResult {
   const d = dataOf(tenant);
   const s1 = s1Data(tenant);
   const ccy = tenantCcy(tenant);
@@ -115,7 +119,7 @@ export function triageFor(tenant: string, done: Done): TriageResult {
   const order = [
     ...queue.map((q) => ({ t: d.register.find((x) => x.id === q.tenderId)!, queue: 'dg1' as const, held: q.held })),
     ...lowFit.map((t) => ({ t, queue: 'low-fit' as const, held: false })),
-  ];
+  ].filter(({ t }) => !visible || visible(t.id));
 
   const extras = new Map<string, Commitment[]>();
   let bonds = 0;

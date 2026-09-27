@@ -28,20 +28,22 @@ const ROWS: SupplierTuple[] = [
 
   // Process mechanical equipment
   ['rhein-aqua', 'Rhein Aqua Systems GmbH', 'DE', 'Duisburg', ['process-mech'], [ECWS, GCIU], 12, 'approved', OK('2025-12-15'), [93, 0, 6, 2], 'medium', [92, 5.0], false],
-  ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['process-mech', 'sludge', 'chem-dosing'], [ECWS], 58, 'approved', OK('2026-02-03'), [86, 1, 9, 3], 'high', [74, 6.5], true, 'najd.supplier'],
+  // Plan 016a 4.1: on GCIU's list too, so T-2026-104 P-04's seeded RFQs (avlRequired) went to approved suppliers.
+  ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['process-mech', 'sludge', 'chem-dosing'], [ECWS, GCIU], 58, 'approved', OK('2026-02-03'), [86, 1, 9, 3], 'high', [74, 6.5], true, 'najd.supplier'],
   ['hanseong', 'Hanseong Water Machinery', 'KR', 'Changwon', ['process-mech', 'pumps', 'surge'], [GCIU], 6, 'approved', OK('2025-10-30'), [90, 1, 5, 1], 'low', [86, 4.5], false],
   ['vistula', 'Vistula Process Equipment S.A.', 'PL', 'Gdańsk', ['process-mech'], [], 4, 'pending', OK('2026-01-20'), [83, 2, 3, 0], 'low', [71, 6.0], false],
 
   // Tertiary filtration, DAF and UV; odour control
   ['nordklar', 'Nordklar Filtration AB', 'SE', 'Malmö', ['filtration'], [ECWS, GCIU], 9, 'approved', OK('2025-11-25'), [94, 0, 5, 2], 'medium', [91, 4.0], false],
-  ['sahara-clearwater', 'Sahara Clearwater Technologies', 'AE', 'Dubai', ['filtration', 'odour'], [], 22, 'approved', OK('2025-12-08'), [81, 2, 7, 1], 'high', [69, 7.0], false],
-  ['tamarisk', 'Tamarisk Water Technologies', 'SA', 'Jeddah', ['filtration', 'chem-dosing', 'testing'], [], 47, 'approved', OK('2026-01-06'), [88, 1, 8, 2], 'medium', [85, 4.5], false],
+  // Plan 016c: both on GCIU's list, so T-2026-104 P-03's seeded RFQs (avlRequired) went to approved suppliers.
+  ['sahara-clearwater', 'Sahara Clearwater Technologies', 'AE', 'Dubai', ['filtration', 'odour'], [GCIU], 22, 'approved', OK('2025-12-08'), [81, 2, 7, 1], 'high', [69, 7.0], false],
+  ['tamarisk', 'Tamarisk Water Technologies', 'SA', 'Jeddah', ['filtration', 'chem-dosing', 'testing'], [GCIU], 47, 'approved', OK('2026-01-06'), [88, 1, 8, 2], 'medium', [85, 4.5], false],
   ['lumenza', 'Lumenza UV Systems B.V.', 'NL', 'Eindhoven', ['filtration'], [], 5, 'approved', ['clear', '2026-01-27', 'flag', '2026-01-27'], [90, 0, 3, 1], 'low', [88, 3.5], false],
 
   // Sludge thickening and dewatering
   ['castellan', 'Castellan Separators Srl', 'IT', 'Bergamo', ['sludge'], [ECWS, GCIU], 8, 'approved', OK('2025-10-14'), [92, 1, 6, 2], 'medium', [89, 4.0], false],
   ['brenner', 'Brenner Zentrifugen GmbH', 'DE', 'Rosenheim', ['sludge'], [], 7, 'approved', ['due', '2025-09-02', 'clear', '2025-12-01'], [88, 1, 4, 1], 'low', [83, 5.0], false],
-  ['salwa', 'Salwa Environmental Equipment', 'SA', 'Hofuf', ['sludge', 'odour', 'chem-dosing'], [], 51, 'approved', OK('2025-12-19'), [85, 2, 10, 3], 'medium', [87, 4.0], true],
+  ['salwa', 'Salwa Environmental Equipment', 'SA', 'Hofuf', ['sludge', 'odour', 'chem-dosing'], [GCIU], 51, 'approved', OK('2025-12-19'), [85, 2, 10, 3], 'medium', [87, 4.0], true],
 
   ['odrana', 'Odrana Odour Control FZCO', 'AE', 'Dubai', ['odour'], [], 18, 'approved', OK('2025-11-11'), [80, 3, 6, 1], 'medium', [78, 5.5], false],
   ['khuzama', 'Khuzama Air Treatment', 'SA', 'Riyadh', ['odour'], [ECWS], 43, 'approved', OK('2026-02-10'), [89, 1, 5, 2], 'low', [90, 3.5], true],
@@ -49,7 +51,8 @@ const ROWS: SupplierTuple[] = [
   // HV substations and transformers; LV distribution, MCCs and cables
   ['hijaz-power', 'Hijaz Power Equipment Co.', 'SA', 'Jeddah', ['hv', 'lv'], [ECWS, GCIU, NCWS], 49, 'approved', OK('2025-10-08'), [91, 1, 11, 4], 'medium', [93, 3.5], true],
   ['levant-switchgear', 'Levant Switchgear SAL', 'LB', 'Beirut', ['hv', 'lv'], [ECWS, GCIU], 10, 'approved', OK('2025-11-04'), [78, 3, 8, 1], 'high', [72, 7.5], false],
-  ['weser', 'Weser Transformer Works GmbH', 'DE', 'Bremen', ['hv'], [], 3, 'approved', OK('2025-12-22'), [95, 0, 4, 1], 'high', [81, 5.0], false],
+  // Plan 016c: on GCIU's list, so T-2026-104 P-06's seeded RFQ (avlRequired) went to an approved supplier.
+  ['weser', 'Weser Transformer Works GmbH', 'DE', 'Bremen', ['hv'], [GCIU], 3, 'approved', OK('2025-12-22'), [95, 0, 4, 1], 'high', [81, 5.0], false],
   ['nafud', 'Nafud Electric Industries', 'SA', 'Riyadh', ['hv', 'lv'], [NCWS], 46, 'approved', OK('2026-01-15'), [87, 1, 9, 2], 'medium', [86, 4.0], true],
   ['hafar-cable', 'Hafar Cable Industries', 'SA', 'Dammam', ['lv'], [ECWS], 54, 'approved', OK('2025-10-27'), [90, 0, 12, 5], 'medium', [92, 3.0], true],
   ['sarawat', 'Sarawat Panel Builders', 'SA', 'Abha', ['lv'], [], 45, 'approved', ['due', '2025-09-05', 'clear', '2025-12-14'], [84, 2, 6, 1], 'low', [79, 5.0], true],

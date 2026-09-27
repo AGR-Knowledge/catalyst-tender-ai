@@ -18,7 +18,8 @@ import type { DeskCtx } from './vm/desk';
  * levelled quote, side by side, with the trace of each change; then every
  * adjustment with its source, which the buyer confirms, changes (an estimated
  * amount) or rejects with a note. The agent proposes; the buyer decides.
- * Amounts are masked without `see.quotes`: the work stays visible.
+ * Amounts are masked without `see.quotes`: the work stays visible. Levelled
+ * totals also show with `see.quotes.summary`; the quoted amounts don't.
  */
 
 const STATE_TAG: Record<Adjustment['state'], { text: string; tone: 'orange' | 'green' | 'grey' }> = {
@@ -29,6 +30,20 @@ const MONEY_KINDS: Adjustment['kind'][] = ['currency', 'vat', 'delivery', 'exclu
 
 const signed = (m: { amount: number; ccy: Parameters<typeof money>[1] }) => `${m.amount >= 0 ? '+' : '−'} ${money(Math.abs(m.amount), m.ccy)}`;
 
+/**
+ * Without `see.quotes`, a money adjustment is named without its rate, amount or share: beside a
+ * levelled total (`see.quotes.summary`), "VAT 15% removed" or an exchange rate gives the quoted price back.
+ */
+const PLAIN: Partial<Record<Adjustment['kind'], { label?: string; source: string }>> = {
+  currency: { source: 'Demo bid exchange rate' },
+  vat: { label: 'VAT removed: shown excluding VAT', source: 'The price is stated as inclusive of VAT' },
+  delivery: { label: 'Freight and any customs duty added, to reach delivered to site', source: 'Benchmark freight and customs duty [assumption]' },
+  exclusion: { label: 'Exclusion priced with a benchmark allowance', source: 'Benchmark allowance [assumption]' },
+};
+const plainOf = (desk: DeskCtx, a: Adjustment) => (!desk.seesQuotes && (a.delta || a.kind === 'currency') ? PLAIN[a.kind] : undefined);
+const nameOf = (desk: DeskCtx, a: Adjustment) => plainOf(desk, a)?.label ?? a.label;
+const ROW_KIND: Record<string, Adjustment['kind']> = { Currency: 'currency', VAT: 'vat', Delivery: 'delivery', Exclusions: 'exclusion' };
+
 export function LevelQuote({ desk, quoteId }: { desk: DeskCtx; quoteId: string }) {
   const { tenant, tenderId, done } = desk;
   const q = quotesFor(tenant, tenderId, done).find((x) => x.id === quoteId);
@@ -38,6 +53,13 @@ export function LevelQuote({ desk, quoteId }: { desk: DeskCtx; quoteId: string }
   const { vm, rows } = view;
   const pkg = packagesFor(tenant, tenderId, done).find((p) => p.pkg.id === q.packageId)?.pkg;
   const proposed = vm.adjustments.filter((a) => a.state === 'proposed');
+  // The side-by-side trace, rebuilt from the plain names when the rates are masked.
+  const traceOf = (r: (typeof rows)[number]) => {
+    if (desk.seesQuotes) return r.trace;
+    if (r.field === 'Price') return vm.adjustments.filter((a) => a.delta).map((a) => nameOf(desk, a)).join('; ') || undefined;
+    const k = ROW_KIND[r.field];
+    return k ? vm.adjustments.filter((a) => a.kind === k).map((a) => `${nameOf(desk, a)} (${a.state})`).join('; ') || undefined : r.trace;
+  };
 
   const confirmAll = () => desk.applyAll(
     proposed.map((a) => levelWrite(tenant, tenderId, q.id, a.key, 'confirmed', desk.viewer.id, done, undefined, undefined, a)),
@@ -58,7 +80,7 @@ export function LevelQuote({ desk, quoteId }: { desk: DeskCtx; quoteId: string }
         <div className="s2-lev-sum s2-pad-x">
           <div><span className="s2-label">As quoted</span><span className="s2-big">{desk.seesQuotes ? <Money value={vm.original} /> : <Masked by={desk.quotesBy} />}</span></div>
           <span className="s2-arrow" aria-hidden>→</span>
-          <div><span className="s2-label">Levelled: excluding VAT, delivered to site, {vm.levelled.ccy}</span><span className="s2-big">{desk.seesQuotes ? <Money value={vm.levelled} /> : <Masked by={desk.quotesBy} />}</span></div>
+          <div><span className="s2-label">Levelled: excluding VAT, delivered to site, {vm.levelled.ccy}</span><span className="s2-big">{desk.seesLevelled ? <Money value={vm.levelled} /> : <Masked by={desk.quotesBy} />}</span></div>
         </div>
         {vm.flags.length > 0 && <ul className="s2-flags s2-pad-x">{vm.flags.map((f) => <li key={f}>{f}</li>)}</ul>}
 
@@ -70,12 +92,14 @@ export function LevelQuote({ desk, quoteId }: { desk: DeskCtx; quoteId: string }
               {rows.map((r) => {
                 const money = r.field === 'Price' || r.field === 'Exclusions';
                 const hide = money && !desk.seesQuotes;
+                // The levelled price is a levelled total; the exclusions' allowances are adjustment amounts.
+                const hideLevelled = r.field === 'Price' ? !desk.seesLevelled : hide;
                 return (
                   <tr key={r.field}>
                     <th scope="row">{r.field}</th>
                     <td>{hide && r.field === 'Price' ? <Masked by={desk.quotesBy} /> : r.original}</td>
-                    <td>{hide ? <Masked by={desk.quotesBy} /> : r.levelled}</td>
-                    <td className="s2-muted">{r.trace ?? 'No change'}</td>
+                    <td>{hideLevelled ? <Masked by={desk.quotesBy} /> : r.levelled}</td>
+                    <td className="s2-muted">{traceOf(r) ?? 'No change'}</td>
                   </tr>
                 );
               })}
@@ -108,6 +132,7 @@ function AdjustmentRow({ desk, quoteId, a, seeded, noLevel }: { desk: DeskCtx; q
   const [note, setNote] = useState('');
   const st = STATE_TAG[a.state];
   const decided = a.state !== 'proposed';
+  const source = plainOf(desk, a)?.source ?? a.source;
 
   const commit = (state: 'confirmed' | 'rejected', amt?: number) => {
     const ok = desk.apply(
@@ -123,7 +148,7 @@ function AdjustmentRow({ desk, quoteId, a, seeded, noLevel }: { desk: DeskCtx; q
   return (
     <li className={`s2-adj s-${a.state}`}>
       <div className="s2-adj-top">
-        <span className="s2-adj-l">{a.label}</span>
+        <span className="s2-adj-l">{nameOf(desk, a)}</span>
         {a.estimated && <span className="t-orange s2-est">estimated</span>}
         <span className="s2-grow" />
         {a.delta && (desk.seesQuotes ? <span className="num s2-delta">{signed(a.delta)}</span> : <Masked by={desk.quotesBy} />)}
@@ -134,7 +159,7 @@ function AdjustmentRow({ desk, quoteId, a, seeded, noLevel }: { desk: DeskCtx; q
         <span>{!desk.seesQuotes && MONEY_KINDS.includes(a.kind) && a.kind !== 'exclusion' ? <Masked by={desk.quotesBy} /> : a.from}</span> <span aria-hidden>→</span>{' '}
         <span>{!desk.seesQuotes && MONEY_KINDS.includes(a.kind) ? <Masked by={desk.quotesBy} /> : a.to}</span>
       </p>
-      <p className="s2-adj-src"><SourceChip source={{ kind: a.kind === 'currency' || a.kind === 'delivery' || a.kind === 'exclusion' ? 'calc' : 'quote', label: a.kind === 'currency' ? 'Calc: FX' : a.kind === 'delivery' ? 'Calc: freight' : a.kind === 'exclusion' ? 'Calc: allowance' : 'Quote', detail: a.source }} /> {a.source}</p>
+      <p className="s2-adj-src"><SourceChip source={{ kind: a.kind === 'currency' || a.kind === 'delivery' || a.kind === 'exclusion' ? 'calc' : 'quote', label: a.kind === 'currency' ? 'Calc: FX' : a.kind === 'delivery' ? 'Calc: freight' : a.kind === 'exclusion' ? 'Calc: allowance' : 'Quote', detail: source }} /> {source}</p>
       {a.proposedDelta && a.delta && desk.seesQuotes && <p className="s2-muted">Changed from the agent's {signed(a.proposedDelta)}.</p>}
       {a.note && <p className="s2-over">Note: {a.note}</p>}
       {decided && lev && <p className="s2-muted">{a.state === 'confirmed' ? 'Confirmed' : 'Rejected'} by {byLine(lev.byId, lev.at)}. Both the agent's proposal and your decision are kept.</p>}
@@ -210,13 +235,13 @@ export function PackageComparison({ desk, pkgId, current, onPick }: { desk: Desk
                   </th>
                   <td><Tag tone={state.tone}>{state.t}</Tag>{r.declined && <span className="s2-muted"> {r.declined.reason}</span>}</td>
                   <td className="r">{l ? <QuoteAmount desk={desk} value={l.original} /> : ''}</td>
-                  <td className="r">{l ? <QuoteAmount desk={desk} value={l.levelled} /> : ''}</td>
+                  <td className="r">{l ? <QuoteAmount desk={desk} value={l.levelled} levelled /> : ''}</td>
                   <td className="s2-muted">
                     {l?.flags.join('; ')}
                     {trace && l && (
                       <ul className="s2-trace">
                         {l.adjustments.map((a) => (
-                          <li key={a.key}>{a.label}{a.delta && desk.seesQuotes ? `: ${signed(a.delta)}` : ''}{a.estimated ? ' (estimated)' : ''} · {STATE_TAG[a.state].text.toLowerCase()}</li>
+                          <li key={a.key}>{nameOf(desk, a)}{a.delta && desk.seesQuotes ? `: ${signed(a.delta)}` : ''}{a.estimated ? ' (estimated)' : ''} · {STATE_TAG[a.state].text.toLowerCase()}</li>
                         ))}
                         {!l.adjustments.length && <li>No adjustments</li>}
                       </ul>

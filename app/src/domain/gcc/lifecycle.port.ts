@@ -5,12 +5,13 @@ import { personById, roleLine } from '@/data/people';
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { DG2_QUORUM } from '@/data/gcc/targets';
 import { stageLabel, stageOf, stepLabel, type StageN } from '@/data/gcc/stages';
-import { CRITERIA, type GccTender } from '@/data/gcc/types';
 import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import type { GateKind, GateRecord, Lifecycle, StageEntry } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
 import { validationsOf } from '@/domain/gcc/s1/validation';
+import { fitScoresFor } from '@/domain/gcc/s1/eligibility';
+import { weightedOf } from '@/domain/gcc/s1/common';
 import {
   currentOf, deadlineWd, demoDoneOf, eligibilityOf, healthOf, hoursText, lifecycle, lifecyclesOf, openGate, personName, staleOf, standingGate, teamOf, tenderCtx, visible,
   type DemoDone,
@@ -41,7 +42,6 @@ export { tenderCtx, visible, visibleOf, queriesFor, type DemoDone } from './life
 type Facts = TenderRowVM['facts'];
 
 const ccyOf = (tenant: string) => gccData(tenant).fit.band.min.ccy;
-const registerOf = (tenant: string, id: string): GccTender | undefined => gccData(tenant).register.find((t) => t.id === id);
 
 /** What the viewer may see on this tender. */
 function sightOf(tenant: string, l: Lifecycle, viewer: Person) {
@@ -90,13 +90,15 @@ function lastActivityOf(l: Lifecycle): string {
   return ts.reduce((a, b) => (b > a ? b : a), l.capturedAt);
 }
 
-/** Plan 004's weighted fit, for tenders on the register in Stages 1–3. */
-function fitOf(tenant: string, l: Lifecycle): number | null {
-  if (l.closedAt || currentOf(l).stage > 3) return null;
-  const t = registerOf(tenant, l.tenderId);
-  if (!t) return null;
-  const d = gccData(tenant);
-  return Math.round((CRITERIA.reduce((s, c) => s + d.fit.weights[c] * t.fit[c].score, 0) / 10) * 10) / 10;
+/**
+ * Plan 004's weighted fit, for tenders on the register in Stages 1–3, as 007a
+ * re-scores it with the demo's actions: a renewed certificate lifts the
+ * eligibility score here as it does on the DG1 pack. At seed it is the stored fit.
+ */
+function fitOf(tenant: string, l: Lifecycle, done: DemoDone): number | null {
+  if (l.closedAt || currentOf(l).stage > 3 || !isGccTenantKey(tenant)) return null;
+  const live = fitScoresFor(tenant, l.tenderId, done as Record<string, string>);
+  return live ? weightedOf(gccData(tenant), live.scores) : null;
 }
 
 /**
@@ -208,7 +210,7 @@ export function rowFor(l: Lifecycle, tenant: string, viewer: Person, done: DemoD
     },
     capturedAt: l.capturedAt, lastActivityAt: lastActivityOf(l),
     // Win probability is masked like the positions (roles-and-access §9): null for viewers without `see.positions`.
-    fit: fitOf(tenant, l), win: f?.stage === 3 && sightOf(tenant, l, viewer).positions ? { p: f.win.p, band: f.win.band } : null,
+    fit: fitOf(tenant, l, done), win: f?.stage === 3 && sightOf(tenant, l, viewer).positions ? { p: f.win.p, band: f.win.band } : null,
     live: !l.closedAt, ...(l.closedAt ? { closedAt: l.closedAt } : {}),
     bidManagerId: l.bidManagerId,
     facts: factsOf(tenant, l, viewer, done),
@@ -242,12 +244,12 @@ const LOSS: Record<string, string> = { price: 'price', technical: 'technical sco
 /** The reason after "Discarded at DG1: …" in a closing note, else the note itself. */
 const reasonOf = (note: string | undefined) => (note ? (note.includes(': ') ? note.slice(note.indexOf(': ') + 2) : note) : null);
 
-/** "Won · SAR 142.0 M · 24 Feb · handover Sun 15 Mar", "Lost · price · 2 of 6 · Thu 5 Mar": the S9 node, live or closed. */
+/** "Won · SAR 142.0 M · 24 Feb · handover Sun 15 Mar", "Lost · price · ranked 2 of 6 · Thu 5 Mar": the S9 node, live or closed. */
 function resultNote(l: Lifecycle): string | undefined {
   const r = l.result;
   if (!r || (r.result !== 'won' && r.result !== 'lost')) return undefined;
   const parts = (...xs: (string | null | undefined)[]) => xs.filter(Boolean).join(' · ');
-  if (r.result === 'lost') return parts('Lost', r.lossReason && LOSS[r.lossReason], r.rank && `${r.rank[0]} of ${r.rank[1]}`, day(r.at));
+  if (r.result === 'lost') return parts('Lost', r.lossReason && LOSS[r.lossReason], r.rank && `ranked ${r.rank[0]} of ${r.rank[1]}`, day(r.at));
   const f = l.facts;
   const handover = l.events.find((e) => e.kind === 'handover')?.at ?? (f?.stage === 9 ? f.handoverAt : undefined);
   return parts('Won', money(r.value?.amount ?? l.value.amount, r.value?.ccy ?? l.value.ccy), day(r.at), handover && `handover ${day(handover)}`);

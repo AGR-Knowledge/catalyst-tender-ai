@@ -211,6 +211,6 @@ export function shortlistWrite(
   const changes = record.overrides.map((o) => `${o.action === 'add' ? 'Added' : 'Removed'} ${supplierName(tenant, o.supplierId)}: ${o.reason}`);
   return write(K.shortlist(tenderId, pkgId), record, {
     actorId: byId, action: 'Shortlist approved', target: `${tenderId} ${pkgId}`,
-    detail: [`${supplierIds.length} suppliers: ${supplierIds.map((id) => supplierName(tenant, id)).join(', ')}.`, ...changes.map((c) => `Override recorded. ${c}.`)].join(' '),
+    detail: [`${supplierIds.length} suppliers: ${supplierIds.map((id) => supplierName(tenant, id)).join(', ').replace(/\.$/, '')}.`, ...changes.map((c) => `Override recorded. ${c}.`)].join(' '),
   });
 }

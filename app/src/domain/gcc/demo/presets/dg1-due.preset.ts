@@ -25,7 +25,7 @@ export const preset: Preset = {
       this.label,
       `${HERO_ID}: ${plural(n, 'field')} that blocked DG1 resolved by the Coordinator. DG1 is not recorded.`,
       `/dg1?tender=${HERO_ID}`,
-      `Start: DG1 due. ${plural(n, 'field')} that blocked DG1 ${n === 1 ? 'is' : 'are'} resolved, so the hero’s DG1 pack is ready. The agent recommends: ${pack.recommendation.recommendation}. Showing DG1.`,
+      `Start: DG1 due. ${plural(n, 'field')} that blocked DG1 ${n === 1 ? 'is' : 'are'} resolved, so the hero’s DG1 pack is ready. The agent recommends: ${pack.recommendation.recommendation.replace(/^Recommend d/, 'D')}. Showing DG1.`,
     );
   },
 };

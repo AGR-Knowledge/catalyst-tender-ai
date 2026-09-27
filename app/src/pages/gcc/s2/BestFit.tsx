@@ -114,7 +114,7 @@ export function BestFitPanel({ desk }: { desk: DeskCtx }) {
             return (
               <button key={id} type="button" role="radio" aria-checked={on} disabled={!editing} className={`s2-opt ${on ? 'on' : ''}`} onClick={() => setOption(id)}>
                 <span className="s2-opt-h">{o.label}{o.recommended && <Tag tone="cyan">Recommended</Tag>}</span>
-                <span className="s2-opt-v"><QuoteAmount desk={desk} value={o.total} /></span>
+                <span className="s2-opt-v"><QuoteAmount desk={desk} value={o.total} levelled /></span>
                 <span className="s2-muted">Total levelled cost · ICV share {o.icvShare}%</span>
                 <span className={o.scheduleFit.late ? 't-orange' : 's2-muted'}>{o.scheduleFit.text}</span>
                 <span className="s2-muted">{o.riskNotes.length ? `${o.riskNotes.length} risk ${o.riskNotes.length === 1 ? 'note' : 'notes'}: ${o.riskNotes.slice(0, 2).join('; ')}${o.riskNotes.length > 2 ? '…' : ''}` : 'No risk notes'}</span>
@@ -146,7 +146,7 @@ export function BestFitPanel({ desk }: { desk: DeskCtx }) {
                     </td>
                     <td className="r num">{p.rank}</td>
                     <td className="r num">{p.weighted.toFixed(1)}</td>
-                    <td className="r"><QuoteAmount desk={desk} value={p.levelled} /></td>
+                    <td className="r"><QuoteAmount desk={desk} value={p.levelled} levelled /></td>
                     <td className="r num">{p.icv}</td>
                     <td className="r">
                       {editing && (s?.rows.length ?? 0) > 1 && (

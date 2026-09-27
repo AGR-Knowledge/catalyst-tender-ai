@@ -106,9 +106,18 @@ function checks(): Check[] {
   const recA = dg3RecordFor('najd', NAJD, dA)?.decision;
   const rowGone = !dg3Rows('najd', dA).some((r) => r.tenderId === NAJD);
   add('Approve: Stage 8 · Assembling, gate on time, CMP-5 1 → 0, the row leaves, the record names Faisal',
-    curA.stage === 8 && curA.step === 'assembling' && curA.ownerId === lA.bidManagerId && gA?.decision === 'approved' && gA.onTime && !lA.facts
+    curA.stage === 8 && curA.step === 'assembling' && curA.ownerId === lA.bidManagerId && gA?.decision === 'approved' && gA.onTime && lA.facts?.stage === 8
       && cmp5('najd', {}) === '1' && cmp5('najd', dA) === '0' && rowGone && recA?.byName === hotN.name && recA.evidenceText === '7 checks passed, 1 for information',
     `${curA.stage} · ${curA.step} · CMP-5 ${cmp5('najd', {})} → ${cmp5('najd', dA)} · row ${rowGone ? 'gone' : 'still there'} · ${recA ? `${recA.label} by ${recA.byName}: ${recA.evidenceText}` : 'no record'}`);
+  // Plan 016a 3.1: the approved tender carries Stage 8 facts read from the DG3 evidence, so the Stage 8 tiles count it.
+  const evA = DG3_EVIDENCE.find((e) => e.tenant === 'najd' && e.tenderId === NAJD)!;
+  const f8 = lA.facts?.stage === 8 ? lA.facts : null;
+  const f7 = lifecycle('najd', NAJD, {})?.facts;
+  const readyPct = f7?.stage === 7 && f7.requirements.total ? Math.round((f7.requirements.evidenced / f7.requirements.total) * 100) : 100;
+  add('Approve: Stage 8 facts from the evidence (bond issued, signatures, opening, package ready)',
+    !!f8 && f8.bond.issued && f8.bond.validTo === evA.bond.validTo && f8.bond.requiredTo === evA.bond.requiredTo && f8.bond.amount.amount === evA.bond.amount.amount
+      && f8.signaturesPending === evA.signatories.filter((x) => !x.ready).length && f8.packageReadyPct === readyPct && !!f8.openingDate,
+    f8 ? `bond issued ${f8.bond.issued}, to ${f8.bond.validTo} (needs ${f8.bond.requiredTo}) · ${f8.signaturesPending} signatures pending · ${f8.packageReadyPct}% ready · opens ${f8.openingDate}` : 'no Stage 8 facts');
 
   // 8. Reject: closed as rejected with the generator's wording.
   const dR = commit({}, dg3Write({ tenderId: QURAIN, decision: 'rejected', reasonCodes: ['guarantee-not-valid'] }, qhot, q));

@@ -334,7 +334,8 @@ const SCR6: KpiDef = {
       n: risks.length,
     };
   },
-  drill: () => ({ kind: 'route', to: '/company', label: 'Open Company › Credentials' }),
+  // The Credentials tab, filtered to the certificates that affect live bids (plan 010's URL filter).
+  drill: () => ({ kind: 'route', to: '/company?tab=credentials&bids=affects', label: 'Open Company › Credentials' }),
 };
 
 /* ---------------------------------------------------------------- Capacity */
@@ -375,7 +376,7 @@ const CAP1: KpiDef = {
     const b = PORTFOLIO_BANDS.teamLoadPct;
     return { display: `${p}%`, sub: parts.join(' · '), tone: p <= b.green ? 'green' : p <= b.orange ? 'orange' : 'red' };
   },
-  drill: () => ({ kind: 'route', to: '/company', label: 'Open Company › Teams' }),
+  drill: () => ({ kind: 'route', to: '/company?tab=teams', label: 'Open Company › Teams' }),
 };
 
 /* --------------------------------------------------------- Bid decision (DEC) */

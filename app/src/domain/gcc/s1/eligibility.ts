@@ -187,7 +187,8 @@ const isValidOn = (c: Credential, iso: string) => c.validTo === null || c.validT
 const byLatestExpiry = (a: Credential, b: Credential) => (a.validTo === null ? -1 : b.validTo === null ? 1 : b.validTo.localeCompare(a.validTo));
 const credEvidence = (c: Credential): Evidence => ({ kind: 'credential', id: c.id, label: c.label });
 const validText = (c: Credential) => (c.validTo === null ? 'no expiry' : `valid to ${dateText(c.validTo)}`);
-const credName = (c: Credential) => (c.kind === 'classification' && c.grade !== undefined ? `${c.label}, Grade ${c.grade}` : c.label);
+/** The label, with ", Grade N" unless the label already names its grade ("civil works, first grade"). */
+const credName = (c: Credential) => (c.kind === 'classification' && c.grade !== undefined && !/\bgrade\b/i.test(c.label) ? `${c.label}, Grade ${c.grade}` : c.label);
 const self = (ctx: Ctx) => ctx.members[0];
 const partnerOf = (ctx: Ctx) => ctx.members.find((m) => m.role === 'partner');
 const yearOf = (iso: string) => iso.slice(0, 4);

@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { useDemo } from '@/state/store';
-import { DEMO_TIME } from '@/domain/calendar';
+import { DEMO_TIME, DEMO_TODAY, countdownText } from '@/domain/calendar';
+import { authorityCalendar, profileOf, tenderOf } from '@/domain/gcc/s1/common';
 import { NOTHING_FOR_YOU, type RailDecisionVM, type RailVM } from '@/domain/gcc/workspace';
 import type { ActionDue, ActionVM } from '@/domain/gcc/viewmodels';
 import { RecommendationCard } from '@/components/tender/RecommendationCard';
@@ -75,6 +76,9 @@ export function Rail({ vm, ctx }: { vm: RailVM; ctx: WorkspaceCtx }) {
   const { mark, logAudit, toast, state } = useDemo();
   // Rows done in place keep their done label until reload (the dashboard's action list does the same).
   const [acted, setActed] = useState<Record<string, { row: ActionVM; auditIndex: number }>>({});
+  // Key dates count in the authority's calendar, as the Key dates tab does (KeyDateList).
+  const t = tenderOf(ctx.tenant, ctx.tenderId);
+  const cc = t ? authorityCalendar(t, ctx.tenant).cc : profileOf(ctx.tenant).countryCode;
 
   const act = (row: ActionVM) => {
     const p = row.primary;
@@ -138,7 +142,7 @@ export function Rail({ vm, ctx }: { vm: RailVM; ctx: WorkspaceCtx }) {
               <li key={`${d.kind}:${d.date}`}>
                 <span className="rl-dl">{d.label}</span>
                 <When date={d.date} time={d.time} tz={d.tz} short />
-                <span className="rl-dcd num">{d.daysLeft === 0 ? 'today' : `in ${d.daysLeft} d · ${d.workingDaysLeft} wd`}</span>
+                <span className="rl-dcd num">{d.daysLeft === 0 ? 'Today' : `in ${countdownText(DEMO_TODAY, d.date, cc)}`}</span>
                 {d.flags.map((f) => <span key={f.key} className="rl-flagline"><span aria-hidden>! </span>{f.text}</span>)}
               </li>
             ))}

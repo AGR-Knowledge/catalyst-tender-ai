@@ -6,6 +6,8 @@ import type { PeriodWindow } from '../period';
 import { kpi } from '../kpi';
 import { flow as flowDef } from '../flows';
 import { actionSource, type ActionSource } from '../actions';
+import { requestRoute } from '../actions/requests.actions';
+import type { Request } from '../requests';
 import { metric as metricDef } from '../metrics';
 import type { Measure } from '../metrics/types';
 import type { KpiCtx, KpiKind } from '../kpi/types';
@@ -252,17 +254,25 @@ export function buildDashboard(spec: DashboardSpec, ctx: KpiCtx, port: DataPort 
   const actions = buildActions(spec, ctx, stageDef && !isHome && !isOwner ? `Waiting in ${stageDef.short}` : 'Needs your action');
 
   const kind = spec.table.kind ?? 'tenders';
+  const rows = kind === 'requests'
+    ? safe(`${spec.key} request rows`, () => spec.table.rows?.(ctx) ?? [], [])
+    : port ? safe(`${spec.key} rows`, () => port.rows(ctx.tenant, ctx.scope, ctx.viewer, 'all', ctx.done), []) : null;
   const table: TableZoneVM = {
     kind,
-    rows: kind === 'requests'
-      ? safe(`${spec.key} request rows`, () => spec.table.rows?.(ctx) ?? [], [])
-      : port ? safe(`${spec.key} rows`, () => port.rows(ctx.tenant, ctx.scope, ctx.viewer, 'all', ctx.done), []) : null,
+    rows,
     columns: spec.table.columns,
     optional: spec.table.optional ?? [],
     defaultSort: spec.table.defaultSort,
     filters: spec.table.filters,
     statusDefault: spec.table.statusDefault ?? 'live',
     ...(spec.table.empty ? { empty: spec.table.empty(ctx) } : {}),
+    // A request row opens what it asks for (plan 016b); the Tender cell's link still opens the tender.
+    ...(kind === 'requests' ? {
+      routeOf: (id: string) => {
+        const r = rows?.find((x) => x.id === id) as Request | undefined;
+        return r ? requestRoute(r) : null;
+      },
+    } : {}),
   };
 
   const graph = buildGraph(spec, ctx, opts.metric);

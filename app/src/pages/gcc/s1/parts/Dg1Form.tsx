@@ -171,7 +171,7 @@ export function Dg1Form({ s1, pack, state, dueAt }: { s1: S1; pack: Dg1Pack; sta
         </div>
 
         {choice && overrides && (
-          <Callout variant="route" word="Override" title={`The agent recommends ${rec.recommendation}`} compact>
+          <Callout variant="route" word="Override" title={`The agent recommends: ${rec.recommendation.replace(/^Recommend d/, 'D')}`} compact>
             Your decision goes against it{choice === 'pursue' ? ': a note is required' : ''}. {BOTH_KEPT}
           </Callout>
         )}

@@ -732,6 +732,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   - columns: `tid` · `tender` · `stage` (step) · **Deadline** (local time, working days) · **Portal** · **Package ready** (%) · **Signatures** · **Bid bond** (amount · valid to) · **Receipt** · **Opening** · `owner`;
   - default sort: Due soonest.
 - **Graph:** x = Stage 8 steps; metrics: Tenders now · Value now · Average days in step.
+- **A tender approved at DG3 in the demo** enters Stage 8 with facts read from its DG3 evidence (plan 016a): the initial guarantee as issued, the signatories not yet ready as signatures pending, the register's bid opening, and package ready = the Stage 7 requirements evidenced ÷ all requirements.
 
 ### 10.12 Stage 9 · Results
 - **Home of:** `dir` (Project Director). The Head of Tendering and the Bid Office use it too. Scope: tenders with a result that are not yet closed.
@@ -978,10 +979,8 @@ Titles and values are fictional; the generator fills the history.
 | --- | --- | --- | --- | --- | --- | --- |
 | Corniche (B) | 3 · 1 · 1 · 1 · 1 · 1 · 1 · 2 · 1 | 120 (38 · 78 · 4) | 34 (26 · 8) | 26 (25 · 1) | 25 | 22 (6 · 16) |
 | Dafna (C) | 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 95 (30 · 61 · 4) | 28 (21 · 7) | 21 (20 · 1) | 20 | 18 (5 · 13) |
-| Batinah (D) | 4 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 130 (40 · 85 · 5) | 36 (28 · 8) | 28 (27 · 1) | 27 | 25 (8 · 17) |
+| Batinah (D) | 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 130 (40 · 85 · 5) | 36 (28 · 8) | 28 (27 · 1) | 27 | 25 (8 · 17) |
 | Qurain (E) | 3 · 2 · 1 · 1 · 1 · 1 · 1 · 3 · 1 | 160 (52 · 100 · 8) | 45 (35 · 10) | 35 (34 · 1) | 34 | 30 (8 · 22) |
-
-**Batinah's Stage 1 shows 3, not 4,** until plan 012 adds the scanned Arabic roads tender (noted 2026-09-26).
 
 **Every tenant has, now:**
 - one DG3 approval waiting for its Head of Tendering (the Stage 7 tender);

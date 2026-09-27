@@ -54,6 +54,8 @@ export function screenHead(pathname: string): { title: string; sub?: string } | 
   const path = pathname.replace(/\/+$/, '') || '/';
   if (path === '/' || path === '/dashboard') return { title: 'Dashboard' };
   if (path === '/requests') return { title: 'My requests', sub: 'Everything the bid teams are waiting for from you.' };
+  // A presenter's lens (plan 014), not a product screen, so it has no SCREENS entry.
+  if (path === '/demo/compare') return { title: 'Compare tenants', sub: 'Demo view: the same tender in five companies.' };
   const stage = /^\/stages\/(\d+)$/.exec(path);
   if (stage) {
     const s = stageOf(Number(stage[1]));

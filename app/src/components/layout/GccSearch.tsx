@@ -20,14 +20,17 @@ import '@/components/tender/tender.css';
 
 const MAX = 8;
 
-/** The matching rows, live first, at most eight. Exported for the dev check. */
-export function searchTenders(rows: TenderRowVM[], q: string): TenderRowVM[] {
+/** The matching rows, live first, cut to at most eight, and how many matched before the cut. */
+export function searchTendersCounted(rows: TenderRowVM[], q: string): { rows: TenderRowVM[]; total: number } {
   const term = q.trim().toLowerCase();
   const hits = term ? rows.filter((r) => [r.id, r.shortTitle, r.issuer, r.city].join(' ').toLowerCase().includes(term)) : rows;
-  return [...hits]
-    .sort((a, b) => Number(b.live) - Number(a.live) || (term ? Number(!b.id.toLowerCase().startsWith(term)) - Number(!a.id.toLowerCase().startsWith(term)) : 0) || b.lastActivityAt.localeCompare(a.lastActivityAt))
-    .slice(0, MAX);
+  const sorted = [...hits]
+    .sort((a, b) => Number(b.live) - Number(a.live) || (term ? Number(!b.id.toLowerCase().startsWith(term)) - Number(!a.id.toLowerCase().startsWith(term)) : 0) || b.lastActivityAt.localeCompare(a.lastActivityAt));
+  return { rows: sorted.slice(0, MAX), total: hits.length };
 }
+
+/** The matching rows, live first, at most eight. Exported for the dev check. */
+export const searchTenders = (rows: TenderRowVM[], q: string): TenderRowVM[] => searchTendersCounted(rows, q).rows;
 
 export function GccSearch() {
   const { state } = useDemo();
@@ -63,7 +66,7 @@ export function GccSearch() {
   useEffect(() => setActive(0), [q]);
 
   const rows = useMemo(() => (open ? dataPort()?.rows(tenant, { kind: 'all' }, state.person, 'all', state.done) ?? [] : []), [open, tenant, state.person, state.done]);
-  const results = useMemo(() => searchTenders(rows, q), [rows, q]);
+  const { rows: results, total } = useMemo(() => searchTendersCounted(rows, q), [rows, q]);
 
   const go = (r: TenderRowVM) => {
     close(false);
@@ -99,7 +102,7 @@ export function GccSearch() {
             />
             <span className="kbd" aria-hidden>Esc</span>
           </div>
-          <div className="gs-group">{q.trim() ? `${results.length === MAX ? `First ${MAX}` : results.length} ${results.length === 1 ? 'match' : 'matches'}` : 'Recent tenders, live first'}</div>
+          <div className="gs-group">{q.trim() ? (total > results.length ? `${results.length} of ${total} matches` : `${total} ${total === 1 ? 'match' : 'matches'}`) : 'Recent tenders, live first'}</div>
           <ul className="gs-list" id={`${id}-list`} role="listbox" aria-label="Tenders">
             {results.length === 0 && <li className="gs-empty" role="presentation">No tender matches “{q.trim()}” among the tenders you can open.</li>}
             {results.map((r, i) => (

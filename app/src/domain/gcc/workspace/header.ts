@@ -57,6 +57,8 @@ export interface WorkspaceHeaderVM {
   };
   /** In place of the countdown once submitted or closed: "Submitted Sun 1 Mar", "Discarded at DG1 · …". */
   dueNote: string | null;
+  /** Won, lost, discarded, no-bid, rejected or withdrawn: the header reads the outcome (`dueNote`), not who the tender is with. */
+  closed: boolean;
   owner: { name: string; role: string | null } | null;
   /** The Bid Manager, when not the person it is with now. */
   bidManager: { name: string } | null;
@@ -122,7 +124,7 @@ export function workspaceHeader(ctx: { tenant: string; viewer: Person; done: Dem
     return { date: sub.date, ...(sub.time ? { time: sub.time } : {}), tz: cal.tz, countdown: countdownText(DEMO_TODAY, sub.date, cal.cc), workingDays: wd, near: wd <= NEAR_WD };
   })() : null;
   const dueNote = due ? null
-    : !row.live ? tracker?.outcome ?? null
+    : !row.live ? tracker?.outcome ?? 'Closed'
     : submitted ? `Submitted ${shortDay(submitted)}`
     : sub ? `Submission was due ${shortDay(sub.date)}` : 'No submission deadline yet';
 
@@ -141,6 +143,7 @@ export function workspaceHeader(ctx: { tenant: string; viewer: Person; done: Dem
     track: trackOf(tracker),
     due,
     dueNote,
+    closed: !row.live,
     owner: row.ownerName ? { name: row.ownerName, role: row.ownerRole } : null,
     bidManager: bm && bm.id !== row.ownerId ? { name: bm.name } : null,
     language: lang,

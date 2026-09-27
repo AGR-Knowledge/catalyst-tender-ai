@@ -19,8 +19,9 @@ const ROWS: SupplierTuple[] = [
   ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['pumps', 'process-mech', 'sludge', 'surge'], [HERO_ISSUER, NWGP], 40, 'approved', OK('2026-02-03'), [86, 1, 6, 2], 'high', [74, 6.5], false, 'qurain.supplier'],
   // Tunnelling
   ['rheintal-tbm', 'Rheintal Tunnelbau Maschinen GmbH', 'DE', 'Karlsruhe', ['tbm'], [SGSA], 2, 'approved', OK('2025-11-06'), [92, 0, 3, 1], 'medium', [88, 5.0], false],
-  ['hokuriku-shield', 'Hokuriku Shield Machines Co.', 'JP', 'Kanazawa', ['tbm'], [], 1, 'approved', OK('2026-01-14'), [94, 0, 2, 1], 'low', [85, 6.0], false],
-  ['taihu-shield', 'Taihu Shield Machinery Co.', 'CN', 'Wuxi', ['tbm'], [], 1, 'approved', OK('2025-12-02'), [84, 2, 3, 0], 'medium', [71, 6.5], false],
+  // Plan 016c: both on SGSA's list, so T-2026-058's seeded RFQs (P-01; avlRequired) went to approved suppliers.
+  ['hokuriku-shield', 'Hokuriku Shield Machines Co.', 'JP', 'Kanazawa', ['tbm'], [SGSA], 1, 'approved', OK('2026-01-14'), [94, 0, 2, 1], 'low', [85, 6.0], false],
+  ['taihu-shield', 'Taihu Shield Machinery Co.', 'CN', 'Wuxi', ['tbm'], [SGSA], 1, 'approved', OK('2025-12-02'), [84, 2, 3, 0], 'medium', [71, 6.5], false],
   ['wafra-segments', 'Wafra Precast Segments Co.', 'KW', 'Wafra', ['segments', 'precast'], [SGSA], 47, 'approved', OK('2025-12-11'), [87, 1, 5, 2], 'medium', [89, 4.0], true],
   ['sulaibiya-precast', 'Sulaibiya Precast Co.', 'KW', 'Sulaibiya', ['segments', 'precast'], [], 44, 'approved', OK('2026-01-19'), [84, 2, 6, 1], 'high', [83, 4.5], true],
   ['kabd-precast', 'Kabd Precast Industries Co.', 'KW', 'Kabd', ['segments', 'precast'], [SGSA], 45, 'approved', OK('2026-01-26'), [85, 1, 6, 2], 'medium', [86, 4.0], true],
