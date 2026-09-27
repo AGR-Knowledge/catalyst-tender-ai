@@ -40,7 +40,8 @@ export function KeyDateList({ s1, tenderId, doc, compact = false }: { s1: S1; te
       <ol className={`kd ${compact ? 'compact' : ''}`}>
         {shown.map((r) => {
           const reminders = compact ? [] : remindersFor(r);
-          const ar = compact ? undefined : dateArabicOf(record, r);
+          // The Arabic a date was read from shows in the DG1 pack's compact list too (spec §19: every field of an Arabic tender).
+          const ar = dateArabicOf(record, r);
           const scanned = !!r.page && ocrPagesOf(record).includes(r.page);
           const note = [r.place && `At ${r.place}`, !compact && r.note].filter(Boolean).join('. ');
           return (

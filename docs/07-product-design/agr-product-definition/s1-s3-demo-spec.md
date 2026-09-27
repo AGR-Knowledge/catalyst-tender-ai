@@ -665,7 +665,6 @@ Checked item by item in plan 016c (2026-09-27); what was checked is in that plan
 - [x] DG1 and DG2 records contain who, when, what was seen and why. Overrides and reason codes are captured.
 - [x] Tenant switch changes the data, users, currency, branding and portals. Nothing leaks between tenants.
 - [x] Reset (all or current tenant) returns to seed. Scenario presets land in their stated state.
-- [ ] Arabic documents show the English value with the Arabic source for every field.
-  - *Plan 016c:* met on Requirements, Key dates and the intake queue. The Overview and the DG1 pack give the English value with a page chip into the Arabic document, not the Arabic quotation (016c finding 30, left for a decision).
+- [x] Arabic documents show the English value with the Arabic source for every field: Requirements, Key dates, the intake queue, the DG1 pack's dates and the Overview's prevailing-language clause (orchestrator, 2026-09-27, after 016c finding 30).
 - [ ] Demo scope mode hides Stage 4–9 surfaces completely, with no placeholders.
   - *Superseded by dashboards.md DB-10 (plan 016c, 2026-09-27).* The rule now: in a GCC tenant, Stages 4–9 have real tenders, owners, dates and step status, and a stage dashboard each, but no working screens. No placeholder (`ComingNext`) is reachable from the sidebar, search or a link. GCC tenants are always in Stage 1–3 scope, so Settings shows no Demo scope toggle for them; the toggle shows only for the Indian preview (`gen-in`, gcc-demo-data §3).

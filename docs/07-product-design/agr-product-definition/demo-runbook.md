@@ -122,7 +122,6 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 **Company:** Batinah (no preset needed).
 
 1. **Shamsa Al-Hinai (Tender Coordinator).** Upload tender (top bar) › **T-2026-042**'s demo file. The steps say Arabic and name the scanned (OCR) pages.
-   - Don't pick the Jezzine file: it is a leftover seed row.
 2. **Imran Sheikh (Bid Manager).** T-2026-042 › Requirements.
    - Each field gives the English value with its Arabic source and page.
    - "Arabic text prevails (§7)".
@@ -191,11 +190,9 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 - After the intake queue is cleared, the hero still reads "Intake · Validating" until DG1 is recorded.
 - The hero has no nudges or escalations on demo day. Show them on T-2026-104.
 - The PDF viewer doesn't highlight Arabic words, and scanned pages can't be highlighted at all (the chip says so).
-- On T-2026-042, the Overview and the DG1 pack give the English value with a page chip, not the Arabic quotation. Show Arabic on Requirements and Key dates.
 - The supplier's "Ask a question" in the Supplier Portal is not wired.
 - Break-glass access doesn't expire: revoke it in the audit log.
 - View as ends on a browser reload.
 - Switching company while on another company's tender shows "No … here". Open the hero instead, which exists in all five companies.
-- Batinah's upload list includes a Jezzine road tender. Use T-2026-042 only.
 - Keyboard: after a queue card is resolved or a gate is decided, focus returns to the top of the page.
 - T-2026-119's questions deadline falls inside the expected Eid closure. The screen flags it; it's a talking point, not a mistake.

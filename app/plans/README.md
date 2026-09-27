@@ -35,6 +35,8 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
+| 025a | [Records on the demo clock](025a-demo-clock.md): Stage 2, Stage 3, DG2 and DG3 records stamped with their audit entry's minute; focus after a DG2 or DG3 decision | 7 | wave 6 | READY |
+| 025b | [A tender moves on once validated](025b-validated-step.md): Validating → Awaiting DG1 when the last blocking field is resolved; focus after a queue card and after DG1 | 7 | wave 6 | READY |
 
 **Wave 6 review of 016c (orchestrator, 2026-09-27): accepted. Wave 6 is committed as one milestone.**
 - Typecheck and build pass. `/dev/checks` has no failing row in any tenant, with the same counts as after 016a and 016b.
@@ -267,6 +269,19 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 7 (orchestrator, 2026-09-27):** 025a and 025b in parallel, from 016c's open findings. File ownership:
+  - **025a** owns:
+    - the Stage 2, Stage 3, DG2 and DG3 writers (`domain/gcc/s2`, `s3`, `dg2`, `dg3`) and their call sites (`pages/gcc/s2`, `s3`, `dg2`, `dg3`, `supplier`, `workspace/tabs/inputs.tab.tsx`);
+    - `nextAt` in `state/store.tsx`, `useS1.ts` and `DemoMenu.tsx`;
+    - dev checks 80, 85, 90, 95 and 97, and the new 99.
+  - **025b** owns:
+    - the new `demo/05-validated.apply.ts`, a read-only helper in `domain/gcc/s1/validation.ts`;
+    - `pages/gcc/s1/IntakeQueue.tsx`, `parts/ValidationCard.tsx`, `Dg1Form.tsx`, `Dg1Record.tsx` (and `Dg1.tsx` for focus);
+    - dev checks 40, 45, 46, 60, 70, 71, 72 and 75, and the new 76.
+  - **Done by the orchestrator before the wave:**
+    - 016c finding 20: `UploadGcc.tsx` no longer offers a record published over a year before demo day, so Batinah's Jezzine tender stays on the register but not in the upload list;
+    - 016c finding 30: the DG1 pack's key dates show their Arabic source (`KeyDateList.tsx`), and the Overview's prevailing-language line shows the Arabic clause (`overview.tab.tsx`, `workspace.css`). Spec §19's Arabic item is ticked.
+  - **Left as known limits:** 016c finding 9 (focus after a drawer opened from another page).
 - **Wave 6 (orchestrator, 2026-09-27):** 016a and 016b in parallel, then 016c alone after their review. File ownership:
   - **016a** owns the rules and seed fixes:
     - `domain/gcc/actions/portfolio.actions.ts`, `stages.actions.ts`, `lifecycle.port.ts`, `kpi/**`;

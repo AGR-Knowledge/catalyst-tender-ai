@@ -7,6 +7,7 @@ import { HERO_FILE_NAME, HERO_ID } from '@/data/gcc/hero';
 import { pipelineFor } from '@/domain/gcc/s1';
 import { dataOf, shortWhen } from '@/domain/gcc/s1/common';
 import { documentFor } from '@/domain/gcc/documents';
+import { DEMO_TODAY, addDays } from '@/domain/calendar';
 import { Callout } from '@/components/tender/Callout';
 import { DemoTag } from '@/components/tender/DemoTag';
 import { useS1 } from './vm/useS1';
@@ -49,7 +50,10 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
   const demoFiles = useMemo(() => {
     const reg = dataOf(tenant).register;
     const out: { name: string; title: string }[] = [];
+    // A past-dated record (published over a year before demo day: Batinah's Jezzine tender) stays on the register, but isn't offered here.
+    const stale = addDays(DEMO_TODAY, -365);
     for (const t of reg) {
+      if ((t.keyDates.find((k) => k.kind === 'published')?.date ?? DEMO_TODAY) < stale) continue;
       const d = t.docKey && canOpen(t.id) ? documentFor(tenant, t.id) : null;
       if (!d) continue;
       const names = t.id === HERO_ID ? [HERO_FILE_NAME] : d.record.fileNames;

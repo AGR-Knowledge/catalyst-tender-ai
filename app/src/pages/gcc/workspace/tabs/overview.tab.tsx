@@ -13,6 +13,7 @@ import { EmptyState } from '@/components/tender/EmptyState';
 import { Masked } from '@/components/tender/Masked';
 import { When } from '@/components/tender/When';
 import { SourceChip } from '@/components/tender/SourceChip';
+import { BilingualValue } from '@/components/tender/BilingualValue';
 import { ThresholdBar } from '@/components/tender/ThresholdBar';
 import { AuditEntry } from '@/components/tender/AuditEntry';
 import { StatusPill } from '@/components/tender/StatusPill';
@@ -101,9 +102,12 @@ function Overview({ ctx }: { ctx: WorkspaceCtx }) {
               </span>
             } />
             {prevails && <KV k="Language" v={
-              <span className="ws-src">
+              <span className={`ws-src${prevails.ar ? ' ws-lang' : ''}`}>
                 <StatusPill label={prevailsTitle(prevails, { page: false })} tone="orange" icon="!" />
-                {prevails.page && <SourceChip source={{ kind: 'page', page: prevails.page, label: `p. ${prevails.page}` }} doc={tenderDoc ? { url: tenderDoc.url, title: tenderDoc.title } : doc} />}
+                {/* The clause in the Arabic it was read from, with its page, as Requirements shows it (spec §19). */}
+                {prevails.ar
+                  ? <BilingualValue en={null} ar={prevails.ar} page={prevails.page} doc={tenderDoc ? { url: tenderDoc.url, title: tenderDoc.title } : doc} />
+                  : prevails.page && <SourceChip source={{ kind: 'page', page: prevails.page, label: `p. ${prevails.page}` }} doc={tenderDoc ? { url: tenderDoc.url, title: tenderDoc.title } : doc} />}
               </span>
             } />}
             <KV k="Captured" v={<When date={row.capturedAt.slice(0, 10)} time={row.capturedAt.slice(11, 16)} short />} />
