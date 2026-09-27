@@ -26,7 +26,7 @@ export function Conditions({ tenant, tenderId, sight, check, holds }: {
   /** The viewer holds that capability at all; View as then says why it is read only. */
   holds: boolean;
 }) {
-  const { state, mark, logAudit } = useDemo();
+  const { state, mark, logAudit, nextAt } = useDemo();
   const { person, done } = state;
   const items = useMemo(() => conditionsFor(tenant, tenderId, done, sight), [tenant, tenderId, done, sight]);
   const [closing, setClosing] = useState<ConditionVM | null>(null);
@@ -36,7 +36,7 @@ export function Conditions({ tenant, tenderId, sight, check, holds }: {
 
   const close = () => {
     if (!closing) return;
-    const w = conditionCloseWrite(closing.id, person.id, note);
+    const w = conditionCloseWrite(closing.id, person.id, note, nextAt());
     if (isWriteError(w)) return;
     mark(w.key, `Condition ${closing.id} closed.`, 'green', w.value);
     logAudit({ ...w.audit, ...(closing.margin ? { sensitive: 'margin' as const } : {}) });

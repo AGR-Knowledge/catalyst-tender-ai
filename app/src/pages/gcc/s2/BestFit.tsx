@@ -73,7 +73,7 @@ export function BestFitPanel({ desk }: { desk: DeskCtx }) {
   const approve = () => {
     const n = overrides.length;
     const ok = desk.apply(
-      mixWrite(tenant, tenderId, option, overrides, desk.viewer.id, done),
+      mixWrite(tenant, tenderId, option, overrides, desk.viewer.id, done, desk.nextAt()),
       `${MIX_LABEL[option]} mix approved${n ? `, ${n} ${n === 1 ? 'override' : 'overrides'} recorded` : ''}. ${opts.disclaimer}`, 'quotes',
     );
     if (ok) setEditing(false);

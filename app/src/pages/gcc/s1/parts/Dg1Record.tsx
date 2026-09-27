@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { RotateCcw } from 'lucide-react';
 import { personById } from '@/data/people';
@@ -21,11 +21,14 @@ const TEAM_LABEL: Record<string, string> = { proc: 'Procurement', plan: 'Plannin
 const isDemo = (d: AnyDg1): d is Dg1Decision => 'snapshot' in d;
 const nameOf = (id: string) => personById(id)?.name ?? id;
 
-export function Dg1Record({ s1, state }: { s1: S1; state: Dg1State }) {
+export function Dg1Record({ s1, state, focusHead = false }: { s1: S1; state: Dg1State; focusHead?: boolean }) {
   const c = state.current!;
   const id = state.tenderId;
   const [reason, setReason] = useState('');
   const [asking, setAsking] = useState(false);
+  // Just recorded: the form this replaces had focus, so the record's heading takes it (plan 025b).
+  const head = useRef<HTMLSpanElement>(null);
+  useEffect(() => { if (focusHead) head.current?.focus({ preventScroll: true }); }, [focusHead]);
   const right = s1.check('dg1.decide', id);
   const reopenRight = right.ok ? right : s1.check('dg1.delegate', id);
   const pursue = c.decision === 'pursue';
@@ -42,7 +45,7 @@ export function Dg1Record({ s1, state }: { s1: S1; state: Dg1State }) {
 
   return (
     <Card>
-      <CardHead title="DG1 decision" meta={<span>{state.source === 'demo' ? 'Recorded today' : 'Recorded before today'}</span>} />
+      <CardHead title={<span ref={head} tabIndex={-1}>DG1 decision</span>} meta={<span>{state.source === 'demo' ? 'Recorded today' : 'Recorded before today'}</span>} />
       <div className="s1-pad dg1f">
         <Callout variant="verdict" word="DG1" title={`${pursue ? 'Pursue' : 'Discard'} · ${nameOf(c.byId)}${isDemo(c) && c.delegate ? ' as delegate' : ''} · ${shortWhen(c.at)}`} compact>
           The recommendation at that moment: {recWord}.{override ? ' This decision went against it; both are kept.' : ''}

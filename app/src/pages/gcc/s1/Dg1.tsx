@@ -1,4 +1,4 @@
-import { useMemo, type ReactNode } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
 import { ChevronLeft, Lock } from 'lucide-react';
@@ -260,8 +260,10 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
   const pack = useMemo(() => dg1PackFor(tenant, id, done), [tenant, id, done]);
   const state = useMemo(() => dg1RecordFor(tenant, id, done), [tenant, id, done]);
   const rail = useRail(s1, id);
+  // After Confirm the record replaces the form: it takes keyboard focus (plan 025b).
+  const [recorded, setRecorded] = useState(false);
   const t = tenderOf(tenant, id);
-  const back = <Link to="/dg1" className="btn btn-sm"><ChevronLeft size={13} aria-hidden />DG1 decisions</Link>;
+  const back =<Link to="/dg1" className="btn btn-sm"><ChevronLeft size={13} aria-hidden />DG1 decisions</Link>;
 
   if (!t || !s1.canOpen(id)) return <div className="view"><Card><EmptyState title={`No tender ${id} here.`} body="It may belong to another company, or not be shared with you." action={back} /></Card></div>;
   if (!pack) return <div className="view"><Card><EmptyState title={`${id} has no DG1 pack.`} body="The pack is built once intake has read and scored the tender." action={back} /></Card></div>;
@@ -299,7 +301,7 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
           <div className="s1-stack dg1-side">
             {c ? (
               <>
-                <Dg1Record s1={s1} state={state} />
+                <Dg1Record s1={s1} state={state} focusHead={recorded} />
                 {rail && <RecCard rail={rail} overridden />}
               </>
             ) : (
@@ -310,7 +312,7 @@ function Pack({ s1, id }: { s1: S1; id: string }) {
                     {state.reopen.reason.replace(/[.\s]+$/, '')}{state.reopen.previous ? `. The earlier ${state.reopen.previous.decision === 'pursue' ? 'Pursue' : 'Discard'} of ${shortWhen(state.reopen.previous.at)} stays on record.` : '.'}
                   </Callout>
                 )}
-                <Dg1Form key={`${id}:${state.round}`} s1={s1} pack={pack} state={state} dueAt={dueAt} />
+                <Dg1Form key={`${id}:${state.round}`} s1={s1} pack={pack} state={state} dueAt={dueAt} onRecorded={() => setRecorded(true)} />
               </>
             )}
           </div>

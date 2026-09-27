@@ -43,9 +43,9 @@ export function declineLetter(tenant: string, tenderId: string, byId: string): L
   return { subject: fill(DECLINE_LETTER.subject), text: fill(DECLINE_LETTER.body), label: LETTER_DRAFT_LABEL, signatoryId: signatory?.id ?? byId };
 }
 
-/** Save the draft, or mark it sent (in the demo only), for the No-Bid of decision round `round`. */
-export function letterWrite(tenderId: string, round: number, text: string, sent: boolean, byId: string): WriteResult {
-  const value: LetterValue = { text, sent, round, at: nowIso(), byId };
+/** Save the draft, or mark it sent (in the demo only), for the No-Bid of decision round `round`. Stamped `at` (plan 025a). */
+export function letterWrite(tenderId: string, round: number, text: string, sent: boolean, byId: string, at = nowIso()): WriteResult {
+  const value: LetterValue = { text, sent, round, at, byId };
   return {
     key: letterKey(tenderId, round),
     value: JSON.stringify(value),

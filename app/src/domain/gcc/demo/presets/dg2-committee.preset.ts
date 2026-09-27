@@ -22,8 +22,8 @@ export const preset: Preset = {
     if (tenant !== 'najd') return { unavailable: 'Script C runs in Najd.' };
     const r = recipe(tenant);
     const bm = gccData(tenant).register.find((t) => t.id === SCRIPT_C)?.bidManagerId ?? firstWithRole(tenant, 'bid')?.id ?? `${tenant}.bid`;
-    r.write(packRerunWrite(tenant, SCRIPT_C, r.done(), bm));
-    r.write(packIssueWrite(tenant, SCRIPT_C, r.done(), bm));
+    r.write(packRerunWrite(tenant, SCRIPT_C, r.done(), bm, r.nextAt()));
+    r.write(packIssueWrite(tenant, SCRIPT_C, r.done(), bm, undefined, r.nextAt()));
     const pv = packVersionsFor(tenant, SCRIPT_C, r.done());
     const v = pv.issued?.version;
     const members = committeeOf(tenant);

@@ -5,7 +5,8 @@ import type { Applier } from './types';
 
 /**
  * The demo appliers (plan 021), collected from `./*.apply.ts` in file-name
- * order: DG1, then Stage 2, Stage 3 and DG2, the order a tender moves in.
+ * order: the validated step (plan 025b), DG1, then Stage 2, Stage 3, DG2 and
+ * DG3, the order a tender moves in.
  * `domain/gcc/lifecycle.ts` runs every lifecycle through them when the tenant
  * has demo actions.
  */

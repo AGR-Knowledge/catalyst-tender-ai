@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { gccData, isGccTenantKey } from '@/data/gcc';
@@ -172,6 +172,16 @@ function GateBody({ tenant, tenderId, title, access, ds, viewAs, onRecord }: {
   const closeCheck = holds('pack.issue') ? access.check('pack.issue') : access.check('dg2.decide');
   const letterCheck = access.check('pack.issue');
 
+  // After the decision is confirmed here, focus moves to the record that replaces the bar, so Tab carries on from it (plan 025a).
+  const [arrive, setArrive] = useState(false);
+  const recordHead = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!arrive || !recordHead.current) return;
+    // The record sits above the committee panel, the bar below it: scroll it into view with the focus.
+    recordHead.current.focus({ preventScroll: false });
+    setArrive(false);
+  }, [arrive, d]);
+
   return (
     <div className="view dg2">
       <header className="dg2-head">
@@ -199,7 +209,7 @@ function GateBody({ tenant, tenderId, title, access, ds, viewAs, onRecord }: {
         <aside className="dg2-right" aria-label="Committee positions and the decision">
           {d && (
             <div className="dg2-record">
-              <Callout variant="verdict" word="DG2" title={`${d.label}, ${d.decision === 'bid' ? 'approved' : 'recorded'} by ${d.byName}`}>
+              <Callout variant="verdict" word="DG2" title={<span ref={recordHead} tabIndex={-1}>{d.label}, {d.decision === 'bid' ? 'approved' : 'recorded'} by {d.byName}</span>}>
                 {stampText(d.at)} · pack v{d.packVersion}{d.majority ? ` · ${d.majority.for} for, ${d.majority.against} against` : ''}. Recorded in the audit trail.
                 {d.differsText && <><br /><b>{d.differsText}:</b> {d.reason}</>}
                 {/* A reason is asked for only against the majority: showing it would tell someone not cleared how the committee stood. */}
@@ -221,7 +231,7 @@ function GateBody({ tenant, tenderId, title, access, ds, viewAs, onRecord }: {
           />
           {record && record.conflicts.length > 0 && <p className="dg2-p">Conflicts declared: {record.conflicts.map((c) => `${c.name} (${stampText(c.at)})`).join('; ')}.</p>}
 
-          {!d && <DecisionBar tenant={tenant} tenderId={tenderId} ds={ds} check={decideCheck} holds={holds('dg2.decide')} />}
+          {!d && <DecisionBar tenant={tenant} tenderId={tenderId} ds={ds} check={decideCheck} holds={holds('dg2.decide')} onDecided={() => setArrive(true)} />}
           {d?.decision === 'bid' && <Conditions tenant={tenant} tenderId={tenderId} sight={sight} check={closeCheck} holds={holds('pack.issue') || holds('dg2.decide')} />}
           {d?.decision === 'no-bid' && record?.letter && (
             <DeclineLetter tenant={tenant} tenderId={tenderId} round={roundOf(done, tenderId)} letter={record.letter} check={letterCheck} holds={holds('pack.issue')} />

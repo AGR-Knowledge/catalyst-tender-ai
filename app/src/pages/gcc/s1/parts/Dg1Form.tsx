@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BellRing, Check } from 'lucide-react';
 import { peopleOf, personById, firstWithRole } from '@/data/people';
@@ -37,7 +37,11 @@ const CHOICES: { id: Choice; label: string; hint: string }[] = [
 ];
 const RULE_CODES = DISCARD_REASONS.map((r) => ({ id: r.code, label: r.label }));
 
-export function Dg1Form({ s1, pack, state, dueAt }: { s1: S1; pack: Dg1Pack; state: Dg1State; dueAt?: string }) {
+export function Dg1Form({ s1, pack, state, dueAt, onRecorded }: {
+  s1: S1; pack: Dg1Pack; state: Dg1State; dueAt?: string;
+  /** Called when a decision is confirmed, so the record that replaces the form can take focus (plan 025b). */
+  onRecorded?: () => void;
+}) {
   const { tenant, viewer, done } = s1;
   const id = pack.tenderId;
   const t = dataOf(tenant).register.find((x) => x.id === id);
@@ -68,6 +72,9 @@ export function Dg1Form({ s1, pack, state, dueAt }: { s1: S1; pack: Dg1Pack; sta
   });
   const [review, setReview] = useState(false);
   const [last, setLast] = useState<{ label: string; effects: string[] } | null>(null);
+  // A Hold keeps the form, with "Recorded" at its top: its heading takes focus from the Confirm button.
+  const head = useRef<HTMLSpanElement>(null);
+  useEffect(() => { if (last) head.current?.focus({ preventScroll: true }); }, [last]);
 
   const overrides = choice === 'pursue' ? rec.verdict === 'discard' : choice === 'discard' ? rec.verdict !== 'discard' : false;
   const input: Dg1Input | null = choice ? {
@@ -101,6 +108,7 @@ export function Dg1Form({ s1, pack, state, dueAt }: { s1: S1; pack: Dg1Pack; sta
     const msg = input.decision === 'pursue' ? 'DG1 recorded: Pursue. The RFQ clock has started.'
       : input.decision === 'discard' ? 'DG1 recorded: Discard, with its reasons.'
       : `DG1 on hold. ${to?.name ?? 'The person asked'} has the request in My requests.`;
+    onRecorded?.();
     s1.write(id, writes, w.audit, { msg });
     setLast({ label, effects: w.effects });
     setReview(false);
@@ -126,7 +134,7 @@ export function Dg1Form({ s1, pack, state, dueAt }: { s1: S1; pack: Dg1Pack; sta
 
   return (
     <Card>
-      <CardHead title="Record DG1" meta={mode === 'delegate' ? <span className="dg1-deleg">As delegate</span> : bm ? <span>Bid Manager: {bm.name}</span> : undefined} />
+      <CardHead title={<span ref={head} tabIndex={-1}>Record DG1</span>} meta={mode === 'delegate' ? <span className="dg1-deleg">As delegate</span> : bm ? <span>Bid Manager: {bm.name}</span> : undefined} />
       <div className="s1-pad dg1f">
         {last && (
           <Callout variant="verdict" word="Recorded" title={`${last.label} recorded in the audit trail`} compact>

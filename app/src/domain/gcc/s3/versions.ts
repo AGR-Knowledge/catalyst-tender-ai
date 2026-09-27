@@ -115,14 +115,14 @@ export function compareVersions(tenant: string, tenderId: string, from: number, 
 
 // ---------------------------------------------------------------------------
 
-/** Re-run the pack: the next version, keeping every earlier one (spec §9.10). */
-export function packRerunWrite(tenant: string, tenderId: string, done: Done, byId: string): WriteResult | WriteError {
+/** Re-run the pack: the next version, keeping every earlier one (spec §9.10). Stamped `at` (the audit entry's time on screens, plan 025a). */
+export function packRerunWrite(tenant: string, tenderId: string, done: Done, byId: string, at = nowIso()): WriteResult | WriteError {
   const pv = packVersionsFor(tenant, tenderId, done);
   if (!pv.current) return { error: 'This tender has no pack to re-run yet' };
   const prev = readDone<PackRerunValue>(done, `pack-rerun:${tenderId}`);
   const version = pv.current.version + 1;
   const value: PackRerunValue = {
-    version, at: nowIso(), byId,
+    version, at, byId,
     ...(prev ? { earlier: [...(prev.earlier ?? []), { version: prev.version, at: prev.at, byId: prev.byId }] } : {}),
   };
   return {

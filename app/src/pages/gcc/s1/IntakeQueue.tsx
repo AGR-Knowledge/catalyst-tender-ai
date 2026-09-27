@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { personById, firstWithRole } from '@/data/people';
@@ -27,8 +27,24 @@ import './s1.css';
  */
 
 const HERE = '/intake-queue';
+const CONTROL = 'button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled)';
+const groupId = (tenderId: string) => `vq-${tenderId}`;
 
 interface Group { tenderId: string; title: string; shortTitle: string; open: QueueItem[]; resolved: QueueItem[] }
+
+/**
+ * Where focus goes after an action on a card (plan 025b): the card's first
+ * control while it stays open (sent back), else the open card that takes its
+ * place in the group, else the group's heading, else the page's.
+ */
+function focusAfter(root: HTMLElement, acted: { tenderId: string; itemId: string; index: number }) {
+  const group = root.querySelector<HTMLElement>(`[id="${groupId(acted.tenderId)}"]`);
+  const open = group ? [...group.querySelectorAll<HTMLElement>('article.vq:not(.resolved)')] : [];
+  const card = open.find((a) => a.dataset.vq === acted.itemId) ?? open[Math.min(acted.index, open.length - 1)];
+  const page = document.querySelector<HTMLElement>('h1');
+  if (page && !group) page.tabIndex = -1;
+  (card?.querySelector<HTMLElement>(CONTROL) ?? group?.querySelector<HTMLElement>('[data-vq-head]') ?? page)?.focus();
+}
 
 export default function IntakeQueue() {
   const s1 = useS1();
@@ -71,9 +87,22 @@ export default function IntakeQueue() {
   const unplaced = unrecognisedIn(done);
   const coord = firstWithRole(tenant, 'coord');
 
+  // Resolving a card moves it under "Resolved today": keep keyboard focus in the queue (plan 025b).
+  const root = useRef<HTMLDivElement>(null);
+  const acted = useRef<{ tenderId: string; itemId: string; index: number } | null>(null);
+  const onActed = (q: QueueItem) => {
+    const g = groups.find((x) => x.tenderId === q.item.tenderId);
+    acted.current = { tenderId: q.item.tenderId, itemId: q.item.id, index: Math.max(0, g?.open.findIndex((x) => x.item.id === q.item.id) ?? 0) };
+  };
+  useEffect(() => {
+    const a = acted.current;
+    acted.current = null;
+    if (a && root.current) focusAfter(root.current, a);
+  }, [groups]);
+
   return (
     <SourceHost>
-      <div className="view s1">
+      <div className="view s1" ref={root}>
         <Strip tiles={tiles} />
         <p className="s1-intro">Only the values the Intake &amp; Extraction agent would not accept on its own are here. Everything else was accepted with its page recorded.</p>
 
@@ -87,9 +116,9 @@ export default function IntakeQueue() {
           const b = blockingOpen(tenant, g.tenderId, done);
           const hadBlockers = [...g.open, ...g.resolved].some((x) => x.item.blocksDg1);
           return (
-            <Card key={g.tenderId}>
+            <Card key={g.tenderId} id={groupId(g.tenderId)}>
               <CardHead
-                title={<span className="vq-gt"><span className="mono">{g.tenderId}</span> {g.shortTitle}</span>}
+                title={<span className="vq-gt" tabIndex={-1} data-vq-head><span className="mono">{g.tenderId}</span> {g.shortTitle}</span>}
                 meta={<Link to={`/tenders/${g.tenderId}?tab=requirements`} className="btn-link">Open tender <ArrowRight size={12} aria-hidden /></Link>}
               />
               <div className="vq-group">
@@ -102,7 +131,7 @@ export default function IntakeQueue() {
                     The Bid Manager can record DG1 now.
                   </Callout>
                 )}
-                {g.open.map((x) => <ValidationCard key={x.item.id} q={x} s1={s1} doc={doc} record={d?.record ?? null} />)}
+                {g.open.map((x) => <ValidationCard key={x.item.id} q={x} s1={s1} doc={doc} record={d?.record ?? null} onActed={onActed} />)}
                 {g.resolved.length > 0 && (
                   <>
                     <h3 className="s1-h3">Resolved today</h3>

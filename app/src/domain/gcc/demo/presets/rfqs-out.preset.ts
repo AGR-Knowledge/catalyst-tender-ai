@@ -44,16 +44,16 @@ export const preset: Preset = {
     const dg1 = dg1Write(input, bm, pack, r.done());
     r.s1(HERO_ID, bm, dg1.writes, dg1.audit);
 
-    // Stage 2, by the DG1 team's Procurement Lead, at the times the sourcing screens stamp.
+    // Stage 2, by the DG1 team's Procurement Lead, each record at its own audit entry's minute (plan 025a).
     const proc = team.proc || firstWithRole(tenant, 'proc')?.id || bm;
-    r.write(packagingWrite(HERO_ID, proc, {}, undefined, { tenant, done: r.done() }));
+    r.write(packagingWrite(HERO_ID, proc, {}, r.nextAt(), { tenant, done: r.done() }));
     const pkgs = packagesFor(tenant, HERO_ID, r.done());
     // "Approve all as recommended": a package whose candidates are all greyed out can't be shortlisted, as on the screen.
     let shortlisted = 0;
     for (const { pkg } of pkgs) {
       const picks = recommendedShortlist(tenant, HERO_ID, pkg.id, r.done()).items.filter((i) => i.sendable).map((i) => i.supplierId);
       if (!picks.length) continue;
-      r.write(shortlistWrite(tenant, HERO_ID, pkg.id, picks, [], proc, r.done()));
+      r.write(shortlistWrite(tenant, HERO_ID, pkg.id, picks, [], proc, r.done(), r.nextAt()));
       shortlisted++;
     }
     for (const { pkg } of pkgs) {
@@ -63,7 +63,7 @@ export const preset: Preset = {
         const s = supplierOf(tenant, id);
         return !!s && screeningOf(s).sendable && !sent.has(id);
       });
-      if (to.length) r.write(rfqWrite(tenant, HERO_ID, pkg.id, to, proc, r.done()));
+      if (to.length) r.write(rfqWrite(tenant, HERO_ID, pkg.id, to, proc, r.done(), r.nextAt()));
     }
 
     const c = rfqCounts(tenant, HERO_ID, r.done());

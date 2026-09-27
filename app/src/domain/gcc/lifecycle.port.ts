@@ -8,6 +8,7 @@ import { stageLabel, stageOf, stepLabel, type StageN } from '@/data/gcc/stages';
 import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import type { GateKind, GateRecord, Lifecycle, StageEntry } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
+import { DEMO_MINUTES_END } from '@/domain/gcc/period';
 import { convert, money } from '@/domain/money';
 import { validationsOf } from '@/domain/gcc/s1/validation';
 import { fitScoresFor } from '@/domain/gcc/s1/eligibility';
@@ -81,12 +82,12 @@ function nextGateOf(l: Lifecycle): TenderRowVM['nextGate'] {
   return ahead ? { gate: ahead, label: `${ahead} next` } : null;
 }
 
-/** The latest moment in the lifecycle up to now. */
+/** The latest moment in the lifecycle up to now, with the demo's own minutes after 10:00 (`DEMO_MINUTES_END`, plan 025a). */
 function lastActivityOf(l: Lifecycle): string {
   const ts = [
     ...l.log.map((e) => e.at), ...l.gates.map((g) => g.at), ...l.events.flatMap((e) => (e.at ? [e.at] : [])),
     l.submission?.at, l.result?.at, l.closedAt,
-  ].filter((t): t is string => !!t && t <= NOW);
+  ].filter((t): t is string => !!t && t <= DEMO_MINUTES_END);
   return ts.reduce((a, b) => (b > a ? b : a), l.capturedAt);
 }
 

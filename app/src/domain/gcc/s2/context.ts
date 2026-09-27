@@ -9,7 +9,7 @@ import {
 } from '@/data/gcc/s2';
 import { addDays, calendarDaysBetween, isWorkingDay } from '@/domain/calendar';
 import { dg1RecordFor } from '@/domain/gcc/dg1';
-import { K, keysWithPrefix, NOW, readDone, type Done, type RfqSentValue } from './done';
+import { K, keysWithPrefix, readDone, type Done, type RfqSentValue } from './done';
 
 /**
  * Shared lookups for the Stage 2 rules: the tenant, its supplier master, a
@@ -181,8 +181,6 @@ export function addWorkingDays(iso: string, n: number, cc: CountryCode, time = t
 
 /** The first working day after the date of `iso`, at `time`. */
 export const nextWorkingDay = (iso: string, cc: CountryCode, time: string) => addWorkingDays(iso, 1, cc, time);
-
-export const isPast = (iso: string, now = NOW) => iso <= now;
 
 /** Per cent to one decimal, as a number. */
 export const pct1 = (part: number, whole: number) => (whole ? Math.round((part / whole) * 1000) / 10 : 0);

@@ -35,8 +35,29 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
-| 025a | [Records on the demo clock](025a-demo-clock.md): Stage 2, Stage 3, DG2 and DG3 records stamped with their audit entry's minute; focus after a DG2 or DG3 decision | 7 | wave 6 | READY |
-| 025b | [A tender moves on once validated](025b-validated-step.md): Validating → Awaiting DG1 when the last blocking field is resolved; focus after a queue card and after DG1 | 7 | wave 6 | READY |
+| 025a | [Records on the demo clock](025a-demo-clock.md): Stage 2, Stage 3, DG2 and DG3 records stamped with their audit entry's minute; focus after a DG2 or DG3 decision | 7 | wave 6 | DONE (2026-09-27, reviewed) |
+| 025b | [A tender moves on once validated](025b-validated-step.md): Validating → Awaiting DG1 when the last blocking field is resolved; focus after a queue card and after DG1 | 7 | wave 6 | DONE (2026-09-27, reviewed) |
+
+**Wave 7 review of 025a and 025b (orchestrator, 2026-09-27): both accepted, committed as one milestone.**
+- Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 772, Corniche 363, Dafna 344, Batinah 352 and Qurain 367. That is wave 6's counts plus 025b's 28 rows (76) and 025a's 15 (99). No existing target moved.
+- Browser checks at 1440 light, no console errors:
+  - script A in Najd: once both hero fields are resolved (10:00, 10:01), the header reads "1 · Intake · Awaiting DG1" with Omar Siddiqui, and DG1 still reads "21 h 44 m left of 24 h". Omar's Pursue puts focus on the "DG1 decision" heading, and the 30-day "Decisions on time" counts it;
+  - "Start: DG2 committee": the pack reads "generated 10:01 · issued 10:02", the same minutes as its audit entries;
+  - "Start: RFQs out": each RFQ reads its own audit minute (10:16 to 10:26), and 11 of 11 packages read as issued. After Advance agent work, a reply stamped 12:15 still counts on the board;
+  - Batinah T-2026-042: the bid bond resolved moves it to "1 · Intake · Screened" with Shamsa Al-Hinai, and Imran Sheikh reaches its DG1 pack from the intake queue.
+- Decisions:
+  - **T-2026-042 stays Screened** (025b rule 1.1). Awaiting DG1 would open a DG1 gate on its dashboards from the resolution time, while its DG1 pack counts from logging, so two screens would disagree.
+  - **SRC-11 counts quotes received live** as parsed (025a deviation). That is the tile's claim: the agent parsed them.
+  - The 025b stand-down for tenders without a DG1 deadline stays until their data is aligned (below).
+- Orchestrator fixes:
+  - the presets "Start: RFQs out" and "Start: DG2 committee" stamp each record with its audit entry's minute (`r.nextAt()`), so preset records match their entries too (025a's follow-up);
+  - the comment in `domain/gcc/demo/index.ts` lists the validated step first;
+  - the unused `isPast` is removed from `domain/gcc/s2/context.ts`;
+  - the runbook: script A says the hero moves to Awaiting DG1; Batinah's Stage 3 entry opens T-2026-042's DG1 pack from the intake queue; findings 1 and 10 and the resolve and decide focus items leave the known limits, and three narrower limits are added.
+- **Open, for a follow-up plan:**
+  - T-2026-042, T-2026-041, T-2026-120 and T-2026-072 have no DG1 deadline in the seed, yet their DG1 pack reads "Waiting for DG1" with a 24 h clock from logging, and DG1 decisions lists none of them. The fix is to give them a DG1 deadline where the pack counts from and route them to the DG1 list. Then they go to Awaiting DG1 with their Bid Manager, and 025b's stand-down, with its "Validating again after a Hold" side effect, can go;
+  - focus after Cancel in a queue card's Correct or Send back form, after DG1 Re-open, and 016c finding 9 (a drawer opened from another page);
+  - `stages.metric.ts` and `steps.metric.ts` compare with the window's 10:00 end, so a step entered live misses the stage graph's last point.
 
 **Wave 6 review of 016c (orchestrator, 2026-09-27): accepted. Wave 6 is committed as one milestone.**
 - Typecheck and build pass. `/dev/checks` has no failing row in any tenant, with the same counts as after 016a and 016b.
@@ -273,7 +294,8 @@ Plan 001 was verified with a click audit:
   - **025a** owns:
     - the Stage 2, Stage 3, DG2 and DG3 writers (`domain/gcc/s2`, `s3`, `dg2`, `dg3`) and their call sites (`pages/gcc/s2`, `s3`, `dg2`, `dg3`, `supplier`, `workspace/tabs/inputs.tab.tsx`);
     - `nextAt` in `state/store.tsx`, `useS1.ts` and `DemoMenu.tsx`;
-    - dev checks 80, 85, 90, 95 and 97, and the new 99.
+    - dev checks 80, 85, 90, 95 and 97, and the new 99;
+    - added 2026-09-27, when the executor found that period windows end at exactly 10:00: `domain/gcc/period.ts` (`inWindow`), `lastActivityOf` in `domain/gcc/lifecycle.port.ts`, dev check 50, `agoText` and `slaState` in `domain/gcc/clock.ts` (a demo-minute time reads "just now"), and `gateFrom` only in `domain/gcc/lifecycle.ts` (a gate opened live reads its full SLA; `openGate` stays out of 025a's files). A window ending at the demo clock also counts the demo's own minutes on demo day.
   - **025b** owns:
     - the new `demo/05-validated.apply.ts`, a read-only helper in `domain/gcc/s1/validation.ts`;
     - `pages/gcc/s1/IntakeQueue.tsx`, `parts/ValidationCard.tsx`, `Dg1Form.tsx`, `Dg1Record.tsx` (and `Dg1.tsx` for focus);

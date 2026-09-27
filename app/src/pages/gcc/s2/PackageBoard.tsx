@@ -143,11 +143,11 @@ function RfqDetail({ desk, row }: { desk: DeskCtx; row: Row }) {
     if (from === 'master') {
       const list = approvedShortlist(tenant, tenderId, rfq.packageId, done);
       const w = shortlistWrite(tenant, tenderId, rfq.packageId, [...(list?.supplierIds ?? []), id],
-        [...(list?.overrides ?? []), { supplierId: id, action: 'add', reason: `Reserve for ${row.supplierName}, no reply by the reply date` }], desk.viewer.id, done);
+        [...(list?.overrides ?? []), { supplierId: id, action: 'add', reason: `Reserve for ${row.supplierName}, no reply by the reply date` }], desk.viewer.id, done, desk.nextAt());
       writes.push(w);
       if ('key' in w) d = { ...done, [w.key]: w.value };
     }
-    writes.push(rfqWrite(tenant, tenderId, rfq.packageId, [id], desk.viewer.id, d));
+    writes.push(rfqWrite(tenant, tenderId, rfq.packageId, [id], desk.viewer.id, d, desk.nextAt(writes.length)));
     desk.applyAll(writes, `RFQ for ${rfq.packageId} sent to the reserve, ${supplierOf(tenant, id)?.name ?? id}`);
   };
 
@@ -175,7 +175,7 @@ function RfqDetail({ desk, row }: { desk: DeskCtx; row: Row }) {
             <li>Nudges by hand: {rfq.nudges}{nudged?.byId && nudged.at ? ` (latest by ${byLine(nudged.byId, nudged.at)})` : ''}</li>
           </ul>
           <div className="s2-actbar s2-actbar-l">
-            <button type="button" className="btn btn-sm" disabled={!!nudgeBlock} onClick={() => desk.apply(nudgeWrite(tenant, rfq, desk.viewer.id, done), `${row.supplierName} nudged. Counted on the RFQ and recorded in the audit trail`)}>
+            <button type="button" className="btn btn-sm" disabled={!!nudgeBlock} onClick={() => desk.apply(nudgeWrite(tenant, rfq, desk.viewer.id, done, desk.nextAt()), `${row.supplierName} nudged. Counted on the RFQ and recorded in the audit trail`)}>
               <BellRing size={12} aria-hidden /> Nudge {row.supplierName}
             </button>
             <Why reason={nudgeBlock} />

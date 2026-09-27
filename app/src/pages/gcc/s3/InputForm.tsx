@@ -59,7 +59,7 @@ export function InputForm({ tenant, tenderId, inputKey, respond, canSeeFields, o
   canSeeFields: boolean;
   onClose(): void;
 }) {
-  const { state, mark, logAudit } = useDemo();
+  const { state, mark, logAudit, nextAt } = useDemo();
   const { person, done } = state;
   const spec = INPUT_SPECS[inputKey];
   const item = useMemo(() => inputsFor(tenant, tenderId, done).items.find((i) => i.key === inputKey), [tenant, tenderId, done, inputKey]);
@@ -93,7 +93,7 @@ export function InputForm({ tenant, tenderId, inputKey, respond, canSeeFields, o
     const errs = validateInput(inputKey, fields);
     setErrors(errs);
     if (errs.length) return;
-    const w = inputSubmitWrite(tenderId, inputKey, fields, person.id);
+    const w = inputSubmitWrite(tenderId, inputKey, fields, person.id, nextAt());
     if (isWriteError(w)) { setErrors([w.error]); return; }
     mark(w.key, `${spec.label} submitted. Pack ${spec.feeds} is updated.`, 'green', w.value);
     logAudit(w.audit);

@@ -21,17 +21,17 @@ export function Reopen({ s, record, check, holds }: {
   check: CanResult;
   holds: boolean;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState('');
-  const probe = dg3ReopenWrite(s, reason, state.person, { viewAs: !!state.viewAs });
+  const probe = dg3ReopenWrite(s, reason, state.person, { viewAs: !!state.viewAs }, nextAt());
   // What happens doesn't depend on the reason: show it before one is typed.
-  const draft = dg3ReopenWrite(s, reason.trim() || 'probe', state.person, { viewAs: !!state.viewAs });
+  const draft = dg3ReopenWrite(s, reason.trim() || 'probe', state.person, { viewAs: !!state.viewAs }, nextAt());
   const previous = record?.previous ?? [];
   if (!s.decision && !previous.length) return null;
 
   const reopen = () => {
-    const r = dg3ReopenWrite(s, reason, state.person, { viewAs: !!state.viewAs });
+    const r = dg3ReopenWrite(s, reason, state.person, { viewAs: !!state.viewAs }, nextAt());
     if (isWriteError(r)) { toast(r.error, 'red'); return; }
     for (const w of r.writes) mark(w.key, undefined, undefined, w.value);
     r.audit.forEach((a) => logAudit(a));

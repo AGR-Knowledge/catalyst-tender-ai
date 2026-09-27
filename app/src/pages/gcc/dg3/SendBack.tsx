@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type Ref } from 'react';
 import { CornerUpLeft, RefreshCw } from 'lucide-react';
 import type { CanResult } from '@/data/access';
 import { firstWithRole, personById } from '@/data/people';
@@ -30,23 +30,24 @@ function useCommit(): Commit {
 }
 
 /** The Head of Tendering's "Send back to Compliance", beside the decision. */
-export function SendBackButton({ s }: { s: Dg3State }) {
-  const { state } = useDemo();
+export function SendBackButton({ s, onSent }: { s: Dg3State; onSent?(): void }) {
+  const { state, nextAt } = useDemo();
   const commit = useCommit();
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState('');
   const comp = firstWithRole(s.tenant, 'comp');
 
-  const probe = dg3SendBackWrite(s, note, state.person, { viewAs: !!state.viewAs });
-  const refused = dg3SendBackWrite(s, 'probe', state.person, { viewAs: !!state.viewAs });
+  const probe = dg3SendBackWrite(s, note, state.person, { viewAs: !!state.viewAs }, nextAt());
+  const refused = dg3SendBackWrite(s, 'probe', state.person, { viewAs: !!state.viewAs }, nextAt());
   const why = isWriteError(refused) ? refused.error : null;
   // The failing lines are what Compliance must fix: the note starts from them, without figures Compliance may not see.
   const start = () => { setNote(sendBackDraft(s)); setOpen(true); };
   const send = () => {
-    const r = dg3SendBackWrite(s, note, state.person, { viewAs: !!state.viewAs });
+    const r = dg3SendBackWrite(s, note, state.person, { viewAs: !!state.viewAs }, nextAt());
     if (isWriteError(r)) return;
     commit(r);
     setOpen(false);
+    onSent?.();
   };
 
   return (
@@ -71,14 +72,16 @@ export function SendBackButton({ s }: { s: Dg3State }) {
 }
 
 /** The pack is back with Compliance: the note for everyone, and "Re-issue the DG3 pack" for Compliance. */
-export function SentBackCard({ s, check, holds }: {
+export function SentBackCard({ s, check, holds, headRef }: {
   s: Dg3State;
   /** `can('dg3.issue')` for this tender. */
   check: CanResult;
   /** The viewer issues DG3 packs at all (Compliance). */
   holds: boolean;
+  /** The heading, focusable: after a send-back, focus moves here (plan 025a). */
+  headRef?: Ref<HTMLHeadingElement>;
 }) {
-  const { state } = useDemo();
+  const { state, nextAt } = useDemo();
   const commit = useCommit();
   const [open, setOpen] = useState(false);
   const [bank, setBank] = useState(false);
@@ -88,9 +91,9 @@ export function SentBackCard({ s, check, holds }: {
   const to = personById(back.toId);
   const validityFails = s.evaluation.failing.some((l) => l.key === 'guarantee') && s.evaluation.evidence.bond.validTo < s.evaluation.evidence.bond.requiredTo;
   const input = bank && validityFails ? { fixed: 'bond-validity' as const } : {};
-  const probe = dg3ReissueWrite(s, input, state.person, { viewAs: !!state.viewAs });
+  const probe = dg3ReissueWrite(s, input, state.person, { viewAs: !!state.viewAs }, nextAt());
   const reissue = () => {
-    const r = dg3ReissueWrite(s, input, state.person, { viewAs: !!state.viewAs });
+    const r = dg3ReissueWrite(s, input, state.person, { viewAs: !!state.viewAs }, nextAt());
     if (isWriteError(r)) return;
     commit(r);
     setOpen(false);
@@ -99,7 +102,7 @@ export function SentBackCard({ s, check, holds }: {
   return (
     <section className="dg2-card dg3-back" aria-labelledby={`dg3-back-${s.tenderId}`}>
       <header className="dg2-card-h">
-        <h3 id={`dg3-back-${s.tenderId}`}><CornerUpLeft size={13} aria-hidden /> Sent back to Compliance</h3>
+        <h3 id={`dg3-back-${s.tenderId}`} ref={headRef} tabIndex={-1}><CornerUpLeft size={13} aria-hidden /> Sent back to Compliance</h3>
         <span className="dg2-card-m">{stampOf(back.at)} · round {back.round}</span>
       </header>
       <p className="dg3-back-who">{by?.name ?? back.byId} to {to ? `${to.name}, ${to.title}` : 'Compliance'}:</p>

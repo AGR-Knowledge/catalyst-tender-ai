@@ -36,6 +36,11 @@ export interface DeskCtx {
   seesLevelled: boolean;
   quotesBy: string;
   doc: SourceDoc | null;
+  /**
+   * The time the next audit entry will carry, `after` entries ahead (the store's clock, plan 025a).
+   * A write stamped with it reads its entry's minute; the i-th write of `applyAll` takes `nextAt(i)`.
+   */
+  nextAt(after?: number): string;
   /** Record one write; a refused write toasts its reason. True when recorded. */
   apply(r: S2WriteResult<unknown>, msg: string, sensitive?: 'quotes'): boolean;
   /** Record several writes, all or none (the first refusal stops them). */
@@ -43,7 +48,7 @@ export interface DeskCtx {
 }
 
 export function useDesk(tenderId: string, from?: { check?: DeskCtx['check'] }): DeskCtx {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const tenant = useTenantKey();
   const { person, done, audit } = state;
   const viewAs = !!state.viewAs;
@@ -87,7 +92,7 @@ export function useDesk(tenderId: string, from?: { check?: DeskCtx['check'] }): 
   const seesLevelled = seesQuotes || check('see.quotes.summary').ok;
   return {
     tenant, tenderId, title: registerRow(tenant, tenderId)?.title ?? tenderId, viewer: person, viewAs, done, audit, now: DEMO_NOW,
-    check, seesQuotes, seesLevelled, quotesBy: holdersOf('see.quotes'), doc, apply, applyAll,
+    check, seesQuotes, seesLevelled, quotesBy: holdersOf('see.quotes'), doc, nextAt, apply, applyAll,
   };
 }
 

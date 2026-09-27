@@ -6,7 +6,7 @@ import { type Done, NOW } from './done';
 import { dateOf, liveS2Tenders, nextWorkingDay, s2TenderOf, sentSupplierIds, supplierName, tenantOf, timeOf } from './context';
 import { packagesFor } from './packaging';
 import { approvedShortlist, rankedCandidates, type ShortlistItem } from './shortlist';
-import { quotesFor, rfqsFor, type LiveRfq } from './rfq';
+import { quotesFor, rfqsFor, sentBy, type LiveRfq } from './rfq';
 import { levelledFor } from './levelling';
 import { clarificationsFor } from './clarifications';
 import { mixFor } from './bestfit';
@@ -98,7 +98,7 @@ export interface BoardRow {
  * approved needs the package in an approved best-fit mix.
  */
 export function packageBoard(tenant: string, tenderId: string, done: Done, now = NOW): BoardRow[] {
-  const rfqs = rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= now);
+  const rfqs = rfqsFor(tenant, tenderId, done).filter((r) => sentBy(r, now));
   const levelled = new Map(levelledFor(tenant, tenderId, done).map((l) => [l.quoteId, l]));
   const mix = mixFor(tenant, tenderId, done);
   const inMix = new Set(mix?.picks.map((p) => p.pkgId) ?? []);
@@ -145,7 +145,7 @@ export interface MatrixRow {
 
 export function supplierMatrix(tenant: string, tenderId: string, done: Done, now = NOW): MatrixRow[] {
   const open = clarificationsFor(tenant, tenderId, done, now).filter((c) => c.state === 'open');
-  return rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= now).map((r) => ({
+  return rfqsFor(tenant, tenderId, done).filter((r) => sentBy(r, now)).map((r) => ({
     rfqId: r.id, supplierId: r.supplierId, supplierName: supplierName(tenant, r.supplierId), packageId: r.packageId, sentAt: r.sentAt, replyBy: r.replyBy,
     ...(r.openedAt ? { openedAt: r.openedAt } : {}), ...(r.acknowledgedAt ? { acknowledgedAt: r.acknowledgedAt } : {}),
     ...(r.declined ? { declined: r.declined } : {}), ...(r.quoteId && r.repliedAt ? { quotedAt: r.repliedAt } : {}),
@@ -158,7 +158,7 @@ export function supplierMatrix(tenant: string, tenderId: string, done: Done, now
 // SRC-3, SRC-4
 
 const liveRfqs = (tenant: string, done: Done, now: string) =>
-  liveS2Tenders(tenant, done).flatMap((t) => rfqsFor(tenant, t.tenderId, done)).filter((r) => r.sentAt <= now);
+  liveS2Tenders(tenant, done).flatMap((t) => rfqsFor(tenant, t.tenderId, done)).filter((r) => sentBy(r, now));
 
 /** SRC-3: RFQs answered (quote or decline) by their reply date ÷ RFQs whose reply date has passed. */
 export function repliesOnTime(tenant: string, done: Done, now = NOW): { onTime: number; due: number; pct: number | null } {
@@ -176,7 +176,7 @@ export function overdue(tenant: string, done: Done, now = NOW): { count: number;
 /** Per tender: what 017's interim `s2` facts state. */
 export function rfqCounts(tenant: string, tenderId: string, done: Done, now = NOW) {
   const all = rfqsFor(tenant, tenderId, done);
-  const rfqs = all.filter((r) => r.sentAt <= now);
+  const rfqs = all.filter((r) => sentBy(r, now));
   // Due at exactly 10:00 is still ahead at 10:00 (plan 021 4.5).
   const due = rfqs.filter((r) => r.replyBy < now);
   const od = rfqs.filter((r) => isOverdue(r, now));
@@ -235,7 +235,9 @@ export function buyerTimeSaved(tenant: string, done: Done, now = NOW): { hours: 
     for (const r of rfqsFor(tenant, t.tenderId, done)) {
       nudges += r.nudges + reminderPlan(tenant, r, now).filter((e) => e.kind === 'reminder' && e.state === 'sent').length;
     }
-    parsed += quotesFor(tenant, t.tenderId, done).filter((q) => q.receivedAt <= now).length;
+    // A quote received in the Supplier Portal during the demo has arrived, whatever minute it carries (plan 025a).
+    const seeded = new Set(s2TenderOf(tenant, t.tenderId)?.quotes.map((q) => q.id));
+    parsed += quotesFor(tenant, t.tenderId, done).filter((q) => q.receivedAt <= now || (!seeded.has(q.id) && now >= NOW)).length;
     levelled += levelledFor(tenant, t.tenderId, done).filter((l) => l.state === 'levelled').length;
   }
   const minutes = nudges * BUYER_MINUTES.nudge + parsed * BUYER_MINUTES.parsedQuote + levelled * BUYER_MINUTES.levelledQuote;

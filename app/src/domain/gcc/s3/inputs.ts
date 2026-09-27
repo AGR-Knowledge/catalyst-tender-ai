@@ -164,14 +164,14 @@ export function validateInput(key: InputKey, fields: Record<string, unknown>): s
 }
 
 // ---------------------------------------------------------------------------
-// Writers
+// Writers: each stamps `at`, demo now unless the screen passes its audit entry's time (plan 025a).
 
-export function inputRequestWrite(tenderId: string, key: InputKey, toId: string, due: string, byId: string): WriteResult | WriteError {
+export function inputRequestWrite(tenderId: string, key: InputKey, toId: string, due: string, byId: string, at = nowIso()): WriteResult | WriteError {
   const spec = INPUT_SPECS[key];
   if (!spec) return { error: `No input called "${key}"` };
   if (!toId) return { error: 'Choose who the request goes to' };
   if (!due) return { error: 'Set a due date and time' };
-  const value: InputReqValue = { toId, due, at: nowIso(), byId };
+  const value: InputReqValue = { toId, due, at, byId };
   return {
     key: `input-req:${tenderId}:${key}`,
     value: JSON.stringify(value),
@@ -179,11 +179,11 @@ export function inputRequestWrite(tenderId: string, key: InputKey, toId: string,
   };
 }
 
-export function inputSubmitWrite(tenderId: string, key: InputKey, fields: Record<string, unknown>, byId: string): WriteResult | WriteError {
+export function inputSubmitWrite(tenderId: string, key: InputKey, fields: Record<string, unknown>, byId: string, at = nowIso()): WriteResult | WriteError {
   const errors = validateInput(key, fields);
   if (errors.length) return { error: errors.join('. ') };
   const spec = INPUT_SPECS[key];
-  const value: InputSubValue = { fields, at: nowIso(), byId };
+  const value: InputSubValue = { fields, at, byId };
   return {
     key: `input-sub:${tenderId}:${key}`,
     value: JSON.stringify(value),

@@ -33,7 +33,7 @@ type Status = { label: string; tone: 'green' | 'orange' | 'red' | 'cyan'; icon: 
 
 function Inputs({ ctx }: { ctx: WorkspaceCtx }) {
   const { tenant, tenderId, done, viewer } = ctx;
-  const { mark, logAudit, toast } = useDemo();
+  const { mark, logAudit, toast, nextAt } = useDemo();
   const [params, setParams] = useSearchParams();
   const want = params.get('input') as InputKey | null;
   const focus = want && want in INPUT_SPECS ? want : null;
@@ -80,7 +80,7 @@ function Inputs({ ctx }: { ctx: WorkspaceCtx }) {
     const owner = firstWithRole(tenant, INPUT_SPECS[key].ownerRole);
     if (!owner) return;
     const at = dueOf(key);
-    const w = inputRequestWrite(tenderId, key, owner.id, at, viewer.id);
+    const w = inputRequestWrite(tenderId, key, owner.id, at, viewer.id, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     mark(w.key, `${INPUT_SPECS[key].label} requested from ${owner.name}, due ${stampText(at)}. It is in their My requests.`, 'green', w.value);
     logAudit(w.audit);

@@ -19,7 +19,7 @@ import { ConfirmModal, Effects } from '../s3/Confirm';
 
 const lines = (s: string) => s.split('\n').map((x) => x.trim()).filter(Boolean);
 
-export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
+export function DecisionBar({ tenant, tenderId, ds, check, holds, onDecided }: {
   tenant: string;
   tenderId: string;
   ds: DecisionState;
@@ -27,8 +27,10 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
   check: CanResult;
   /** The viewer holds `dg2.decide` at all (View as shows the bar disabled). */
   holds: boolean;
+  /** Called once the decision is recorded, so the page can move focus to the record (plan 025a). */
+  onDecided?(): void;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const { person } = state;
   const [choice, setChoice] = useState<Dg2Choice | null>(null);
   const [reason, setReason] = useState('');
@@ -46,9 +48,9 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
   } : null;
 
   // A dry run with a placeholder reason says whether this approval goes against the majority; the real one, what the record will say.
-  const probe = input ? dg2Write({ ...input, reason: 'probe', staleAcknowledged: true, ...(choice === 'no-bid' ? { reasonCodes: codes.codes.length ? codes.codes : ['other'] } : {}) }, person.id, ds) : null;
+  const probe = input ? dg2Write({ ...input, reason: 'probe', staleAcknowledged: true, ...(choice === 'no-bid' ? { reasonCodes: codes.codes.length ? codes.codes : ['other'] } : {}) }, person.id, ds, nextAt()) : null;
   const against = !!probe && !isWriteError(probe) && probe.decision.againstMajority;
-  const preview = input ? dg2Write(input, person.id, ds) : null;
+  const preview = input ? dg2Write(input, person.id, ds, nextAt()) : null;
   const why = preview && isWriteError(preview) ? preview.error : null;
 
   if (ds.decision) return null;
@@ -64,7 +66,7 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
   const close = () => setChoice(null);
   const confirm = () => {
     if (!input) return;
-    const r = dg2Write(input, person.id, ds);
+    const r = dg2Write(input, person.id, ds, nextAt());
     if (isWriteError(r)) { toast(r.error, 'red'); return; }
     for (const w of r.writes) mark(w.key, undefined, undefined, w.value);
     // The decision entry states the majority: masked like positions.
@@ -75,6 +77,7 @@ export function DecisionBar({ tenant, tenderId, ds, check, holds }: {
     }
     toast(r.effects[0].replace(/\.?$/, '.'), 'green'); // an effect is a list item; the toast is a sentence
     close();
+    onDecided?.();
   };
 
   const disabled: CanResult = !check.ok ? check : !ds.enabled ? { ok: false, reason: ds.disabledReason } : { ok: true };

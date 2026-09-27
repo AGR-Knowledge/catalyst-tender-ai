@@ -73,10 +73,11 @@ export function conditionsOpen(tenant: string, done: Done, viewer?: ConditionVie
   return { count: items.length, items };
 }
 
-export function conditionCloseWrite(id: string, byId: string, note?: string): WriteResult | WriteError {
+/** Close a condition, stamped `at` (plan 025a). */
+export function conditionCloseWrite(id: string, byId: string, note?: string, at = nowIso()): WriteResult | WriteError {
   const m = /^(.+)-R\d+-C\d+$/.exec(id);
   if (!m) return { error: `No condition called "${id}"` };
-  const value: ConditionValue = { state: 'closed', ...(note?.trim() ? { note: note.trim() } : {}), at: nowIso(), byId };
+  const value: ConditionValue = { state: 'closed', ...(note?.trim() ? { note: note.trim() } : {}), at, byId };
   return {
     key: `cond:${id}`,
     value: JSON.stringify(value),

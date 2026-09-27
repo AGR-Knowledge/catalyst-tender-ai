@@ -59,7 +59,7 @@ export function CoverageCard({ desk, onPackage }: { desk: DeskCtx; onPackage?(pk
       )}
       {noGap && <div className="s2-pad-x"><Why reason={noGap} /></div>}
       <GapModal pkg={gapFor} onClose={() => setGapFor(null)} onConfirm={(reason) => {
-        if (gapFor && desk.apply(gapWrite(tenderId, gapFor.pkgId, reason, desk.viewer.id, undefined, { tenant, done }), `Gap accepted on ${gapFor.pkgId}. Your reason is recorded`)) setGapFor(null);
+        if (gapFor && desk.apply(gapWrite(tenderId, gapFor.pkgId, reason, desk.viewer.id, desk.nextAt(), { tenant, done }), `Gap accepted on ${gapFor.pkgId}. Your reason is recorded`)) setGapFor(null);
       }} />
     </Card>
   );

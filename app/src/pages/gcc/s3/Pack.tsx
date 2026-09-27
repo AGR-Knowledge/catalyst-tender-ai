@@ -67,7 +67,7 @@ export function PackView({ tenant, tenderId, mode, access, sight, onOpenInputs }
   sight: PackViewer;
   onOpenInputs?: () => void;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const { person, done } = state;
   const pack = useMemo(() => packFor(tenant, tenderId, done, sight), [tenant, tenderId, done, sight]);
   const ds = useMemo(() => decisionState(tenant, tenderId, done), [tenant, tenderId, done]);
@@ -109,15 +109,15 @@ export function PackView({ tenant, tenderId, mode, access, sight, onOpenInputs }
   const stale = pack.sections['9.10'].body.freshness.stale;
 
   const rerun = () => {
-    const w = packRerunWrite(tenant, tenderId, done, person.id);
+    const w = packRerunWrite(tenant, tenderId, done, person.id, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     mark(w.key, `Pack v${current.version + 1} generated. v${current.version} is kept for comparison.`, 'green', w.value);
     logAudit(w.audit);
   };
 
-  const issuePreview = packIssueWrite(tenant, tenderId, done, person.id, blockers.length ? reason || 'preview' : undefined);
+  const issuePreview = packIssueWrite(tenant, tenderId, done, person.id, blockers.length ? reason || 'preview' : undefined, nextAt());
   const issue = () => {
-    const w = packIssueWrite(tenant, tenderId, done, person.id, blockers.length ? reason : undefined);
+    const w = packIssueWrite(tenant, tenderId, done, person.id, blockers.length ? reason : undefined, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     const members = committeeOf(tenant);
     mark(w.key, `Pack v${current.version} issued to the committee. ${members.length} members notified.`, 'green', w.value);
@@ -128,7 +128,7 @@ export function PackView({ tenant, tenderId, mode, access, sight, onOpenInputs }
   };
 
   const saveNote = (text: string): string | null => {
-    const w = packNoteWrite(tenderId, text, person.id);
+    const w = packNoteWrite(tenderId, text, person.id, nextAt());
     if (isWriteError(w)) return w.error;
     mark(w.key, "Presenter's note saved. The numbers are unchanged.", 'green', w.value);
     logAudit(w.audit);

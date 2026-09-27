@@ -52,7 +52,7 @@ export function ClarificationsPanel({ desk }: { desk: DeskCtx }) {
                     <textarea id={`clar-${c.id}`} rows={2} value={text} onChange={(e) => setDraft({ ...draft, [c.id]: e.target.value })} disabled={!!noAnswer} />
                     <div className="s2-actbar s2-actbar-l">
                       <button type="button" className="btn btn-sm" disabled={!!why} onClick={() => {
-                        if (desk.apply(clarificationWrite(c.id, text, desk.viewer.id), `Answer sent to ${c.supplierName}. Recorded in the audit trail`)) setDraft({ ...draft, [c.id]: '' });
+                        if (desk.apply(clarificationWrite(c.id, text, desk.viewer.id, desk.nextAt()), `Answer sent to ${c.supplierName}. Recorded in the audit trail`)) setDraft({ ...draft, [c.id]: '' });
                       }}>Send answer</button>
                       <Why reason={why} />
                     </div>

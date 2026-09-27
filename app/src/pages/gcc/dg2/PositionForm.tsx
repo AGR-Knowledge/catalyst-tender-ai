@@ -31,7 +31,7 @@ export function PositionForm({ tenant, tenderId, seat, asSecretary, onClose }: {
   asSecretary: boolean;
   onClose(): void;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const { person, done } = state;
   const positions = useMemo(() => positionsFor(tenant, tenderId, done), [tenant, tenderId, done]);
   const sv = positions.seats.find((s) => s.seat === seat);
@@ -81,11 +81,11 @@ export function PositionForm({ tenant, tenderId, seat, asSecretary, onClose }: {
   };
   const byId = member?.id ?? sv.personId;
   const recordedById = asSecretary ? person.id : undefined;
-  const probe = positionWrite(tenderId, seat, input, byId, recordedById);
+  const probe = positionWrite(tenderId, seat, input, byId, recordedById, nextAt());
   const why = isWriteError(probe) ? probe.error : null;
 
   const save = () => {
-    const w = positionWrite(tenderId, seat, input, byId, recordedById);
+    const w = positionWrite(tenderId, seat, input, byId, recordedById, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     const before = positions.recorded;
     const had = !!sv.position;

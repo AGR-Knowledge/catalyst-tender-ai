@@ -23,7 +23,7 @@ export function Reopen({ tenant, tenderId, record, requestCheck, approveCheck, h
   holdsRequest: boolean;
   holdsApprove: boolean;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const { person, done } = state;
   const rs = reopenState(tenant, tenderId, done);
   const [asking, setAsking] = useState(false);
@@ -31,19 +31,19 @@ export function Reopen({ tenant, tenderId, record, requestCheck, approveCheck, h
   const [trigger, setTrigger] = useState<ReopenTrigger | null>(null);
   const [reason, setReason] = useState('');
 
-  const probe = trigger ? reopenRequestWrite(tenant, tenderId, done, { reason, trigger }, person.id) : null;
+  const probe = trigger ? reopenRequestWrite(tenant, tenderId, done, { reason, trigger }, person.id, nextAt()) : null;
   const why = !trigger ? 'Pick what triggered the re-open' : probe && isWriteError(probe) ? probe.error : null;
 
   const request = () => {
     if (!trigger) return;
-    const w = reopenRequestWrite(tenant, tenderId, done, { reason, trigger }, person.id);
+    const w = reopenRequestWrite(tenant, tenderId, done, { reason, trigger }, person.id, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     mark(w.key, 'Re-open requested. The Head of Tendering approves it.', 'green', w.value);
     logAudit(w.audit);
     setAsking(false);
   };
   const approve = () => {
-    const w = reopenApproveWrite(tenant, tenderId, done, person.id);
+    const w = reopenApproveWrite(tenant, tenderId, done, person.id, nextAt());
     if (isWriteError(w)) { toast(w.error, 'red'); return; }
     mark(w.key, 'Decision re-opened. The tender is back at DG2; the earlier record and positions are kept.', 'green', w.value);
     logAudit(w.audit);

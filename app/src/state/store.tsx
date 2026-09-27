@@ -192,8 +192,8 @@ function personaIn(personBy: Record<string, string>, tenant: string): Person {
   return saved && belongsTo(saved, tenant) ? saved : defaultPersonOf(tenant);
 }
 
-/** The next audit time: 10:00 on demo day for the first entry, then a minute after the last. */
-function nextAuditAt(list: AuditEvent[]): string {
+/** The next audit time: 10:00 on demo day for the first entry, then a minute after the last. Exported for dev check 99. */
+export function nextAuditAt(list: AuditEvent[]): string {
   const last = list[list.length - 1];
   const base = last ? Date.parse(`${last.at}:00Z`) + 60_000 : Date.parse(`${DEMO_TODAY}T${DEMO_TIME}:00Z`);
   return new Date(base).toISOString().slice(0, 16);
@@ -369,6 +369,13 @@ interface Api {
    * tenant's Reset clears both.
    */
   auditTo: (tenant: string, e: Omit<AuditEvent, 'id' | 'at'>, set?: (at: string) => Record<string, string>) => void;
+  /**
+   * The demo time the active tenant's next audit entry will carry (plan 025a).
+   * A record written with it, before its entry is logged, reads the entry's
+   * minute. `after` looks further ahead: an action that logs several entries
+   * stamps its i-th record with `nextAt(i)`.
+   */
+  nextAt: (after?: number) => string;
   setBanner: (v: boolean) => void;
   openDrawer: (d: DrawerSpec) => void;
   closeDrawer: () => void;
@@ -450,6 +457,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       stopViewAs: () => dispatch({ type: 'viewAs', id: null }),
       logAudit: (e) => dispatch({ type: 'audit', value: e }),
       auditTo: (tenant, e, set) => dispatch({ type: 'auditTo', tenant, value: e, set }),
+      nextAt: (after = 0) => new Date(Date.parse(`${nextAuditAt(state.audit)}:00Z`) + after * 60_000).toISOString().slice(0, 16),
       setBanner: (v) => dispatch({ type: 'banner', value: v }),
       openDrawer: (d) => dispatch({ type: 'drawer', value: d }),
       closeDrawer: () => dispatch({ type: 'drawer', value: null }),

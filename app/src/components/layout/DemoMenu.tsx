@@ -5,7 +5,6 @@ import { isGccTenantKey } from '@/data/gcc';
 import { useDemo } from '@/state/store';
 import { useTenantKey } from '@/domain/tenancy';
 import { plural } from '@/domain/format';
-import { addHours, DEMO_NOW } from '@/domain/gcc/clock';
 import { pendingRepliesAll } from '@/domain/gcc/s2/simulate';
 import { isPlan, presetFor, presets, type PresetPlan } from '@/domain/gcc/demo/presets';
 import { BRANDING_KEY } from '@/domain/gcc/admin/branding';
@@ -71,7 +70,7 @@ function tenderOnScreen(pathname: string, search: string): string | null {
 }
 
 export function DemoMenu() {
-  const { state, openModal, toast, mark, logAudit } = useDemo();
+  const { state, openModal, toast, mark, logAudit, nextAt } = useDemo();
   const startPreset = useStartPreset();
   const tenant = useTenantKey();
   const navigate = useNavigate();
@@ -109,10 +108,6 @@ export function DemoMenu() {
   const groups = useMemo(() => {
     if (!open || !isGccTenantKey(tenant)) return [];
     const done = state.done;
-    const nextAt = () => {
-      const last = state.audit[state.audit.length - 1];
-      return last ? addHours(last.at, 1 / 60) : DEMO_NOW;
-    };
     const finish = (to: string, message: string) => {
       close(false);
       navigate(to);

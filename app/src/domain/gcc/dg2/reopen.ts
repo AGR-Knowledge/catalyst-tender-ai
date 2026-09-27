@@ -52,15 +52,15 @@ export function reopenState(_tenant: string, tenderId: string, done: Done): Reop
   };
 }
 
-/** Ask to re-open (the Bid Manager or the Head of Tendering). */
-export function reopenRequestWrite(tenant: string, tenderId: string, done: Done, input: { reason: string; trigger: ReopenTrigger }, byId: string): WriteResult | WriteError {
+/** Ask to re-open (the Bid Manager or the Head of Tendering), stamped `at` (plan 025a). */
+export function reopenRequestWrite(tenant: string, tenderId: string, done: Done, input: { reason: string; trigger: ReopenTrigger }, byId: string, at = nowIso()): WriteResult | WriteError {
   const s = reopenState(tenant, tenderId, done);
   if (!s.decision) return { error: 'There is no DG2 decision to re-open' };
   if (s.pending) return { error: 'A re-open request is already waiting for the Head of Tendering' };
   const reason = input.reason?.trim();
   if (!reason) return { error: 'Give a reason for re-opening the decision' };
   if (!REOPEN_TRIGGERS.some((t) => t.key === input.trigger)) return { error: 'Pick what triggered the re-open' };
-  const value: ReopenRequestValue = { reason, trigger: input.trigger, round: s.decision.round, at: nowIso(), byId };
+  const value: ReopenRequestValue = { reason, trigger: input.trigger, round: s.decision.round, at, byId };
   return {
     key: `dg2-reopen-req:${tenderId}`,
     value: JSON.stringify(value),
@@ -68,12 +68,11 @@ export function reopenRequestWrite(tenant: string, tenderId: string, done: Done,
   };
 }
 
-/** Approve the pending re-open (the Head of Tendering). */
-export function reopenApproveWrite(tenant: string, tenderId: string, done: Done, byId: string): WriteResult | WriteError {
+/** Approve the pending re-open (the Head of Tendering), stamped `at` (plan 025a). */
+export function reopenApproveWrite(tenant: string, tenderId: string, done: Done, byId: string, at = nowIso()): WriteResult | WriteError {
   const s = reopenState(tenant, tenderId, done);
   if (!s.decision || !s.pending) return { error: 'There is no re-open request to approve' };
   const prior = readDone<ReopenValue>(done, `dg2-reopen:${tenderId}`);
-  const at = nowIso();
   const entry: ReopenEntry = {
     decision: s.decision, reason: s.pending.reason, trigger: s.pending.trigger,
     requestedById: s.pending.byId, requestedAt: s.pending.at, at, byId,

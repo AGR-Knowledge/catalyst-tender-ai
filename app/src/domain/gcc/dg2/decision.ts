@@ -1,7 +1,7 @@
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { committeeOf, firstWithRole, personById } from '@/data/people';
 import { GATE_SLA_HOURS } from '@/data/gcc/targets';
-import { addHours, durationText, minutesBetween } from '@/domain/gcc/clock';
+import { addHours, countsFrom, durationText, minutesBetween } from '@/domain/gcc/clock';
 import { nowIso, stampText, type AuditDraft, type Done, type Write, type WriteError } from '@/domain/gcc/s3/done';
 import { freshnessFor } from '@/domain/gcc/s3/freshness';
 import { packVersionsFor } from '@/domain/gcc/s3/versions';
@@ -98,7 +98,8 @@ export function decisionState(tenant: string, tenderId: string, done: Done): Dec
 
   const slaStart = pv.firstIssuedAt;
   const slaDue = slaStart ? addHours(slaStart, GATE_SLA_HOURS.DG2) : undefined;
-  const left = slaDue ? minutesBetween(nowIso(), slaDue) : 0;
+  // A pack issued live reads its full 24 h, never more (plan 025a).
+  const left = slaStart && slaDue ? minutesBetween(countsFrom(slaStart), slaDue) : 0;
   const breached = !!slaDue && !decision && left < 0;
   const slaText = decision
     ? `Decided ${stampText(decision.at)}${slaDue && decision.at > slaDue ? ', after the SLA' : ''}`
@@ -162,7 +163,8 @@ export interface Dg2Input {
 
 export interface Dg2WriteResult { writes: Write[]; audit: AuditDraft[]; effects: string[]; decision: Dg2Decision }
 
-export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): Dg2WriteResult | WriteError {
+/** The decision, stamped `at` (demo now unless given, plan 025a). A No-Bid's letter draft is logged next, so it takes the minute after. */
+export function dg2Write(input: Dg2Input, byId: string, state: DecisionState, stamp?: string): Dg2WriteResult | WriteError {
   if (input.tenderId !== state.tenderId) return { error: 'This decision is for a different tender' };
   if (!state.enabled) return { error: state.disabledReason ?? 'DG2 cannot be recorded yet' };
   if (state.staleAck && !input.staleAcknowledged) return { error: `Tick "${STALE_ACK_LABEL}" to decide on this pack` };
@@ -187,7 +189,7 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
   // Which of them state a margin figure: marked where they were written, never guessed from the text.
   const marginSet = new Set([...splitConditions(withConditions.flatMap((p) => p.marginConditions ?? [])), ...ownMargin]);
   const marginConditions = conditions.filter((c) => marginSet.has(c));
-  const at = nowIso();
+  const at = stamp ?? nowIso();
   const lessons = input.decision === 'no-bid'
     ? input.lessons?.trim() || `No-Bid at DG2: ${reasonCodes.map(reasonLabel).join(', ')}`
     : undefined;
@@ -240,7 +242,7 @@ export function dg2Write(input: Dg2Input, byId: string, state: DecisionState): D
     effects = [...NO_BID_EFFECTS];
     const letter = state.letterNeeded ? declineLetter(state.tenant, input.tenderId, byId) : null;
     if (letter) {
-      const w = letterWrite(input.tenderId, state.round, letter.text, false, letter.signatoryId);
+      const w = letterWrite(input.tenderId, state.round, letter.text, false, letter.signatoryId, stamp ? addHours(stamp, 1 / 60) : nowIso());
       writes.push({ key: w.key, value: w.value });
       audit.push({ ...w.audit, actorId: byId });
       effects = [LETTER_EFFECT, ...effects];

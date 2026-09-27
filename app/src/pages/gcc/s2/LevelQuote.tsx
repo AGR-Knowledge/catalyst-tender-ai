@@ -62,7 +62,7 @@ export function LevelQuote({ desk, quoteId }: { desk: DeskCtx; quoteId: string }
   };
 
   const confirmAll = () => desk.applyAll(
-    proposed.map((a) => levelWrite(tenant, tenderId, q.id, a.key, 'confirmed', desk.viewer.id, done, undefined, undefined, a)),
+    proposed.map((a, i) => levelWrite(tenant, tenderId, q.id, a.key, 'confirmed', desk.viewer.id, done, undefined, undefined, a, desk.nextAt(i))),
     `${proposed.length} ${proposed.length === 1 ? 'adjustment' : 'adjustments'} confirmed on ${vm.supplierName}'s quote`, 'quotes',
   );
 
@@ -136,7 +136,7 @@ function AdjustmentRow({ desk, quoteId, a, seeded, noLevel }: { desk: DeskCtx; q
 
   const commit = (state: 'confirmed' | 'rejected', amt?: number) => {
     const ok = desk.apply(
-      levelWrite(tenant, tenderId, quoteId, a.key, state, desk.viewer.id, done, amt, note || undefined, a),
+      levelWrite(tenant, tenderId, quoteId, a.key, state, desk.viewer.id, done, amt, note || undefined, a, desk.nextAt()),
       state === 'confirmed' ? `Confirmed: ${a.label}` : `Rejected: ${a.label}. Your note is recorded`, 'quotes',
     );
     if (ok) { setMode(null); setNote(''); setAmount(''); }

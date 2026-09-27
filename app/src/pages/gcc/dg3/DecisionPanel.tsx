@@ -3,7 +3,7 @@ import { Check, X } from 'lucide-react';
 import type { CanResult } from '@/data/access';
 import { firstWithRole, personById } from '@/data/people';
 import { useDemo } from '@/state/store';
-import { isWriteError, nowIso } from '@/domain/gcc/s3/done';
+import { isWriteError } from '@/domain/gcc/s3/done';
 import {
   DG3_LABEL, DG3_REJECT_REASONS, dg3Effects, stampOf as stamp, dg3Write, evidenceText, type Dg3Choice, type Dg3Input, type Dg3State, type Dg3WriteResult,
 } from '@/domain/gcc/dg3';
@@ -21,7 +21,7 @@ import './dg3.css';
  */
 
 
-export function DecisionPanel({ s, check, holds, issues }: {
+export function DecisionPanel({ s, check, holds, issues, onDecided, onSentBack }: {
   s: Dg3State;
   /** `can('dg3.decide')` for this tender (refused under View as). */
   check: CanResult;
@@ -29,8 +29,12 @@ export function DecisionPanel({ s, check, holds, issues }: {
   holds: boolean;
   /** The viewer issues the pack (Compliance): says what is theirs to do. */
   issues: boolean;
+  /** Called once a decision is recorded, so the page can move focus to the record (plan 025a). */
+  onDecided?(): void;
+  /** Called once the pack is sent back to Compliance. */
+  onSentBack?(): void;
 }) {
-  const { state, mark, logAudit, toast } = useDemo();
+  const { state, mark, logAudit, toast, nextAt } = useDemo();
   const { person } = state;
   const [choice, setChoice] = useState<Dg3Choice | null>(null);
   const [codes, setCodes] = useState<ReasonValue>(EMPTY_REASON);
@@ -51,7 +55,7 @@ export function DecisionPanel({ s, check, holds, issues }: {
     tenderId: s.tenderId, decision: choice,
     ...(choice === 'rejected' ? { reasonCodes: codes.codes, note: codes.note } : { note }),
   } : null;
-  const result = input ? dg3Write(input, person, s, { viewAs: !!state.viewAs }) : null;
+  const result = input ? dg3Write(input, person, s, { viewAs: !!state.viewAs }, nextAt()) : null;
   const preview: Dg3WriteResult | null = result && !isWriteError(result) ? result : null;
   const why = result && isWriteError(result) ? result.error : null;
 
@@ -60,12 +64,13 @@ export function DecisionPanel({ s, check, holds, issues }: {
   const close = () => setChoice(null);
   const confirm = () => {
     if (!input) return;
-    const r = dg3Write(input, person, s, { viewAs: !!state.viewAs });
+    const r = dg3Write(input, person, s, { viewAs: !!state.viewAs }, nextAt());
     if (isWriteError(r)) { toast(r.error, 'red'); return; }
     for (const w of r.writes) mark(w.key, undefined, undefined, w.value);
     r.audit.forEach((a) => logAudit(a));
     toast(r.effects[0].replace(/\.?$/, '.'), 'green'); // an effect is a list item; the toast is a sentence
     close();
+    onDecided?.();
   };
   const ev = s.evaluation;
   const seen = evidenceText({ passed: ev.passed, failed: ev.failing.length, info: ev.info });
@@ -88,10 +93,10 @@ export function DecisionPanel({ s, check, holds, issues }: {
       {approveOk.ok && (
         <p className="dg3-preview-line" aria-label="Record preview">
           <span className="dg3-preview-k">The record will say</span>
-          {DG3_LABEL.approved} by {person.name}, {stamp(nowIso())}. Evidence: {seen}.
+          {DG3_LABEL.approved} by {person.name}, {stamp(nextAt())}. Evidence: {seen}.
         </p>
       )}
-      <SendBackButton s={s} />
+      <SendBackButton s={s} onSent={onSentBack} />
       <p className="dg2-hint">No undo: a decision is changed only by re-opening it, with a reason. Both records are kept.</p>
 
       <ConfirmModal

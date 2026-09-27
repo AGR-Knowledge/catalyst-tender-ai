@@ -1,6 +1,7 @@
 import type { Tone } from '@/data/types';
 import { SLA_AT_RISK_SHARE, SLA_OK_SHARE } from '@/data/gcc/targets';
 import { DEMO_TIME, DEMO_TODAY } from '@/domain/calendar';
+import { DEMO_MINUTES_END } from '@/domain/gcc/period';
 
 /**
  * The demo clock for GCC screens: Sun 8 Mar 2026, 10:00 in the tenant's own
@@ -43,10 +44,21 @@ export interface SlaState {
   text: string;
 }
 
+/**
+ * The time a gate or SLA counts its time left from (plan 025a): the later of
+ * the demo clock and a start in the demo's own minutes (after 10:00, up to
+ * `DEMO_MINUTES_END`). A clock started live then reads its full time, never
+ * more; a start at any other time, or another `now`, leaves `now` as it is.
+ */
+export function countsFrom(start: string, now: string = DEMO_NOW): string {
+  const s = start.slice(0, 16);
+  return now === DEMO_NOW && s > now && s <= DEMO_MINUTES_END ? s : now;
+}
+
 /** An SLA running from `start` to `end`, read at the demo clock (or `now`). */
 export function slaState(start: string, end: string, now: string = DEMO_NOW): SlaState {
   const totalMin = Math.max(1, minutesBetween(start, end));
-  const leftMin = minutesBetween(now, end);
+  const leftMin = minutesBetween(countsFrom(start, now), end);
   const breached = leftMin < 0;
   const share = breached ? 0 : Math.min(1, leftMin / totalMin);
   const tone: Tone = breached ? 'red' : share <= SLA_AT_RISK_SHARE ? 'orange' : share > SLA_OK_SHARE ? 'green' : 'ink';
@@ -54,9 +66,14 @@ export function slaState(start: string, end: string, now: string = DEMO_NOW): Sl
   return { leftMin, totalMin, share, breached, tone, text };
 }
 
-/** "10 min ago", "3 h ago", "2 days ago", from the demo clock. */
+/**
+ * "10 min ago", "3 h ago", "2 days ago", from the demo clock. A time in the
+ * demo's own minutes, after 10:00 up to `DEMO_MINUTES_END`, is an action just
+ * recorded, so it reads "just now" (plan 025a).
+ */
 export function agoText(iso: string, now: string = DEMO_NOW): string {
   const m = minutesBetween(iso, now);
+  if (m < 0 && now === DEMO_NOW && iso.slice(0, 16) <= DEMO_MINUTES_END) return 'just now';
   if (m < 0) return `in ${durationText(-m)}`;
   if (m < 1) return 'just now';
   if (m < 60) return `${m} min ago`;

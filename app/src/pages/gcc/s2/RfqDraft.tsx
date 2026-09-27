@@ -51,7 +51,7 @@ export function RfqsPanel({ desk, onAllSent }: { desk: DeskCtx; onAllSent?: () =
   const ready = rows.filter((r) => r.ready > 0);
 
   const sendAll = () => {
-    const writes = ready.map((r) => rfqWrite(tenant, tenderId, r.pkg.id, recipients(desk, r.pkg.id, done).filter((x) => x.sendable).map((x) => x.id), desk.viewer.id, done));
+    const writes = ready.map((r, i) => rfqWrite(tenant, tenderId, r.pkg.id, recipients(desk, r.pkg.id, done).filter((x) => x.sendable).map((x) => x.id), desk.viewer.id, done, desk.nextAt(i)));
     const n = ready.reduce((s, r) => s + r.ready, 0);
     if (desk.applyAll(writes, `RFQs sent for ${ready.length} packages, to ${n} suppliers. Each received only its package's BOQ lines`)) onAllSent?.();
   };
@@ -105,7 +105,7 @@ export function RfqDraftView({ desk, pkgId, onSent }: { desk: DeskCtx; pkgId: st
 
   const send = () => {
     const ok = desk.apply(
-      rfqWrite(tenant, tenderId, pkgId, to.map((r) => r.id), desk.viewer.id, done),
+      rfqWrite(tenant, tenderId, pkgId, to.map((r) => r.id), desk.viewer.id, done, desk.nextAt()),
       `RFQ for ${pkgId} sent to ${to.length} ${to.length === 1 ? 'supplier' : 'suppliers'}. Reply by ${draft.replyByText}`,
     );
     if (ok) { setOff([]); onSent?.(); }

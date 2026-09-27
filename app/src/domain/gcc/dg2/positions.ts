@@ -134,8 +134,8 @@ export interface PositionInput {
   round?: number;
 }
 
-/** Record a member's position. `recordedById` is the Head of Tendering, recording it as secretary in a meeting. */
-export function positionWrite(tenderId: string, seat: Seat, input: PositionInput, byId: string, recordedById?: string): WriteResult | WriteError {
+/** Record a member's position, stamped `at` (plan 025a). `recordedById` is the Head of Tendering, recording it as secretary in a meeting. */
+export function positionWrite(tenderId: string, seat: Seat, input: PositionInput, byId: string, recordedById?: string, at = nowIso()): WriteResult | WriteError {
   const coiText = input.coi?.text.trim();
   if (input.coi && !coiText) return { error: 'Describe the conflict of interest so it can be recorded' };
   const stance: Stance = input.coi ? 'abstain' : input.stance;
@@ -153,7 +153,7 @@ export function positionWrite(tenderId: string, seat: Seat, input: PositionInput
     packVersion: input.packVersion,
     round: input.round ?? 1,
     ...(recordedById ? { recordedById } : {}),
-    at: nowIso(),
+    at,
     byId,
   };
   const who = SEAT_LABEL[seat];

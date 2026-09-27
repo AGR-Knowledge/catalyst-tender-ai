@@ -148,6 +148,21 @@ export function blockingOpen(tenant: string, tenderId: string, done: Done): Bloc
   };
 }
 
+/**
+ * When a tender's fields were validated (plan 025b): null while an item that
+ * blocks DG1 is open, or before any of its items is resolved. Otherwise `at`
+ * is the latest resolution time among its blocking items (among all its
+ * resolved items when none blocks), or null when those carry no time.
+ */
+export function validatedOf(tenant: string, tenderId: string, done: Done): { at: string | null } | null {
+  const items = validationsOf(tenant, tenderId, done);
+  const resolved = items.filter((q) => !isOpen(q));
+  if (!resolved.length || items.some((q) => isOpen(q) && q.item.blocksDg1)) return null;
+  const blocking = resolved.filter((q) => q.item.blocksDg1);
+  const times = (blocking.length ? blocking : resolved).map((q) => q.resolution?.at).filter((t): t is string => typeof t === 'string');
+  return { at: times.length ? times.reduce((a, b) => (b > a ? b : a)) : null };
+}
+
 export interface QueueStats { open: number; blocking: number; oldestMin: number | null; oldestText: string | null; text: string }
 
 /** INT-5: "6 · 2 block DG1 · oldest 2 h 16 m". */

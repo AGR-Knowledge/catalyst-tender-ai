@@ -48,7 +48,7 @@ export function PackagesPanel({ desk, onApproved }: { desk: DeskCtx; onApproved?
 
   const approve = () => {
     const ok = desk.apply(
-      packagingWrite(tenderId, desk.viewer.id, { merges, splits }, undefined, { tenant, done }),
+      packagingWrite(tenderId, desk.viewer.id, { merges, splits }, desk.nextAt(), { tenant, done }),
       merges.length || splits.length ? 'Packaging approved with your changes. Recorded in the audit trail' : `Packaging approved: ${vm.packages.length} packages. Recorded in the audit trail`,
     );
     if (ok) { setMerges([]); setSplits([]); setPicked([]); onApproved?.(); }

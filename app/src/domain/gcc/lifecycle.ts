@@ -13,6 +13,7 @@ import { eligibilityFor } from '@/domain/gcc/s1/eligibility';
 import { freshnessFor } from '@/domain/gcc/s3/freshness';
 import { applyDemo } from './demo';
 import { inWindow, type PeriodWindow } from './period';
+import { countsFrom } from './clock';
 import type { Health } from './viewmodels';
 
 /**
@@ -231,7 +232,7 @@ export interface OpenGate {
 
 function gateFrom(gate: GateKind, openedAt: string, now: string, slaEnd = plusHours(openedAt, GATE_SLA_HOURS[gate])): OpenGate {
   const slaHours = GATE_SLA_HOURS[gate];
-  const leftHours = hoursBetween(now, slaEnd);
+  const leftHours = hoursBetween(countsFrom(openedAt, now), slaEnd);
   return { gate, openedAt, slaEnd, slaHours, leftHours, leftShare: Math.max(0, leftHours / slaHours), onTime: leftHours >= 0 };
 }
 

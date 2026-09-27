@@ -26,6 +26,13 @@ export const quoteIdOf = (rfqId: string) => `Q-${rfqId}`;
 
 export interface LiveRfq extends Rfq { source: 'seed' | 'demo' }
 
+/**
+ * Sent by `now`: a seeded RFQ once its time has passed. One sent in the demo
+ * already has, at the demo clock or later: the store stamps it a few minutes
+ * after 10:00, the minute of its audit entry (plan 025a).
+ */
+export const sentBy = (r: LiveRfq, now: string = NOW) => r.sentAt <= now || (r.source === 'demo' && now >= NOW);
+
 /** Reply date for an RFQ sent at `sentAt`: the reply window in the tenant's working days. */
 export const replyByFor = (tenant: string, sentAt: string) => addWorkingDays(sentAt, RFQ_REPLY_WORKING_DAYS, tenantOf(tenant).cc, RFQ_REPLY_TIME);
 
@@ -245,14 +252,14 @@ export function rfqClock(tenant: string, tenderId: string, done: Done, now = NOW
   // a clock never starts in the future, so it never reads more than its 24 hours.
   const at = now < p.at ? p.at : now;
   const total = packagesFor(tenant, tenderId, done).length;
-  const first = firstSendByPackage(tenant, tenderId, done);
-  const sent = [...first.values()].filter((x) => x <= at).length;
+  const out = rfqsFor(tenant, tenderId, done).filter((r) => sentBy(r, at));
+  const sent = new Set(out.map((r) => r.packageId)).size;
   const leftMin = minutesBetween(at, dueAt);
   if (leftMin <= 0 && sent >= total) return null;
   const tone: Tone = sent >= total ? 'green' : leftMin <= 0 ? 'red' : leftMin <= RFQ_CLOCK_WARN_HOURS * 60 ? 'orange' : 'ink';
   return {
     tenderId, startAt: p.at, dueAt, dueText: whenText(dateOf(dueAt), timeOf(dueAt), tenantOf(tenant).tzLabel),
-    sent, total, rfqsSent: rfqsFor(tenant, tenderId, done).filter((r) => r.sentAt <= at).length,
+    sent, total, rfqsSent: out.length,
     leftMin, left: leftMin < 0 ? `Late by ${durationText(-leftMin)}` : durationText(leftMin), tone,
   };
 }

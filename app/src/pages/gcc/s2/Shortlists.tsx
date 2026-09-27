@@ -51,7 +51,7 @@ export function ShortlistsPanel({ desk, onAllApproved }: { desk: DeskCtx; onAllA
   };
 
   const approveAll = () => {
-    const writes = open.map((s) => shortlistWrite(desk.tenant, desk.tenderId, s.pkg.id, defaultPick(s.rec.items), [], desk.viewer.id, desk.done));
+    const writes = open.map((s, i) => shortlistWrite(desk.tenant, desk.tenderId, s.pkg.id, defaultPick(s.rec.items), [], desk.viewer.id, desk.done, desk.nextAt(i)));
     if (desk.applyAll(writes, `${writes.length} shortlists approved as recommended. Recorded in the audit trail`)) onAllApproved?.();
   };
 
@@ -112,7 +112,7 @@ function ShortlistEditor({ desk, pkgId, onDone }: { desk: DeskCtx; pkgId: string
 
   const approve = () => {
     const ok = desk.apply(
-      shortlistWrite(tenant, tenderId, pkgId, picked, overrides, desk.viewer.id, done),
+      shortlistWrite(tenant, tenderId, pkgId, picked, overrides, desk.viewer.id, done, desk.nextAt()),
       `${pkgId} shortlist approved: ${picked.length} suppliers${overrides.length ? `, ${overrides.length} ${overrides.length === 1 ? 'override' : 'overrides'} recorded` : ''}`,
     );
     if (ok) { setWhy({}); onDone(); }

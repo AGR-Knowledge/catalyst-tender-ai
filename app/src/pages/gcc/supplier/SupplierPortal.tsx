@@ -25,7 +25,7 @@ import './portal.css';
  */
 
 export default function SupplierPortal() {
-  const { state, mark, logAudit, toast, setPerson } = useDemo();
+  const { state, mark, logAudit, toast, setPerson, nextAt } = useDemo();
   const tenant = useTenant();
   const key = useTenantKey();
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ export default function SupplierPortal() {
     if (!view) return;
     const r = can(person, 'portal.rfq', { ownerId: person.id, viewAs: !!state.viewAs });
     if (!r.ok) { toast(r.reason ?? 'You cannot reply to this RFQ', 'red'); return; }
-    const w = supplierQuoteWrite(view.rfqId, input, person.id);
+    const w = supplierQuoteWrite(view.rfqId, input, person.id, nextAt());
     logAudit(w.audit);
     mark(w.key, what === 'quote'
       ? `Quote sent to ${tenant.name}: ${money(input.amount, input.ccy)}. Answers to any questions come back here`

@@ -37,6 +37,7 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
    - Open the hero (search with ⌘K, or from the tracker). Its intake steps show each document read, with pages.
    - Intake queue. Two fields on the hero, including the initial guarantee stated as 1% in one clause and 2% in another. Resolve both with Use ….
    - *Notice:* the agent won't choose between conflicting values. A person decides, and the other value stays on record.
+   - Once both are resolved, the hero moves to "1 · Intake · Awaiting DG1", with Omar Siddiqui, its Bid Manager. The DG1 deadline doesn't move.
 3. **Faisal Al-Harbi.**
    - The hero › Eligibility & fit. Zakat and GOSI are at risk, because certificates must be valid at bid opening. The "last three financial years" line has two readings.
    - Request renewal on the Zakat line.
@@ -168,7 +169,8 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 
 **Batinah, T-2026-042:**
 1. **Shamsa Al-Hinai.** Intake queue › T-2026-042 › Bid bond amount: pick a value.
-2. **Imran Sheikh.** DG1 decisions › T-2026-042 › Pursue.
+   - T-2026-042 moves to "1 · Intake · Screened". The queue says the Bid Manager can record DG1 now.
+2. **Imran Sheikh.** Intake queue › T-2026-042 › Open the DG1 pack › Pursue. T-2026-042 isn't listed under DG1 decisions.
 3. Open T-2026-042's workspace › Demo › Advance T-2026-042 to Stage 3.
 
 ---
@@ -184,15 +186,15 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 ## Known limits (don't click, or say it first)
 
 - Agent timings are simulated on a fixed clock: demo "today" is Sun 8 Mar 2026, 10:00 in each company's time zone.
-- Advance agent work stamps supplier replies later this morning, while the clock stays at 10:00.
-- Stage 2, Stage 3, DG2 and DG3 records all read 10:00, while the audit log beside them runs a minute apart.
+- Advance agent work stamps supplier replies later on demo day, while the clock stays at 10:00.
 - The seeded input times of T-2026-061 and T-2026-042 read before the demo's DG1 Pursue.
-- After the intake queue is cleared, the hero still reads "Intake · Validating" until DG1 is recorded.
+- In Batinah, T-2026-042's DG1 pack reads "Waiting for DG1" while DG1 decisions lists nothing. Open the pack from the intake queue.
+- Don't Hold or Re-open DG1 on a tender whose fields were just confirmed and that has no DG1 deadline in the seed (T-2026-042, T-2026-041, T-2026-120, T-2026-072): it reads "Validating" again.
 - The hero has no nudges or escalations on demo day. Show them on T-2026-104.
 - The PDF viewer doesn't highlight Arabic words, and scanned pages can't be highlighted at all (the chip says so).
 - The supplier's "Ask a question" in the Supplier Portal is not wired.
 - Break-glass access doesn't expire: revoke it in the audit log.
 - View as ends on a browser reload.
 - Switching company while on another company's tender shows "No … here". Open the hero instead, which exists in all five companies.
-- Keyboard: after a queue card is resolved or a gate is decided, focus returns to the top of the page.
+- Keyboard: after Cancel in a queue card's Correct or Send back form, and after a DG1 Re-open, focus returns to the top of the page.
 - T-2026-119's questions deadline falls inside the expected Eid closure. The screen flags it; it's a talking point, not a mistake.

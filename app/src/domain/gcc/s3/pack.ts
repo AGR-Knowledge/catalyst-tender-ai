@@ -478,15 +478,14 @@ export function issueBlockers(tenant: string, tenderId: string, done: Done): Inp
   return inputsFor(tenant, tenderId, done).items.filter((i) => i.state !== 'submitted');
 }
 
-/** "Issue pack to committee": starts the 24 h DG2 clock on the first issue; a later issue doesn't restart it. */
-export function packIssueWrite(tenant: string, tenderId: string, done: Done, byId: string, reason?: string): WriteResult | WriteError {
+/** "Issue pack to committee": starts the 24 h DG2 clock on the first issue; a later issue doesn't restart it. Stamped `at` (plan 025a). */
+export function packIssueWrite(tenant: string, tenderId: string, done: Done, byId: string, reason?: string, at = nowIso()): WriteResult | WriteError {
   const pv = packVersionsFor(tenant, tenderId, done);
   if (!pv.current) return { error: 'This tender has no pack yet' };
   if (pv.current.issuedAt) return { error: `Pack v${pv.current.version} is already with the committee` };
   const blockers = issueBlockers(tenant, tenderId, done);
   const why = reason?.trim();
   if (blockers.length && !why) return { error: `Give a reason to issue with ${plural(blockers.length, 'input')} outstanding` };
-  const at = nowIso();
   const value: PackIssueValue = {
     version: pv.current.version, at, byId, firstAt: pv.firstIssuedAt ?? at,
     ...(blockers.length ? { reason: why, outstanding: blockers.length } : {}),
@@ -502,13 +501,13 @@ export function packIssueWrite(tenant: string, tenderId: string, done: Done, byI
   };
 }
 
-/** The Bid Manager's presenter's note on §9.8. Text only: the pack's numbers stay locked. */
-export function packNoteWrite(tenderId: string, text: string, byId: string): WriteResult | WriteError {
+/** The Bid Manager's presenter's note on §9.8. Text only: the pack's numbers stay locked. Stamped `at` (plan 025a). */
+export function packNoteWrite(tenderId: string, text: string, byId: string, at = nowIso()): WriteResult | WriteError {
   const t = text.trim();
   if (!t) return { error: 'Write the note first' };
   return {
     key: `pack-note:${tenderId}`,
-    value: JSON.stringify({ text: t, at: nowIso(), byId }),
+    value: JSON.stringify({ text: t, at, byId }),
     audit: { actorId: byId, action: "Presenter's note saved", target: tenderId, detail: 'Narrative only; the numbers are locked' },
   };
 }

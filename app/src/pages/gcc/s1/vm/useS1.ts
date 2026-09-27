@@ -3,7 +3,6 @@ import type { Tone } from '@/data/types';
 import { can, type CanCtx, type CanResult, type Capability } from '@/data/access';
 import { useDemo } from '@/state/store';
 import { useTenantKey } from '@/domain/tenancy';
-import { addHours, DEMO_NOW } from '@/domain/gcc/clock';
 import { queriesFor, tenderCtx } from '@/domain/gcc/lifecycle.port';
 import type { AuditDraft, DoneWrite } from '@/domain/gcc/s1/done';
 
@@ -32,11 +31,8 @@ export function useS1() {
   /** May the viewer open this tender at all (restricted lane, invitations). */
   const canOpen = useCallback((tenderId: string) => !!q.one(tenderId), [q]);
 
-  /** The time the next audit entry will carry: a minute after the last, from 10:00 on demo day. */
-  const nextAt = useCallback(() => {
-    const last = state.audit[state.audit.length - 1];
-    return last ? addHours(last.at, 1 / 60) : DEMO_NOW;
-  }, [state.audit]);
+  /** The time the next audit entry will carry: a minute after the last, from 10:00 on demo day (the store's clock). */
+  const nextAt = useCallback(() => demo.nextAt(), [demo]);
 
   /** Write the rule module's done pairs and audit drafts, for one tender. The toast goes with the last write. */
   const write = useCallback((tenderId: string, writes: DoneWrite[], audits: AuditDraft[], toast?: { msg: string; tone?: Tone }) => {

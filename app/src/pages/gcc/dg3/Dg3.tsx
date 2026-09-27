@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { firstWithRole, personById } from '@/data/people';
@@ -125,6 +125,18 @@ function GateBody({ s, access, viewAs }: { s: Dg3State; access: TenderAccess; vi
   const clockFrom = s.round === 1 ? `from the pack's issue, ${stamp(s.openedAt)}` : `from round ${s.round}, ${stamp(s.openedAt)}`;
   const meta = `${s.round === 1 ? 'Issued' : `Round ${s.round}, re-issued`} by ${comp?.name ?? 'Compliance'} · ${stamp(s.openedAt)}${s.evaluation.fixed ? ' · guarantee extended by the bank' : ''}`;
 
+  // After a decision or a send-back here, focus moves to what replaces the bar, so Tab carries on from it (plan 025a).
+  const [arrive, setArrive] = useState<'record' | 'back' | null>(null);
+  const recordHead = useRef<HTMLSpanElement>(null);
+  const backHead = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    const el = arrive === 'record' ? recordHead.current : arrive === 'back' ? backHead.current : null;
+    if (!el) return;
+    // The record sits above the bar it replaces: scroll it into view with the focus.
+    el.focus({ preventScroll: false });
+    setArrive(null);
+  }, [arrive, d, s.sentBack]);
+
   return (
     <div className="view dg2 dg3">
       <header className="dg2-head">
@@ -151,7 +163,7 @@ function GateBody({ s, access, viewAs }: { s: Dg3State; access: TenderAccess; vi
         <aside className="dg2-right" aria-label="The DG3 decision">
           {d && (
             <div className="dg2-record">
-              <Callout variant="verdict" word="DG3" title={`${d.label}, by ${d.byName}`}>
+              <Callout variant="verdict" word="DG3" title={<span ref={recordHead} tabIndex={-1}>{d.label}, by {d.byName}</span>}>
                 {stamp(d.at)} · round {d.round}. Evidence: {d.evidenceText}. Recorded in the audit trail.
                 {d.reasons.length > 0 && <><br />Reasons: {d.reasons.join(', ')}</>}
                 {d.note && <><br />Note: {d.note}</>}
@@ -165,8 +177,11 @@ function GateBody({ s, access, viewAs }: { s: Dg3State; access: TenderAccess; vi
               </details>
             </div>
           )}
-          <SentBackCard s={s} check={access.check('dg3.issue')} holds={holds('dg3.issue')} />
-          <DecisionPanel s={s} check={access.check('dg3.decide')} holds={holds('dg3.decide')} issues={holds('dg3.issue')} />
+          <SentBackCard s={s} check={access.check('dg3.issue')} holds={holds('dg3.issue')} headRef={backHead} />
+          <DecisionPanel
+            s={s} check={access.check('dg3.decide')} holds={holds('dg3.decide')} issues={holds('dg3.issue')}
+            onDecided={() => setArrive('record')} onSentBack={() => setArrive('back')}
+          />
           <Reopen s={s} record={record} check={access.check('dg3.decide')} holds={holds('dg3.decide')} />
           {record && <Dg3History record={record} />}
           {viewAs && <p className="dg2-p">Viewing as {person.name}: read only.</p>}

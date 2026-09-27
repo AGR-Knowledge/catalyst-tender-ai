@@ -3,7 +3,7 @@ import { firstWithRole, personById, type Person } from '@/data/people';
 import type { Tone } from '@/data/types';
 import { GATE_SLA_HOURS } from '@/data/gcc/targets';
 import { addDays } from '@/domain/calendar';
-import { addHours, durationText, minutesBetween } from '@/domain/gcc/clock';
+import { addHours, countsFrom, durationText, minutesBetween } from '@/domain/gcc/clock';
 import { requestWrite } from '@/domain/gcc/requestKeys';
 import { nowIso, readDone, type AuditDraft, type Done, type Write, type WriteError } from '@/domain/gcc/s3/done';
 import {
@@ -91,7 +91,8 @@ export function dg3State(tenant: string, tenderId: string, done: Done): Dg3State
   const sentBack = !decision && back ? { ...back, round } : null;
   const openedAt = openedAtOf(done, tenderId, round, evaluation.issuedAt);
   const slaDue = addHours(openedAt, DG3_SLA_HOURS);
-  const left = minutesBetween(nowIso(), slaDue);
+  // A round re-issued live reads its full 48 h, never more (plan 025a).
+  const left = minutesBetween(countsFrom(openedAt), slaDue);
   const breached = !decision && left < 0;
   const slaText = decision
     ? `Decided ${stampOf(decision.at)}${decision.at > slaDue ? ', after the time limit' : ''}`
@@ -149,7 +150,8 @@ export function dg3Effects(choice: Dg3Choice, s: Dg3State): string[] {
     : ['Do not submit: the decision and its reasons are recorded', 'Tender closed: rejected at DG3'];
 }
 
-export function dg3Write(input: Dg3Input, by: Person, s: Dg3State | null, ctx: CanCtx = {}): Dg3WriteResult | WriteError {
+/** The decision, stamped `at` (demo now unless the screen passes its audit entry's time, plan 025a). */
+export function dg3Write(input: Dg3Input, by: Person, s: Dg3State | null, ctx: CanCtx = {}, at = nowIso()): Dg3WriteResult | WriteError {
   const allowed = can(by, 'dg3.decide', ctx);
   if (!allowed.ok) return { error: allowed.reason ?? 'Only the Head of Tendering approves DG3' };
   if (!s || s.tenderId !== input.tenderId) return { error: 'This tender is not waiting at DG3' };
@@ -169,7 +171,7 @@ export function dg3Write(input: Dg3Input, by: Person, s: Dg3State | null, ctx: C
 
   const ev = s.evaluation;
   const decision: Dg3Decision = {
-    tenderId: s.tenderId, decision: input.decision, at: nowIso(), byId: by.id, reasonCodes,
+    tenderId: s.tenderId, decision: input.decision, at, byId: by.id, reasonCodes,
     ...(note ? { note } : {}),
     round: s.round,
     evidenceSnapshot: ev.lines.map((l) => ({ key: l.key, label: l.label, state: l.state, text: l.text, ...(l.mask ? { maskedText: maskedSentence(l.mask) } : {}) })),
@@ -190,8 +192,8 @@ export function dg3Write(input: Dg3Input, by: Person, s: Dg3State | null, ctx: C
   };
 }
 
-/** Send the pack back to Compliance with a note (the Head of Tendering). The clock keeps running. */
-export function dg3SendBackWrite(s: Dg3State | null, note: string, by: Person, ctx: CanCtx = {}): Dg3Result | WriteError {
+/** Send the pack back to Compliance with a note (the Head of Tendering), stamped `at`. The clock keeps running. */
+export function dg3SendBackWrite(s: Dg3State | null, note: string, by: Person, ctx: CanCtx = {}, at = nowIso()): Dg3Result | WriteError {
   const allowed = can(by, 'dg3.decide', ctx);
   if (!allowed.ok) return { error: allowed.reason ?? 'Only the Head of Tendering approves DG3' };
   if (!s) return { error: 'This tender is not waiting at DG3' };
@@ -201,7 +203,6 @@ export function dg3SendBackWrite(s: Dg3State | null, note: string, by: Person, c
   if (!text) return { error: 'Write a note for Compliance: what must change before you can approve' };
   const comp = firstWithRole(s.tenant, 'comp');
   if (!comp) return { error: 'This company has no Compliance / Legal Lead to send it to' };
-  const at = nowIso();
   const value: Dg3SendBackValue = { note: text, at, byId: by.id, toId: comp.id };
   const req = requestWrite(s.tenderId, comp.id, DG3_BACK_TOPIC, { what: `Re-issue the DG3 pack: ${text}`, section: 'DG3 pack', due: s.slaDue, at, byId: by.id });
   return {
@@ -218,15 +219,15 @@ export function dg3SendBackWrite(s: Dg3State | null, note: string, by: Person, c
 /** The guarantee's expiry once the bank extends it (the demo control on re-issue). */
 export const extendedTo = (s: Dg3State) => addDays(s.evaluation.evidence.bond.requiredTo, BANK_EXTENSION_DAYS);
 
-/** Re-issue the pack after a send-back (Compliance). A new round starts, with a fresh 48 h clock. */
-export function dg3ReissueWrite(s: Dg3State | null, input: { fixed?: Dg3Fix }, by: Person, ctx: CanCtx = {}): Dg3Result | WriteError {
+/** Re-issue the pack after a send-back (Compliance), stamped `at`. A new round starts, with a fresh 48 h clock. */
+export function dg3ReissueWrite(s: Dg3State | null, input: { fixed?: Dg3Fix }, by: Person, ctx: CanCtx = {}, at = nowIso()): Dg3Result | WriteError {
   const allowed = can(by, 'dg3.issue', ctx);
   if (!allowed.ok) return { error: allowed.reason ?? 'Only Compliance issues the DG3 pack' };
   if (!s) return { error: 'This tender is not waiting at DG3' };
   if (s.decision) return { error: 'DG3 is already decided: the pack cannot be re-issued' };
   if (!s.sentBack) return { error: 'Nothing to re-issue: the Head of Tendering has not sent the pack back' };
   if (input.fixed && input.fixed !== 'bond-validity') return { error: `Unknown fix: ${input.fixed}` };
-  const value: Dg3ReissueValue = { at: nowIso(), byId: by.id, ...(input.fixed ? { fixed: input.fixed } : {}) };
+  const value: Dg3ReissueValue = { at, byId: by.id, ...(input.fixed ? { fixed: input.fixed } : {}) };
   const fixText = input.fixed ? `The bank extended the initial guarantee to ${dayText(extendedTo(s))} (demo control)` : '';
   return {
     writes: [{ key: reissueKey(s.tenderId, s.round), value: JSON.stringify(value) }],
@@ -239,14 +240,13 @@ export function dg3ReissueWrite(s: Dg3State | null, input: { fixed?: Dg3Fix }, b
   };
 }
 
-/** Re-open the decision in force (the Head of Tendering, with a reason). The decision stays on record. */
-export function dg3ReopenWrite(s: Dg3State | null, reason: string, by: Person, ctx: CanCtx = {}): Dg3Result | WriteError {
+/** Re-open the decision in force (the Head of Tendering, with a reason), stamped `at`. The decision stays on record. */
+export function dg3ReopenWrite(s: Dg3State | null, reason: string, by: Person, ctx: CanCtx = {}, at = nowIso()): Dg3Result | WriteError {
   const allowed = can(by, 'dg3.decide', ctx);
   if (!allowed.ok) return { error: allowed.reason ?? 'Only the Head of Tendering approves DG3' };
   if (!s?.decision) return { error: 'There is no DG3 decision to re-open' };
   const text = reason.trim();
   if (!text) return { error: 'Give a reason for re-opening DG3' };
-  const at = nowIso();
   const entry: Dg3ReopenEntry = { decision: s.decision, reason: text, at, byId: by.id, round: s.round };
   const value: Dg3ReopenValue = { reason: text, at, byId: by.id, round: s.round, history: [...s.reopens, entry] };
   return {

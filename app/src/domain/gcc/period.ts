@@ -90,11 +90,22 @@ export function previousOf(w: PeriodWindow): PeriodWindow {
 /** A date (`YYYY-MM-DD`, taken as its first minute) or date-time, as minutes-precision ISO. */
 const norm = (iso: string) => (iso.length <= 10 ? `${iso}T00:00` : iso.slice(0, 16));
 
-/** True when the moment falls in the window, both ends included. */
+const DEMO_CLOCK = `${DEMO_TODAY}T${DEMO_TIME}`;
+
+/**
+ * Where a window that ends at the demo clock stops counting (plan 025a). The
+ * clock reads 10:00, but the store stamps each demo action a minute after the
+ * last audit entry (10:01, 10:02 …), so a decision recorded live would fall
+ * just outside "now". 11:59 takes in the first 120 entries. Nothing seeded
+ * falls between 10:00 and this time in any tenant (dev check 99).
+ */
+export const DEMO_MINUTES_END = `${DEMO_TODAY}T11:59`;
+
+/** True when the moment falls in the window, both ends included. A window ending at the demo clock runs to `DEMO_MINUTES_END`. */
 export function inWindow(iso: string | null | undefined, w: Pick<PeriodWindow, 'from' | 'to'>): boolean {
   if (!iso) return false;
   const t = norm(iso);
-  return t >= w.from && t <= w.to;
+  return t >= w.from && t <= (w.to === DEMO_CLOCK ? DEMO_MINUTES_END : w.to);
 }
 
 /* ------------------------------------------------------------------- the hook */

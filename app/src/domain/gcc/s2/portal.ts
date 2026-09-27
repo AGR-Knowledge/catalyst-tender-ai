@@ -4,7 +4,7 @@ import { countdownText, dateText, whenText } from '@/domain/calendar';
 import { K, NOW, readDone, write, type Done, type S2Write, type SupplierQuoteValue } from './done';
 import { dateOf, liveS2Tenders, registerRow, s2TenderOf, supplierOf, suppliersOf, tenantOf, timeOf } from './context';
 import { packagesFor } from './packaging';
-import { rfqLines, rfqsFor, rfqTerms, type LiveRfq, type RfqTerms } from './rfq';
+import { rfqLines, rfqsFor, rfqTerms, sentBy, type LiveRfq, type RfqTerms } from './rfq';
 import { clarificationsFor } from './clarifications';
 import { isOverdue } from './tracking';
 
@@ -44,7 +44,7 @@ export function supplierRfqs(tenant: string, personId: string, done: Done, now =
     const row = registerRow(tenant, t.tenderId);
     const pkgs = packagesFor(tenant, t.tenderId, done);
     return rfqsFor(tenant, t.tenderId, done)
-      .filter((r) => firms.includes(r.supplierId) && r.sentAt <= now)
+      .filter((r) => firms.includes(r.supplierId) && sentBy(r, now))
       .map((r) => ({
         rfqId: r.id, tenderId: r.tenderId, project: row?.title ?? r.tenderId, packageId: r.packageId,
         packageTitle: pkgs.find((p) => p.pkg.id === r.packageId)?.pkg.title ?? r.packageId,

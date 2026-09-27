@@ -38,7 +38,11 @@ const STATE: Record<string, { label: string; tone: Tone; icon: string }> = {
 
 const stateOf = (q: QueueItem) => (q.state === 'resolved' ? q.resolution!.action : q.state === 'sent-back' ? 'sent-back' : q.conflict ? 'conflict' : 'open');
 
-export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: QueueItem; s1: S1; doc: SourceDoc | null; record: TenderRecord | null; showTender?: boolean }) {
+export function ValidationCard({ q, s1, doc, record, showTender = false, onActed }: {
+  q: QueueItem; s1: S1; doc: SourceDoc | null; record: TenderRecord | null; showTender?: boolean;
+  /** Called before an action is written, so the queue can place focus once the card re-renders (plan 025b). */
+  onActed?: (q: QueueItem) => void;
+}) {
   const { item } = q;
   const [mode, setMode] = useState<null | 'correct' | 'send-back'>(null);
   const [text, setText] = useState('');
@@ -53,6 +57,7 @@ export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: 
       : action === 'send-back' ? `${item.field} sent back to the agent. It stays in the queue.`
       : action === 'correct' ? `${item.field} corrected. The extracted value is kept on record.`
       : action === 'not-stated' ? `${item.field} marked not stated.` : `${item.field} accepted.`;
+    onActed?.(q);
     s1.write(item.tenderId, [w], [w.audit], { msg, tone: action === 'send-back' ? 'ink3' : 'green' });
     setMode(null);
     setText('');
@@ -80,7 +85,7 @@ export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: 
   const single = !q.conflict && !resolved ? snipOf(item.page, item.value) : null;
 
   return (
-    <article className={`vq ${q.conflict ? 'conflict' : ''} ${resolved ? 'resolved' : ''}`} aria-label={`${item.field}: ${st.label}`}>
+    <article className={`vq ${q.conflict ? 'conflict' : ''} ${resolved ? 'resolved' : ''}`} aria-label={`${item.field}: ${st.label}`} data-vq={item.id}>
       <header className="vq-head">
         <span className="vq-field">{item.field}</span>
         {showTender && <span className="mono vq-tid">{item.tenderId}</span>}

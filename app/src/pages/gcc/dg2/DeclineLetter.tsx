@@ -20,7 +20,7 @@ export function DeclineLetter({ tenant, tenderId, round, letter, check, holds }:
   check: CanResult;
   holds: boolean;
 }) {
-  const { state, mark, logAudit } = useDemo();
+  const { state, mark, logAudit, nextAt } = useDemo();
   const { person } = state;
   const [text, setText] = useState(letter.text);
   useEffect(() => setText(letter.text), [letter.text]);
@@ -28,7 +28,7 @@ export function DeclineLetter({ tenant, tenderId, round, letter, check, holds }:
   const edited = text.trim() !== letter.text.trim();
 
   const write = (sent: boolean) => {
-    const w = letterWrite(tenderId, round, text, sent, person.id);
+    const w = letterWrite(tenderId, round, text, sent, person.id, nextAt());
     mark(w.key, sent ? 'Decline letter marked sent. In the demo nothing leaves the app.' : 'Decline letter saved.', 'green', w.value);
     logAudit(w.audit);
   };
