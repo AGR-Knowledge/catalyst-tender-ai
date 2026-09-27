@@ -1,0 +1,46 @@
+/* ───────── DG3 gate screen (plan 018, ui-direction §5 D) ─────────
+   The layout, header, decision bar and cards are DG2's (`../dg2/dg2.css`);
+   this file adds the evidence lines, the send-back and the record. */
+
+/* Evidence */
+.dg3-ev { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: 14px 20px 16px; display: grid; gap: 8px; }
+.dg3-ev-h { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; flex-wrap: wrap; }
+.dg3-ev-h h3 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink); }
+.dg3-ev-m { font-size: 12px; color: var(--ink-3); }
+.dg3-ev-sum { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.dg3-ev-sum .t-red { font-weight: 600; }
+
+.dg3-lines { list-style: none; margin: 0; padding: 0; display: grid; }
+.dg3-line { display: grid; gap: 5px; padding: 11px 12px; border-top: 1px solid var(--line-3); border-left: 3px solid transparent; }
+.dg3-line:first-child { border-top: 0; }
+.dg3-line.s-fail { border-left-color: var(--red); background: var(--red-soft); border-radius: var(--radius-sm); border-top-color: transparent; }
+.dg3-line.s-fail + .dg3-line { border-top-color: transparent; }
+.dg3-line-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.dg3-line-l { font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dg3-block { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--red); }
+.dg3-line-t { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.dg3-line.s-fail .dg3-line-t { color: var(--ink); font-weight: 500; }
+.dg3-items { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); }
+.dg3-items li { display: list-item; }
+.dg3-item-m { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-left: 8px; font-size: 12px; color: var(--ink-3); }
+.dg3-tag { font-size: 11px; font-weight: 500; line-height: 18px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); }
+
+/* Decision column */
+.dg3-preview-line { margin: 0; padding: 8px 10px; border: 1px dashed var(--line-strong); border-radius: var(--radius); font-size: 12.5px; line-height: 1.45; color: var(--ink-2); display: grid; gap: 2px; }
+.dg3-preview-k { font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--ink-3); }
+.dg3-sendback { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding-top: 8px; border-top: 1px solid var(--line-3); }
+.dg3-sendback .btn { display: inline-flex; align-items: center; gap: 5px; }
+.dg3-sendback .pk-why { text-align: left; max-width: none; flex: 1 1 200px; }
+.dg3-back { border-color: var(--orange-line, var(--line-strong)); background: var(--orange-soft); }
+.dg3-back-who { margin: 0; font-size: 12.5px; color: var(--ink-3); }
+.dg3-back-note { margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.5; color: var(--ink); }
+.dg3-back .btn { display: inline-flex; align-items: center; gap: 5px; }
+.dg3-demo { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; border-radius: var(--radius-sm); border: 1px dashed var(--line-strong); }
+
+/* The record */
+.dg2-done.dg3-done-r { background: var(--surface-sunken); }
+.dg3-seen { font-size: 12.5px; color: var(--ink-2); }
+.dg3-seen summary { cursor: pointer; color: var(--ink-3); padding: 2px 0; }
+.dg3-seen ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; line-height: 1.45; }
+.dg3-seen li.s-fail { color: var(--red); }
+.dg3-hist { display: grid; gap: 8px; }

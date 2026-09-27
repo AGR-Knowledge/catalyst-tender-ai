@@ -13,6 +13,8 @@ import { useTheme, type ThemePref } from '@/state/theme';
 import { useGo } from '@/state/nav';
 import { Card, CardFoot, CardHead, tc } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
+import { StatusPill } from '@/components/tender/StatusPill';
+import { sourcesOf } from '@/domain/gcc/admin/sources';
 
 const THEMES: { key: ThemePref; label: string; icon: JSX.Element }[] = [
   { key: 'light', label: 'Light', icon: <Sun /> },
@@ -30,12 +32,13 @@ export function Settings() {
     return () => window.clearTimeout(t);
   }, [loc.hash, loc.key]);
   const { pref, setPref } = useTheme();
-  const { goRole } = useGo();
+  const { goRole, goPage } = useGo();
   const tenant = useTenant();
   const gcc = tenant.world === 'gcc';
   const can = useCan();
   const canTenants = can('tenant.add').ok;
   const canUsers = can('admin.users').ok;
+  const canSources = can('admin.sources').ok;
   const people = peopleOf(state.tenant);
   // Reset works on this company or on all of them, so it is available while any company has actions.
   const actions = Object.keys(state.done).length;
@@ -66,12 +69,15 @@ export function Settings() {
       )}
 
       {gcc ? (
-        // GCC companies show their own sources. Source health arrives with plan 007.
+        // GCC companies show the seed's sources with their health, as Administration › Sources does (plan 024).
         <Card>
-          <CardHead title="Sources watched" meta={tenant.name} />
-          {tenant.sources.map((x) => (
-            <div className="item" key={x.name} style={{ alignItems: 'center', padding: '12px 22px' }}>
-              <span className="item-body"><span className="item-title" style={{ fontSize: 13 }}>{x.name}</span><span className="item-text" style={{ fontSize: 11.5, marginTop: 2 }}>{x.mode}</span></span>
+          <CardHead title="Sources watched" meta={tenant.name}>
+            {canSources && <button type="button" className="btn btn-sm" style={{ marginLeft: 'auto' }} onClick={() => goPage('/admin/sources')}>Open Sources & integrations</button>}
+          </CardHead>
+          {sourcesOf(state.tenant).rows.map((x) => (
+            <div className="item" key={x.id} style={{ alignItems: 'center', padding: '12px 22px' }}>
+              <span className="item-body"><span className="item-title" style={{ fontSize: 13 }}>{x.name}</span><span className="item-text" style={{ fontSize: 11.5, marginTop: 2 }}>{x.kindLabel} · {x.modeLabel}</span></span>
+              <StatusPill label={x.stateLabel} tone={x.tone} icon={x.icon} />
             </div>
           ))}
         </Card>
@@ -103,7 +109,9 @@ export function Settings() {
 
       {canUsers ? (
         <Card style={{ marginTop: 'var(--gap)' }}>
-          <CardHead title="Users and roles" meta={`${tenant.headTitle} only`} />
+          <CardHead title="Users and roles" meta={`${tenant.headTitle} only`}>
+            {gcc && <button type="button" className="btn btn-sm" style={{ marginLeft: 'auto' }} onClick={() => goPage('/admin/users')}>Open Users & roles</button>}
+          </CardHead>
           {PERSON_GROUPS.map((g) => {
             const inGroup = people.filter((p) => p.group === g);
             if (!inGroup.length) return null;
@@ -112,7 +120,7 @@ export function Settings() {
                 <div className="eyebrow" style={{ padding: '14px 22px 6px', fontSize: 11.5, color: 'var(--ink-5)' }}>{g}</div>
                 <div className="users">
                   {inGroup.map((p) => (
-                    <button type="button" key={p.id} className="user" onClick={() => toast(`${p.name}: role, tender scope and gate authority (${tenant.headTitle} only)`, 'ink3')}>
+                    <button type="button" key={p.id} className="user" onClick={() => (gcc ? goPage('/admin/users') : toast(`${p.name}: role, tender scope and gate authority (${tenant.headTitle} only)`, 'ink3'))}>
                       <span className="avatar sm soft">{p.initials}</span>
                       <span style={{ minWidth: 0 }}>
                         <span style={{ display: 'block', fontSize: 13, fontWeight: 500 }}>{p.name}</span>

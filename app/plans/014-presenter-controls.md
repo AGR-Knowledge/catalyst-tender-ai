@@ -1,6 +1,6 @@
 # 014 — Presenter controls and the Compare tenants lens
 
-Status: READY · Depends on: 007b, 008b, 009b, 021, 022, 023 (all in `gcc-demo`) · Can run in parallel with: 010, 012, 018
+Status: DONE (2026-09-27, reviewed) · Depends on: 007b, 008b, 009b, 021, 022, 023 (all in `gcc-demo`) · Can run in parallel with: 010, 012, 018
 
 ## Goal
 A presenter can run any demo script from a known starting point in **one click**, and can show script D, "Same tender, five companies", in one screen:
@@ -79,43 +79,43 @@ This is a **sales demo**, not the product.
 ## Steps
 
 ### Phase 1 — Store action and the Demo menu
-- [ ] 1.1 `applyPreset` in the store (Scope). (acceptance: after a preset, a reload shows the same state, and Reset this company returns to seed.)
-- [ ] 1.2 `DemoMenu`: a header button "Demo" with the `DemoTag` outline style, opening a popover with these groups:
+- [x] 1.1 `applyPreset` in the store (Scope). (acceptance: after a preset, a reload shows the same state, and Reset this company returns to seed.)
+- [x] 1.2 `DemoMenu`: a header button "Demo" with the `DemoTag` outline style, opening a popover with these groups:
   - **Start from**: the presets for this tenant, each with its one-line description; one that doesn't apply is disabled with its reason;
   - **Simulate**: "Advance agent work" and "Advance to Stage 3" (when it applies to the tender on screen);
   - **Views**: "Compare tenants";
   - **Reset**: this company, or all companies, through the existing `ResetModal`.
 
   Keyboard: Enter opens it, arrow keys move, Esc closes and returns the focus to the button.
-- [ ] 1.3 Each action ends with a toast saying what happened and where to go ("Start: RFQs out. The hero is in Stage 2 with 11 RFQs out. Open the package board") and a route to that screen.
+- [x] 1.3 Each action ends with a toast saying what happened and where to go ("Start: RFQs out. The hero is in Stage 2 with 11 RFQs out. Open the package board") and a route to that screen.
 
 ### Phase 2 — The four presets
-- [ ] 2.1 `morning-intake.preset.ts` ("Start: morning intake", all tenants): the seed. It writes nothing after the tenant reset. It lands on the dashboard.
-- [ ] 2.2 `dg1-due.preset.ts` ("Start: DG1 due"): the hero's DG1-blocking validation items resolved as the Coordinator would, through `validationAction`, exactly as `resolved()` in `45-demo-state.tsx:64-67` does, so the DG1 pack unlocks. It lands on `/dg1?tender=T-2026-118`. All five tenants: it doesn't decide DG1, so it also works where the agent recommends discard.
-- [ ] 2.3 `rfqs-out.preset.ts` ("Start: RFQs out"): as 2.2, then DG1 Pursue with the recommended team, the recommended packaging and shortlists, and every RFQ sent, all through their writers. No supplier replies yet. It lands on the package board. For tenants whose DG1 recommendation is discard, it is unavailable: "The agent recommends discarding the hero here, so script B runs in Najd, Dafna or Qurain."
-- [ ] 2.4 `dg2-committee.preset.ts` ("Start: DG2 committee", Najd only): T-2026-097's pack re-run on Addendum 2 and issued (`packRerunWrite`, `packIssueWrite`), the seeded 2 of 5 positions kept. It lands on `/dg2?tender=T-2026-097`. Unavailable elsewhere: "Script C runs in Najd."
-- [ ] 2.5 Every preset's writes carry audit entries marked as demo controls, so the audit log reads "Presenter (demo control)" for them (plan 011's convention in `pages/gcc/admin/AuditLog.tsx`).
+- [x] 2.1 `morning-intake.preset.ts` ("Start: morning intake", all tenants): the seed. It writes nothing after the tenant reset. It lands on the dashboard.
+- [x] 2.2 `dg1-due.preset.ts` ("Start: DG1 due"): the hero's DG1-blocking validation items resolved as the Coordinator would, through `validationAction`, exactly as `resolved()` in `45-demo-state.tsx:64-67` does, so the DG1 pack unlocks. It lands on `/dg1?tender=T-2026-118`. All five tenants: it doesn't decide DG1, so it also works where the agent recommends discard.
+- [x] 2.3 `rfqs-out.preset.ts` ("Start: RFQs out"): as 2.2, then DG1 Pursue with the recommended team, the recommended packaging and shortlists, and every RFQ sent, all through their writers. No supplier replies yet. It lands on the package board. For tenants whose DG1 recommendation is discard, it is unavailable: "The agent recommends discarding the hero here, so script B runs in Najd, Dafna or Qurain."
+- [x] 2.4 `dg2-committee.preset.ts` ("Start: DG2 committee", Najd only): T-2026-097's pack re-run on Addendum 2 and issued (`packRerunWrite`, `packIssueWrite`), the seeded 2 of 5 positions kept. It lands on `/dg2?tender=T-2026-097`. Unavailable elsewhere: "Script C runs in Najd."
+- [x] 2.5 Every preset's writes carry audit entries marked as demo controls, so the audit log reads "Presenter (demo control)" for them (plan 011's convention in `pages/gcc/admin/AuditLog.tsx`).
 
 ### Phase 3 — Advance agent work
-- [ ] 3.1 "Advance agent work" completes, for the current tenant:
+- [x] 3.1 "Advance agent work" completes, for the current tenant:
   - the scripted supplier replies still pending (`pendingReplies`, submitted as `PackageBoard`'s button does);
   - nothing else. Extraction resolves at upload, and a pack re-run is a person's action, not an agent's.
 
   The toast says what was done: "3 supplier replies received (simulated)". With nothing pending it is disabled: "No agent work is pending."
-- [ ] 3.2 The PackageBoard button keeps working and gives the same result (both call the same function).
+- [x] 3.2 The PackageBoard button keeps working and gives the same result (both call the same function).
 
 ### Phase 4 — Advance to Stage 3 (the two new demo tenders)
-- [ ] 4.1 A tender qualifies when it is in Stage 2 in its lifecycle, is live, and has a seeded pack (`PACK_VERSIONS`): today T-2026-061 (Corniche) and T-2026-042 (Batinah), after their DG1 Pursue.
-- [ ] 4.2 The control writes `pack-ready:{TID}` (`packReadyKey`) and `stage3-entry:{TID}` → `{ at, byId }` with an audit entry "Moved to Stage 3 (demo control)".
-- [ ] 4.3 `25-stage3-entry.apply.ts` reads `stage3-entry:`:
+- [x] 4.1 A tender qualifies when it is in Stage 2 in its lifecycle, is live, and has a seeded pack (`PACK_VERSIONS`): today T-2026-061 (Corniche) and T-2026-042 (Batinah), after their DG1 Pursue.
+- [x] 4.2 The control writes `pack-ready:{TID}` (`packReadyKey`) and `stage3-entry:{TID}` → `{ at, byId }` with an audit entry "Moved to Stage 3 (demo control)".
+- [x] 4.3 `25-stage3-entry.apply.ts` reads `stage3-entry:`:
   - it adds a `{ stage: 3, step: <Stage 3's first step in data/gcc/stages.ts> }` log entry owned by the Bid Manager;
   - it sets `S3Facts` built from the seeded pack and inputs: `pack` from `packVersionsFor`, `inputs` from `inputsFor`, `positions` empty, `win` and `marginRange` from the pack's 9.x sections (as `30-stage3.apply.ts:46-60` reads them), `facilityAfter` from `facilityHeadroom` minus `bidBondFor`.
 
   It runs before `30-stage3`, so that applier then keeps the facts current. Pure and idempotent.
-- [ ] 4.4 After the move, the tender shows in its tenant's Stage 3 dashboard and `/packs`, its Inputs tab lists the seeded inputs, and the pack opens.
+- [x] 4.4 After the move, the tender shows in its tenant's Stage 3 dashboard and `/packs`, its Inputs tab lists the seeded inputs, and the pack opens.
 
 ### Phase 5 — Compare tenants lens
-- [ ] 5.1 `compareHero(state)` returns one column per GCC tenant, each read with **that tenant's `done`**:
+- [x] 5.1 `compareHero(state)` returns one column per GCC tenant, each read with **that tenant's `done`**:
   - fit score and band;
   - the eligibility verdict with its failing or at-risk lines;
   - the DG1 recommendation;
@@ -124,16 +124,16 @@ This is a **sales demo**, not the product.
   - the tenant's decision if DG1 is recorded.
 
   Money in each tenant's currency, through `domain/money.ts`.
-- [ ] 5.2 `/demo/compare`:
+- [x] 5.2 `/demo/compare`:
   - a header "Demo view: the same tender in five companies", with the `DemoTag`;
   - five columns, one per tenant (brand chip, country, currency);
   - rows aligned across columns, so the eye reads across.
 
   The five answers match §11 and dev-check 70's expectations. Clicking a column switches to that tenant and opens the hero there. At 1280 the columns scroll horizontally inside the card, not the page.
-- [ ] 5.3 Entry from the Demo menu and from the hero's workspace header.
+- [x] 5.3 Entry from the Demo menu and from the hero's workspace header.
 
 ### Phase 6 — Dev check and polish
-- [ ] 6.1 `46-presenter.tsx`, about 12 rows:
+- [x] 6.1 `46-presenter.tsx`, about 12 rows:
   - every preset builds without an error in the tenants it lists;
   - an unavailable one returns its reason;
   - after `rfqs-out` the hero's RFQ count equals the package count, and the clock reads from DG1;
@@ -141,7 +141,7 @@ This is a **sales demo**, not the product.
   - `compareHero` gives the five answers of dev-check 70;
   - `25-stage3-entry` moves T-2026-061 to Stage 3 with a pack, and leaves the hero alone;
   - no preset writes a key outside its tenant.
-- [ ] 6.2 Each preset clicked in the browser from a dirty state lands exactly where its toast says. 1440 and 1280, light and dark, no console errors.
+- [x] 6.2 Each preset clicked in the browser from a dirty state lands exactly where its toast says. 1440 and 1280, light and dark, no console errors.
 
 ## Data and derivation
 - No new facts. Presets are recipes over existing writers. Compare reads the existing per-tenant readers.
@@ -152,20 +152,84 @@ This is a **sales demo**, not the product.
   All live in the tenant's `done`, so **Reset demo** clears them.
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants.
-- [ ] As Omar (Najd Bid Manager), from any state:
+- [x] typecheck and build pass; `/dev/checks` passes in all five tenants.
+- [x] As Omar (Najd Bid Manager), from any state:
   - "Start: DG1 due" → the DG1 pack is ready;
   - "Start: RFQs out" → the package board with every RFQ out; "Advance agent work" → the scripted replies arrive;
   - "Start: DG2 committee" → T-2026-097's gate with a fresh issued pack.
-- [ ] Script D: Demo → Compare tenants shows the five answers; a column opens that tenant's hero.
-- [ ] In Corniche: after DG1 Pursue on T-2026-061, "Advance to Stage 3" → the tender is in Stage 3 and its pack opens.
-- [ ] Reset (this company / all) returns to seed after any preset.
-- [ ] No hard-coded numbers in pages; no role checks outside `access.ts`; every control carries the Demo label.
+- [x] Script D: Demo → Compare tenants shows the five answers; a column opens that tenant's hero.
+- [x] In Corniche: after DG1 Pursue on T-2026-061, "Advance to Stage 3" → the tender is in Stage 3 and its pack opens.
+- [x] Reset (this company / all) returns to seed after any preset.
+- [x] No hard-coded numbers in pages; no role checks outside `access.ts`; every control carries the Demo label.
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-27.)
+
+- **Changed files:**
+  - New:
+    - `src/domain/gcc/demo/presets/types.ts`, `recipe.ts`, `index.ts` (globbed), `morning-intake.preset.ts`, `dg1-due.preset.ts`, `rfqs-out.preset.ts`, `dg2-committee.preset.ts`;
+    - `src/domain/gcc/demo/25-stage3-entry.apply.ts`: the applier, plus `stage3Candidates`, `stage3Entry` (qualifies, or why not) and `stage3EntryWrite`;
+    - `src/domain/gcc/demo/compare.ts`: `compareHero`, `compareSubject`;
+    - `src/domain/gcc/s2/simulate.ts`: `pendingReplies` and `scriptedCount` moved here, plus `pendingRepliesAll` for "Advance agent work";
+    - `src/components/layout/DemoMenu.tsx`;
+    - `src/pages/gcc/demo/Compare.tsx`, `compare.css`;
+    - `src/pages/gcc/dev-checks/46-presenter.tsx`.
+  - Changed:
+    - `src/state/store.tsx`: the `preset` action and `applyPreset(tenant, writes, audit)` only;
+    - `src/components/layout/Header.tsx`: `{gcc && <DemoMenu />}` beside TenantSwitch, the import, and the `/demo/compare` title (deviation 5);
+    - `src/App.tsx`: the lazy `Compare` and the `/demo/compare` route;
+    - `src/pages/gcc/s2/simulate.ts`: now a re-export of the domain module; `PackageBoard` is unchanged;
+    - `src/pages/gcc/workspace/WorkspaceHeader.tsx`: the "Demo · Compare tenants" link, on T-2026-118 only;
+    - `src/styles/layout.css`: the Demo menu block at the end.
+- **Verification:**
+  - `npm run typecheck` and `npm run build` pass. The build's large-chunk warning was there before this plan. Compare is its own lazy chunk.
+  - `/dev/checks` in all five tenants: 24 of 24 panels pass, no console errors. Panel 46 meets 12 of 12 targets, with three info rows:
+    - RFQs out issues 11 of 11 hero packages in Najd, 7 of 11 in Dafna and 10 of 11 in Qurain (deviation 3);
+    - the Stage 3 facility figure equals headroom − bid bond for both tenders: AED 157.6 M and OMR 11.0 M.
+  - Browser: this session has no browser tool, so I drove headless Chromium with the Playwright 1.63 found in the npx cache (scripts in the session scratchpad, not the repo). Port 5183 already had a Vite server from 26 Sep serving this checkout; I used it rather than stop a process I didn't start.
+  - Clicked through, with no console errors:
+    - **As Omar (Najd, 1440, light):**
+      - keyboard: Enter opens the menu with the focus on the first item; the arrows, Home and End move; Esc closes it and returns the focus to the button;
+      - "Start: RFQs out" lands on the package board: 42 RFQs for 11 of 11 packages, the clock "All issued" from the DG1 Pursue at 10:03, 27 audit entries;
+      - "Advance agent work": 13 replies, 2 of them declines; after it the item reads "No agent work is pending";
+      - a reload keeps the state;
+      - "Start: DG1 due", from that dirty state, leaves only the two `val:` keys, and the DG1 pack is unlocked;
+      - "Start: DG2 committee": `/dg2?tender=T-2026-097` with pack v2 issued, fresh, 2 of 5 positions;
+      - Reset this company, and Reset all companies, return to seed (`doneBy` and `auditBy` empty).
+    - **As the Head of Tendering (Najd, 1280, dark):** the audit log shows the preset summary as "Presenter (demo control)" and each writer's entry under the named person with the Demo chip. The hero's Decisions & audit tab never shows Catalyst.
+    - **Corniche and Batinah:** after DG1 Pursue on T-2026-061 (written with the queue and DG1 writers), "Advance T-2026-061 to Stage 3" opens `/packs?tender=T-2026-061` at pack v1. The tender is then:
+      - on the Stage 3 dashboard and in `/packs`;
+      - "3 · Bid decision · Pack in preparation" in its workspace;
+      - listing its seeded inputs on the Inputs tab.
+
+      The item then says it is already in Stage 3, and Reset returns it to Stage 1. T-2026-042 in Batinah behaves the same.
+    - **Qurain:** the package board's own button (as the Procurement Lead) submits the same 12 replies. "Start: morning intake" writes nothing and lands on the dashboard.
+    - **Script D:** Compare tenants at 1440 light and 1280 dark shows the five answers (82/63/71/38/78, verdicts as dev-check 70). The columns scroll inside the card, never the page (page `scrollWidth` equals the window). A column opens the hero in that company.
+    - **Indian preview:** no Demo menu. `/demo/compare` is "Not found" there, as for other GCC-only routes.
+    - **Header titles at 1440 and 1280,** as the Head of Tendering, Bid Manager and Procurement Lead, on 15 routes and the nine stage dashboards: none wraps (deviation 6).
+- **Deviations from plan:**
+  1. **Audit attribution (the user's decision, 2026-09-27):** `AuditLog.tsx` prints "Presenter (demo control)" only when the actor is the Catalyst operator. So each preset records:
+     - one summary entry, `Scenario preset "…" applied (demo control)`, as the operator with no tender target. The audit log reads "Presenter (demo control)" for it, and no tender's audit tab shows Catalyst acting in the tenant;
+     - each writer's own entry, under the person the writer names, with " (demo control)" added to the action. The audit log shows these under that person with the Demo chip, not as "Presenter".
+  2. **`Preset` has two extra fields:**
+     - `order`, because the plan's file names sort alphabetically, not in menu order;
+     - `build` returns `to` and `message` (step 1.3's landing screen and toast).
+
+     The shared builder lives in `presets/recipe.ts`. Its `nextAt()` mirrors the store's clock, so a value stamped by a Stage 1 writer reads the same time as its audit entry. Stage 2 writers keep their default stamp, as the screens do. Built results are cached per tenant (seed-only input).
+  3. **RFQs out skips packages with no screened supplier,** as "Approve all as recommended" does on the Shortlists screen (package state `none`). Without this, `shortlistWrite` refused in Dafna and Qurain. The toast says how many packages have no screened supplier.
+  4. **DG2 committee also logs "Committee notified",** as the pack screen's Issue does.
+  5. **Header.tsx gained one line in `usePageHead`** for the `/demo/compare` title. `screens.ts` isn't mine this wave, and without the line the header read "Not found".
+  6. **The Demo button is a text-only cyan pill:**
+     - no icon, and the chevron shows only above 1500px, because with the icon four titles wrapped for the Head of Tendering at 1440;
+     - the selectors are `.hd-pill.hd-demo`, because `components.css` loads after `layout.css`.
+  7. **The Stage 3 facts' `facilityAfter` is the pack's own §9.5 figure,** so it can't change when `30-stage3` takes over after an issue. It equals `facilityHeadroom − bidBondFor` for both tenders (dev-check info rows).
+  8. **Reset is one menu item,** "Reset demo…", which opens the existing ResetModal (this company or all companies).
+  9. **Advance agent work** runs across all the tenant's tenders being sourced (`pendingRepliesAll`), then shows the package board of the first tender that received replies. It is a presenter control, so it runs for any persona; the board's button still needs `rfq.send`.
+  10. **Advance to Stage 3 appears only in tenants with a candidate** (Corniche, Batinah). It is enabled only when the candidate is on screen (`/tenders/:id` or `?tender=`) and in Stage 2; otherwise it shows the reason. The audit actor is the presenter's persona.
+- **Blockers / questions:** none open. The audit question (deviation 1) was asked and answered.
+- **Follow-ups noticed (not done):**
+  - `AuditLog.tsx`: `presenter = k === 'demo'` (one line) would label every demo control "Presenter (demo control)", including persona and company switches. The user chose not to change it in this plan.
+  - T-2026-061's and T-2026-042's seeded inputs are stamped 07:50–09:45 on demo day, before a DG1 Pursue recorded in the demo at about 10:00. The Inputs tab shows them requested before the pursue (plan 022 and 023 data).
+  - After "Advance to Stage 3", a DG1 re-open takes the tender back to Stage 1, but `pack-ready:` stays, so `/packs?tender=` still opens its pack. The tender isn't listed anywhere.
+  - Stage 3 opens at "Pack in preparation", as the plan says, although all six seeded inputs are in. `30-stage3` moves it on when the pack is issued.
+  - The Demo menu needs a scroll to reach Views and Reset at a 900px window height.

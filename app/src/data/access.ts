@@ -421,8 +421,9 @@ export interface GccNavItem {
   /** Working screens under a stage, or Administration's pages. */
   children?: GccNavItem[];
   /**
-   * Set by `navFor`: the stage's dashboard is outside the person's role but one
-   * of its screens isn't, so the header is a plain label over that screen.
+   * Set by `navFor`: the entry's own page is outside the person's role but one
+   * of its screens isn't, so the header is a plain label over that screen (a
+   * stage dashboard, or Administration over the CEO's audit log).
    */
   labelOnly?: boolean;
 }
@@ -489,9 +490,10 @@ export const NAV_GCC: GccNavGroup[] = [
 /**
  * The navigation a person gets: `NAV_GCC` filtered by `can`. Stage entries need
  * `stage.view` for their stage; every other entry and child needs its own
- * capability; empty groups are dropped. A stage outside the role still shows
+ * capability; empty groups are dropped. An entry outside the role still shows
  * when one of its screens is granted to the person company-wide, with a header
- * that isn't a link (`labelOnly`): the Commercial Manager's Stage 2 levelling.
+ * that isn't a link (`labelOnly`): the Commercial Manager's Stage 2 levelling,
+ * and the CEO's Administration › Audit log (plan 024).
  * Screens a person reaches only by invitation (a contributor's Bid packs) open
  * from the tender, not from the rail.
  *
@@ -500,7 +502,7 @@ export const NAV_GCC: GccNavGroup[] = [
  * | Role                 | Calendar | My requests | Stages, and their screens                                                        | Company | Administration |
  * | -------------------- | -------- | ----------- | -------------------------------------------------------------------------------- | ------- | -------------- |
  * | hot                  | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: packages, levelling, suppliers · 3: packs, DG2 · 7: DG3 | yes | all 7 |
- * | exec                 | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: all three · 3: packs, DG2               | yes     | no             |
+ * | exec                 | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: all three · 3: packs, DG2               | yes     | Audit log, under a header that isn't a link |
  * | bid                  | yes      | no          | 1–8 · 1: radar, queue, screening, DG1 · 2: packages, levelling · 3: packs, DG2 · 7: DG3 | yes | no          |
  * | coord                | yes      | no          | 1 · radar, queue, screening, DG1                                                 | yes     | no             |
  * | proc                 | yes      | no          | 2 · packages, levelling, suppliers                                               | yes     | no             |
@@ -521,7 +523,7 @@ export function navFor(person: Person): GccNavGroup[] {
   const companyWide = (it: GccNavItem) => !!it.cap && GRANTS[person.role][it.cap] === 'tenant' && ok(it);
   const keep = (it: GccNavItem): GccNavItem | null => {
     if (ok(it)) return { ...it, children: it.children?.filter(ok) };
-    const children = it.stage !== undefined ? it.children?.filter(companyWide) : undefined;
+    const children = it.children?.filter(companyWide);
     return children?.length ? { ...it, children, labelOnly: true } : null;
   };
   return NAV_GCC

@@ -1,0 +1,47 @@
+/* ───────── Compare tenants (plan 014): the hero in five companies, rows aligned across columns ───────── */
+
+.cmp-intro { margin: 0; padding: 0 22px 14px; font-size: 12.5px; color: var(--ink-4); line-height: 1.5; max-width: 900px; }
+.cmp-intro .mono { color: var(--ink-2); }
+
+/* The columns scroll inside the card at 1280, never the page; at 1440 all five fit (the card is about 1105px wide). */
+.cmp-scroll { overflow-x: auto; border-top: 1px solid var(--line-2); }
+.cmp-scroll:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.cmp-grid { width: 100%; min-width: 1100px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 12.5px; }
+.cmp-grid th, .cmp-grid td { text-align: left; vertical-align: top; padding: 12px 14px; border-bottom: 1px solid var(--line-3); }
+.cmp-grid thead th { padding: 10px 10px; border-bottom: 1px solid var(--line-2); font-weight: 500; }
+.cmp-grid .cmp-rowh {
+  width: 160px; position: sticky; left: 0; z-index: 1; background: var(--surface);
+  font-size: 11.5px; font-weight: 500; color: var(--ink-4); border-right: 1px solid var(--line-3);
+}
+.cmp-grid .here { background: color-mix(in srgb, var(--brand-soft) 55%, var(--surface)); }
+.cmp-grid tbody tr:last-child th, .cmp-grid tbody tr:last-child td { border-bottom: 0; }
+
+.cmp-co {
+  display: flex; align-items: flex-start; gap: 9px; width: 100%; text-align: left; padding: 6px 6px; border-radius: 8px;
+  transition: background-color var(--dur-fast) ease;
+}
+.cmp-co:hover { background: var(--surface-hover); }
+.cmp-co:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.cmp-co-t { min-width: 0; display: grid; gap: 2px; }
+.cmp-co-n { font-size: 12.5px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.cmp-co-m { font-size: 11.5px; color: var(--ink-5); }
+
+.cmp-cell { display: grid; gap: 4px; min-width: 0; }
+.cmp-verdict { font-weight: 600; }
+.cmp-big { font-size: 15px; font-weight: 600; color: var(--ink); }
+.cmp-of { font-size: 11.5px; font-weight: 400; color: var(--ink-5); }
+.cmp-sub { font-size: 11.5px; color: var(--ink-4); line-height: 1.45; }
+.cmp-cap { color: var(--ink-3); }
+
+.cmp-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.cmp-lines li { display: grid; grid-template-columns: auto 1fr; column-gap: 6px; align-items: baseline; }
+.cmp-lines .mono { font-size: 11.5px; color: var(--ink-3); }
+.cmp-state { font-size: 11.5px; font-weight: 500; }
+.cmp-why {
+  grid-column: 1 / -1; font-size: 11.5px; color: var(--ink-4); line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cmp-lines li.t-muted { display: block; font-size: 11.5px; }
+
+.cmp-open td { padding-top: 10px; padding-bottom: 14px; }
+.cmp-open .btn { display: inline-flex; align-items: center; gap: 4px; }

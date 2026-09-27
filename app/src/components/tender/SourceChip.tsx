@@ -13,6 +13,9 @@ import './tender.css';
  * - Without a document (most tenders have no PDF in the demo), and for
  *   records (credential, project, quote, input, calc), it opens a tip that
  *   says what the source is.
+ * - On a scanned page (plan 012) there is no text to highlight: hover or
+ *   focus says the page was read by OCR, with the Arabic when the caller
+ *   passes it, and a click opens the page without a highlight.
  */
 
 /** 007a's `SourceRef` kinds, widened with the kinds Stage 2 and 3 cite. 007a's type is not edited. */
@@ -32,6 +35,10 @@ export interface SourceChipRef {
    * file. `null` says the demo holds no copy of it; unset uses the chip's `doc`.
    */
   doc?: SourceDoc | null;
+  /** The page is a scanned image read by OCR (a record's `ocrPages`), so nothing on it can be highlighted. */
+  scanned?: boolean;
+  /** The Arabic the value was read from, for a scanned page's tip. */
+  arabic?: string;
 }
 
 const RECORD: Record<Exclude<SourceKind, 'page' | 'addendum'>, string> = {
@@ -43,6 +50,7 @@ const RECORD: Record<Exclude<SourceKind, 'page' | 'addendum'>, string> = {
 };
 
 const NO_COPY = 'This demo holds a copy of the hero tender only.';
+export const OCR_TIP = "Scanned page: the text was read by OCR, so it can't be highlighted";
 
 /** "Page 14 of the tender documents", for the tip and the accessible name. */
 function whereText(s: SourceChipRef): string {
@@ -58,7 +66,33 @@ export function SourceChip({ source, doc: pageDoc, detail }: { source: SourceChi
   const isPage = source.kind === 'page' || source.kind === 'addendum';
   const page = source.page ?? (isPage ? Number(/\d+/.exec(source.label)?.[0]) || undefined : undefined);
   const opens = isPage && !!doc && !!host && !!page;
+  const scan = isPage && !!source.scanned;
   const pop = usePop<HTMLButtonElement>({ width: 300 });
+  const ocrTip = scan && (
+    <div className="tip-body">
+      <b>{whereText(source)}.</b>
+      <span>{OCR_TIP}.</span>
+      {source.arabic && <span className="src-tip-ar" lang="ar" dir="rtl">{source.arabic}</span>}
+      {opens && <span>Click to open the scanned page.</span>}
+    </div>
+  );
+
+  if (opens && scan) {
+    const where = whereText(source);
+    return (
+      <>
+        <button
+          type="button" className={`src-chip k-${source.kind} opens scan`}
+          aria-label={`Source: ${where}. ${OCR_TIP}. Open ${doc!.title} at this page`}
+          {...pop.triggerProps}
+          onClick={(e) => { e.stopPropagation(); pop.close(); host!.open({ doc: doc!, page: page!, label: source.label }, e.currentTarget); }}
+        >
+          {source.label}
+        </button>
+        {pop.render(ocrTip)}
+      </>
+    );
+  }
 
   if (opens) {
     const where = whereText(source);
@@ -74,6 +108,16 @@ export function SourceChip({ source, doc: pageDoc, detail }: { source: SourceChi
   }
 
   const line = detail ?? source.detail;
+  if (scan) {
+    return (
+      <>
+        <button type="button" className={`src-chip k-${source.kind} scan`} aria-label={`Source: ${whereText(source)}. ${OCR_TIP}`} {...pop.triggerProps}>
+          {source.label}
+        </button>
+        {pop.render(ocrTip)}
+      </>
+    );
+  }
   const tip = isPage
     ? <><b>{whereText(source)}.</b><span>{NO_COPY}</span></>
     : <><b>{RECORD[source.kind as keyof typeof RECORD]}: {source.label.replace(/^[A-Za-z]+: /, '')}</b>{line && <span>{line}</span>}</>;

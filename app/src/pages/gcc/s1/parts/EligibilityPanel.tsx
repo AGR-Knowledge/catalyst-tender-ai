@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { MessageSquareText, Users } from 'lucide-react';
 import type { Tone } from '@/data/types';
 import { eligibilityFor, type EligibilityLine as Line, type EligibilityResult, type JvScenario } from '@/domain/gcc/s1';
@@ -36,6 +37,7 @@ export function EligibilityPanel({ s1, tenderId, doc, mode = 'full', onQueries }
   onQueries?(): void;
 }) {
   const { tenant, done } = s1;
+  const navigate = useNavigate();
   const base = useMemo(() => eligibilityFor(tenant, tenderId, done), [tenant, tenderId, done]);
   const partners = dataOf(tenant).partners;
   const [jv, setJv] = useState<{ on: boolean; partnerId: string; lead: JvScenario['lead'] }>(() => ({
@@ -70,10 +72,13 @@ export function EligibilityPanel({ s1, tenderId, doc, mode = 'full', onQueries }
       if (q) out.push(<button key="q" type="button" className="btn btn-sm" onClick={onQueries} disabled={!onQueries}><MessageSquareText size={12} aria-hidden />Query {q.state === 'draft' ? 'drafted' : q.state}: review</button>);
     }
     if (l.actions.includes('add-evidence')) {
+      // The line's own credential in the vault (plan 010), else the Credentials tab.
+      const vault = dataOf(tenant).credentials;
+      const credId = l.renew?.[0]?.credentialId ?? l.evidence.find((e) => e.kind === 'credential' && vault.some((c) => c.id === e.id))?.id;
       out.push(
         <span key="e" className="s1-act">
           <button type="button" className="btn btn-sm" disabled={!evidenceRight.ok} title={evidenceRight.ok ? undefined : evidenceRight.reason}
-            onClick={() => s1.toast('Demo: evidence is added in Company › Credentials, then the check re-runs.', 'ink3')}>Add evidence</button>
+            onClick={() => navigate(`/company?tab=credentials${credId ? `&cred=${encodeURIComponent(credId)}` : ''}`)}>Add evidence</button>
         </span>,
       );
     }

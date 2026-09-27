@@ -1,10 +1,13 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { ChevronLeft, Lock } from 'lucide-react';
 import type { WorkspaceHeaderVM } from '@/domain/gcc/workspace';
 import { Money } from '@/components/tender/Money';
 import { StatusPill } from '@/components/tender/StatusPill';
 import { LangBadge } from '@/components/tender/LangBadge';
 import { whenLabel } from '@/components/tender/When';
+import { DemoTag } from '@/components/tender/DemoTag';
+import { HERO_ID } from '@/data/gcc/hero';
 
 /**
  * The sticky header of the Tender Workspace (spec §4.1): one line of
@@ -20,6 +23,8 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
       <div className="wsh-crumb">
         <button type="button" className="btn-link wsh-back" onClick={onBack}><ChevronLeft size={13} aria-hidden />Back</button>
         <span className="wsh-stage">{vm.stage}</span>
+        {/* Plan 014: the presenter's way into script D, on the hero only. */}
+        {vm.id === HERO_ID && <Link className="btn-link" style={{ marginLeft: 'auto', color: 'var(--ink-3)' }} to="/demo/compare"><DemoTag title="A presenter view: in the product nobody sees across companies" />Compare tenants</Link>}
       </div>
 
       <div className="wsh-l1">

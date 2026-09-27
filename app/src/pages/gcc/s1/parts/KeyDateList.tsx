@@ -4,21 +4,27 @@ import { personById } from '@/data/people';
 import { DEMO_TODAY, countdownText } from '@/domain/calendar';
 import { keyDatesFor, remindersFor } from '@/domain/gcc/s1';
 import { authorityCalendar, listText, profileOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
+import { dateArabicOf, ocrPagesOf } from '@/domain/gcc/arabic';
 import { When } from '@/components/tender/When';
 import { SourceChip } from '@/components/tender/SourceChip';
+import { BilingualValue } from '@/components/tender/BilingualValue';
 import type { SourceDoc } from '@/components/tender/SourceHost';
 import type { S1 } from '../vm/useS1';
+import { docOf } from '../vm/docs';
 
 /**
  * A tender's key dates (spec §6.7): each in the authority's time zone, with
  * days and working days left in the authority's calendar (`countdownText`, as
  * the workspace header counts), the page that states it, and the GCC calendar
  * flags: Ramadan hours, the expected Eid closure, the guarantee's validity
- * and the bank's lead time. The full list adds the planned reminders.
+ * and the bank's lead time. The full list adds the planned reminders. For an
+ * Arabic document it also shows the Arabic each date was read from, and a
+ * date on a scanned page says it was read by OCR (plan 012).
  */
 export function KeyDateList({ s1, tenderId, doc, compact = false }: { s1: S1; tenderId: string; doc: SourceDoc | null; compact?: boolean }) {
   const { tenant } = s1;
   const rows = useMemo(() => keyDatesFor(tenant, tenderId), [tenant, tenderId]);
+  const record = useMemo(() => docOf(tenant, tenderId)?.record ?? null, [tenant, tenderId]);
   const t = tenderOf(tenant, tenderId);
   if (!t || !rows.length) return null;
   const cal = authorityCalendar(t, tenant);
@@ -33,13 +39,16 @@ export function KeyDateList({ s1, tenderId, doc, compact = false }: { s1: S1; te
       <ol className={`kd ${compact ? 'compact' : ''}`}>
         {shown.map((r) => {
           const reminders = compact ? [] : remindersFor(r);
+          const ar = compact ? undefined : dateArabicOf(record, r);
+          const scanned = !!r.page && ocrPagesOf(record).includes(r.page);
+          const note = [r.place && `At ${r.place}`, !compact && r.note].filter(Boolean).join('. ');
           return (
             <li key={`${r.kind}:${r.date}`} className={`kd-row ${r.past ? 'past' : ''} ${r.flags.length ? 'flagged' : ''}`}>
               <span className="kd-l">{r.label}</span>
               <span className="kd-w"><When date={r.date} time={r.time} tz={r.tz} short={compact} /></span>
               <span className="kd-cd num">{r.past ? 'Passed' : r.daysLeft === 0 ? 'Today' : `in ${countdownText(DEMO_TODAY, r.date, cal.cc)}`}</span>
-              <span className="kd-src">{r.page && <SourceChip source={{ kind: 'page', page: r.page, label: `p. ${r.page}` }} doc={doc} />}</span>
-              {(r.place || (r.note && !compact)) && <span className="kd-note">{[r.place && `At ${r.place}`, !compact && r.note].filter(Boolean).join('. ')}</span>}
+              <span className="kd-src">{r.page && <SourceChip source={{ kind: 'page', page: r.page, label: `p. ${r.page}`, ...(scanned ? { scanned: true, ...(ar ? { arabic: ar } : {}) } : {}) }} doc={doc} />}</span>
+              {(note || ar) && <span className="kd-note"><BilingualValue en={note} ar={ar} /></span>}
               {r.flags.map((f) => <span key={f.key} className="kd-flag"><span aria-hidden>! </span>{f.text}</span>)}
               {reminders.length > 0 && (
                 <span className="kd-rem">

@@ -295,3 +295,47 @@
   .gs-btn .gs-l, .gs-btn .gs-k { display: none; }
   .gs-pop { position: fixed; top: 62px; left: 12px; right: 12px; width: auto; }
 }
+
+/* Bilingual value (plan 012, ui-direction §8): the English value, then the Arabic it was read from,
+   right to left and muted, at the body size, with its page chip at the end of the Arabic line.
+   Beside the English at 1440 px and wider; beneath it below that. */
+.bv { display: grid; gap: 3px; min-width: 0; }
+.bv-src { display: block; min-width: 0; font-size: inherit; line-height: 1.75; color: var(--ink-3); overflow-wrap: anywhere; text-align: start; }
+.bv-chip { display: inline-block; vertical-align: 1px; }
+.bv-why { font-size: 12px; line-height: 1.45; color: var(--ink-2); }
+.bv-why > span[aria-hidden] { font-weight: 700; }
+.bv-why.c-low > span[aria-hidden] { color: var(--red); }
+.bv-why.c-medium > span[aria-hidden] { color: var(--orange); }
+@media (min-width: 1440px) {
+  .bv.on { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 16px; align-items: start; }
+  .bv.on > .bv-why { grid-column: 1 / -1; }
+}
+.bv-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); cursor: pointer; }
+.bv-toggle input { margin: 0; accent-color: var(--brand, var(--ink)); }
+.bv-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; padding-top: 0; }
+.bv-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.bv-list > li { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 12px; padding: 9px 0; border-bottom: 1px solid var(--line-3); font-size: 13px; line-height: 1.5; color: var(--ink); }
+.bv-list > li:last-child { border-bottom: 0; }
+.bv-list > li > .bv { flex: 1 1 auto; }
+.src-tip-ar { color: var(--ink-3); line-height: 1.7; }
+.src-chip.scan { border-style: dashed; }
+
+/* Read in English (plan 012): the whole reading in one sheet, so its prev/next controls are hidden. */
+.sheet:has(.rie) .sheet-n, .sheet:has(.rie) .sheet-nav .btn-icon:not(.sheet-x) { display: none; }
+.rie { display: grid; gap: 18px; padding: 16px 24px 24px; }
+.rie-label { display: flex; gap: 8px; align-items: flex-start; margin: 0; padding: 10px 12px; border: 1px solid var(--line-strong); border-left: 3px solid var(--cyan); border-radius: var(--radius-sm); background: var(--cyan-soft); font-size: 12.5px; line-height: 1.5; color: var(--ink); }
+.rie-label b { font-weight: 600; }
+.rie-head { display: grid; gap: 4px; }
+.rie-title-ar { font-size: 14px; line-height: 1.7; color: var(--ink-2); }
+.rie-sub { font-size: 12px; color: var(--ink-3); }
+.rie-tools { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.rie-sec { display: grid; gap: 6px; }
+.rie-sec h3 { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink); }
+.rie-list { list-style: none; margin: 0; padding: 0; display: grid; }
+.rie-item { display: grid; gap: 4px; padding: 8px 0; border-bottom: 1px solid var(--line-3); font-size: 13px; line-height: 1.5; color: var(--ink); }
+.rie-item:last-child { border-bottom: 0; }
+.rie-item-h { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.rie-l { font-size: 12px; font-weight: 500; color: var(--ink-3); }
+.rie-item .bv.on { grid-template-columns: minmax(0, 1fr); }
+.rie-item.bare { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.rie-item.bare > .rie-v { flex: 1 1 auto; min-width: 0; }

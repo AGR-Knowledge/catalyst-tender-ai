@@ -7,8 +7,10 @@ import { validationAction, type QueueItem, type ValAction } from '@/domain/gcc/s
 import { queriesFor as queryDraftsFor } from '@/domain/gcc/s1/queries';
 import { shortWhen } from '@/domain/gcc/s1/common';
 import type { TenderRecord } from '@/domain/gcc/documents';
+import { bilingualSnippet, ocrPagesOf } from '@/domain/gcc/arabic';
 import { StatusPill } from '@/components/tender/StatusPill';
-import { SourceChip } from '@/components/tender/SourceChip';
+import { SourceChip, type SourceChipRef } from '@/components/tender/SourceChip';
+import { BilingualValue } from '@/components/tender/BilingualValue';
 import type { SourceDoc } from '@/components/tender/SourceHost';
 import { Callout } from '@/components/tender/Callout';
 import type { S1 } from '../vm/useS1';
@@ -19,7 +21,9 @@ import { snippetAt } from '../vm/docs';
  * the agent is and why not, the page, and Accept · Correct · Mark not stated ·
  * Send back to agent. A conflict shows both values with their pages and the
  * agent does not choose: a person picks one, and the other stays on record.
- * Sending back keeps the item open (the legacy bug closed it).
+ * Sending back keeps the item open (the legacy bug closed it). For an Arabic
+ * document the snippet also shows the Arabic it was read from, and a page
+ * read by OCR says so instead of highlighting (plan 012).
  */
 
 const STATE: Record<string, { label: string; tone: Tone; icon: string }> = {
@@ -62,6 +66,18 @@ export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: 
   const query = queryDraftsFor(s1.tenant, item.tenderId, s1.done).items.find((x) => x.query.relatesTo === item.id);
   const disabled = !right.ok;
   const whyId = `vq-why-${item.id}`;
+  // The snippet the record prints on the page, with its Arabic for an Arabic record; a scanned page's chip can't highlight.
+  const snipOf = (page: number, value: string): { en: string; ar?: string } | null => {
+    const bi = bilingualSnippet(record, page, value);
+    if (bi) return bi;
+    const en = snippetAt(record, page, value);
+    return en ? { en } : null;
+  };
+  const ocrPages = ocrPagesOf(record);
+  const chip = (page: number, value: string, ar?: string): SourceChipRef => (ocrPages.includes(page)
+    ? { kind: 'page', page, label: `p. ${page}`, scanned: true, ...(ar ? { arabic: ar } : {}) }
+    : { kind: 'page', page, label: `p. ${page}`, terms: [value] });
+  const single = !q.conflict && !resolved ? snipOf(item.page, item.value) : null;
 
   return (
     <article className={`vq ${q.conflict ? 'conflict' : ''} ${resolved ? 'resolved' : ''}`} aria-label={`${item.field}: ${st.label}`}>
@@ -83,14 +99,14 @@ export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: 
         <>
           <div className="vq-pair" role="group" aria-label="The two values found">
             {options.map((o, i) => {
-              const snip = snippetAt(record, o.page, o.value);
+              const snip = snipOf(o.page, o.value);
               return (
                 <div key={o.key} className="vq-opt">
                   <div className="vq-opt-top">
                     <span className="vq-v num">{o.value}</span>
-                    <SourceChip source={{ kind: 'page', page: o.page, label: `p. ${o.page}`, terms: [o.value] }} doc={doc} />
+                    <SourceChip source={chip(o.page, o.value, snip?.ar)} doc={doc} />
                   </div>
-                  {snip && <blockquote className="vq-snip">{snip}</blockquote>}
+                  {snip && <blockquote className="vq-snip"><BilingualValue en={snip.en} ar={snip.ar} /></blockquote>}
                   <button type="button" className="btn btn-sm" disabled={disabled} aria-describedby={disabled ? whyId : undefined} onClick={() => act('pick', { pick: o.key })} data-first={i === 0 || undefined}>
                     Use {o.value}
                   </button>
@@ -103,8 +119,8 @@ export function ValidationCard({ q, s1, doc, record, showTender = false }: { q: 
       ) : !resolved ? (
         <div className="vq-val">
           <span className="vq-v num">{item.value}</span>
-          <SourceChip source={{ kind: 'page', page: item.page, label: `p. ${item.page}`, terms: [item.value] }} doc={doc} />
-          {snippetAt(record, item.page, item.value) && <blockquote className="vq-snip">{snippetAt(record, item.page, item.value)}</blockquote>}
+          <SourceChip source={chip(item.page, item.value, single?.ar)} doc={doc} />
+          {single && <blockquote className="vq-snip"><BilingualValue en={single.en} ar={single.ar} /></blockquote>}
         </div>
       ) : (
         <div className="vq-done">

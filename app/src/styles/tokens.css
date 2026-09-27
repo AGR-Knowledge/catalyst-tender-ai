@@ -59,6 +59,8 @@
 
   --font-sans: 'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  /* Arabic content inside the English UI (plan 012, ui-direction §3.2 and §8). */
+  --font-arabic: 'IBM Plex Sans Arabic', var(--font-sans);
 
   --radius-sm: 7px;
   --radius: 10px;
@@ -199,6 +201,9 @@
 :root[data-tenant='dafna'],
 :root[data-tenant='batinah'],
 :root[data-tenant='qurain'] { --focus-ring: var(--brand); }
+
+/* Arabic spans (lang="ar") read in IBM Plex Sans Arabic; the UI stays IBM Plex Sans (plan 012). */
+:lang(ar) { font-family: var(--font-arabic); }
 
 /* Spacing scales down on smaller viewports, up on very large ones. */
 @media (max-width: 1280px) {

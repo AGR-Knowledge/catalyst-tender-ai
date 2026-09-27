@@ -12,6 +12,7 @@ import { currentOf, deadlineWd, openGate, queriesFor, staleOf, tenderCtx, type D
 import { countryCodeOf } from '../s1/common';
 import { eligibilityFor } from '../s1/eligibility';
 import { blockingOpen } from '../s1/validation';
+import { dg3Readiness, dg3State } from '../dg3/decision';
 import type { GateChipState } from '../gateChips';
 import type { KpiCtx } from '../kpi/types';
 import type { ActionDue, ActionPrimary, ActionVM, GateKey, RowScope } from '../viewmodels';
@@ -258,11 +259,13 @@ const dg3Approve: ActionSource = {
     return ranked(dg3Open(ctx).map(({ l, g, gaps }) => {
       const mine = can(ctx.viewer, 'dg3.decide').ok;
       const wd = deadlineWd(l, ctx.tenant);
+      // The gate's own readiness (plan 018), so this row and /dg3 never disagree.
+      const s = dg3State(ctx.tenant, l.tenderId, ctx.done);
       return {
         u: { source: 'dg3.approve', blocking: !g.onTime || (wd !== null && wd <= NEAR_WD), waiting: !mine, minutesLeft: left(ctx, g.slaEnd), value: l.value.amount },
         row: {
           id: `dg3.approve:${l.tenderId}`, source: 'dg3.approve', type: 'DG3 approval', typeTone: 'orange', tenderId: l.tenderId, shortTitle: l.shortTitle,
-          what: gaps ? `Evidence incomplete: ${count(gaps, 'mandatory gap')}` : `${mine ? 'Ready for your approval' : 'Ready for approval'}: evidence complete`,
+          what: s ? dg3Readiness(s, mine) : gaps ? `Evidence incomplete: ${count(gaps, 'mandatory gap')}` : `${mine ? 'Ready for your approval' : 'Ready for approval'}: evidence complete`,
           due: sla(g),
           ...(mine ? {} : { waitingOn: waitingOn(hot), disabledReason: 'The Head of Tendering approves' }),
           primary: route('/dg3', 'Open DG3', l.tenderId),

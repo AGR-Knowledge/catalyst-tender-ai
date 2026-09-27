@@ -6,6 +6,8 @@ import { DEMO_NOW } from './clock';
 import { queriesFor, type DemoDone } from './lifecycle.port';
 import { requestsTo } from './requestKeys';
 import { dg1RecordFor } from './dg1/record';
+import { DG3_BACK_TOPIC } from './dg3/keys';
+import { dg3State } from './dg3/decision';
 import { eligibilityRisks, DONE_KEY, isFlagged, readDone, type RenewedValue } from './s1';
 import { inputsFor } from './s3/inputs';
 import type { RequestRowVM } from './viewmodels';
@@ -92,12 +94,14 @@ export function requestsFor(tenant: string, personId: string, done: DemoDone, vi
   const hot = firstWithRole(tenant, 'hot');
   const risks = eligibilityRisks(tenant, done as Record<string, string>);
   for (const c of gccData(tenant).credentials.filter((x) => x.ownerId === personId && isFlagged(done as Record<string, string>, DONE_KEY.renewalRequested(x.id)))) {
+    const renewed = readDone<RenewedValue>(done as Record<string, string>, DONE_KEY.renewed(c.id));
+    // Once renewed the line passes, so the bid and due date are read as they stood before the renewal.
+    const { [DONE_KEY.renewed(c.id)]: _renewed, ...before } = done as Record<string, string>;
     // The bid it puts at risk: the earliest opening among live tenders whose eligibility needs it renewed.
-    const hit = risks
+    const hit = (renewed ? eligibilityRisks(tenant, before) : risks)
       .flatMap((r) => r.lines.filter((ln) => ln.renew?.some((x) => x.credentialId === c.id)).map((ln) => ({ tenderId: r.tenderId, date: ln.checkedAgainst.date })))
       .sort((a, b) => a.date.localeCompare(b.date))[0];
     const due = `${workingDaysBefore(hit?.date ?? c.validTo ?? now, RENEWAL_LEAD_WD, tenant)}T17:00`;
-    const renewed = readDone<RenewedValue>(done as Record<string, string>, DONE_KEY.renewed(c.id));
     const asked = readDone<{ at?: string; byId?: string }>(done as Record<string, string>, DONE_KEY.renewalRequested(c.id));
     out.push({
       id: `renewal:${c.id}`, kind: 'renewal', tenderId: hit?.tenderId ?? '', shortTitle: hit ? titleOf(hit.tenderId) : '',
@@ -115,6 +119,8 @@ export function requestsFor(tenant: string, personId: string, done: DemoDone, vi
       const hold = dg1RecordFor(tenant, r.tenderId, done as Record<string, string>).hold;
       if (!hold || !('request' in hold) || hold.request?.toId !== r.toId) continue;
     }
+    // A DG3 send-back (plan 018) closes once the pack is re-issued or DG3 is decided.
+    if (r.topic === DG3_BACK_TOPIC && !dg3State(tenant, r.tenderId, done as Record<string, string>)?.sentBack) continue;
     out.push({
       id: r.key, kind: 'request', tenderId: r.tenderId, shortTitle: titleOf(r.tenderId),
       what: r.what, section: r.section ?? '', requestedById: r.byId, requestedAt: r.at, due: r.due, status: openOrLate(r.due, now),

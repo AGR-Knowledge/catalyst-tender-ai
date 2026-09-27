@@ -32,6 +32,8 @@ const DashboardRoute = lazy(() => import('@/pages/gcc/DashboardRoute'));
 const StageRoute = lazy(() => import('@/pages/gcc/StageRoute'));
 const Workspace = lazy(() => import('@/pages/gcc/workspace/Workspace'));
 const SupplierPortal = lazy(() => import('@/pages/gcc/supplier/SupplierPortal'));
+/* The presenter's Compare tenants lens (plan 014): a labelled demo view. */
+const Compare = lazy(() => import('@/pages/gcc/demo/Compare'));
 const GccPending = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/GccPending').then((m) => ({ default: m.GccPending }))) : null;
 const KitPreview = import.meta.env.DEV ? lazy(() => import('@/pages/gcc/dev/KitPreview')) : null;
 /* The Catalyst Platform Console (plan 011): its own shell, outside the tenant's. */
@@ -144,6 +146,7 @@ export function App() {
               <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
               <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
               <Route path="tenders/:id" element={<GccOnly>{lazyEl(<Workspace />)}</GccOnly>} />
+              <Route path="demo/compare" element={<GccOnly>{lazyEl(<Compare />)}</GccOnly>} />
               {screenRoutes()}
               {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
               {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}

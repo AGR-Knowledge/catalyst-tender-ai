@@ -2,6 +2,8 @@ import { createElement, useMemo, type ComponentType, type ReactNode } from 'reac
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { stepLabel } from '@/data/gcc/stages';
 import { auditTimeline, docFor, latestOf } from '@/domain/gcc/workspace';
+import { documentFor } from '@/domain/gcc/documents';
+import { prevailsOf, prevailsTitle } from '@/domain/gcc/arabic';
 import type { TenderRowVM } from '@/domain/gcc/viewmodels';
 import { Card, CardHead, KV } from '@/components/ui/primitives';
 import { TenderTracker } from '@/components/dashboard/TenderTracker';
@@ -20,7 +22,9 @@ import type { WorkspaceCtx, WorkspaceTabDef } from './types';
  * Overview (order 10, always shown): the tracker, where the tender stands
  * (the step facts, each through its table column's renderer, so money,
  * percentages and dates read exactly as in the tables), the tender's
- * particulars, and the latest activity.
+ * particulars, and the latest activity. When the tender document says the
+ * Arabic text prevails, or an Arabic document doesn't say which language
+ * does, the particulars raise it with its page (plan 012, ui-direction §8).
  */
 
 /** Words for the parts of a fact key; a unit at the end goes in brackets. */
@@ -61,6 +65,8 @@ function Overview({ ctx }: { ctx: WorkspaceCtx }) {
   const facts = Object.keys(row.facts).filter((k) => !k.endsWith('.masked') && (row.facts[k] !== null || row.facts[`${k}.masked`]));
   const model = isGccTenantKey(tenant) ? gccData(tenant).fit : null;
   const doc = docFor(row);
+  const tenderDoc = isGccTenantKey(tenant) ? documentFor(tenant, row.id) : null;
+  const prevails = prevailsOf(tenderDoc?.record);
   const latest = useMemo(
     () => latestOf(auditTimeline(tenant, row.id, ctx.done, ctx.audit, ctx.viewer), 5),
     [tenant, row.id, ctx.done, ctx.audit, ctx.viewer],
@@ -94,6 +100,12 @@ function Overview({ ctx }: { ctx: WorkspaceCtx }) {
                 {doc && <SourceChip source={{ kind: 'page', page: 1, label: 'p. 1' }} doc={doc} />}
               </span>
             } />
+            {prevails && <KV k="Language" v={
+              <span className="ws-src">
+                <StatusPill label={prevailsTitle(prevails, { page: false })} tone="orange" icon="!" />
+                {prevails.page && <SourceChip source={{ kind: 'page', page: prevails.page, label: `p. ${prevails.page}` }} doc={tenderDoc ? { url: tenderDoc.url, title: tenderDoc.title } : doc} />}
+              </span>
+            } />}
             <KV k="Captured" v={<When date={row.capturedAt.slice(0, 10)} time={row.capturedAt.slice(11, 16)} short />} />
             <KV k="Fit" v={
               <ThresholdBar value={row.fit} threshold={model?.pursueAt} thresholdLabel="pursue at" tone={fitTone} label="Fit" />

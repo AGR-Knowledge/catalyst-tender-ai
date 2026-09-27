@@ -18,6 +18,7 @@ import { GccSearch } from './GccSearch';
 import { UploadButton } from '@/components/intake/UploadButton';
 import { UploadGcc } from '@/pages/gcc/s1/UploadGcc';
 import { TenantSwitch } from './TenantSwitch';
+import { DemoMenu } from './DemoMenu';
 import { screenHead } from '@/pages/gcc/screens';
 
 function usePageHead() {
@@ -31,6 +32,7 @@ function usePageHead() {
   // GCC tenants: titles come from the GCC screen map; the legacy alerts read Indian data, so they are not shown.
   if (tenant.world === 'gcc') {
     if (path === 'settings') return { title: 'Settings', sub: 'Sources, people, appearance and the demo session.' };
+    if (pathname === '/demo/compare') return { title: 'Compare tenants', sub: 'Demo view: the same tender in five companies.' };
     const head = screenHead(pathname);
     return head ? { title: head.title, sub: head.sub ?? `${dateText(DEMO_TODAY)} · ${tenant.hqCity}` } : { title: 'Not found', sub: 'This page does not exist in the workspace.' };
   }
@@ -113,6 +115,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
       </div>
       <div className="hd-actions">
         <TenantSwitch />
+        {gcc && <DemoMenu />}
         {/* Search and upload read the Indian register; GCC tenants get their own with plans 006 and 007. */}
         {gcc ? <GccSearch /> : <GlobalSearch />}
         {gcc ? <UploadGcc /> : <UploadButton />}

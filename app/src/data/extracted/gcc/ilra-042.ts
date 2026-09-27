@@ -110,6 +110,7 @@ export const ILRA_042: ExtractedTenderGccAr = {
   language: 'Arabic',
   // Pages 15–17 (BOQ summary, site-visit certificate, Form of Bid Bond) are scanned images.
   scanned: true,
+  ocrPages: [15, 16, 17],
 
   title: T042_TITLE_EN,
   shortName: 'Sohar–Buraimi road dualling',

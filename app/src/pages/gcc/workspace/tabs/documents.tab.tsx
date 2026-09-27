@@ -3,6 +3,7 @@ import { personById } from '@/data/people';
 import { dateText } from '@/domain/calendar';
 import { addendaFor, pipelineFor, DISPOSITION_LABEL, type AddendumVM } from '@/domain/gcc/s1';
 import { dataOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
+import { ocrOf, pagesText } from '@/domain/gcc/arabic';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { SourceChip } from '@/components/tender/SourceChip';
 import { useSourceHost } from '@/components/tender/SourceHost';
@@ -12,6 +13,7 @@ import { EmptyState } from '@/components/tender/EmptyState';
 import { docOf, sourceDocOf } from '@/pages/gcc/s1/vm/docs';
 import { uploadsOf } from '@/pages/gcc/s1/vm/uploads';
 import { IntakeSteps } from '@/pages/gcc/s1/IntakeSteps';
+import { ReadInEnglish } from '../parts/ReadInEnglish';
 import type { WorkspaceCtx, WorkspaceTabDef } from './types';
 import '@/pages/gcc/s1/s1.css';
 
@@ -19,7 +21,8 @@ import '@/pages/gcc/s1/s1.css';
  * Documents (order 20, plan 007b): the tender document the demo holds (read
  * through `documentFor`), every source it arrived from (one tender, one ID,
  * spec §6.8), this morning's intake steps (§6.2), and each addendum with what
- * it changed and what that set off.
+ * it changed and what that set off. A document read from Arabic offers Read
+ * in English beside it, and a scanned one names its OCR pages (plan 012).
  */
 
 const eventsOf = (tenant: string, id: string) => dataOf(tenant).intakeToday.filter((e) => e.tenderId === id);
@@ -74,6 +77,7 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
   const addenda = addendaFor(ctx.tenant, ctx.tenderId);
   const sourceName = (id: string) => data.sources.find((s) => s.id === id)?.name ?? id;
   const file = d ? decodeURIComponent(d.url.split('/').pop() ?? d.url) : null;
+  const ocr = ocrOf(d?.record);
 
   return (
     <div className="ws-tab">
@@ -85,8 +89,9 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
             <div className="doc-m">
               <div className="doc-t">{d.title}</div>
               <div className="doc-s"><span className="mono">{file}</span> · {d.record.docType} · {d.record.pages} pages</div>
-              <div className="doc-b"><LangBadge lang={d.lang === 'ar' ? 'AR' : 'EN'} />{d.scanned && <span className="wsh-badge">OCR: scanned pages</span>}{d.record.issued && <span className="doc-s">Issued {dateText(d.record.issued)}</span>}</div>
+              <div className="doc-b"><LangBadge lang={d.lang === 'ar' ? 'AR' : 'EN'} />{d.scanned && <span className="wsh-badge">{ocr.pages.length ? `OCR: ${pagesText(ocr.pages)} scanned` : 'OCR: scanned pages'}</span>}{d.record.issued && <span className="doc-s">Issued {dateText(d.record.issued)}</span>}</div>
             </div>
+            {d.lang === 'ar' && <ReadInEnglish record={d.record} doc={doc} />}
             {host && doc && <button type="button" className="btn btn-sm" onClick={(e) => host.open({ doc, page: 1, label: d.title }, e.currentTarget)}>Open the document</button>}
           </div>
         ) : <EmptyState title="The demo holds no copy of this tender's documents." body="The register keeps where it came from; its fields were entered from the notice." compact />}

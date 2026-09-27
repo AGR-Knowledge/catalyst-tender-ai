@@ -19,20 +19,49 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 007b | [Stage 1 and DG1 screens](007b-stage1-dg1-screens.md): radar, intake steps, intake queue with the conflict pattern, Requirements / Eligibility & fit / Key dates / Queries tabs, screening and triage, the DG1 evidence pack and decision form, calendar, GCC upload | 4 | 007a, 019, 021 | DONE (2026-09-27, reviewed) |
 | 008b | [Stage 2 screens and the Supplier Portal](008b-stage2-screens.md): packages and coverage, shortlists with the screening guardrail, RFQs and the clock, package board and nudges, simulated replies, levelling, best fit, clarifications, suppliers, the Supplier Portal preview | 4 | 008a, 019, 021 | DONE (2026-09-27, reviewed) |
 | 009b | [Stage 3 bid pack, DG2 and the contributor forms](009b-stage3-dg2-screens.md): the pack 9.1–9.10 with re-run and issue, Inputs tab and forms from My requests, positions and the members panel, the Head of Tendering's approval, conditions, decline letter, re-open | 4 | 009a, 019, 021 | DONE (2026-09-27, reviewed) |
-| 010 | [Company: the credentials vault and the renewal loop](010-company.md): Credentials with the renewal upload that re-checks eligibility everywhere, capability profile, bank facility, teams and partners | 5 | 007a, 007b, 013, 015 | READY |
+| 010 | [Company: the credentials vault and the renewal loop](010-company.md): Credentials with the renewal upload that re-checks eligibility everywhere, capability profile, bank facility, teams and partners | 5 | 007a, 007b, 013, 015 | DONE (2026-09-27, reviewed) |
 | 011 | [Platform Console and break-glass](011-platform-console.md): separate operator shell with counts and health only, the break-glass request that the tenant's Head of Tendering sees, and the tenant audit log | 4 | 006, 015 | DONE (2026-09-27, reviewed) |
-| 012 | [Arabic intake](012-arabic-intake.md): `BilingualValue`, Plex Sans Arabic, the English value with the Arabic source on 007b's screens, "Arabic text prevails", "Read in English", OCR pages named | 5 | 007b, 019, 023 | READY |
+| 012 | [Arabic intake](012-arabic-intake.md): `BilingualValue`, Plex Sans Arabic, the English value with the Arabic source on 007b's screens, "Arabic text prevails", "Read in English", OCR pages named | 5 | 007b, 019, 023 | DONE (2026-09-27, reviewed) |
 | 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | DONE (2026-09-26) |
-| 014 | [Presenter controls and the Compare tenants lens](014-presenter-controls.md): the Demo menu, four scenario presets, Advance agent work, Advance to Stage 3 for T-2026-061 and T-2026-042, Compare tenants | 5 | 007b, 008b, 009b, 021, 022, 023 | READY |
+| 014 | [Presenter controls and the Compare tenants lens](014-presenter-controls.md): the Demo menu, four scenario presets, Advance agent work, Advance to Stage 3 for T-2026-061 and T-2026-042, Compare tenants | 5 | 007b, 008b, 009b, 021, 022, 023 | DONE (2026-09-27, reviewed) |
 | 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 016 | Script QA and polish (spec §19 acceptance) | 6 | all | Outline |
-| 018 | [DG3 approval](018-dg3-approval.md): the Head of Tendering's final gate (evidence left, decision right), send back to Compliance and re-issue, Qurain's guarantee catch | 5 | 009b, 013, 015, 017 | READY |
+| 018 | [DG3 approval](018-dg3-approval.md): the Head of Tendering's final gate (evidence left, decision right), send back to Compliance and re-issue, Qurain's guarantee catch | 5 | 009b, 013, 015, 017 | DONE (2026-09-27, reviewed) |
 | 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | DONE (2026-09-26) |
 | 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
 | 021 | [Demo state and rule fixes](021-demo-state-and-rule-fixes.md): demo actions (DG1, Stage 2 progress, pack, positions, DG2) merged into the lifecycles so every dashboard shows them; DG1 rounds, DG2 conditions masked and the other rule bugs from the 020 review | 3 | 017, 007a, 008a, 009a, 020 | DONE (2026-09-26) |
 | 022 | [Second demo tender, UAE](022-demo-tender-uae.md): Corniche's Abu Dhabi hospital MEP (T-2026-061), English; its own PDF, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
 | 023 | [Third demo tender, Oman, Arabic](023-demo-tender-oman-arabic.md): Batinah's Sohar–Buraimi road dualling (T-2026-042), an Arabic PDF with scanned pages; bilingual extraction, catches, eligibility, packages, quotes and pack | 4 | 019, 021 | DONE (2026-09-27, reviewed) |
-| 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | READY |
+| 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
+
+**Wave 5 review (orchestrator, 2026-09-27): 010, 012, 014, 018 and 024 accepted.**
+- Typecheck and build pass on the combined checkout. `/dev/checks` has no failing row in any tenant (Najd 722, Corniche 314, Dafna 296, Batinah 303, Qurain 319 passing targets; the new panels 66-company, 73-arabic, 46-presenter, 97-dg3 and 67-admin included).
+- Browser at 1440 × 900:
+  - **010:** as Faisal, Request renewal on Zakat; as Sultan, My requests › Open credentials lands on the Zakat panel › Upload renewal; the toast names both re-checked bids, and "Credentials at risk" goes from 2 to 1.
+  - **018:** T-2025-305 approved from `/dg3?tender=`; the action row leaves and DG3 approved goes from 4 to 5.
+  - **014:** "DG1 due" lands on `/dg1?tender=T-2026-118`; Compare shows 82/63/71/38/78.
+  - **012:** T-2026-042's Requirements carry the Arabic beside each value, the §7 flag and a labelled Read in English sheet.
+  - **024:** the Administration cards and Branding; the CEO's sidebar shows Administration as a header over Audit log only.
+- **Orchestrator fixes before commit:**
+  - 010: a renewed credential's My requests row keeps its bid and due date. It read the bid after the renewal had cleared the line, so the tender dropped and the due moved from 26 Apr to 16 Apr (`requests.ts` reads the bid as it stood before the renewal).
+  - 014: the Demo menu fits the window (`calc(100vh - 176px)`), so Views and Reset show at 1440 × 900 without a scroll. Compare's grid is 1100 px wide at minimum, so all five companies fit at 1440; at 1280 it still scrolls inside the card.
+- **Decisions:**
+  - 012 Q1: access unchanged. The Coordinator uploads in script E (logging intake is their job, with `tender.create`), then the Bid Manager or the Head of Tendering carries on.
+  - 012 Q2: the hero keeps "Arabic text prevails (§27)", as gcc-demo-data §4.1 says it should, even on an English booklet.
+  - 018: the send-back request opens `/dg3?tender=` (`requests.actions.ts`) and closes once the pack is re-issued or DG3 is decided (`requests.ts`). The guarantee amount is masked with the price.
+  - 024: the one-line `navFor` change: any entry keeps its company-wide children under a header that isn't a link, which changes only the CEO's sidebar.
+  - 010: the vault reads credential states company-wide, as the Head of Tendering sees them; bids not shared with the viewer show their ID only.
+  - 014: the preset audit is a "Presenter (demo control)" summary, and each step stays under the named person.
+  - All other deviations in the five reports are accepted.
+- **Carried to 016:**
+  - 012: Arabic file names outside the Arabic display (upload modal, toast, Documents list) fall back to the system font; the PDF viewer can't highlight Arabic words; the Documents card lacks the Arabic title.
+  - 014:
+    - the seeded inputs of T-2026-061 and T-2026-042 are stamped before the demo's DG1 Pursue;
+    - a DG1 re-open after Advance to Stage 3 leaves the pack open by direct link;
+    - presets reset the company with no confirmation;
+    - the `/demo/compare` title lives in `Header.tsx` rather than `screens.ts`.
+  - 018: while the pack is back with Compliance, the Head of Tendering's DG3 chip still reads "waiting on me"; a tender approved in the demo has no Stage 8 facts; the confirm's "The record will say" repeats the name.
+  - 024: at 1280 the company switcher shows only the mark, so the prospect's name shows only at 1440; more accent colours; each target in one home.
 
 **Wave 4 review (orchestrator, 2026-09-27): 007b, 008b, 009b, 011, 022 and 023 accepted.**
 - Typecheck and build pass. `/dev/checks` passes in all five tenants with no console errors (Najd 665, Corniche 257, Dafna 239, Batinah 246, Qurain 262 targets). `demo-itt:cbhh` 66/66, `demo-itt:ilra` 46/46, `hero-itt` 57/57; the demo PDFs carry pinned dates and rebuild byte-identical.

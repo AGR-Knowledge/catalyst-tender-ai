@@ -3,6 +3,7 @@ import { isScreenBuilt } from '@/pages/gcc/screens';
 import { isOutstanding, requestsFor, type Request } from '../requests';
 import type { ActionPrimary } from '../viewmodels';
 import { minsTo, openTender, urgency } from '../kpi/stages';
+import { DG3_BACK_TOPIC } from '../dg3/keys';
 import type { ActionSource } from './types';
 
 /**
@@ -15,11 +16,18 @@ import type { ActionSource } from './types';
 const TYPE: Record<Request['kind'], string> = { 'pack-input': 'Pack input', renewal: 'Renewal', request: 'Request' };
 
 function primaryOf(r: Request): ActionPrimary {
-  if (r.kind === 'renewal' && (isScreenBuilt('/company') || !r.tenderId)) return { kind: 'route', label: 'Open credentials', to: '/company' };
+  // A renewal opens its credential in the vault (plan 010). The request id is `renewal:{credId}`.
+  if (r.kind === 'renewal' && (isScreenBuilt('/company') || !r.tenderId)) {
+    return { kind: 'route', label: 'Open credentials', to: `/company?tab=credentials&cred=${encodeURIComponent(r.id.slice('renewal:'.length))}` };
+  }
   // A pack input opens its form on the tender's Inputs tab (plan 009b). The request id is `input:{TID}:{key}`.
   if (r.kind === 'pack-input' && r.tenderId) {
     const key = r.id.slice(r.id.lastIndexOf(':') + 1);
     return { kind: 'route', label: 'Open form', to: `/tenders/${encodeURIComponent(r.tenderId)}?tab=inputs&input=${encodeURIComponent(key)}` };
+  }
+  // A DG3 send-back opens the gate, where Compliance re-issues the pack (plan 018). The request id is `request:{TID}:{toId}:dg3-back`.
+  if (r.kind === 'request' && r.tenderId && r.id.endsWith(`:${DG3_BACK_TOPIC}`) && isScreenBuilt('/dg3')) {
+    return { kind: 'route', label: 'Open DG3', to: `/dg3?tender=${encodeURIComponent(r.tenderId)}` };
   }
   return openTender(r.tenderId);
 }

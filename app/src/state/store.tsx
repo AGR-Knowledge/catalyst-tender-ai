@@ -131,7 +131,8 @@ type Action =
   | { type: 'registerUpload'; id: string; tenderId: string }
   | { type: 'removeUpload'; id: string }
   | { type: 'addTenant'; value: Tenant }
-  | { type: 'reset'; scope: ResetScope };
+  | { type: 'reset'; scope: ResetScope }
+  | { type: 'preset'; tenant: string; writes: { key: string; value: string }[]; audit: Omit<AuditEvent, 'id' | 'at'>[] };
 
 const STORAGE_KEY = 'ctai.demo.v2';
 const V1_KEY = 'ctai.demo.v1';
@@ -327,6 +328,19 @@ function reducer(s: Inner, a: Action): Inner {
         drawer: null, modal: null,
       };
     }
+    case 'preset': {
+      // Plan 014: the tenant reset as "Reset this company" does, then the recipe's writes and audit entries, in one step.
+      if (!TENANTS.some((t) => t.key === a.tenant && t.world === 'gcc')) return s;
+      const { [a.tenant]: _cleared, ...kept } = s.doneBy;
+      const { [a.tenant]: _audit, ...auditKept } = s.auditBy;
+      const doneBy: Record<string, Record<string, string>> = kept;
+      for (const w of a.writes) {
+        const b = bucketOf(w.key, a.tenant);
+        doneBy[b] = { ...doneBy[b], [w.key]: w.value };
+      }
+      const auditBy = a.audit.reduce((acc, e) => appendAudit(acc, a.tenant, e), auditKept);
+      return { ...s, doneBy, auditBy, viewAs: null, uploadsAll: s.uploadsAll.filter((u) => u.tenant !== a.tenant), drawer: null, modal: null };
+    }
   }
 }
 
@@ -362,6 +376,12 @@ interface Api {
   setTenant: (key: string) => void;
   /** Clears the active tenant's actions and uploads, or every tenant's (with onboarding and added tenants). */
   reset: (scope?: ResetScope) => void;
+  /**
+   * Demo control (plan 014): reset a GCC tenant as Reset does, then record a
+   * scenario preset's `done` writes and audit entries (stamped on the demo
+   * clock from 10:00), in one state update. The caller toasts.
+   */
+  applyPreset: (tenant: string, writes: { key: string; value: string }[], audit: Omit<AuditEvent, 'id' | 'at'>[]) => void;
   /** The store stamps the active tenant. */
   addUpload: (u: Omit<Upload, 'tenant'>) => void;
   registerUpload: (id: string, tenderId: string) => void;
@@ -449,6 +469,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
           ? 'Demo reset for every company. Tenders are back at their starting positions'
           : `Demo reset for ${nameStop(nameOf(state.tenant))} Tenders are back at their starting positions`, 'ink3');
       },
+      applyPreset: (tenant, writes, audit) => dispatch({ type: 'preset', tenant, writes, audit }),
     };
   }, [state, toast]);
 

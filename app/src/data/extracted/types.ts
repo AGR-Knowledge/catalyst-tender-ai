@@ -63,6 +63,8 @@ export interface ExtractedTender {
   language: string;
   /** True when pages are images and need OCR. */
   scanned: boolean;
+  /** The 1-based pages that are scanned images and were read by OCR (plan 012), when the record knows them. */
+  ocrPages?: number[];
 
   /** Full name of the work as printed. */
   title: string;

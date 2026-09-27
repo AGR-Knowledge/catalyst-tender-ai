@@ -6,6 +6,7 @@ import { moneyPair, type MoneyPair } from '@/domain/money';
 import { addHours, minutesBetween } from '@/domain/gcc/clock';
 import type { Person } from '@/data/people';
 import { lifecycle, visible } from '@/domain/gcc/lifecycle';
+import { ocrOf, ocrText } from '@/domain/gcc/arabic';
 import type { Done } from './done';
 import { eligibilityFor, fitScoresFor } from './eligibility';
 import { dataOf, keyDate, tenantCcy, timeOf, weightedOf } from './common';
@@ -87,7 +88,9 @@ export function pipelineFor(tenant: string, intakeEventId: string): Pipeline | n
   if (!e) return null;
   const t = register(tenant, e.tenderId);
   const source = d.sources.find((s) => s.id === e.sourceId);
-  const needsOcr = e.language === 'AR' || source?.kind === 'scan';
+  // Plan 012: the record says whether the document was scanned; with no record, a scanned source still needs OCR.
+  const rec = recordOf(t?.docKey);
+  const needsOcr = rec ? rec.scanned : source?.kind === 'scan';
 
   if (!e.loggedAt) {
     return {
@@ -108,7 +111,7 @@ export function pipelineFor(tenant: string, intakeEventId: string): Pipeline | n
     classified: e.docType,
     sensitivity: e.disposition === 'restricted' || t?.restricted ? 'Restricted: routed to the restricted lane' : 'Standard',
     language: LANGUAGE[e.language],
-    ocr: needsOcr ? `${counts ? `${counts.pages} pages` : 'Scanned pages'} read` : 'Not needed: the document has a text layer',
+    ocr: needsOcr ? (rec ? ocrText(ocrOf(rec)) : 'Scanned pages read') : 'Not needed: the document has a text layer',
     fields: counts ? `${counts.fields} fields; ${counts.low} below the confidence threshold` : undefined,
     register: e.disposition === 'addendum' ? `Addendum, linked to ${e.tenderId}` : e.disposition === 'duplicate' ? `Duplicate, merged into ${e.tenderId}` : 'New tender',
     screened: live ? `Fit ${Math.round(weightedOf(d, live.scores))} for this company${elig ? `; ${elig.text}` : ''}` : undefined,
