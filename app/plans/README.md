@@ -25,7 +25,9 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 013 | [Stage dashboards and My requests](013-stage-dashboards.md): one dashboard per stage (1–9), shared by its owner and the Head of Tendering; Finance/HR requests | 3 | 006, 017, 020 | DONE (2026-09-26) |
 | 014 | [Presenter controls and the Compare tenants lens](014-presenter-controls.md): the Demo menu, four scenario presets, Advance agent work, Advance to Stage 3 for T-2026-061 and T-2026-042, Compare tenants | 5 | 007b, 008b, 009b, 021, 022, 023 | DONE (2026-09-27, reviewed) |
 | 015 | [Portfolio dashboards](015-portfolio-dashboards.md): Head of Tendering, CEO and Bid Manager homes; PF KPIs, decision funnel, approvals, stage graph with drill-down | 3 | 006, 017, 020 | DONE (2026-09-26) |
-| 016 | Script QA and polish (spec §19 acceptance) | 6 | all | Outline |
+| 016a | [Polish: rules, counts and seed fixes](016a-fixes-rules-data.md) carried from waves 3–5: screening totals, the DG3 chip, Stage 8 facts after DG3, DG1 re-open after Stage 3 entry, levelled totals for `see.quotes.summary`, the workspace audit tab, seed slips | 6 | waves 1–5 | READY |
+| 016b | [Polish: the top bar, the dashboard kit, workspace and gate screens](016b-fixes-screens-copy.md): the top bar at 1280 and 1440, table heights, stage chips, My requests row click, preset confirmation, Arabic file names, copy slips | 6 | waves 1–5 | READY |
+| 016c | [Script QA](016c-script-qa.md): scripts A–F end to end (spec §17, §19), the presenter runbook, the spec brought up to date | 6 | 016a, 016b | READY after 016a and 016b are reviewed |
 | 018 | [DG3 approval](018-dg3-approval.md): the Head of Tendering's final gate (evidence left, decision right), send back to Compliance and re-issue, Qurain's guarantee catch | 5 | 009b, 013, 015, 017 | DONE (2026-09-27, reviewed) |
 | 019 | [Tender Workspace and kit part 2](019-tender-workspace.md): `/tenders/:id` with header, tab registry, rail, Overview and Decisions & audit; RecommendationCard, OverrideModal, SourceChip (PDF at the page), Callout, Sheet, RequestButton, AuditEntry …; ⌘K tender search | 3 | 006, 017, 007a, 009a, 020 | DONE (2026-09-26) |
 | 020 | [Review fixes](020-review-fixes.md): the 2026-09-26 review of 006, 017, 007a, 008a and 009a; five parallel lanes (A shell and access, B lifecycles and seed, C Stage 1, D Stage 2, E Stage 3) | 2c | 006, 017, 007a, 008a, 009a | DONE (2026-09-26) |
@@ -230,6 +232,19 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 6 (orchestrator, 2026-09-27):** 016a and 016b in parallel, then 016c alone after their review. File ownership:
+  - **016a** owns the rules and seed fixes:
+    - `domain/gcc/actions/portfolio.actions.ts`, `stages.actions.ts`, `lifecycle.port.ts`, `kpi/**`;
+    - the named items in `domain/gcc/s1`, `s2` and `s3`, `workspace/audit.ts`, `demo/50-dg3.apply.ts` and `demo/25-stage3-entry.apply.ts`;
+    - `pages/gcc/s1/Screening.tsx`, `pages/gcc/s2/**`, the `keyDatesFor` call sites in `dates.tab.tsx` and `KeyDateList.tsx`;
+    - the seed corrections in `data/**`, the dev checks, and dashboards.md's Batinah note.
+  - **016b** owns the screens and copy:
+    - `components/layout/**` (TenantSwitch, Header, GccSearch, DemoMenu), `styles/components.css`, `styles/layout.css`, the font stacks in `tokens.css`, `screenHead`;
+    - one `ModalSpec` case in `store.tsx`, `overlays/Modals.tsx`;
+    - the dashboard kit (`base.cols`, `requests.cols`, `dashboard.css`, `TenderGrid`, `StageChart`, `DashboardPage`), and the exported route in `requests.actions.ts`;
+    - `WorkspaceHeader`, `workspace/header.ts`, `Rail`, the `documents` and `bid-decision` tabs, `UploadGcc`, `Credentials.tsx`, `dg3/DecisionPanel`, `dg2/PositionForm`.
+  - **016c** runs alone and may fix small things in any file. It writes `docs/07-product-design/agr-product-definition/demo-runbook.md` and updates spec §1, §17 and §19.
+  - **Decisions:** Weighted stays on Stage 3 issued packs (dashboards.md §6). The seeded input times of T-2026-061 and T-2026-042, and Arabic highlighting in the PDF viewer, are known limits for the runbook. `see.quotes.summary` shows levelled and mix totals with the suppliers' original prices masked (the capability's label, `access.ts`).
 - **Wave 5 (in parallel, five sessions; orchestrator, 2026-09-27):** 010, 012, 014, 018 and 024. Plan 010 was split: 010 is Company, 024 is Administration. File ownership, so no two sessions edit one file:
   - **010** owns `pages/gcc/company/**`, `domain/gcc/company/**`, `dev-checks/66-company.tsx`, the `/company` entry in `screens.ts`, the renewal route in `requests.actions.ts`, and "Add evidence" in `EligibilityPanel.tsx`.
   - **012** owns `domain/gcc/arabic/**`, `components/tender/BilingualValue.tsx`, `workspace/parts/ReadInEnglish.tsx`, `dev-checks/73-arabic.tsx`, the font (`package.json`, `main.tsx`, `tokens.css`), `ocrPages` on the record type and ILRA_042, `pipelineFor`'s OCR step, and the Requirements, Documents and Overview tabs, `ValidationCard`, `KeyDateList`, and a backward-compatible `SourceChip` tip.
