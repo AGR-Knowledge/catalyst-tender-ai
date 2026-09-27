@@ -37,6 +37,7 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 024 | [Administration](024-administration.md): users and roles with View as, committees and gates, sources, the fit model what-if with live impact, targets and SLAs, prospect branding | 5 | 003, 006, 011, 013, 015 | DONE (2026-09-27, reviewed) |
 | 025a | [Records on the demo clock](025a-demo-clock.md): Stage 2, Stage 3, DG2 and DG3 records stamped with their audit entry's minute; focus after a DG2 or DG3 decision | 7 | wave 6 | DONE (2026-09-27, reviewed) |
 | 025b | [A tender moves on once validated](025b-validated-step.md): Validating → Awaiting DG1 when the last blocking field is resolved; focus after a queue card and after DG1 | 7 | wave 6 | DONE (2026-09-27, reviewed) |
+| 026 | [Validated tenders join DG1](026-dg1-after-validation.md): the four tenders routed to validation join DG1 decisions once validated, with one DG1 due on every screen; focus after Cancel, DG1 Re-open and a drawer opened from another page; the stage graph's last point | 8 | wave 7 | READY |
 
 **Wave 7 review of 025a and 025b (orchestrator, 2026-09-27): both accepted, committed as one milestone.**
 - Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 772, Corniche 363, Dafna 344, Batinah 352 and Qurain 367. That is wave 6's counts plus 025b's 28 rows (76) and 025a's 15 (99). No existing target moved.
@@ -290,6 +291,12 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 8 (orchestrator, 2026-09-27):** 026 alone, one session, from the wave 7 review's Open list. The pieces share Stage 1 files, so they are not split. 026 owns:
+  - `domain/gcc/dg1/record.ts`, `demo/05-validated.apply.ts` (and `10-dg1.apply.ts` if needed);
+  - `pages/gcc/s1/Dg1.tsx`, `parts/Dg1Form.tsx`, `Dg1Record.tsx`, `ValidationCard.tsx`;
+  - `components/overlays/Frames.tsx` and `pages/gcc/company/Credentials.tsx` (finding 9 only);
+  - `domain/gcc/period.ts` (`windowEnd`), `metrics/stages.metric.ts`, `steps.metric.ts`;
+  - the dev checks whose targets it moves, and the new 77.
 - **Wave 7 (orchestrator, 2026-09-27):** 025a and 025b in parallel, from 016c's open findings. File ownership:
   - **025a** owns:
     - the Stage 2, Stage 3, DG2 and DG3 writers (`domain/gcc/s2`, `s3`, `dg2`, `dg3`) and their call sites (`pages/gcc/s2`, `s3`, `dg2`, `dg3`, `supplier`, `workspace/tabs/inputs.tab.tsx`);
