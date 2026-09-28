@@ -89,7 +89,7 @@ export default function Screening() {
       counted: `Committed hours plus each tender's effort estimate, over available hours, month by month. ${triage.windowLabel}.`, target: 'Up to 100% of bid capacity', source: 'Bid-team commitments and effort estimates',
     }, ctx, {
       sub: busiest ? `${busiest.name}, ${busiest.peak.month}` : 'No effort estimates', tone: busiest && busiest.peak.pct > 100 ? 'red' : 'ink',
-      detail: busiest ? busiest.name : 'No effort estimates', ...(busiest ? { ref: { k: 'Peak', v: busiest.peak.month } } : {}),
+      detail: busiest ? busiest.name : 'No effort estimates', ref: { k: 'Peak', v: busiest ? busiest.peak.month : 'None' },
       // Over 100% of bid capacity: "Off track" would read as a schedule.
       ...(busiest && busiest.peak.pct > 100 ? { status: 'Over capacity' } : {}),
     }),

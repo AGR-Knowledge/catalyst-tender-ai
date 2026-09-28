@@ -319,19 +319,23 @@ Each field carries a value, confidence, page, a note, and for Arabic documents `
   - "Initial guarantee must be valid at least 90 days from opening (to 8 Aug 2026): bank lead time 5 working days".
 - Reminders follow the Workbench rule: 3 days before and 1 day before, to the owner and the Bid Manager, escalating to the Head of Tendering 24 hours before an unmet deadline.
 - **The Calendar page (`/calendar`, plan 027b)** puts every dated item across the tenders the viewer may see on one calendar, as Outlook does. It reads each date from the module that holds it, so it never disagrees with the Key dates tab, the tracker, the credentials vault or the package board. It records nothing.
-  - **Three views**, with the view and the month or week shown in the URL:
-    - **Month:** six weeks, Sunday first. The tenant's weekend is shaded, the public closures ("Eid al-Fitr, expected") and Ramadan's reduced hours run across their days, and today is circled. Each day shows three items and "+n more";
-    - **Week:** a time grid from 07:00 to 19:00, an all-day lane on top, and a red line at the demo clock;
+  - **The working week follows the tenant's country** (orchestrator follow-up, 2026-09-28). KSA, Qatar, Oman and Kuwait work Sunday to Thursday, so their weeks start on Sunday. The UAE moved to a Monday-to-Friday week (Saturday–Sunday weekend) in 2022, so Corniche's weeks start on Monday. A key date set by an authority in another country can fall on the tenant's weekend. Its detail then says so: "Sun 10 May is your weekend in the UAE (Sat–Sun) but a working day for the authority in Saudi Arabia".
+  - **Four views**, with the view and the date shown in the URL. The month and both weeks **fit the window**: the page doesn't scroll at 1280 × 760 or larger.
+    - **Month:** the four to six weeks the month needs, from the first working day. The weekend is hatched and labelled. The public closures ("Eid al-Fitr, expected") and Ramadan's reduced hours share one banner row, and Ramadan leaves out the closure days. Today's date is filled in ink.
+      - Each day lists its items **most important first**, as many as its cell holds; a week is never shorter than one item plus "+n more".
+      - "+n more", or a date with items, opens **the whole day**: its working-calendar notes, then every item grouped by category. A row opens the item's detail over the list, and "Back to Sun 15 Mar" returns to it. "Open the week" shows the day at its times.
+    - **Work week:** the five working days, as a time grid. A weekend day opens the work week after it.
+    - **Week:** all seven days as a time grid from 07:00 to 19:00, stretched to fit, with an all-day lane on top and a red line at the demo clock.
     - **Agenda:** the list by week, with the working-calendar notes beside it.
-  - **Seven categories, one colour each** (never the tenant's accent), explained in a legend:
+  - **Seven categories, one colour each** (never the tenant's accent), in order of importance. That order is how a day lists its items. Within a kind, a flagged item comes first, then the viewer's own, then the deciding key date (the submission before the opening and the originals), then by time.
     - Submissions (submission, bid opening, originals) in red;
+    - Decision gates (DG1–DG3 due) in violet;
     - Authority deadlines (purchase, participation, questions, answers) in orange;
     - Meetings and visits in cyan;
-    - Decision gates (DG1–DG3 due) in violet;
-    - Supplier quotes (replies due, one item per package and day) in green;
-    - Validity and renewals (bid and guarantee validity, credential expiries, renewal requests) in blue;
-    - Your requests, as an outlined chip.
-  - **Filters:** "Only mine" keeps the tenders the viewer owns or manages, the gates they decide, the credentials they own and the requests they owe. "Show" turns categories on and off, with a count for each.
+    - Your requests, as an outlined chip;
+    - Supplier quotes in green: **one item per tender and day**, however many packages are due ("Quotes · 9 packages"). Its detail lists each package's replies;
+    - Validity and renewals (bid and guarantee validity, credential expiries, renewal requests) in blue.
+  - **The legend is also the filter.** Each category is a pill with its count this month; a click hides it (struck through, dashed) or shows it. "Only mine" keeps the tenders the viewer owns or manages, the gates they decide, the credentials they own and the requests they owe. "How to read the calendar" (ⓘ) gives each colour's meaning, the order of a day, the working week, the banners and the time zones.
   - **Access:** Supplier quotes need `sourcing.view` and credentials need `company.view`. Restricted tenders never appear for someone who isn't cleared.
   - **Times:** key dates show in the authority's time zone and every other item in the tenant's.
   - **The detail modal** opens from any item. It shows:

@@ -96,6 +96,8 @@ const DEMO_FIGURE = 'Demo figure, not live telemetry.';
 const MONTH_TEXT = `This month to ${dateText(DEMO_TODAY)}`;
 const pct1 = (n: number) => `${(Math.round(n * 10) / 10).toFixed(1).replace(/\.0$/, '')}%`;
 const shortOf = (name: string) => name.split(' ')[0];
+/** "Credentials expiring": a lower-case state as a line of its own. */
+const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
 
 /* ------------------------------------------------------------ per tenant */
 
@@ -170,6 +172,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
   const notHealthy = sources.filter((x) => x.s.state !== 'healthy');
   const anyDown = notHealthy.some((x) => x.s.state === 'down');
   const STATE_TEXT: Record<Source['state'], string> = { healthy: 'healthy', degraded: 'degraded', 'credentials-expiring': 'credentials expiring', down: 'down' };
+  const STATE_RANK: Record<Source['state'], number> = { down: 0, degraded: 1, 'credentials-expiring': 2, healthy: 3 };
+  const worstSource = [...notHealthy].sort((a, b) => STATE_RANK[a.s.state] - STATE_RANK[b.s.state])[0];
 
   // PLT-3: the slowest tenant's p90.
   const p90s = live.flatMap((r) => {
@@ -202,6 +206,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       id: 'PLT-1', label: 'Tenants',
       display: `${live.length} live`,
       sub: `${onboarding.length} onboarding · ${regions} residency ${regions === 1 ? 'region' : 'regions'}`,
+      detail: `${onboarding.length} onboarding · ${regions} ${regions === 1 ? 'region' : 'regions'}`,
+      ref: { k: 'Next', v: onboarding[0]?.short ?? 'None' },
       info: info('Tenants', {
         means: 'The EPC companies running on the platform, and those being set up. Each tenant’s data stays in its own residency region',
         counted: 'Live tenants, then tenants still onboarding, and the distinct residency regions of the live ones. The full-lifecycle preview tenant is a demo environment and is not counted.',
@@ -214,6 +220,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       display: `${healthy} of ${sources.length}`,
       sub: notHealthy.length ? notHealthy.map((x) => `${x.tenant}: ${STATE_TEXT[x.s.state]}`).join(' · ') : 'Every portal and mailbox connection is working',
       tone: anyDown ? 'red' : notHealthy.length ? 'orange' : 'green',
+      detail: !worstSource ? 'Every connection working' : notHealthy.length === 1 ? cap(STATE_TEXT[worstSource.s.state]) : `${notHealthy.length} not healthy`,
+      ref: { k: 'Worst', v: worstSource ? worstSource.tenant : 'None' },
       info: info('Connectors healthy', {
         means: 'Whether the portal, mailbox and scan connections across every live tenant are working. A broken source is how a tender gets missed',
         counted: 'Connections reporting Healthy at their last poll ÷ connections configured, over all live tenants. The same records as each tenant’s own “Sources healthy” tile.',
@@ -226,6 +234,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       display: slowest ? `${slowest.p} min` : 'No notices logged',
       sub: slowest ? `Slowest tenant, ${slowest.r.short} · target ${INTAKE_TARGET_MIN} min` : undefined,
       tone: slowest ? intakeTone(slowest.p) : undefined,
+      detail: slowest ? `Slowest tenant, ${slowest.r.short}` : 'Over the last 30 days',
+      ref: { k: 'Target', v: `${INTAKE_TARGET_MIN} min` },
       info: info('Intake p90', {
         means: 'How long notices take from arriving to being logged, for the tenant where it is slowest. Each tenant’s own figure is in the tenant list',
         counted: 'For each live tenant, the 90th percentile (nearest rank) of the minutes from receipt to logged over 30 days: the same minutes and rule as that tenant’s “Intake to logged” tile. The highest is shown.',
@@ -238,6 +248,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       display: `${atTarget} of ${rates.length}`,
       sub: `agents at ${EVAL_BAND.target}%+ · lowest ${pct1(lowest.pct)}, ${lowest.a.agent}`,
       tone: evalTone,
+      detail: `Agents at ${EVAL_BAND.target}% or more`,
+      ref: { k: 'Worst', v: pct1(lowest.pct) },
       info: info('Eval pass rate', {
         means: `How each of the ${AGENT_EVALS.length} agents scores against its golden set: known documents with known right answers. A release ships only if every agent clears the floor`,
         counted: `Golden-set cases passed ÷ cases, per agent, on release ${stable?.version ?? ''}. Agents at or above the target are counted; the lowest is named.`,
@@ -251,6 +263,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       display: top ? `${top.s}%` : 'No spend yet',
       sub: top ? `Highest: ${top.r.short} · ${near} at ${SPEND_WARN_PCT}%+ of ceiling` : undefined,
       tone: top ? spendTone(top.s) : undefined,
+      detail: top ? `Highest: ${top.r.short}` : 'This month',
+      ref: { k: 'Target', v: `under ${SPEND_WARN_PCT}%` },
       info: info('Model spend', {
         means: 'Model usage against each tenant’s monthly ceiling. At the ceiling the router moves the tenant to the economy tier rather than stop its work',
         counted: 'Spend so far this month as a share of the tenant’s ceiling; the highest tenant is shown, with how many are at the warning level. Shares only: amounts are not shown.',
@@ -263,6 +277,8 @@ function tiles(rows: TenantRowVM[], log: BreakGlassLogVM[]): TileVM[] {
       display: String(open.length),
       sub: open.length ? open.map((l) => `${shortOf(l.tenant)}, ${l.when}`).join(' · ') : 'No access requests open',
       tone: open.length ? 'orange' : undefined,
+      detail: open.length === 1 ? `${shortOf(open[0].tenant)}, ${open[0].when}` : open.length ? `${open.length} requests open` : 'No access requests open',
+      ref: { k: 'Target', v: 'None open' },
       info: info('Open break-glass', {
         means: 'Requests by Catalyst to look inside one tenant’s data. Each is time-boxed, read only, needs a second approver, and is shown to that tenant’s Head of Tendering, who can revoke it',
         counted: 'Requests not yet revoked, across all tenants. The same records the tenant sees in its audit log.',

@@ -48,6 +48,7 @@ function Body({ tenant, d }: { tenant: string; d: CalendarDetailVM }) {
         <h4>When</h4>
         <p className="gcal-md-when"><span className="num">{when.text}</span><span className="cd">{when.countdown}</span></p>
         {when.tenantText && <p className="gcal-md-alt num">{when.tenantText}</p>}
+        {when.weekendNote && <p className="gcal-md-alt">{when.weekendNote}</p>}
         {item.flags.length > 0 && <ul className="gcal-md-flags">{item.flags.map((f) => <li key={f}><span aria-hidden>! </span>{f}</li>)}</ul>}
       </section>
 
@@ -111,11 +112,13 @@ function Body({ tenant, d }: { tenant: string; d: CalendarDetailVM }) {
   );
 }
 
-export function EventModal({ id, tenant, viewer, done, onClose, onGo }: {
+export function EventModal({ id, tenant, viewer, done, back, onClose, onGo }: {
   id: string | null;
   tenant: string;
   viewer: Person;
   done: Readonly<Record<string, string>>;
+  /** Opened from a day's list: the close button's label, "Back to Sun 15 Mar". */
+  back?: string;
   onClose(): void;
   onGo(to: string): void;
 }) {
@@ -134,7 +137,7 @@ export function EventModal({ id, tenant, viewer, done, onClose, onGo }: {
           onClose={onClose}
           actions={[
             ...shown.actions.map((a) => ({ label: a.label, primary: a.primary, onClick: () => onGo(a.to) })),
-            { label: 'Close', onClick: onClose },
+            { label: back ?? 'Close', onClick: onClose },
           ]}
         >
           <Body tenant={tenant} d={shown} />

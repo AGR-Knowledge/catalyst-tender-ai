@@ -39,11 +39,11 @@ const dueSplit = (tenderId: string, due: string, wd: number): Pick<KpiResult, 'd
   ref: wd < 0 ? { k: 'Worst', v: wdText(wd) } : { k: 'Time left', v: wdText(wd) },
 });
 
-/** A turnaround tile's lines (`turnaround` in ./stages): the p90 in the period, against its target. */
-function turnSplit(ctx: KpiCtx, kind: 'replan' | 'reprice', target: number): Pick<KpiResult, 'detail' | 'ref'> {
+/** A turnaround tile's lines (`turnaround` in ./stages): the p90 in the period, against its target, which stays with none in the period. */
+function turnSplit(ctx: KpiCtx, kind: 'replan' | 'reprice', target: number, none: string): Pick<KpiResult, 'detail' | 'ref'> {
   const list = qOf(ctx).workEventsIn(ctx.window, kind);
   const p90 = nearestRank(list.map((x) => x.e.turnaroundH), 90);
-  return p90 === null ? {} : { detail: `p90 turnaround ${hoursShort(p90)}`, ref: { k: 'Target', v: hoursShort(target) } };
+  return { detail: p90 === null ? none : `p90 turnaround ${hoursShort(p90)}`, ref: { k: 'Target', v: hoursShort(target) } };
 }
 
 export const KPIS: KpiDef[] = [
@@ -56,7 +56,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = baselinesDue(ctx);
-      if (!list.length) return { display: '0', sub: 'No baseline due this week', detail: 'None due this week', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'No baseline due this week', detail: 'None due this week', ref: { k: 'Next', v: 'None' }, tone: 'green' };
       const first = list[0];
       const tone: Tone = list.some((x) => x.wd < 0) ? 'red' : 'orange';
       return { display: String(list.length), sub: `First: ${first.l.tenderId} · ${dayText(first.f.baselineDue)} · ${wdText(first.wd)}`, ...dueSplit(first.l.tenderId, first.f.baselineDue, first.wd), tone };
@@ -72,7 +72,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = overTime(ctx);
-      if (!list.length) return { display: '0', sub: 'Every programme fits the time allowed', detail: 'All fit the time allowed', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every programme fits the time allowed', detail: 'All fit the time allowed', ref: { k: 'Worst', v: 'None' }, tone: 'green' };
       const w = list[0];
       return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.durationPlannedM} vs ${w.f.durationRequiredM} months`, detail: `${w.f.durationPlannedM} vs ${w.f.durationRequiredM} months`, ref: { k: 'Worst', v: w.l.tenderId }, tone: 'red' };
     },
@@ -87,8 +87,8 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = clashes(ctx);
-      if (!list.length) return { display: '0', sub: 'No two bids need the same people or plant', detail: 'No two bids clash', tone: 'green' };
-      return { display: String(list.length), sub: `${list[0].l.tenderId} with ${list[0].with}`, detail: fit(`${list[0].l.tenderId} with ${list[0].with}`, `With ${list[0].with}`), tone: 'orange' };
+      if (!list.length) return { display: '0', sub: 'No two bids need the same people or plant', detail: 'No two bids clash', ref: { k: 'Target', v: '0' }, tone: 'green' };
+      return { display: String(list.length), sub: `${list[0].l.tenderId} with ${list[0].with}`, detail: fit(`${list[0].l.tenderId} with ${list[0].with}`, `With ${list[0].with}`), ref: { k: 'Target', v: '0' }, tone: 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Resource clashes'), clashes(ctx).map((x) => x.l.tenderId)),
   },
@@ -99,7 +99,7 @@ export const KPIS: KpiDef[] = [
       counted: 'Re-plans triggered in the period (addendum, quote lead time, scope change), with the 90th percentile turnaround.',
       target: `p90 turnaround ${TURNAROUND_HOURS.replan} h or less`, source: 'Programme change log',
     },
-    compute: (ctx) => ({ ...turnaround(ctx, 'replan', TURNAROUND_HOURS.replan, 're-plan'), ...turnSplit(ctx, 'replan', TURNAROUND_HOURS.replan) }),
+    compute: (ctx) => ({ ...turnaround(ctx, 'replan', TURNAROUND_HOURS.replan, 're-plan'), ...turnSplit(ctx, 'replan', TURNAROUND_HOURS.replan, 'No programme changes') }),
     drill: (ctx) => idsDrill(`From tile: Re-plans · ${ctx.window.label}`, qOf(ctx).workEventsIn(ctx.window, 'replan').map((x) => x.l.tenderId)),
   },
   {
@@ -109,7 +109,10 @@ export const KPIS: KpiDef[] = [
       counted: 'M2 reconciliations due in the period that were completed by their planned date ÷ M2 reconciliations due in the period.',
       target: '100% green; 80% or more orange', source: 'M2 reconciliation records',
     },
-    compute: (ctx) => { const r = onTimeRate(dueInWindow(ctx, 'm2'), 'No M2 due in this period', RATE_BANDS['PLN-6'], 'by their date'); return { ...r, detail: r.sub }; },
+    compute: (ctx) => {
+      const r = onTimeRate(dueInWindow(ctx, 'm2'), 'No M2 due in this period', RATE_BANDS['PLN-6'], 'by their date');
+      return { ...r, detail: r.sub ?? 'No M2 checkpoint due', ref: { k: 'Target', v: `${RATE_BANDS['PLN-6'].green}%` } };
+    },
     drill: (ctx) => idsDrill(`From tile: M2 due · ${ctx.window.label}`, dueInWindow(ctx, 'm2').map((x) => x.l.tenderId), { order: dueInWindow(ctx, 'm2').filter((x) => !x.onTime).map((x) => x.l.tenderId) }),
   },
 ];

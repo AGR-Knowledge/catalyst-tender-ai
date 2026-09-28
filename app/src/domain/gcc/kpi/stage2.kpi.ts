@@ -73,11 +73,13 @@ export const KPIS: KpiDef[] = [
         };
       }
       const sent = sentIn(ctx);
-      if (!sent.length) return { display: 'No RFQs sent in this period', sub: 'No tender is on the 24 h clock now', detail: 'None on the 24 h clock' };
+      // The target is every tender's RFQs out within 24 h: the same line whether or not any went out.
+      const target = { k: 'Target', v: '100%' };
+      if (!sent.length) return { display: 'No RFQs sent in this period', sub: 'No tender is on the 24 h clock now', detail: 'None on the 24 h clock', ref: target };
       const on = sent.filter((x) => x.onTime).length;
       const pct = pctOf(on, sent.length);
       return {
-        display: `${pct}%`, sub: `RFQs within 24 h of DG1 · ${on} of ${sent.length}`, detail: `${on} of ${sent.length} within 24 h`, n: sent.length,
+        display: `${pct}%`, sub: `RFQs within 24 h of DG1 · ${on} of ${sent.length}`, detail: `${on} of ${sent.length} within 24 h`, ref: target, n: sent.length,
         ...(isSmall(sent.length) ? { smallSample: true } : { tone: pct === 100 ? 'green' as const : 'orange' as const }),
       };
     },
@@ -98,7 +100,12 @@ export const KPIS: KpiDef[] = [
       const quoted = all.filter((x) => atOrPast(x.l, 2, 'quotes-in'));
       const waiting = all.length - quoted.length;
       const more = waiting ? ` · ${waiting} awaiting quotes` : '';
-      if (!quoted.length) return { display: all.length ? 'No quotes in yet' : 'No tenders in sourcing', ...(all.length ? { sub: `${plural(all.length, 'tender')} with RFQs out`, detail: `${plural(all.length, 'tender')} with RFQs out` } : {}) };
+      if (!quoted.length) {
+        return {
+          display: all.length ? 'No quotes in yet' : 'No tenders in sourcing', ref: { k: 'Worst', v: 'None' },
+          ...(all.length ? { sub: `${plural(all.length, 'tender')} with RFQs out`, detail: `${plural(all.length, 'tender')} with RFQs out` } : { detail: 'No packages to cover' }),
+        };
+      }
       const covered = quoted.reduce((s, x) => s + x.f.packages.covered, 0);
       const total = quoted.reduce((s, x) => s + x.f.packages.total, 0);
       const least = [...quoted].sort((a, b) => a.f.packages.covered / a.f.packages.total - b.f.packages.covered / b.f.packages.total)[0];
@@ -121,10 +128,11 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const all = s2Of(ctx);
       const due = all.reduce((s, x) => s + x.f.rfqs.dueSoFar, 0);
-      if (!due) return { display: 'No replies due yet', ...(all.length ? { sub: 'Reply dates are still ahead', detail: 'Reply dates still ahead' } : {}) };
+      const ref = { k: 'Target', v: `${STAGE_BANDS.repliesOnTime.green}%` };
+      if (!due) return { display: 'No replies due yet', ref, ...(all.length ? { sub: 'Reply dates are still ahead', detail: 'Reply dates still ahead' } : { detail: 'No tenders in sourcing' }) };
       const on = all.reduce((s, x) => s + x.f.rfqs.answeredOnTime, 0);
       const pct = pctOf(on, due);
-      return { display: `${pct}%`, sub: `${on} of ${due} replies by their date`, detail: fit(`${on} of ${due} replies by their date`, `${on} of ${due} by their date`), tone: rateTone(pct, STAGE_BANDS.repliesOnTime), n: due };
+      return { display: `${pct}%`, sub: `${on} of ${due} replies by their date`, detail: fit(`${on} of ${due} replies by their date`, `${on} of ${due} by their date`), ref, tone: rateTone(pct, STAGE_BANDS.repliesOnTime), n: due };
     },
   },
   {
@@ -139,7 +147,7 @@ export const KPIS: KpiDef[] = [
       const overdue = all.reduce((s, x) => s + x.f.rfqs.overdue, 0);
       const escalated = all.reduce((s, x) => s + x.f.rfqs.escalated, 0);
       const tone: Tone = !overdue ? 'green' : escalated ? 'red' : 'orange';
-      return { display: String(overdue), sub: `${escalated} escalated`, detail: `${escalated} escalated`, tone };
+      return { display: String(overdue), sub: `${escalated} escalated`, detail: `${escalated} escalated`, ref: { k: 'Target', v: '0' }, tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Overdue RFQs'), ids(s2Of(ctx).filter((x) => x.f.rfqs.overdue > 0))),
   },
@@ -154,7 +162,7 @@ export const KPIS: KpiDef[] = [
       const all = s2Of(ctx);
       const open = all.reduce((s, x) => s + x.f.clarifications.open, 0);
       const stale = all.reduce((s, x) => s + x.f.clarifications.stale, 0);
-      return { display: String(open), sub: `${stale} stale`, detail: `${stale} stale`, tone: stale ? 'red' : 'green' };
+      return { display: String(open), sub: `${stale} stale`, detail: `${stale} stale`, ref: { k: 'Target', v: '0 stale' }, tone: stale ? 'red' : 'green' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Open clarifications'), ids(s2Of(ctx).filter((x) => x.f.clarifications.open > 0))),
   },
@@ -168,9 +176,10 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const withQuotes = s2Of(ctx).filter((x) => x.f.toLevel > 0);
       const n = withQuotes.reduce((s, x) => s + x.f.toLevel, 0);
-      if (!n) return { display: '0', sub: 'Every quote is confirmed', detail: 'Every quote is confirmed' };
+      // Information: the agent proposes each adjustment and a buyer confirms it (the ⓘ), so the line says who they wait on.
+      if (!n) return { display: '0', sub: 'Every quote is confirmed', detail: 'Every quote is confirmed', ref: { k: 'Waiting on', v: 'None' } };
       const sub = withQuotes.length === 1 ? `on ${withQuotes[0].l.tenderId}` : `across ${plural(withQuotes.length, 'tender')}`;
-      return { display: String(n), sub, detail: cap(sub) };
+      return { display: String(n), sub, detail: cap(sub), ref: { k: 'Waiting on', v: 'A buyer' } };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'To level'), ids(s2Of(ctx).filter((x) => x.f.toLevel > 0))),
   },
@@ -187,7 +196,7 @@ export const KPIS: KpiDef[] = [
       const total = rows.reduce((s, x) => s + x.f.longLeadAtRisk, 0);
       if (!total) {
         const sub = rows.length ? 'Every package can arrive in time' : 'No programmes in this stage';
-        return { display: '0', sub, detail: fit(sub, rows.length ? 'All arrive in time' : 'No programmes here'), tone: 'green' };
+        return { display: '0', sub, detail: fit(sub, rows.length ? 'All arrive in time' : 'No programmes here'), ref: { k: 'Worst', v: 'None' }, tone: 'green' };
       }
       const worst = [...rows].sort((a, b) => b.f.longLeadAtRisk - a.f.longLeadAtRisk)[0];
       const affected = rows.filter((x) => x.f.longLeadAtRisk > 0).length;

@@ -70,18 +70,29 @@ export default function IntakeQueue() {
   const blocking = openItems.filter((x) => x.item.blocksDg1).length;
   const sentBack = openItems.filter((x) => x.state === 'sent-back').length;
   const oldest = openItems.reduce<QueueItem | null>((a, b) => (!a || b.ageMin > a.ageMin ? b : a), null);
+  const oldestBack = openItems.filter((x) => x.state === 'sent-back').reduce<QueueItem | null>((a, b) => (!a || b.ageMin > a.ageMin ? b : a), null);
   const ctx = kpiCtxOf({ tenant, viewer, viewAs, done }, '30d', 'intake-queue');
   const tiles = [
     ...tilesOf(['INT-5'], ctx, HERE),
     valueTile('q.blocking', 'Blocking DG1', String(blocking), {
       kind: 'state', means: 'Open fields marked as blocking DG1. Pursue stays locked on their tender until a person confirms them', counted: 'Open items, including those sent back to the agent, marked “blocks DG1”.', source: 'Validation items',
-    }, ctx, { tone: blocking ? 'orange' : 'green', sub: blocking ? 'Pursue is locked on their tenders' : 'Nothing blocks DG1', detail: blocking ? 'Pursue is locked on their tenders' : 'Nothing blocks DG1' }),
+    }, ctx, {
+      tone: blocking ? 'orange' : 'green', sub: blocking ? 'Pursue is locked on their tenders' : 'Nothing blocks DG1', detail: blocking ? 'Pursue is locked on their tenders' : 'Nothing blocks DG1',
+      // Green only at none (the tone, and the queue's own target on Fields to check).
+      ref: { k: 'Target', v: '0' },
+    }),
     valueTile('q.oldest', 'Oldest item', oldest ? oldest.ageText : 'None', {
       kind: 'state', means: 'How long the oldest open field has waited since the agent raised it', counted: 'Age of the oldest open item, on the demo clock.', target: `Under ${STAGE_BANDS.queueOldestRedH} h`, source: 'Validation items',
-    }, ctx, { sub: oldest ? `${oldest.item.tenderId} · ${oldest.item.field}` : 'The queue is clear', detail: oldest ? `${oldest.item.tenderId} · ${oldest.item.field}` : 'The queue is clear', tone: oldest && oldest.ageMin > STAGE_BANDS.queueOldestRedH * 60 ? 'red' : undefined }),
+    }, ctx, {
+      sub: oldest ? `${oldest.item.tenderId} · ${oldest.item.field}` : 'The queue is clear', detail: oldest ? `${oldest.item.tenderId} · ${oldest.item.field}` : 'The queue is clear',
+      ref: { k: 'Target', v: `under ${STAGE_BANDS.queueOldestRedH} h` }, tone: oldest && oldest.ageMin > STAGE_BANDS.queueOldestRedH * 60 ? 'red' : undefined,
+    }),
     valueTile('q.sentback', 'Sent back to the agent', String(sentBack), {
       kind: 'state', means: 'Items a person sent back for a re-read. They stay open until a person decides', counted: 'Open items whose last action was Send back.', source: 'Validation items',
-    }, ctx, { sub: sentBack ? 'Still open: a person decides' : 'None waiting on a re-read', detail: sentBack ? 'Still open: a person decides' : 'None waiting on a re-read' }),
+    }, ctx, {
+      sub: sentBack ? 'Still open: a person decides' : 'None waiting on a re-read', detail: sentBack ? 'Still open: a person decides' : 'None waiting on a re-read',
+      ref: { k: 'Oldest', v: oldestBack ? oldestBack.ageText : 'None' },
+    }),
   ];
 
   const unplaced = unrecognisedIn(done);

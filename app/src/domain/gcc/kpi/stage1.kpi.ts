@@ -4,6 +4,7 @@ import type { Source } from '@/data/gcc/types';
 import { money } from '@/domain/money';
 import { isScreenBuilt } from '@/pages/gcc/screens';
 import { INTAKE_TARGET_MIN, queueFor } from '../s1';
+import type { PeriodWindow } from '../period';
 import type { DrillVM } from '../viewmodels';
 import { dayText, idsDrill, liveIn, nearestRank, plural, qOf, STAGE_BANDS, tileLabel, wdTo } from './stages';
 import type { KpiCtx, KpiDef } from './types';
@@ -69,6 +70,9 @@ const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? opt
 /** "12 Mar": a reference line's date, without the weekday. */
 const dm = (iso: string) => dayText(iso).replace(/^\w{3} /, '');
 
+/** The reference line's period anchor, as on Live pipeline: "Since 7 Feb", "Since 9 Mar" (no year), "Since 00:00" for Today. */
+const sinceKey = (w: PeriodWindow) => `Since ${w.key === 'today' ? w.startText : dm(w.from).replace(/ \d{4}$/, '')}`;
+
 const STATE_RANK: Record<Source['state'], number> = { down: 0, degraded: 1, 'credentials-expiring': 2, healthy: 3 };
 const STATE_TEXT: Record<Source['state'], string> = { down: 'down', degraded: 'degraded', 'credentials-expiring': 'credentials expiring', healthy: 'healthy' };
 
@@ -103,6 +107,7 @@ export const KPIS: KpiDef[] = [
         display: c.captured.toLocaleString('en-GB'),
         sub: c.captured ? sourceSplit(ctx.tenant, c.bySource) : `None captured · ${ctx.prev.label.toLowerCase()}: ${prev}`,
         detail: c.captured ? sourceDetail(ctx.tenant, c.bySource) : `${ctx.prev.label}: ${prev}`,
+        ref: { k: sinceKey(ctx.window), v: c.captured ? plural(c.captured, 'notice') : 'None' },
         n: c.captured,
       };
     },
@@ -117,7 +122,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const items = openFields(ctx).flatMap((g) => g.items);
-      if (!items.length) return { display: '0', sub: 'Nothing to check', detail: 'Nothing to check', tone: 'green' };
+      if (!items.length) return { display: '0', sub: 'Nothing to check', detail: 'Nothing to check', ref: { k: 'Oldest', v: 'None' }, tone: 'green' };
       const blocking = items.filter((i) => i.item.blocksDg1).length;
       const oldest = items.reduce((a, b) => (b.ageMin > a.ageMin ? b : a));
       const tone: Tone = oldest.ageMin > STAGE_BANDS.queueOldestRedH * 60 ? 'red' : blocking ? 'orange' : 'ink';
@@ -135,7 +140,7 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const mins = qOf(ctx).capturesIn(ctx.window).minutes;
       const p90 = nearestRank(mins, 90);
-      if (p90 === null) return { display: 'No notices logged', sub: 'in this period', detail: 'In this period' };
+      if (p90 === null) return { display: 'No notices logged', sub: 'in this period', detail: 'In this period', ref: { k: 'Worst', v: 'None' } };
       const tone: Tone = p90 <= INTAKE_TARGET_MIN ? 'green' : p90 <= STAGE_BANDS.intakeOrangeMin ? 'orange' : 'red';
       return { display: `${p90} min`, sub: `worst ${Math.max(...mins)} min`, detail: fit(`Slowest tenth of ${plural(mins.length, 'notice')}`, `${plural(mins.length, 'notice')} logged`), ref: { k: 'Worst', v: `${Math.max(...mins)} min` }, tone, n: mins.length };
     },
@@ -150,14 +155,14 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const s = sourcesOf(ctx.tenant);
-      if (!s.length) return { display: 'No sources set up', tone: 'muted' };
+      if (!s.length) return { display: 'No sources set up', detail: 'No connections set up', ref: { k: 'Worst', v: 'None' }, tone: 'muted' };
       const healthy = s.filter((x) => x.state === 'healthy').length;
       const worst = [...s].sort((a, b) => STATE_RANK[a.state] - STATE_RANK[b.state])[0];
       const tone: Tone = worst.state === 'down' ? 'red' : worst.state === 'healthy' ? 'green' : 'orange';
       const why = worst.note ? worst.note.replace(/^./, (c) => c.toLowerCase()) : STATE_TEXT[worst.state];
       return {
         display: `${healthy} of ${s.length}`, sub: worst.state === 'healthy' ? 'Every connection is working' : `${worst.name}: ${why}`, tone,
-        ...(worst.state === 'healthy' ? { detail: 'Every connection working' } : { detail: fit(why, STATE_TEXT[worst.state]).replace(/^./, (c) => c.toUpperCase()), ref: { k: 'Worst', v: worst.name.replace(/\s*\(.*\)$/, '') } }),
+        ...(worst.state === 'healthy' ? { detail: 'Every connection working', ref: { k: 'Worst', v: 'None' } } : { detail: fit(why, STATE_TEXT[worst.state]).replace(/^./, (c) => c.toUpperCase()), ref: { k: 'Worst', v: worst.name.replace(/\s*\(.*\)$/, '') } }),
       };
     },
     drill: () => route('/radar'),
@@ -175,7 +180,8 @@ export const KPIS: KpiDef[] = [
       return {
         display: String(missed), tone: missed ? 'red' : 'green',
         sub: recon ? `last reconciled ${recon.at.slice(11, 16)} · ${plural(recon.sources, 'source')}` : undefined,
-        ...(recon ? { detail: `Last reconciled ${recon.at.slice(11, 16)}` } : {}),
+        detail: recon ? `Last reconciled ${recon.at.slice(11, 16)}` : 'No reconciliation run',
+        ref: { k: 'Target', v: '0' },
       };
     },
     drill: () => route('/radar'),
@@ -189,7 +195,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = toBuy(ctx);
-      if (!list.length) return { display: '0', sub: 'Every booklet is in hand', detail: 'Every booklet is in hand' };
+      if (!list.length) return { display: '0', sub: 'Every booklet is in hand', detail: 'Every booklet is in hand', ref: { k: 'Next', v: 'None' } };
       const { l, d } = list[0];
       const approved = !!ctx.done[`booklet-approved:${l.tenderId}`];
       const tone: Tone = wdTo(ctx.tenant, l, d.purchaseBy) <= STAGE_BANDS.bookletWd ? 'orange' : 'ink';

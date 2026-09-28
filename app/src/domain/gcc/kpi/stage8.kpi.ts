@@ -49,7 +49,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = dueWithin(ctx, AHEAD_DAYS.submissions);
-      if (!list.length) return { display: '0', sub: `Nothing due in the next ${AHEAD_DAYS.submissions} days`, detail: fit(`Nothing due in the next ${AHEAD_DAYS.submissions} days`, `Nothing due in ${AHEAD_DAYS.submissions} days`) };
+      if (!list.length) return { display: '0', sub: `Nothing due in the next ${AHEAD_DAYS.submissions} days`, detail: fit(`Nothing due in the next ${AHEAD_DAYS.submissions} days`, `Nothing due in ${AHEAD_DAYS.submissions} days`), ref: { k: 'Next', v: 'None' } };
       const first = list[0];
       const wd = deadlineWd(first.l, ctx.tenant) ?? 0;
       return {
@@ -68,10 +68,11 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = qOf(ctx).submissionsIn(ctx.window);
-      if (!list.length) return { display: 'No bids submitted in this period' };
+      const ref = { k: 'Target', v: '100%' };
+      if (!list.length) return { display: 'No bids submitted in this period', detail: 'No submission receipts', ref };
       const on = list.filter((x) => x.s.onTime).length;
       const pct = pctOf(on, list.length);
-      return { display: `${pct}%`, sub: `${on} of ${plural(list.length, 'bid')} before the deadline`, detail: fit(`${on} of ${plural(list.length, 'bid')} before the deadline`, `${on} of ${plural(list.length, 'bid')} on time`), n: list.length, ...(isSmall(list.length) && pct === 100 ? { smallSample: true } : { tone: pct === 100 ? 'green' as const : 'red' as const }) };
+      return { display: `${pct}%`, sub: `${on} of ${plural(list.length, 'bid')} before the deadline`, detail: fit(`${on} of ${plural(list.length, 'bid')} before the deadline`, `${on} of ${plural(list.length, 'bid')} on time`), ref, n: list.length, ...(isSmall(list.length) && pct === 100 ? { smallSample: true } : { tone: pct === 100 ? 'green' as const : 'red' as const }) };
     },
     drill: (ctx) => idsDrill(`From tile: Submitted · ${ctx.window.label}`, qOf(ctx).submissionsIn(ctx.window).map((x) => x.l.tenderId)),
   },
@@ -84,7 +85,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = dueSoon(ctx);
-      if (!list.length) return { display: `No bids due in ${NEAR_WD} working days` };
+      if (!list.length) return { display: `No bids due in ${NEAR_WD} working days`, detail: 'No packages to check', ref: { k: 'Worst', v: 'None' } };
       const pct = Math.round(list.reduce((s, x) => s + x.f.packageReadyPct, 0) / list.length);
       const least = [...list].sort((a, b) => a.f.packageReadyPct - b.f.packageReadyPct)[0];
       return {
@@ -104,9 +105,9 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const rows = dueSoon(ctx).filter((x) => x.f.signaturesPending > 0);
       const n = rows.reduce((s, x) => s + x.f.signaturesPending, 0);
-      if (!n) return { display: '0', sub: 'Everything due is signed', detail: 'Everything due is signed', tone: 'green' };
+      if (!n) return { display: '0', sub: 'Everything due is signed', detail: 'Everything due is signed', ref: { k: 'Target', v: '0' }, tone: 'green' };
       const sub = rows.length === 1 ? `on ${rows[0].l.tenderId}` : `across ${plural(rows.length, 'bid')}`;
-      return { display: String(n), sub, detail: cap(sub), tone: 'orange' };
+      return { display: String(n), sub, detail: cap(sub), ref: { k: 'Target', v: '0' }, tone: 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Signatures pending'), dueSoon(ctx).filter((x) => x.f.signaturesPending > 0).map((x) => x.l.tenderId)),
   },
@@ -119,7 +120,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = awaitingResult(ctx);
-      if (!list.length) return { display: '0', sub: 'No bid is waiting for a result', detail: 'No bid awaiting a result' };
+      if (!list.length) return { display: '0', sub: 'No bid is waiting for a result', detail: 'No bid awaiting a result', ref: { k: 'Oldest', v: 'None' } };
       const value = list.reduce((s, x) => s + valueOf(ctx.tenant, x.l), 0);
       const oldest = list[0];
       const days = daysBetween(oldest.l.submission!.at, ctx.now);
@@ -138,7 +139,7 @@ export const KPIS: KpiDef[] = [
       const list = bondIssues(ctx);
       if (list.length) return { display: String(list.length), sub: `${list[0].l.tenderId}: ${list[0].f.bond.issued ? 'validity too short' : 'not issued'}`, detail: list[0].f.bond.issued ? 'Validity too short' : 'Not issued', ref: { k: 'Worst', v: list[0].l.tenderId }, tone: 'red' };
       const due = dueWithin(ctx, AHEAD_DAYS.bonds).length;
-      return { display: '0', sub: due ? `${plural(due, 'bond')} in order` : 'No bond needed in the next two weeks', detail: due ? `${plural(due, 'bond')} in order` : 'No bond needed soon', tone: 'green' };
+      return { display: '0', sub: due ? `${plural(due, 'bond')} in order` : 'No bond needed in the next two weeks', detail: due ? `${plural(due, 'bond')} in order` : 'No bond needed soon', ref: { k: 'Worst', v: 'None' }, tone: 'green' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Bid bonds'), bondIssues(ctx).map((x) => x.l.tenderId)),
   },

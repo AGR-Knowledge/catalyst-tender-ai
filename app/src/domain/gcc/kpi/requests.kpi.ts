@@ -33,13 +33,13 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const open = mine(ctx).filter(isOutstanding);
-      if (!open.length) return { display: '0', sub: 'Nothing is asked of you right now', detail: 'Nothing is asked of you right now' };
+      if (!open.length) return { display: '0', sub: 'Nothing is asked of you right now', detail: 'Nothing is asked of you right now', ref: { k: 'Next', v: 'None' } };
       const late = open.filter((r) => r.status === 'late').length;
       const next = open.filter((r) => r.status === 'open')[0];
       return {
         display: String(open.length), sub: late ? `${late} late${next ? ` · next due ${dayText(next.due)}` : ''}` : `next due ${dayTimeText(next!.due)}`,
         detail: late ? `${late} late` : 'None late',
-        ...(next ? { ref: { k: 'Next', v: late ? dueShort(next.due.slice(0, 10)) : dueShort(next.due) } } : {}),
+        ref: { k: 'Next', v: next ? (late ? dueShort(next.due.slice(0, 10)) : dueShort(next.due)) : 'None' },
       };
     },
     drill: (ctx) => drill('From tile: Open requests', mine(ctx).filter(isOutstanding)),
@@ -53,7 +53,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = dueSoon(ctx);
-      if (!list.length) return { display: '0', sub: 'Nothing due in the next two days', detail: 'Nothing due in the next two days' };
+      if (!list.length) return { display: '0', sub: 'Nothing due in the next two days', detail: 'Nothing due in the next two days', ref: { k: 'Next', v: 'None' } };
       return { display: String(list.length), sub: `${dayTimeText(list[0].due)} · ${whatFor(list[0])}`, detail: list[0].what, ref: { k: 'Next', v: dueShort(list[0].due) }, tone: 'orange' };
     },
     drill: (ctx) => drill('From tile: Due in 48 h', dueSoon(ctx)),
@@ -67,9 +67,9 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const late = mine(ctx).filter((r) => r.status === 'late');
-      if (!late.length) return { display: '0', sub: 'Nothing is late', detail: 'Nothing is late', tone: 'green' };
-      // Late ones are sorted by due date, so the first is the oldest.
-      return { display: String(late.length), sub: whatFor(late[0]), detail: late[0].what, ...(late[0].tenderId ? { ref: { k: 'Oldest', v: late[0].tenderId } } : {}), tone: 'red' };
+      if (!late.length) return { display: '0', sub: 'Nothing is late', detail: 'Nothing is late', ref: { k: 'Oldest', v: 'None' }, tone: 'green' };
+      // Late ones are sorted by due date, so the first is the oldest: its tender, or its due date when it is for no tender.
+      return { display: String(late.length), sub: whatFor(late[0]), detail: late[0].what, ref: { k: 'Oldest', v: late[0].tenderId ?? dueShort(late[0].due.slice(0, 10)) }, tone: 'red' };
     },
     drill: (ctx) => drill('From tile: Late', mine(ctx).filter((r) => r.status === 'late')),
   },
@@ -82,8 +82,11 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = mine(ctx).filter((r) => inWindow(r.submittedAt, ctx.window)).sort((a, b) => b.submittedAt!.localeCompare(a.submittedAt!));
-      if (!list.length) return { display: '0', sub: 'Nothing submitted in this period', detail: 'Nothing submitted in this period' };
-      return { display: String(list.length), sub: `Last: ${whatFor(list[0])}, ${dayText(list[0].submittedAt!)}`, detail: `Last: ${list[0].what}`.length <= 38 ? `Last: ${list[0].what}` : list[0].what };
+      if (!list.length) return { display: '0', sub: 'Nothing submitted in this period', detail: 'Nothing submitted in this period', ref: { k: 'Latest', v: 'None' } };
+      return {
+        display: String(list.length), sub: `Last: ${whatFor(list[0])}, ${dayText(list[0].submittedAt!)}`, detail: `Last: ${list[0].what}`.length <= 38 ? `Last: ${list[0].what}` : list[0].what,
+        ref: { k: 'Latest', v: dueShort(list[0].submittedAt!.slice(0, 10)) },
+      };
     },
     drill: (ctx) => drill(`From tile: Submitted · ${ctx.window.label}`, mine(ctx).filter((r) => inWindow(r.submittedAt, ctx.window))),
   },

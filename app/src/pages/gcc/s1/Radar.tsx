@@ -67,6 +67,8 @@ export default function Radar() {
   const ctx = kpiCtxOf({ tenant, viewer, viewAs, done }, 'today', 'radar');
   const linked = all.filter((c) => c.disposition === 'addendum' || c.disposition === 'duplicate');
   const addenda = linked.filter((c) => c.disposition === 'addendum').length;
+  // Today's counts carry the period anchor, as Captured today does: "Since 00:00".
+  const since = `Since ${ctx.window.startText}`;
   const tiles = [
     ...tilesOf(['INT-1', 'INT-4', 'INT-3'], ctx, HERE),
     valueTile('INT-9', 'Restricted lane', String(laneCount), {
@@ -75,6 +77,7 @@ export default function Radar() {
     }, ctx, {
       sub: laneCount ? (cleared ? 'Shown in the list, badged' : 'Titles hidden: cleared people only') : 'None today',
       detail: laneCount ? (cleared ? 'Shown in the list, badged' : 'Titles: cleared people only') : 'None today', tone: laneCount ? 'ink' : 'muted',
+      ref: { k: since, v: laneCount ? `${laneCount} routed` : 'None' },
     }),
     valueTile('INT-8', 'Linked, not duplicated', String(linked.length), {
       kind: 'flow', means: 'Documents that belong to a tender already on the register: an addendum linked to its parent, or the same tender from a second source',
@@ -82,6 +85,7 @@ export default function Radar() {
     }, ctx, {
       sub: `${addenda} addend${addenda === 1 ? 'um' : 'a'} linked · ${linked.length - addenda} duplicate${linked.length - addenda === 1 ? '' : 's'} merged`,
       detail: `${addenda} addend${addenda === 1 ? 'um' : 'a'} · ${linked.length - addenda} duplicate${linked.length - addenda === 1 ? '' : 's'}`,
+      ref: { k: since, v: linked.length ? `${linked.length} linked` : 'None' },
     }),
   ];
 

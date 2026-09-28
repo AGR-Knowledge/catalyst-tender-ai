@@ -9,7 +9,21 @@
 .gcal-c-validity { --cat: var(--blue); --cat-soft: var(--blue-soft); }
 .gcal-c-requests { --cat: var(--ink-4); --cat-soft: transparent; }
 
-.gcal { display: grid; gap: 14px; }
+.gcal { display: grid; gap: 12px; }
+
+/*
+ * The month and the weeks fit the window (user review, 2026-09-28): the page
+ * does not scroll; the grid takes the height left under the toolbar, and a day
+ * that is full says "+n more". Below 620 px of height the page scrolls again
+ * rather than crush the grid.
+ */
+/* A fixed height, not flex: 1 in the column, else the content's own height becomes its minimum and the page scrolls. */
+.content:has(> .gcal-fit) { flex: none; display: flex; flex-direction: column; height: max(620px, calc(100dvh - var(--header-h))); padding-bottom: 14px; }
+.content:has(> .gcal-fit) > * { flex: none; }
+.content:has(> .gcal-fit) > .footer-note { margin-top: 12px; padding-top: 10px; }
+.content > .gcal-fit { flex: 1 1 auto; min-height: 0; grid-template-rows: auto auto minmax(0, 1fr); }
+.gcal-fit > .gcal-card { min-height: 0; display: flex; flex-direction: column; }
+.gcal-fit > .gcal-card > * { flex: 1 1 auto; min-height: 0; }
 
 .gcal-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cat); flex: none; }
 /* Your requests: an outlined chip with a ring, not a colour. */
@@ -34,29 +48,38 @@
 .gcal-mine.on { color: var(--ink); border-color: var(--line-strong); }
 .gcal-mine.on .sw { background: var(--ink); }
 .gcal-mine.on .sw span { transform: translateX(10px); }
-.gcal-show { gap: 4px; }
-.gcal-tz { margin-left: auto; font-size: 12px; color: var(--ink-4); }
+.gcal-how { width: 26px; height: 26px; }
+.gcal-tz { margin-left: auto; font-size: 12px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
-.gcal-pop { padding: 10px 10px 12px; }
-.gcal-show-menu { display: grid; gap: 2px; }
-.gcal-show-h, .gcal-day-pop-h { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-4); padding: 2px 6px 6px; }
-.gcal-show-row { display: flex; align-items: center; gap: 8px; padding: 5px 6px; border-radius: var(--radius-sm); font-size: 13px; color: var(--ink-2); cursor: pointer; }
-.gcal-show-row:hover { background: var(--surface-hover); }
-.gcal-show-row input { margin: 0; accent-color: var(--ink); }
-.gcal-show-row .l { flex: 1; }
-.gcal-show-row .n { color: var(--ink-4); font-size: 12px; }
-.gcal-show-all { justify-self: start; margin: 6px 6px 0; }
-.gcal-day-pop { display: grid; gap: 3px; }
+/* "How to read the calendar": each colour's meaning, then the rules of a day. */
+.gcal-how-cats, .gcal-how-rules { list-style: none; margin: 0; padding: 0; display: grid; }
+.gcal-how-cats { gap: 5px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px solid var(--line); }
+.gcal-how-cats li { display: grid; grid-template-columns: 8px auto minmax(0, 1fr); align-items: baseline; gap: 0 8px; font-size: 12px; color: var(--ink-4); line-height: 1.45; }
+.gcal-how-cats .gcal-dot { transform: translateY(-1px); }
+.gcal-how-cats b { font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+.gcal-how-rules { gap: 6px; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
 
-/* ───────── Legend ───────── */
-.gcal-legend { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 18px; }
-.gcal-legend li { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink-4); }
-.gcal-legend b { font-weight: 600; color: var(--ink-2); }
-.gcal-legend li.off { opacity: 0.45; }
+/* ───────── The legend, which is also the filter ───────── */
+.gcal-cats { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.gcal-cat {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 9px 0 8px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--surface); font-size: 12px; color: var(--ink-2);
+  transition: border-color var(--dur-fast) ease, opacity var(--dur-fast) ease, background-color var(--dur-fast) ease;
+}
+.gcal-cat:hover { border-color: var(--line-strong); }
+.gcal-cat .l { font-weight: 500; white-space: nowrap; }
+.gcal-cat .n { color: var(--ink-4); font-size: 11.5px; min-width: 1ch; }
+/* Hidden: struck through and faded, so the state reads without colour. */
+.gcal-cat.off { opacity: 0.5; background: transparent; border-style: dashed; }
+.gcal-cat.off .l { text-decoration: line-through; }
+.gcal-cat.off .gcal-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ink-5); }
+.gcal-cat:focus-visible, .gcal-cat-all:focus-visible, .gcal-num-btn:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.gcal-cat-all { font-size: 12px; font-weight: 600; color: var(--ink-3); padding: 4px 8px; border-radius: var(--radius-pill); }
+.gcal-cat-all:hover { background: var(--surface-active); color: var(--ink); }
 
 /* ───────── Chips ───────── */
 .gcal-chip {
-  display: flex; align-items: center; gap: 5px; width: 100%; min-width: 0; height: 21px; padding: 0 6px;
+  display: flex; align-items: center; gap: 5px; width: 100%; min-width: 0; height: 20px; flex: none; padding: 0 6px;
   border-radius: 5px; border: 1px solid transparent; background: var(--cat-soft); color: var(--ink-2);
   font-size: 11.5px; line-height: 1; text-align: left;
   transition: border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
@@ -75,68 +98,88 @@
 .gcal-card { overflow: hidden; }
 .gcal-month { display: grid; }
 .gcal-dow { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); border-bottom: 1px solid var(--line); }
-.gcal-dow div { padding: 9px 10px 8px; font-size: 11.5px; font-weight: 600; color: var(--ink-4); letter-spacing: 0.02em; }
+.gcal-dow div { display: flex; align-items: baseline; gap: 6px; padding: 8px 10px 7px; font-size: 11.5px; font-weight: 600; color: var(--ink-4); letter-spacing: 0.02em; min-width: 0; }
+.we-l { font-size: 10.5px; font-weight: 500; letter-spacing: 0; color: var(--ink-5); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .gcal-dow div + div { border-left: 1px solid var(--line); }
 /* The weekend: a sunken tone with a fine hatch, so it reads without colour. */
 .gcal { --we-bg: color-mix(in srgb, var(--ink) 2.5%, var(--surface)); --we-hatch: repeating-linear-gradient(135deg, transparent 0 6px, color-mix(in srgb, var(--ink) 4%, transparent) 6px 7px); }
 .gcal-dow .we, .gcal-cell.we, .gcal-wk-day.we { background-color: var(--we-bg); background-image: var(--we-hatch); }
+/*
+ * Each week takes an equal share of the height: the date, one banner row, then
+ * the items. A week is never shorter than two chips (MonthView's MIN_WEEK), so
+ * a full day always shows its most important item and "+n more"; in a window
+ * too short for that, the month scrolls inside its card.
+ */
+.gcal-month { height: 100%; overflow-y: auto; }
 .gcal-week {
-  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto auto 1fr;
-  min-height: 118px; border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: 0; overflow: hidden; border-top: 1px solid var(--line);
 }
 .gcal-dow + .gcal-week { border-top: 0; }
 .gcal-cell { grid-row: 1 / -1; min-width: 0; }
 .gcal-cell + .gcal-cell { border-left: 1px solid var(--line); }
 .gcal-cell.out { background-color: var(--surface-2); }
-.gcal-num { grid-row: 1; display: flex; align-items: center; gap: 6px; padding: 6px 8px 4px; font-size: 12px; font-weight: 500; color: var(--ink-2); min-width: 0; z-index: 1; }
-.gcal-num .n { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 4px; border-radius: var(--radius-pill); font-variant-numeric: tabular-nums; }
+.gcal-cell.today { background-color: color-mix(in srgb, var(--ink) 3.5%, var(--surface)); }
+.gcal-num { grid-row: 1; display: flex; align-items: center; gap: 6px; padding: 3px 6px 1px; font-size: 12px; font-weight: 500; color: var(--ink-2); min-width: 0; z-index: 1; }
+.gcal-num .n { display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 4px; border-radius: var(--radius-pill); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .gcal-num.past { color: var(--ink-5); }
 .gcal-num.out { color: var(--ink-6); }
-.gcal-num.today .n { box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); font-weight: 700; }
+/* Today: the date filled in ink, so it is found at first glance. */
+.gcal-num.today .n, .gcal-wk-day.today .n { background: var(--ink); color: var(--surface); font-weight: 700; box-shadow: none; }
 .gcal-today { font-size: 10.5px; font-weight: 600; color: var(--ink); letter-spacing: 0.02em; }
-.gcal-items { grid-row: 4; display: grid; gap: 2px; align-content: start; padding: 0 4px 6px; min-width: 0; z-index: 1; }
-.gcal-more { justify-self: start; font-size: 11px; font-weight: 600; color: var(--ink-3); padding: 2px 6px; border-radius: 5px; }
-.gcal-more:hover, .gcal-more[aria-expanded='true'] { background: var(--surface-active); color: var(--ink); }
+/* A date with items is a button: it opens the whole day. */
+.gcal-num-btn { display: inline-flex; align-items: baseline; gap: 6px; border-radius: var(--radius-pill); color: inherit; }
+.gcal-num-btn:hover .n { background: var(--surface-active); color: var(--ink); }
+.gcal-num.today .gcal-num-btn:hover .n, .gcal-wk-day.today .gcal-num-btn:hover .n { background: var(--ink-2); color: var(--surface); }
+.gcal-items { grid-row: 3; display: flex; flex-direction: column; gap: 2px; padding: 0 4px 3px; min-width: 0; min-height: 0; overflow: hidden; z-index: 1; }
+.gcal-more {
+  flex: none; align-self: flex-start; height: 20px; display: inline-flex; align-items: center; padding: 0 6px; border-radius: 5px;
+  font-size: 11.5px; font-weight: 600; color: var(--ink-2); background: var(--surface-active);
+}
+.gcal-more:hover { background: var(--line); color: var(--ink); }
 
 /* All-day banners: the working calendar, not a category, so neutral. */
 .gcal-banner {
-  z-index: 1; margin: 0 3px 3px; min-width: 0; padding: 0 7px; border-radius: 5px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; line-height: 20px; height: 20px;
+  z-index: 1; margin: 0 3px 2px; min-width: 0; padding: 0 7px; border-radius: 5px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 10.5px; line-height: 14px; height: 16px;
   background: var(--surface-active); color: var(--ink-2); border: 1px solid var(--line-strong); font-weight: 500;
 }
-.gcal-banner.k-ramadan { height: 15px; line-height: 13px; font-size: 10px; font-weight: 500; color: var(--ink-4); background: transparent; border: 1px dashed var(--line-strong); }
+.gcal-banner.k-ramadan { font-size: 10.5px; color: var(--ink-4); background: transparent; border: 1px dashed var(--line-strong); }
 
-/* ───────── Week ───────── */
-.gcal-wk { --gut: 52px; display: grid; }
-.gcal-wk-head, .gcal-wk-lane, .gcal-wk-grid { display: grid; grid-template-columns: var(--gut) repeat(7, minmax(0, 1fr)); }
+/* ───────── Week and work week ───────── */
+/* The head, the all-day lane, then the hours, which take the height left and scroll inside only below it. */
+.gcal-wk { --gut: 52px; display: grid; grid-template-rows: auto auto minmax(0, 1fr); height: 100%; }
+.gcal-wk-head, .gcal-wk-lane, .gcal-wk-grid { display: grid; }
 /* The same gutter where the grid below shows a scrollbar, so the columns line up. */
 .gcal-wk-head, .gcal-wk-lane { overflow: hidden; scrollbar-gutter: stable; }
 .gcal-wk-head { border-bottom: 1px solid var(--line); }
-.gcal-wk-day { display: flex; align-items: baseline; gap: 6px; padding: 9px 10px 8px; border-left: 1px solid var(--line); font-size: 12px; color: var(--ink-2); min-width: 0; }
+.gcal-wk-day { display: flex; align-items: center; gap: 6px; padding: 7px 10px 6px; border-left: 1px solid var(--line); font-size: 12px; color: var(--ink-2); min-width: 0; }
+.gcal-wk-day .gcal-num-btn { align-items: center; }
 .gcal-wk-day .dn { font-size: 11.5px; font-weight: 600; color: var(--ink-4); }
 .gcal-wk-day .n { font-weight: 600; font-variant-numeric: tabular-nums; display: inline-grid; place-items: center; min-width: 22px; height: 22px; border-radius: var(--radius-pill); }
-.gcal-wk-day.today .n { box-shadow: inset 0 0 0 1.5px var(--ink); color: var(--ink); }
 .gcal-wk-day.past .n { color: var(--ink-5); }
+.gcal-wk-day .we-l { margin-left: auto; }
 .gcal-wk-gut.lbl { font-size: 10.5px; color: var(--ink-4); padding: 6px 8px 0 0; text-align: right; }
 .gcal-wk-lane { border-bottom: 1px solid var(--line); }
-.gcal-wk-lane-days { grid-column: 2 / -1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); grid-template-rows: auto auto auto; min-height: 34px; padding-top: 4px; }
+.gcal-wk-lane-days { grid-column: 2 / -1; display: grid; grid-template-rows: auto auto; min-height: 34px; padding-top: 4px; }
 .gcal-wk-lane-days .gcal-cell { border-left: 1px solid var(--line); margin-top: -4px; }
 .gcal-wk-lane-days .gcal-cell + .gcal-cell { border-left: 1px solid var(--line); }
 .gcal-wk-lane-days .gcal-items { padding-top: 2px; }
-.gcal-wk-scroll { max-height: 470px; overflow-y: auto; scrollbar-gutter: stable; }
-.gcal-wk-grid { position: relative; }
+.gcal-wk-scroll { min-height: 0; overflow-y: auto; scrollbar-gutter: stable; }
+.gcal-wk-grid { position: relative; height: 100%; min-height: 420px; }
 .gcal-wk-gut.hours { position: relative; }
 .gcal-wk-gut.hours span { position: absolute; right: 8px; transform: translateY(-50%); font-size: 10.5px; color: var(--ink-4); font-variant-numeric: tabular-nums; }
 .gcal-wk-gut.hours span:first-child { transform: none; }
-/* Half-hour rows: an hour line, then a lighter half-hour line, repeated every two rows (--row is set by the grid). */
+/* Twelve hours: an hour line, then a lighter half-hour line, in every twelfth of the height. */
 .gcal-wk-col {
-  position: relative; border-left: 1px solid var(--line); min-width: 0; background-size: 100% calc(var(--row) * 2);
+  position: relative; border-left: 1px solid var(--line); min-width: 0; background-size: 100% calc(100% / 12);
   background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px), linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--line-3) calc(50% - 0.5px), var(--line-3) calc(50% + 0.5px), transparent calc(50% + 0.5px));
 }
+.gcal-wk-col.today { background-color: color-mix(in srgb, var(--ink) 2.5%, var(--surface)); }
 .gcal-wk-col.we {
   background-color: var(--we-bg);
   background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px), linear-gradient(to bottom, transparent calc(50% - 0.5px), var(--line-3) calc(50% - 0.5px), var(--line-3) calc(50% + 0.5px), transparent calc(50% + 0.5px)), var(--we-hatch);
-  background-size: 100% calc(var(--row) * 2), 100% calc(var(--row) * 2), auto;
+  background-size: 100% calc(100% / 12), 100% calc(100% / 12), auto;
 }
 .gcal-ev {
   position: absolute; z-index: 1; display: grid; align-content: start; gap: 1px; padding: 2px 6px; overflow: hidden; text-align: left;
@@ -153,6 +196,31 @@
 .gcal-now { position: absolute; left: 0; right: 0; height: 2px; background: var(--red); z-index: 3; pointer-events: none; transform: translateY(-1px); }
 .gcal-now::before { content: ''; position: absolute; left: -5px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: var(--red); }
 
+/* ───────── The whole day ───────── */
+.gcal-dm { display: grid; gap: 14px; }
+.gcal-dm-notes { margin: 0; padding: 0; list-style: none; display: grid; gap: 3px; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+.gcal-dm-g { display: grid; gap: 2px; }
+.gcal-dm-g h4 { margin: 0 0 2px; display: flex; align-items: center; gap: 7px; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-4); }
+.gcal-dm-g h4 .n { letter-spacing: 0; color: var(--ink-5); }
+.gcal-dm-g ul { margin: 0; padding: 0; list-style: none; display: grid; }
+.gcal-dm-g li + li { border-top: 1px solid var(--line-3); }
+.gcal-dm-row {
+  width: 100%; display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 2px 10px; align-items: baseline;
+  padding: 7px 8px; border-radius: var(--radius-sm); text-align: left; font-size: 13px; color: var(--ink-2);
+}
+.gcal-dm-row:hover { background: var(--surface-hover); }
+.gcal-dm-row:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.gcal-dm-row.past { opacity: 0.55; }
+.gcal-dm-row .t { color: var(--ink-3); font-size: 12px; }
+.gcal-dm-row .l { color: var(--ink); font-weight: 500; min-width: 0; }
+.gcal-dm-row .cd { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+.gcal-dm-row .tt, .gcal-dm-row .fl { grid-column: 2 / -1; font-size: 12px; color: var(--ink-3); min-width: 0; }
+.gcal-dm-row .tt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gcal-dm-row .fl { color: var(--ink-2); line-height: 1.45; }
+.gcal-dm-row .fl span { color: var(--orange); font-weight: 700; }
+/* An item opened from the day sits over the list: one scrim is enough. */
+.gcal-day-host ~ .gcal-modal-host .scrim { background: transparent; }
+
 /* ───────── Agenda ───────── */
 .gcal-ag { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); align-items: start; }
 .gcal-ag-weeks { display: grid; gap: var(--gap); }
@@ -163,10 +231,11 @@
   padding: 9px 10px; border-radius: var(--radius-sm); text-align: left; font-size: 13px; color: var(--ink-2);
 }
 .gcal-ag-row:hover { background: var(--surface-hover); }
-.gcal-ag-row .w { grid-row: span 2; color: var(--ink-2); }
-.gcal-ag-row .gcal-dot { align-self: center; grid-row: 1; }
-.gcal-ag-row .l { color: var(--ink); font-weight: 500; }
-.gcal-ag-row .cd { font-size: 12px; color: var(--ink-3); white-space: nowrap; }
+/* Explicit columns: the dot's fixed row would otherwise be placed first and push the date into its 10 px column. */
+.gcal-ag-row .w { grid-column: 1; grid-row: 1 / span 2; color: var(--ink-2); }
+.gcal-ag-row .gcal-dot { grid-column: 2; grid-row: 1; align-self: center; }
+.gcal-ag-row .l { grid-column: 3; grid-row: 1; color: var(--ink); font-weight: 500; }
+.gcal-ag-row .cd { grid-column: 4; grid-row: 1; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
 .gcal-ag-row .tt { grid-column: 3 / -1; font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gcal-ag-row .fl { grid-column: 3 / -1; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
 .gcal-ag-row .fl span { color: var(--orange); font-weight: 700; }
@@ -221,8 +290,22 @@
   .gcal-ag { grid-template-columns: minmax(0, 1fr); }
   .gcal-tz { margin-left: 0; flex-basis: 100%; }
 }
+/* Narrow (1280): the weekend's label gives way, and the legend tightens to stay on one line. */
+@container content (max-width: 1080px) {
+  .gcal-dow .we-l { display: none; }
+  .gcal-cats { gap: 4px; }
+  .gcal-cat { gap: 5px; padding: 0 7px 0 6px; font-size: 11.5px; }
+}
 @media (max-width: 760px) {
+  /* A phone keeps the page's own scroll: seven columns and wrapped toolbars do not fit one screen. */
+  .content:has(> .gcal-fit) { display: block; height: auto; }
+  .gcal-month, .gcal-wk { height: auto; }
+  .gcal-num .gcal-today { display: none; }
   .gcal-ag-row { grid-template-columns: 10px minmax(0, 1fr) auto; }
-  .gcal-ag-row .w { grid-row: auto; grid-column: 2 / -1; }
+  .gcal-ag-row .gcal-dot { grid-column: 1; }
+  .gcal-ag-row .l { grid-column: 2; }
+  .gcal-ag-row .cd { grid-column: 3; }
+  .gcal-ag-row .w { grid-row: 2; grid-column: 2 / -1; }
+  .gcal-ag-row .tt, .gcal-ag-row .fl { grid-column: 2 / -1; }
   .gcal-chip .s { display: none; }
 }

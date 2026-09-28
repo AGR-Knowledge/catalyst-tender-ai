@@ -5,7 +5,7 @@ import { firstWithRole, personById, type Person } from '@/data/people';
 import { CALENDARS } from '@/data/gcc/calendar';
 import { stageShortLabel, stepLabel } from '@/data/gcc/stages';
 import type { CountryCode } from '@/data/tenants';
-import { DEMO_TODAY, addDays, countdownText, dateText, weekdayOf, whenText } from '@/domain/calendar';
+import { DEMO_TODAY, addDays, calendarDaysBetween, countdownText, dateText, dayFlags, isWeekend, weekdayOf, weekendText, whenText } from '@/domain/calendar';
 import { isScreenBuilt } from '@/pages/gcc/screens';
 import { DEMO_NOW, addHours } from '../clock';
 import { dataPort } from '../port';
@@ -13,6 +13,7 @@ import { openGate, queriesFor, tenderCtx } from '../lifecycle';
 import type { Lifecycle } from '@/data/gcc/lifecycle/types';
 import { isOutstanding, requestsFor } from '../requests';
 import { bidName, CREDENTIAL_STATE, vaultFor, type VaultRow } from '../company/vault';
+import { countryName } from '../company';
 import { bidBondFor, eligibilityFor, keyDatesFor, type KeyDateRow } from '../s1';
 import { authorityCalendar, dayMonth, listText, monthName, plural, profileOf, shortDate, shortWhen, tenderOf } from '../s1/common';
 import { isEscalated, isOverdue, packagesFor, rfqsFor, sentBy, type LiveRfq } from '../s2';
@@ -26,22 +27,27 @@ import type { GateKey, Health, MoneyVM, TenderRowVM } from '../viewmodels';
  * or the package board. Read only: nothing here writes.
  * - key dates (`keyDatesFor`, with the demo state, as the Dates tab reads them), in the authority's zone;
  * - the next gate's time limit (`row.nextGate.slaEnd`, as the tracker and Needs your action read it);
- * - supplier replies due, one item per tender, package and reply day (`rfqsFor`);
+ * - supplier replies due, one item per tender and reply day, however many packages (`rfqsFor`);
  * - credential expiries and renewal requests due (`vaultFor`);
  * - the viewer's own open or late requests (`requestsFor`).
  */
 
 export type CalendarCategory = 'submissions' | 'deadlines' | 'meetings' | 'gates' | 'quotes' | 'validity' | 'requests';
 
-/** The seven categories, in legend order. The page gives each one colour; these words are its meaning. */
+/**
+ * The seven categories, most important first (user review, 2026-09-28): a day
+ * lists its items in this order, so a full day in the month shows what matters
+ * and folds the rest into "+n more". The page gives each one colour; `items`
+ * is its meaning.
+ */
 export const CALENDAR_CATEGORIES: { key: CalendarCategory; label: string; items: string }[] = [
   { key: 'submissions', label: 'Submissions', items: 'Submission, bid opening, originals delivered' },
+  { key: 'gates', label: 'Decision gates', items: 'DG1, DG2 and DG3 decisions due' },
   { key: 'deadlines', label: 'Authority deadlines', items: 'Document purchase, participation, questions, answers' },
   { key: 'meetings', label: 'Meetings and visits', items: 'Site visits and pre-bid meetings' },
-  { key: 'gates', label: 'Decision gates', items: 'DG1, DG2 and DG3 decisions due' },
-  { key: 'quotes', label: 'Supplier quotes', items: 'Supplier replies due, per package' },
-  { key: 'validity', label: 'Validity and renewals', items: 'Bid and guarantee validity, credential expiries, renewals' },
   { key: 'requests', label: 'Your requests', items: 'Inputs and requests you owe' },
+  { key: 'quotes', label: 'Supplier quotes', items: 'Supplier replies due, one item per tender and day' },
+  { key: 'validity', label: 'Validity and renewals', items: 'Bid and guarantee validity, credential expiries, renewals' },
 ];
 
 export const CATEGORY_LABEL = Object.fromEntries(CALENDAR_CATEGORIES.map((c) => [c.key, c.label])) as Record<CalendarCategory, string>;
@@ -68,16 +74,16 @@ type ItemRef =
   | { kind: 'key-date'; tenderId: string; keyDate: KeyDateKind }
   | { kind: 'submission'; tenderId: string }
   | { kind: 'gate'; tenderId: string; gate: GateKey }
-  | { kind: 'quotes'; tenderId: string; pkgId: string; pkgTitle: string; rfqIds: string[] }
+  | { kind: 'quotes'; tenderId: string; packages: { id: string; title: string; rfqIds: string[] }[] }
   | { kind: 'credential'; credId: string; what: 'expiry' | 'renewal' }
   | { kind: 'request'; requestId: string };
 
 export interface CalendarItemVM {
-  /** Stable: `kd:T-2025-298:submission:2026-03-12`, `gate:T-2026-097:DG2`, `rfq:T-2026-104:P-03:2026-03-10`. */
+  /** Stable: `kd:T-2025-298:submission:2026-03-12`, `gate:T-2026-097:DG2`, `rfq:T-2026-104:2026-03-10`. */
   id: string;
   category: CalendarCategory;
   title: string;
-  /** The short label a chip shows before the tender's short title: "Submission", "DG2 due", "Quotes · Pumps and valves". */
+  /** The short label a chip shows before the tender's short title: "Submission", "DG2 due", "Quotes · Pumps and valves", "Quotes · 9 packages". */
   chip: string;
   date: string;
   time?: string;
@@ -160,26 +166,25 @@ export function calendarItems({ tenant, viewer, done, from, to }: CalendarCtx & 
       });
     }
 
-    // 3. Supplier replies due: one item per package and reply day, at the earliest reply time that day.
+    // 3. Supplier replies due: one item per tender and reply day, at the earliest reply time that day.
+    // A tender's packages usually close together, so nine chips on one day would bury everything else.
     if (can(viewer, 'sourcing.view').ok) {
       const rfqs = rfqsFor(tenant, row.id, d).filter((r) => sentBy(r));
-      const groups = new Map<string, LiveRfq[]>();
-      for (const r of rfqs) {
-        const key = `${r.packageId}|${dayOf(r.replyBy)}`;
-        groups.set(key, [...(groups.get(key) ?? []), r]);
-      }
+      const days = new Map<string, LiveRfq[]>();
+      for (const r of rfqs) days.set(dayOf(r.replyBy), [...(days.get(dayOf(r.replyBy)) ?? []), r]);
       const titles = new Map(packagesFor(tenant, row.id, d).map((p) => [p.pkg.id, p.pkg.title]));
-      for (const [key, rs] of groups) {
-        const [pkgId, day] = key.split('|');
+      for (const [day, rs] of days) {
         if (!within(day)) continue;
         const first = rs.map((r) => r.replyBy).sort()[0];
         const overdue = rs.filter((r) => isOverdue(r)).length;
-        const pkgTitle = titles.get(pkgId) ?? pkgId;
+        const packages = [...new Set(rs.map((r) => r.packageId))].sort()
+          .map((id) => ({ id, title: titles.get(id) ?? id, rfqIds: rs.filter((r) => r.packageId === id).map((r) => r.id) }));
+        const what = packages.length === 1 ? packages[0].title : plural(packages.length, 'package');
         out.push({
-          id: `rfq:${row.id}:${pkgId}:${day}`, category: 'quotes', title: `Quotes due · ${pkgTitle}`, chip: `Quotes · ${pkgTitle}`,
+          id: `rfq:${row.id}:${day}`, category: 'quotes', title: `Quotes due · ${what}`, chip: `Quotes · ${what}`,
           date: day, ...(timeOfIso(first) ? { time: timeOfIso(first) } : {}), tz, allDay: !timeOfIso(first), ...tender,
           flags: overdue ? [`${overdue} of ${plural(rs.length, 'reply', 'replies')} overdue`] : [],
-          mine: runs, past: first < NOW, ref: { kind: 'quotes', tenderId: row.id, pkgId, pkgTitle, rfqIds: rs.map((r) => r.id) },
+          mine: runs, past: first < NOW, ref: { kind: 'quotes', tenderId: row.id, packages },
         });
       }
     }
@@ -229,10 +234,64 @@ export function calendarItems({ tenant, viewer, done, from, to }: CalendarCtx & 
     || a.id.localeCompare(b.id));
 }
 
+/** Within a category, the key dates that decide the bid first: the submission before the opening and the originals. */
+const KIND_RANK: KeyDateKind[] = ['submission', 'opening', 'originals', 'questions', 'answers', 'purchase', 'participation', 'site-visit', 'pre-bid', 'validity-end', 'bond-validity-end'];
+const kindRank = (i: CalendarItemVM) => (i.ref.kind === 'key-date' ? KIND_RANK.indexOf(i.ref.keyDate) : i.ref.kind === 'submission' ? 0 : KIND_RANK.length);
+
+/** A day's items, most important first: by category (legend order), a flagged one first within its kind, then the viewer's own, the deciding key date, then by time. */
+export function byImportance(items: CalendarItemVM[]): CalendarItemVM[] {
+  return [...items].sort((a, b) => CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category]
+    || Number(b.flags.length > 0) - Number(a.flags.length > 0)
+    || Number(b.mine) - Number(a.mine)
+    || kindRank(a) - kindRank(b)
+    || (a.time ?? '99:99').localeCompare(b.time ?? '99:99')
+    || a.id.localeCompare(b.id));
+}
+
 /* ------------------------------------------------------------ the working calendar */
 
 /** Weekday numbers (0 = Sunday) of the weekend in a country: Fri–Sat in KSA, Sat–Sun in the UAE. */
 export const weekendDays = (cc: CountryCode): number[] => CALENDARS[cc].weekend;
+
+const DAY_NAME = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+/** A country as a sentence names it: "Saudi Arabia", "the UAE". */
+const placeName = (cc: CountryCode) => (cc === 'AE' ? 'the UAE' : countryName(cc));
+const capital = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+/**
+ * The first day of the working week (0 = Sunday), the day after the weekend:
+ * Sunday in KSA, Qatar, Oman and Kuwait; Monday in the UAE, which moved to a
+ * Saturday–Sunday weekend in 2022. The month and week start on it.
+ */
+export function firstWeekday(cc: CountryCode): number {
+  const we = weekendDays(cc);
+  for (let d = 0; d < 7; d++) if (!we.includes(d) && we.includes((d + 6) % 7)) return d;
+  return 0;
+}
+
+/** The first working day on or before `iso`: where its week starts in the tenant's country. */
+export const weekStart = (iso: string, cc: CountryCode) => addDays(iso, -((weekdayOf(iso) - firstWeekday(cc) + 7) % 7));
+
+/** Days in the working week: five in every GCC country. */
+export const workDays = (cc: CountryCode) => 7 - weekendDays(cc).length;
+
+/** The weeks a month grid needs (four to six), from the start of the week holding the 1st. */
+export function monthGrid(first: string, cc: CountryCode): { from: string; weeks: number; to: string } {
+  const from = weekStart(first, cc);
+  const y = Number(first.slice(0, 4));
+  const m = Number(first.slice(5, 7));
+  const next = m === 12 ? `${y + 1}-01-01` : `${y}-${String(m + 1).padStart(2, '0')}-01`;
+  const weeks = Math.ceil(calendarDaysBetween(from, next) / 7);
+  return { from, weeks, to: addDays(from, weeks * 7 - 1) };
+}
+
+/** "Saudi Arabia works Sunday to Thursday; the weekend is Fri–Sat, so each week starts on Sunday"; "The UAE works Monday to Friday; …". */
+export function workingWeekText(cc: CountryCode): string {
+  const a = firstWeekday(cc);
+  const z = (a + workDays(cc) - 1) % 7;
+  return `${capital(placeName(cc))} works ${DAY_NAME[a]} to ${DAY_NAME[z]}; the weekend is ${weekendText(cc)}, so each week starts on ${DAY_NAME[a]}`;
+}
 
 export interface CalendarBanner {
   key: string;
@@ -244,16 +303,30 @@ export interface CalendarBanner {
   detail: string;
 }
 
-/** The all-day banners in `from`…`to`: closures ("Eid al-Fitr, expected") and Ramadan's reduced hours, in the tenant's country. */
+/**
+ * The all-day banners in `from`…`to`: closures ("Eid al-Fitr, expected") and
+ * Ramadan's reduced hours, in the tenant's country. They share one row: the
+ * Ramadan banner leaves out the closure days inside it (its sentence still
+ * gives Ramadan's own end).
+ */
 export function calendarBanners(cc: CountryCode, from: string, to: string): CalendarBanner[] {
   const cal = CALENDARS[cc];
   const out: CalendarBanner[] = [];
   const r = cal.ramadan;
   if (r && r.to >= from && r.from <= to) {
-    out.push({
-      key: `ramadan:${r.from}`, kind: 'ramadan', label: `Ramadan hours ${r.hours}${r.expected ? ', expected' : ''}`, from: r.from, to: r.to,
-      detail: `Ramadan reduced hours${r.expected ? ' (expected)' : ''}: the public sector works ${r.hours} until ${dateText(r.to)}`,
-    });
+    // Ramadan's days that are not a closure, as runs: Founding Day (22 Feb) splits it, Eid ends it.
+    const runs: [string, string][] = [];
+    for (let day = r.from; day <= r.to; day = addDays(day, 1)) {
+      if (cal.closures.some((c) => day >= c.from && day <= c.to)) continue;
+      const last = runs[runs.length - 1];
+      if (last && addDays(last[1], 1) === day) last[1] = day; else runs.push([day, day]);
+    }
+    for (const [a, z] of runs.filter(([a, z]) => z >= from && a <= to)) {
+      out.push({
+        key: `ramadan:${a}`, kind: 'ramadan', label: `Ramadan hours ${r.hours}${r.expected ? ', expected' : ''}`, from: a, to: z,
+        detail: `Ramadan reduced hours${r.expected ? ' (expected)' : ''}: the public sector works ${r.hours} until ${dateText(r.to)}`,
+      });
+    }
   }
   for (const c of cal.closures.filter((x) => x.to >= from && x.from <= to)) {
     out.push({
@@ -264,8 +337,39 @@ export function calendarBanners(cc: CountryCode, from: string, to: string): Cale
   return out;
 }
 
-/** The Sunday on or before `iso`: GCC weeks start on Sunday. */
-export const weekStart = (iso: string) => addDays(iso, -weekdayOf(iso));
+/* ------------------------------------------------------------ one day */
+
+export interface CalendarDayVM {
+  date: string;
+  /** "Sunday 15 March 2026". */
+  title: string;
+  /** "5 items · 1 flagged". */
+  count: string;
+  /** The working calendar that day: "Weekend: Fri–Sat", "Ramadan hours: …", "Eid holiday expected: …". */
+  notes: string[];
+  /** Most important first, as the month's cell lists them. */
+  groups: { category: CalendarCategory; label: string; rows: { item: CalendarItemVM; countdown: string }[] }[];
+}
+
+/** Everything on one day, grouped by category in order of importance: what "+n more" and the day's number open. */
+export function calendarDay(date: string, items: CalendarItemVM[], tenant: string): CalendarDayVM {
+  const cc = profileOf(tenant).countryCode;
+  const day = byImportance(items.filter((i) => i.date === date));
+  const flagged = day.filter((i) => i.flags.length).length;
+  const [y, m] = [date.slice(0, 4), date.slice(5, 7)];
+  return {
+    date,
+    title: `${DAY_NAME[weekdayOf(date)]} ${Number(date.slice(8, 10))} ${monthName(`${y}-${m}-01`)} ${y}`,
+    count: `${plural(day.length, 'item')}${flagged ? ` · ${flagged} flagged` : ''}`,
+    notes: dayFlags(date, cc).map((f) => (
+      f.key === 'weekend' ? `Weekend in ${placeName(cc)} (${weekendText(cc)})`
+        : f.key === 'ramadan-hours' ? `Ramadan reduced hours: the ${f.detail.charAt(0).toLowerCase()}${f.detail.slice(1)}`
+          : f.key === 'closure-expected' ? f.detail : `${f.label}: ${f.detail}`)),
+    groups: CALENDAR_CATEGORIES
+      .map((c) => ({ category: c.key, label: c.label, rows: day.filter((i) => i.category === c.key).map((item) => ({ item, countdown: itemCountdown(item, tenant) })) }))
+      .filter((g) => g.rows.length),
+  };
+}
 
 /** "Times in the authority's zone · AST", or both zones when the tenant's differs from an authority's. */
 export function tzNote(items: CalendarItemVM[], tenant: string): string {
@@ -294,6 +398,8 @@ export interface CalendarDetailVM {
     countdown: string;
     /** The same moment in the tenant's zone, when an authority's zone differs: "Thu 12 Mar 2026, 11:00 GST in your time zone". */
     tenantText?: string;
+    /** A key date on the tenant's weekend that is a working day for the authority. */
+    weekendNote?: string;
   };
   where?: string;
   /** The page of the tender document that states the date. */
@@ -327,6 +433,14 @@ function tenantTimeText(item: CalendarItemVM, tenant: string): string | undefine
 function ccOf(item: CalendarItemVM, tenant: string): CountryCode {
   const t = item.ref.kind === 'key-date' ? tenderOf(tenant, item.ref.tenderId) : undefined;
   return t ? authorityCalendar(t, tenant).cc : profileOf(tenant).countryCode;
+}
+
+/** "Sun 10 May is your weekend in the UAE (Sat–Sun) but a working day for the authority in Saudi Arabia". */
+function weekendNoteOf(item: CalendarItemVM, tenant: string): string | undefined {
+  const own = profileOf(tenant).countryCode;
+  const theirs = ccOf(item, tenant);
+  if (theirs === own || !isWeekend(item.date, own) || isWeekend(item.date, theirs)) return undefined;
+  return `${shortDate(item.date)} is your weekend in ${placeName(own)} (${weekendText(own)}) but a working day for the authority in ${placeName(theirs)}`;
 }
 
 /** "in 4 days · 4 working days", "Today", "Passed"; "Overdue" for a gate and "Late" for a request once behind the clock. */
@@ -469,14 +583,27 @@ export function calendarItemDetail(id: string, ctx: CalendarCtx): CalendarDetail
     }
     case 'quotes': {
       if (item.ref.kind !== 'quotes') break;
-      const ids = new Set(item.ref.rfqIds);
+      const ids = new Set(item.ref.packages.flatMap((p) => p.rfqIds));
       const rs = rfqsFor(tenant, item.ref.tenderId, d).filter((r) => ids.has(r.id));
       const replied = rs.filter((r) => r.repliedAt).length;
       const overdue = rs.filter((r) => isOverdue(r)).length;
       const escalated = rs.filter((r) => isEscalated(tenant, r)).length;
       needs.push({ text: `${replied} of ${plural(rs.length, 'supplier')} replied`, tone: replied === rs.length ? 'green' : undefined });
       if (overdue) needs.push({ text: `${overdue} overdue: ${escalated ? `${escalated} escalated to the Procurement Lead` : 'reminder sent'}`, tone: escalated ? 'red' : 'orange' });
-      needs.push({ text: `Package ${item.ref.pkgId}: ${item.ref.pkgTitle}` });
+      if (item.ref.packages.length === 1) {
+        const p = item.ref.packages[0];
+        needs.push({ text: `Package ${p.id}: ${p.title}` });
+      } else {
+        // One line per package, so the day's single item still says which ones are behind.
+        for (const p of item.ref.packages) {
+          const own = rs.filter((r) => p.rfqIds.includes(r.id));
+          const late = own.filter((r) => isOverdue(r)).length;
+          needs.push({
+            text: `${p.id} ${p.title}: ${own.filter((r) => r.repliedAt).length} of ${own.length} replied${late ? `, ${late} overdue` : ''}`,
+            ...(late ? { tone: 'orange' as Tone } : {}),
+          });
+        }
+      }
       if (opens('/sourcing', 'sourcing.view')) secondary.push({ label: 'Open the package board', to: `/sourcing?tender=${encodeURIComponent(item.ref.tenderId)}&s=tracking` });
       break;
     }
@@ -532,6 +659,7 @@ export function calendarItemDetail(id: string, ctx: CalendarCtx): CalendarDetail
       text: item.time ? whenText(item.date, item.time, item.tz) : dateText(item.date),
       countdown: itemCountdown(item, tenant),
       ...(tenantTimeText(item, tenant) ? { tenantText: tenantTimeText(item, tenant) } : {}),
+      ...(weekendNoteOf(item, tenant) ? { weekendNote: weekendNoteOf(item, tenant) } : {}),
     },
     ...(kd?.place ? { where: kd.place } : {}),
     ...(kd?.page && item.tenderId ? { source: { tenderId: item.tenderId, page: kd.page } } : {}),

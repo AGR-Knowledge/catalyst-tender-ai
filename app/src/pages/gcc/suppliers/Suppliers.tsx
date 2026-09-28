@@ -36,6 +36,9 @@ import './suppliers.css';
  */
 
 const HERE = '/suppliers';
+
+/** The short form a tile's reference line uses when the full country name doesn't fit. */
+const SHORT_COUNTRY: Record<string, string> = { 'United Arab Emirates': 'UAE' };
 type ScreenFilter = '' | Screening['state'];
 const FILTER_KEYS = ['screening', 'trade', 'country'] as const;
 const SCREEN_CHIPS: { id: ScreenFilter; label: string }[] = [
@@ -297,13 +300,16 @@ export default function Suppliers() {
   const shortlists = [...new Set(held.rows.map((h) => `${h.tenderId} ${h.pkgId}`))];
   const heldTenders = [...new Set(held.rows.map((h) => h.tenderId))];
   const drill = (to: ScreenFilter, label: string) => ({ kind: 'route' as const, to: to ? `${HERE}?screening=${to}` : HERE, label });
+  // A reference value is at most 20 characters (dashboards.md §3): "United Arab Emirates, 20" reads "UAE, 20".
+  const largest = vm.largestCountry && `${vm.largestCountry.name}, ${vm.largestCountry.n}`.length > 20
+    ? `${SHORT_COUNTRY[vm.largestCountry.name] ?? vm.largestCountry.name}, ${vm.largestCountry.n}` : vm.largestCountry && `${vm.largestCountry.name}, ${vm.largestCountry.n}`;
   const tiles: TileVM[] = [
     valueTile('suppliers.total', 'Suppliers', String(c.total), {
       kind: 'state', means: 'Suppliers and subcontractors in your supplier master, whatever their screening.', counted: 'Every supplier record for the company.', target: 'None (information)', source: 'Supplier master',
     }, ctx, {
       sub: `In your supplier master: ${plural(c.countries, 'country', 'countries')}, ${plural(c.trades, 'trade')}${vm.largestCountry ? ` · largest ${vm.largestCountry.name}, ${vm.largestCountry.n}` : ''}`,
       detail: `${plural(c.countries, 'country', 'countries')} · ${plural(c.trades, 'trade')}`,
-      ...(vm.largestCountry ? { ref: { k: 'Largest', v: `${vm.largestCountry.name}, ${vm.largestCountry.n}` } } : {}),
+      ref: { k: 'Largest', v: largest || 'None' },
       drill: drill('', 'Show every supplier'),
     }),
     valueTile('suppliers.current', 'Screened, current', String(c.current), {
@@ -320,7 +326,7 @@ export default function Suppliers() {
     }, ctx, {
       sub: c.due ? `Re-screen before sending an RFQ${vm.oldestDue ? ` · oldest due since ${dmy(vm.oldestDue)}` : ''}` : 'Every screening is current',
       detail: c.due ? 'Re-screen before any RFQ' : 'Every screening current',
-      ...(vm.oldestDue ? { ref: { k: 'Oldest', v: dayMonth(vm.oldestDue) } } : {}),
+      ref: { k: 'Oldest', v: vm.oldestDue ? dayMonth(vm.oldestDue) : 'None' },
       tone: c.due ? 'orange' : 'green', ...(c.due ? { status: 'Watch' } : {}),
       drill: drill('due', 'Show the suppliers whose screening is due'),
     }),
@@ -329,7 +335,7 @@ export default function Suppliers() {
     }, ctx, {
       sub: c.blocked ? `Sanctions match or anti-bribery flag: ${vm.blocked.sanctions} sanctions, ${vm.blocked.antiBribery} anti-bribery` : 'No sanctions match or anti-bribery flag',
       detail: c.blocked ? `${vm.blocked.sanctions} sanctions · ${vm.blocked.antiBribery} anti-bribery` : 'No match or flag',
-      ...(vm.blocked.latest ? { ref: { k: 'Latest', v: dayMonthYear(vm.blocked.latest) } } : {}),
+      ref: { k: 'Latest', v: vm.blocked.latest ? dayMonthYear(vm.blocked.latest) : 'None' },
       tone: c.blocked ? 'red' : 'green', ...(c.blocked ? { status: 'Excluded' } : {}),
       drill: drill('blocked', 'Show the blocked suppliers'),
     }),
@@ -339,7 +345,7 @@ export default function Suppliers() {
     }, ctx, {
       sub: held.count ? `On approved shortlists: ${shortlists.join(', ')}` : 'No shortlisted supplier is held',
       detail: held.count ? `${plural(held.suppliers, 'supplier')}${held.blocked ? `, ${held.blocked} blocked` : ', screening due'}` : 'No shortlist held',
-      ...(held.count ? { ref: { k: 'Shortlists', v: `${shortlists.length} on ${plural(heldTenders.length, 'tender')}` } } : {}),
+      ref: { k: 'Shortlists', v: held.count ? `${shortlists.length} on ${plural(heldTenders.length, 'tender')}` : 'None' },
       tone: held.blocked ? 'red' : held.count ? 'orange' : 'green', ...(held.count ? { status: 'Held' } : {}),
       drill: drill('due', 'Show the suppliers whose screening is due'),
     }),

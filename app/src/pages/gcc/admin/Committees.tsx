@@ -26,6 +26,8 @@ export default function Committees() {
   const { tenant, profile } = useAdmin();
   const vm = useMemo(() => gatesOf(tenant), [tenant]);
   const c = vm.committee;
+  const emptySeats = c.total - c.filled;
+  const dg2 = vm.gates.find((g) => g.key === 'DG2');
 
   const tiles = [
     valueTile('gates.owners', 'Gates without owners', String(vm.withoutOwners), {
@@ -35,14 +37,23 @@ export default function Committees() {
     }, {
       tone: vm.withoutOwners ? 'red' : 'green', sub: vm.withoutOwners ? 'Blocking every tender that reaches them' : 'Every gate has an owner',
       detail: vm.withoutOwners ? 'Blocking every tender that reaches them' : 'Every gate has an owner',
+      ref: { k: 'Target', v: '0' },
     }),
     valueTile('gates.seats', 'Committee seats filled', `${c.filled} of ${c.total}`, {
       means: 'Bid Committee members named for DG2', counted: 'Voting seats with a member.', source: 'Users: committee seats',
-    }, { tone: c.filled >= c.quorum ? undefined : 'red' }),
+    }, {
+      tone: c.filled >= c.quorum ? undefined : 'red',
+      detail: emptySeats ? `${emptySeats} voting seat${emptySeats === 1 ? '' : 's'} empty` : 'Every voting seat named',
+      ref: { k: 'Target', v: `${c.quorum} for quorum` },
+    }),
     valueTile('gates.quorum', 'DG2 quorum', `${c.quorum} of ${c.total}`, {
       means: 'Positions the committee must record before the Head of Tendering may approve DG2',
       counted: 'Named positions recorded on the issued pack.', source: 'Targets & SLAs',
-    }, { sub: 'positions before approval', detail: 'Positions before approval' }),
+    }, {
+      sub: 'positions before approval', detail: 'Positions before approval',
+      // The positions are recorded within DG2's time limit, from pack issue.
+      ref: { k: 'Cap', v: dg2 ? `${dg2.slaHours} h to decide` : 'None' },
+    }),
   ];
 
   return (

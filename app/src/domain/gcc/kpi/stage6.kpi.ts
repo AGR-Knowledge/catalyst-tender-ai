@@ -31,7 +31,7 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.sections.late > 0);
       const n = rows.reduce((s, x) => s + x.f.sections.late, 0);
-      if (!n) return { display: '0', sub: 'Every section is on time', detail: 'Every section is on time', tone: 'green' };
+      if (!n) return { display: '0', sub: 'Every section is on time', detail: 'Every section is on time', ref: { k: 'Worst', v: 'None' }, tone: 'green' };
       const most = [...rows].sort((a, b) => b.f.sections.late - a.f.sections.late)[0];
       const urgent = rows.some((x) => { const wd = deadlineWd(x.l, ctx.tenant); return wd !== null && wd <= NEAR_WD; });
       const tone: Tone = urgent ? 'red' : 'orange';
@@ -48,7 +48,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const rows = s6Of(ctx);
-      if (!rows.length) return { display: 'No proposals in drafting' };
+      if (!rows.length) return { display: 'No proposals in drafting', detail: 'No sections in drafting', ref: { k: 'Worst', v: 'None' } };
       const locked = rows.reduce((s, x) => s + x.f.sections.locked, 0);
       const total = rows.reduce((s, x) => s + x.f.sections.total, 0);
       const least = [...rows].sort((a, b) => a.f.sections.locked / a.f.sections.total - b.f.sections.locked / b.f.sections.total)[0];
@@ -70,7 +70,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = belowPass(ctx);
-      if (!list.length) return { display: '0', sub: 'Every proposal clears its pass mark', detail: 'All clear the pass mark', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every proposal clears its pass mark', detail: 'All clear the pass mark', ref: { k: 'Worst', v: 'None' }, tone: 'green' };
       const w = list[0];
       return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.simScore} vs ${w.f.passMark}`, detail: `${w.f.simScore} vs ${w.f.passMark} pass mark`, ref: { k: 'Worst', v: w.l.tenderId }, tone: 'red' };
     },
@@ -86,9 +86,9 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.smeOverdue > 0);
       const n = rows.reduce((s, x) => s + x.f.smeOverdue, 0);
-      if (!n) return { display: '0', sub: 'No specialist is late', detail: 'No specialist is late', tone: 'green' };
+      if (!n) return { display: '0', sub: 'No specialist is late', detail: 'No specialist is late', ref: { k: 'Target', v: '0' }, tone: 'green' };
       const sub = rows.length === 1 ? `on ${rows[0].l.tenderId}` : `across ${plural(rows.length, 'tender')}`;
-      return { display: String(n), sub, detail: cap(sub), tone: 'orange' };
+      return { display: String(n), sub, detail: cap(sub), ref: { k: 'Target', v: '0' }, tone: 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'SME tasks overdue'), s6Of(ctx).filter((x) => x.f.smeOverdue > 0).map((x) => x.l.tenderId)),
   },
@@ -99,7 +99,10 @@ export const KPIS: KpiDef[] = [
       counted: 'Red-team reviews due in the period that were held by their date ÷ reviews due in the period. A review due today and not yet held is not counted.',
       target: '100% green', source: 'Review records',
     },
-    compute: (ctx) => { const r = onTimeRate(dueInWindow(ctx, 'review'), 'No reviews due in this period', STAGE_BANDS.full, 'held by their date'); return { ...r, detail: r.sub }; },
+    compute: (ctx) => {
+      const r = onTimeRate(dueInWindow(ctx, 'review'), 'No reviews due in this period', STAGE_BANDS.full, 'held by their date');
+      return { ...r, detail: r.sub ?? 'No red-team review due', ref: { k: 'Target', v: `${STAGE_BANDS.full.green}%` } };
+    },
     drill: (ctx) => idsDrill(`From tile: Reviews due · ${ctx.window.label}`, dueInWindow(ctx, 'review').map((x) => x.l.tenderId)),
   },
   {
@@ -111,10 +114,12 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const rows = s6Of(ctx);
-      if (!rows.length) return { display: 'No proposals in drafting' };
+      if (!rows.length) return { display: 'No proposals in drafting', detail: 'No text drafted yet', ref: { k: 'Worst', v: 'None' } };
       const total = rows.reduce((s, x) => s + valueOf(ctx.tenant, x.l), 0);
       const pct = total ? round1(rows.reduce((s, x) => s + x.f.reusePct * valueOf(ctx.tenant, x.l), 0) / total) : 0;
-      return { display: `${Math.round(pct)}%`, sub: `across ${plural(rows.length, 'proposal')}`, detail: cap(`across ${plural(rows.length, 'proposal')}`) };
+      // The proposal starting least from cited material, as Cost lines sourced names its least-sourced price.
+      const low = [...rows].sort((a, b) => a.f.reusePct - b.f.reusePct)[0];
+      return { display: `${Math.round(pct)}%`, sub: `across ${plural(rows.length, 'proposal')}`, detail: cap(`across ${plural(rows.length, 'proposal')}`), ref: { k: 'Worst', v: `${low.l.tenderId}, ${Math.round(low.f.reusePct)}%` } };
     },
   },
 ];

@@ -3,13 +3,17 @@ import { useTenantKey } from '@/domain/tenancy';
 import { can } from '@/data/access';
 import { committeeOf, firstWithRole, peopleOf, type Person } from '@/data/people';
 import { isGccTenantKey } from '@/data/gcc';
-import { DEMO_TODAY, addDays, weekendText } from '@/domain/calendar';
+import { DEMO_TODAY, addDays, weekdayOf, weekendText } from '@/domain/calendar';
 import { dataPort } from '@/domain/gcc/port';
 import { queriesFor } from '@/domain/gcc/lifecycle';
 import { keyDatesFor } from '@/domain/gcc/s1';
 import { rfqsFor, sentBy } from '@/domain/gcc/s2';
 import { vaultFor } from '@/domain/gcc/company/vault';
-import { CALENDAR_CATEGORIES, calendarItemDetail, calendarItems, weekendDays, type CalendarItemVM } from '@/domain/gcc/calendar';
+import {
+  CALENDAR_CATEGORIES, byImportance, calendarBanners, calendarDay, calendarItemDetail, calendarItems, firstWeekday, monthGrid, weekStart, weekendDays,
+  type CalendarItemVM,
+} from '@/domain/gcc/calendar';
+import { profileOf } from '@/domain/gcc/s1/common';
 import { CardHead } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -19,6 +23,9 @@ import { DataTable } from '@/components/ui/DataTable';
  * the viewer may not see, and shades each country's weekend. In the active
  * tenant, as its Head of Tendering and three other people, over the next
  * eight weeks, on the seed (`done` is an empty map in memory), so it changes nothing.
+ * Orchestrator follow-up (2026-09-28): weeks start on the country's first
+ * working day, quotes are one item per tender and day, and a day lists its
+ * items most important first.
  */
 
 interface Check { name: string; ok: boolean; got: string }
@@ -54,19 +61,22 @@ function checks(tenant: string): Check[] {
   add('Decision gates: each is the row’s next gate due', !gateMiss.length && gateItems.length === gates.length,
     `${gateItems.length} of ${gates.length} gates${gateMiss.length ? ` · off: ${gateMiss.map((r) => r.id).join(', ')}` : ''}`);
 
-  // 3. Every quotes item is the earliest reply of its package that day, and counts its replies.
+  // 3. Every quotes item gathers its tender's replies due that day, at the earliest one, and counts them.
   const quotes = items.filter((i) => i.ref.kind === 'quotes');
+  const sentIn = rows.flatMap((r) => rfqsFor(tenant, r.id, DONE).filter((x) => sentBy(x) && x.replyBy.slice(0, 10) >= FROM && x.replyBy.slice(0, 10) <= TO));
   const quoteMiss = quotes.filter((i) => {
     if (i.ref.kind !== 'quotes') return true;
-    const { tenderId, pkgId } = i.ref;
-    const rs = rfqsFor(tenant, tenderId, DONE).filter((r) => sentBy(r) && r.packageId === pkgId && r.replyBy.slice(0, 10) === i.date);
+    const rs = rfqsFor(tenant, i.ref.tenderId, DONE).filter((r) => sentBy(r) && r.replyBy.slice(0, 10) === i.date);
     const first = rs.map((r) => r.replyBy).sort()[0];
     const replied = rs.filter((r) => r.repliedAt).length;
+    const held = i.ref.packages.flatMap((p) => p.rfqIds).length;
     const d = calendarItemDetail(i.id, { tenant, viewer: hot, done: DONE });
-    return first !== when(i.date, i.time) || rs.length !== i.ref.rfqIds.length || !d?.needs[0]?.text.startsWith(`${replied} of ${rs.length} `);
+    return first !== when(i.date, i.time) || rs.length !== held || !d?.needs[0]?.text.startsWith(`${replied} of ${rs.length} `);
   });
-  add('Supplier quotes: earliest reply of the package that day, replied count', !quoteMiss.length,
-    `${quotes.length} package items${quoteMiss.length ? ` · off: ${quoteMiss.map((i) => i.id).join(', ')}` : ', all agree'}`);
+  const held = quotes.reduce((n, i) => n + (i.ref.kind === 'quotes' ? i.ref.packages.flatMap((p) => p.rfqIds).length : 0), 0);
+  const perDay = new Set(quotes.map((i) => `${i.tenderId}|${i.date}`)).size;
+  add('Supplier quotes: one item per tender and day, earliest reply, replied count', !quoteMiss.length && held === sentIn.length && perDay === quotes.length,
+    `${quotes.length} items for ${sentIn.length} replies due${quoteMiss.length ? ` · off: ${quoteMiss.map((i) => i.id).join(', ')}` : ', all agree'}`);
 
   // 4. Every credential expiry is the vault's valid-to date.
   const vault = vaultFor(tenant, DONE, hot).rows.filter((c) => c.validTo && c.validTo >= FROM && c.validTo <= TO);
@@ -124,6 +134,41 @@ function checks(tenant: string): Check[] {
   const approvals = gateItems.filter((i) => i.ref.kind === 'gate' && i.ref.gate !== 'DG1');
   add('Only mine: every DG2 and DG3 due is the Head of Tendering’s', approvals.every((i) => i.mine),
     `${approvals.filter((i) => i.mine).length} of ${approvals.length} marked mine`);
+
+  // 13. Weeks start on the first working day: Sunday in KSA, Monday in the UAE, and the tenant's own after its weekend.
+  const cc = profileOf(tenant).countryCode;
+  const start = weekStart(DEMO_TODAY, cc);
+  const own = weekendDays(cc);
+  add('Weeks start on the first working day (KSA Sunday, UAE Monday)',
+    firstWeekday('SA') === 0 && firstWeekday('AE') === 1 && !own.includes(weekdayOf(start)) && own.includes(weekdayOf(addDays(start, -1))),
+    `KSA ${firstWeekday('SA')} · UAE ${firstWeekday('AE')} · this week from ${start}`);
+
+  // 14. The month grid holds the whole month in the weeks it needs.
+  const mSa = monthGrid('2026-03-01', 'SA');
+  const mAe = monthGrid('2026-03-01', 'AE');
+  const g = monthGrid(DEMO_TODAY.slice(0, 7) + '-01', cc);
+  add('Month grid: March 2026 is 5 weeks from Sun 1 Mar in KSA, 6 from Mon 23 Feb in the UAE',
+    mSa.from === '2026-03-01' && mSa.weeks === 5 && mAe.from === '2026-02-23' && mAe.weeks === 6 && g.from <= DEMO_TODAY.slice(0, 7) + '-01' && g.to >= '2026-03-31',
+    `KSA ${mSa.from} × ${mSa.weeks} · UAE ${mAe.from} × ${mAe.weeks} · here ${g.from} to ${g.to}`);
+
+  // 15. A day lists its most important item first: its category leads the legend order among that day's.
+  const rank = (i: CalendarItemVM) => CALENDAR_CATEGORIES.findIndex((c) => c.key === i.category);
+  const days = [...new Set(items.map((i) => i.date))];
+  const misordered = days.filter((day) => {
+    const list = byImportance(items.filter((i) => i.date === day));
+    return list.some((i, n) => n > 0 && (rank(list[n - 1]) > rank(i) || (rank(list[n - 1]) === rank(i) && !list[n - 1].flags.length && i.flags.length > 0)));
+  });
+  add('A day lists the most important first (category, then flagged)', !misordered.length,
+    `${days.length} days${misordered.length ? ` · out of order: ${misordered.slice(0, 3).join(', ')}` : ', all in order'}`);
+
+  // 16. The day's list holds every item of that day once.
+  const short = days.filter((day) => calendarDay(day, items, tenant).groups.reduce((n, x) => n + x.rows.length, 0) !== items.filter((i) => i.date === day).length);
+  add('The whole day lists each of its items once', !short.length, `${days.length} days${short.length ? ` · off: ${short.slice(0, 3).join(', ')}` : ', all complete'}`);
+
+  // 17. Ramadan and the closures share one banner row: none overlaps another.
+  const bs = calendarBanners(cc, '2026-01-01', '2026-12-31');
+  const clash = bs.filter((a, n) => bs.some((b, m) => m > n && a.from <= b.to && b.from <= a.to));
+  add('Banners share one row: none overlaps another', !clash.length, `${bs.length} banners${clash.length ? ` · overlapping: ${clash.map((b) => b.key).join(', ')}` : ''}`);
 
   return out;
 }

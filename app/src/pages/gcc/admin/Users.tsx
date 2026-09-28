@@ -40,17 +40,24 @@ export default function Users() {
     navigate('/');
   };
 
+  // The largest group, which the detail line may fold into "others".
+  const largest = vm.seats.byGroup.reduce<{ group: string; n: number } | null>((a, g) => (!a || g.n > a.n ? g : a), null);
+  const emptySeats = committee.total - committee.filled;
   const tiles = [
     valueTile('GOV-5', 'Seats in use', `${vm.seats.used} of ${vm.seats.licensed}`, {
       means: 'People holding a licensed seat in this company, against the seats licensed. Licensing and adoption',
       counted: 'Company users by group. Suppliers answer RFQs through the portal and hold no seat.',
       source: 'Users',
-    }, { sub: vm.seats.byGroup.map((g) => `${g.group} ${g.n}`).join(' · '), detail: seatSplit(vm.seats.byGroup) }),
+    }, { sub: vm.seats.byGroup.map((g) => `${g.group} ${g.n}`).join(' · '), detail: seatSplit(vm.seats.byGroup), ref: { k: 'Largest', v: largest ? `${largest.group} ${largest.n}` : 'None' } }),
     valueTile('seats.committee', 'Committee seats filled', `${committee.filled} of ${committee.total}`, {
       means: 'Bid Committee members named for DG2. Each records a named position on the pack',
       counted: 'Voting seats with a member: CEO, CFO, Technical Director, Operations Director and Sector Head.',
       target: `Quorum: ${committee.quorum} of ${committee.total} positions recorded`, source: 'Users: committee seats',
-    }, { tone: committee.filled >= committee.quorum ? undefined : 'red' }),
+    }, {
+      tone: committee.filled >= committee.quorum ? undefined : 'red',
+      detail: emptySeats ? `${emptySeats} voting seat${emptySeats === 1 ? '' : 's'} empty` : 'Every voting seat named',
+      ref: { k: 'Target', v: `${committee.quorum} for quorum` },
+    }),
   ];
 
   const columns: ColDef<Row>[] = [

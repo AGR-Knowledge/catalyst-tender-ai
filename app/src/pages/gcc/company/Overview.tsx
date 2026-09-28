@@ -100,7 +100,8 @@ function tilesOf(f: KeyFiguresVM, ctx: KpiCtx): TileVM[] {
       counted: 'The busiest team’s committed hours for its live bids over the next four weeks ÷ its people’s hours in the same weeks. The peak is its busiest month over its bids.', target: 'None (information)', source: 'Team rosters and bid effort estimates',
     }, ctx, {
       sub: `${teamShort(l.team)}, ${l.windowLabel} · peak ${l.peak.pct}% in ${l.peak.month}`,
-      detail: `${teamShort(l.team)}, next ${plural(l.weeks, 'week')}`,
+      // The first wording that fits the one-line detail (about 24 characters), as Bid-team load (CAP-1) does on the home.
+      detail: [`${teamShort(l.team)}, next ${plural(l.weeks, 'week')}`, `${teamShort(l.team)}, ${plural(l.weeks, 'week')}`].find((x) => x.length <= 24) ?? teamShort(l.team),
       ref: { k: 'Peak', v: `${l.peak.pct}% in ${l.peak.month}` },
       drill: { kind: 'route', to: tab('teams'), label: 'Open Teams and partners' },
     }));

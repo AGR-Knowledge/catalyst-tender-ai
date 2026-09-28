@@ -46,11 +46,11 @@ const dueSplit = (tenderId: string, due: string, wd: number): Pick<KpiResult, 'd
   ref: wd < 0 ? { k: 'Worst', v: wdText(wd) } : { k: 'Time left', v: wdText(wd) },
 });
 
-/** A turnaround tile's lines (`turnaround` in ./stages): the p90 in the period, against its target. */
-function turnSplit(ctx: KpiCtx, kind: 'replan' | 'reprice', target: number): Pick<KpiResult, 'detail' | 'ref'> {
+/** A turnaround tile's lines (`turnaround` in ./stages): the p90 in the period, against its target, which stays with none in the period. */
+function turnSplit(ctx: KpiCtx, kind: 'replan' | 'reprice', target: number, none: string): Pick<KpiResult, 'detail' | 'ref'> {
   const list = qOf(ctx).workEventsIn(ctx.window, kind);
   const p90 = nearestRank(list.map((x) => x.e.turnaroundH), 90);
-  return p90 === null ? {} : { detail: `p90 turnaround ${hoursShort(p90)}`, ref: { k: 'Target', v: hoursShort(target) } };
+  return { detail: p90 === null ? none : `p90 turnaround ${hoursShort(p90)}`, ref: { k: 'Target', v: hoursShort(target) } };
 }
 
 export const KPIS: KpiDef[] = [
@@ -63,7 +63,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = pricesDue(ctx);
-      if (!list.length) return { display: '0', sub: 'No price due this week', detail: 'No price due this week', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'No price due this week', detail: 'No price due this week', ref: { k: 'Next', v: 'None' }, tone: 'green' };
       const first = list[0];
       const tone: Tone = list.some((x) => x.wd < 0) ? 'red' : 'orange';
       return { display: String(list.length), sub: `First: ${first.l.tenderId} · ${dayText(first.f.priceDue)} · ${wdText(first.wd)}`, ...dueSplit(first.l.tenderId, first.f.priceDue, first.wd), tone };
@@ -79,7 +79,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const rows = s5Of(ctx);
-      if (!rows.length) return { display: 'No prices in build-up' };
+      if (!rows.length) return { display: 'No prices in build-up', detail: 'No bids in pricing', ref: { k: 'Worst', v: 'None' } };
       const pct = weightedShare(ctx, rows, (f) => f.sourcedPct);
       const low = [...rows].sort((a, b) => a.f.sourcedPct - b.f.sourcedPct)[0];
       return { display: `${Math.round(pct)}%`, sub: `Lowest: ${low.l.tenderId}, ${low.f.sourcedPct}%`, detail: `Across ${plural(rows.length, 'tender')}`, ref: { k: 'Worst', v: `${low.l.tenderId}, ${low.f.sourcedPct}%` }, tone: rateTone(pct, RATE_BANDS['PRC-2']) };
@@ -95,7 +95,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = belowMargin(ctx);
-      if (!list.length) return { display: '0', sub: 'Every price clears its minimum', detail: 'All clear their minimum', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every price clears its minimum', detail: 'All clear their minimum', ref: { k: 'Worst', v: 'None' }, tone: 'green' };
       const w = list[0];
       return { display: String(list.length), sub: `${w.l.tenderId}: ${pct1(w.f.baseMarginPct)} vs ${pct1(w.f.minMarginPct)}`, detail: `${pct1(w.f.baseMarginPct)} vs ${pct1(w.f.minMarginPct)} minimum`, ref: { k: 'Worst', v: w.l.tenderId }, tone: 'red' };
     },
@@ -110,7 +110,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const rows = s5Of(ctx);
-      if (!rows.length) return { display: 'No prices in build-up' };
+      if (!rows.length) return { display: 'No prices in build-up', detail: 'No bids in pricing', ref: { k: 'Worst', v: 'None' } };
       const pct = weightedShare(ctx, rows, (f) => f.estimatedPct);
       const high = [...rows].sort((a, b) => b.f.estimatedPct - a.f.estimatedPct)[0];
       const tone: Tone = pct <= ESTIMATED_SHARE_BAND.green ? 'green' : pct <= ESTIMATED_SHARE_BAND.orange ? 'orange' : 'red';
@@ -125,7 +125,7 @@ export const KPIS: KpiDef[] = [
       counted: 'Re-prices triggered in the period (addendum, FX, quote change), with the 90th percentile turnaround.',
       target: `p90 turnaround ${TURNAROUND_HOURS.reprice} h or less`, source: 'Pricing change log',
     },
-    compute: (ctx) => ({ ...turnaround(ctx, 'reprice', TURNAROUND_HOURS.reprice, 're-price'), ...turnSplit(ctx, 'reprice', TURNAROUND_HOURS.reprice) }),
+    compute: (ctx) => ({ ...turnaround(ctx, 'reprice', TURNAROUND_HOURS.reprice, 're-price'), ...turnSplit(ctx, 'reprice', TURNAROUND_HOURS.reprice, 'No price changes') }),
     drill: (ctx) => idsDrill(`From tile: Re-prices · ${ctx.window.label}`, qOf(ctx).workEventsIn(ctx.window, 'reprice').map((x) => x.l.tenderId)),
   },
   {
@@ -137,8 +137,8 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = financePending(ctx);
-      if (!list.length) return { display: '0', sub: 'Nothing waiting on Finance', detail: 'None waiting on Finance', tone: 'green' };
-      return { display: String(list.length), sub: `${list[0].l.tenderId} · price due ${dayText(list[0].f.priceDue)}`, detail: `${list[0].l.tenderId} · due ${dm(list[0].f.priceDue)}`, tone: 'orange', ownerTag: 'Finance' };
+      if (!list.length) return { display: '0', sub: 'Nothing waiting on Finance', detail: 'None waiting on Finance', ref: { k: 'Target', v: '0' }, tone: 'green' };
+      return { display: String(list.length), sub: `${list[0].l.tenderId} · price due ${dayText(list[0].f.priceDue)}`, detail: `${list[0].l.tenderId} · due ${dm(list[0].f.priceDue)}`, ref: { k: 'Target', v: '0' }, tone: 'orange', ownerTag: 'Finance' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Finance checks pending'), financePending(ctx).map((x) => x.l.tenderId)),
   },

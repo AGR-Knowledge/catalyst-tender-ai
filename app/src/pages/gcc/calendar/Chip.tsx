@@ -3,6 +3,9 @@ import { itemLabel, type CalendarItemVM } from '@/domain/gcc/calendar';
 /** Opens an item's detail; `el` is where focus returns when the modal closes. */
 export type OpenItem = (item: CalendarItemVM, el: HTMLElement) => void;
 
+/** Opens the whole of one day (`YYYY-MM-DD`), the same way. */
+export type OpenDay = (day: string, el: HTMLElement) => void;
+
 /**
  * One item as a chip (plan 027b 3.5): the category's dot and soft tint, the
  * time if any, then the title and the tender's short title on one line. A

@@ -1,8 +1,9 @@
 import type { Lifecycle, Result } from '@/data/gcc/lifecycle';
-import { HANDOVER_DAYS, RATE_BANDS } from '@/data/gcc/targets';
+import { HANDOVER_DAYS, MIN_N, RATE_BANDS } from '@/data/gcc/targets';
 import { TENANT_TARGETS } from '@/data/gcc/portfolio';
 import { isGccTenantKey } from '@/data/gcc';
 import { DEMO_TODAY } from '@/domain/calendar';
+import type { PeriodWindow } from '../period';
 import type { KpiCtx, KpiDef } from './types';
 import { daysBetween, dayText, idsDrill, isSmall, liveIn, pctOf, plural, qOf, rateTone, tileLabel } from './stages';
 
@@ -21,6 +22,9 @@ const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? opt
 
 /** "5 Mar": a reference line's date, without the weekday. */
 const dm = (iso: string) => dayText(iso).replace(/^\w{3} /, '');
+
+/** The reference line's period anchor, as on Live pipeline: "Since 7 Feb", "Since 9 Mar" (no year), "Since 00:00" for Today. */
+const sinceKey = (w: PeriodWindow) => `Since ${w.key === 'today' ? w.startText : dm(w.from).replace(/ \d{4}$/, '')}`;
 
 export const hasLessons = (l: Lifecycle) => l.events.some((e) => e.kind === 'lessons' && e.at <= DEMO_TODAY + 'T23:59');
 
@@ -45,12 +49,14 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = qOf(ctx).resultsIn(ctx.window);
-      if (!list.length) return { display: 'No results in this period' };
+      const target = isGccTenantKey(ctx.tenant) ? TENANT_TARGETS[ctx.tenant].hitRatePct : null;
+      // Under five results the rate isn't judged yet; the line says when it will be, as on Win / loss (PF-3).
+      const early = target ? { ref: { k: 'Target', v: `${target}% from ${MIN_N} results` } } : {};
+      if (!list.length) return { display: 'No results in this period', detail: 'Nothing won or lost', ...early };
       const won = list.filter((x) => x.r.result === 'won').length;
       const lost = list.length - won;
       const pct = pctOf(won, list.length);
-      if (isSmall(list.length)) return { display: `${won} won · ${lost} lost`, sub: `Win rate ${pct}% (n = ${list.length})`, detail: `Win rate ${pct}%`, smallSample: true, n: list.length };
-      const target = isGccTenantKey(ctx.tenant) ? TENANT_TARGETS[ctx.tenant].hitRatePct : null;
+      if (isSmall(list.length)) return { display: `${won} won · ${lost} lost`, sub: `Win rate ${pct}% (n = ${list.length})`, detail: `Win rate ${pct}%`, ...early, smallSample: true, n: list.length };
       return {
         display: `${pct}%`, sub: `${won} won · ${lost} lost (n = ${list.length})${target ? ` · target ${target}%` : ''}`, n: list.length,
         detail: `${won} won · ${lost} lost`,
@@ -69,7 +75,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = overdue(ctx);
-      if (!list.length) return { display: '0', sub: 'No result is overdue', detail: 'No result is overdue', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'No result is overdue', detail: 'No result is overdue', ref: { k: 'Oldest', v: 'None' }, tone: 'green' };
       return { display: String(list.length), sub: `${list[0].l.tenderId} · expected by ${dayText(list[0].by)}`, detail: `Expected by ${dm(list[0].by)}`, ref: { k: 'Oldest', v: list[0].l.tenderId }, tone: 'orange' };
     },
   },
@@ -82,7 +88,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = handovers(ctx);
-      if (!list.length) return { display: '0', sub: 'Every win is handed over', detail: 'Every win is handed over', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every win is handed over', detail: 'Every win is handed over', ref: { k: 'Oldest', v: 'None' }, tone: 'green' };
       const first = list[0];
       return { display: String(list.length), sub: `${first.l.tenderId} · ${plural(first.days, 'day')} since award`, detail: `${plural(first.days, 'day')} since award`, ref: { k: 'Oldest', v: first.l.tenderId }, ...(first.days > HANDOVER_DAYS ? { tone: 'orange' as const } : {}) };
     },
@@ -97,13 +103,13 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const lost = qOf(ctx).resultsIn(ctx.window, ['lost']);
-      if (!lost.length) return { display: 'No losses in this period' };
+      if (!lost.length) return { display: 'No losses in this period', detail: 'No loss reasons recorded', ref: { k: sinceKey(ctx.window), v: 'None' } };
       const counts = new Map<string, number>();
       for (const { r } of lost) { const k = LOSS[r.lossReason ?? 'other']; counts.set(k, (counts.get(k) ?? 0) + 1); }
       const sorted = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
       const top = sorted.filter(([, n]) => n === sorted[0][1]).map(([k]) => k);
       const sub = sorted.slice(0, 3).map(([k, n]) => `${k} ${n}`).join(' · ');
-      return { display: top.slice(0, 2).join(' · '), sub, detail: fit(sub, sorted.slice(0, 2).map(([k, n]) => `${k} ${n}`).join(' · ')), n: lost.length };
+      return { display: top.slice(0, 2).join(' · '), sub, detail: fit(sub, sorted.slice(0, 2).map(([k, n]) => `${k} ${n}`).join(' · ')), ref: { k: sinceKey(ctx.window), v: plural(lost.length, 'loss', 'losses') }, n: lost.length };
     },
     drill: (ctx) => idsDrill(`From tile: Losses · ${ctx.window.label}`, qOf(ctx).resultsIn(ctx.window, ['lost']).map((x) => x.l.tenderId)),
   },
@@ -116,11 +122,12 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = qOf(ctx).resultsIn(ctx.window);
-      if (!list.length) return { display: 'No results in this period' };
+      const ref = { k: 'Target', v: `${RATE_BANDS['RES-3'].green}%` };
+      if (!list.length) return { display: 'No results in this period', detail: 'No results to debrief', ref };
       const done = list.filter((x) => hasLessons(x.l)).length;
       const pct = pctOf(done, list.length);
-      if (isSmall(list.length)) return { display: `${done} of ${list.length}`, sub: `${pct}% of results`, detail: `${pct}% of results`, smallSample: true, n: list.length };
-      return { display: `${pct}%`, sub: `${done} of ${plural(list.length, 'result')}`, detail: `${done} of ${plural(list.length, 'result')}`, tone: rateTone(pct, RATE_BANDS['RES-3']), n: list.length };
+      if (isSmall(list.length)) return { display: `${done} of ${list.length}`, sub: `${pct}% of results`, detail: `${pct}% of results`, ref, smallSample: true, n: list.length };
+      return { display: `${pct}%`, sub: `${done} of ${plural(list.length, 'result')}`, detail: `${done} of ${plural(list.length, 'result')}`, ref, tone: rateTone(pct, RATE_BANDS['RES-3']), n: list.length };
     },
     drill: (ctx) => idsDrill(`From tile: Results without lessons · ${ctx.window.label}`, qOf(ctx).resultsIn(ctx.window).filter((x) => !hasLessons(x.l)).map((x) => x.l.tenderId)),
   },

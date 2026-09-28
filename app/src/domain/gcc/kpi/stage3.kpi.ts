@@ -43,7 +43,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = awaiting(ctx);
-      if (!list.length) return { display: '0', sub: 'No pack is waiting for DG2', detail: 'No pack waiting for DG2' };
+      if (!list.length) return { display: '0', sub: 'No pack is waiting for DG2', detail: 'No pack waiting for DG2', ref: { k: 'Next', v: 'None' } };
       const { l, g } = list[0];
       const f = l.facts?.stage === 3 ? l.facts : null;
       const sees = can(ctx.viewer, 'see.positions', tenderCtx(ctx.tenant, l)).ok;
@@ -67,10 +67,10 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = stalePacks(ctx);
-      if (!list.length) return { display: '0', sub: 'Every pack is fresh', detail: 'Every pack is fresh', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every pack is fresh', detail: 'Every pack is fresh', ref: { k: 'Target', v: '0' }, tone: 'green' };
       const issued = list.some((x) => x.l.facts?.stage === 3 && x.l.facts.pack === 'issued');
       const first = list[0];
-      return { display: String(list.length), sub: `${first.l.tenderId} · ${shortReason(first.s.text)}`, detail: fit(`${first.l.tenderId} · ${shortReason(first.s.text)}`, `${first.l.tenderId}, ${shortReason(first.s.text).replace(/ received.*$/, '').replace(/^./, (c) => c.toLowerCase())}`), tone: issued ? 'red' : 'orange' };
+      return { display: String(list.length), sub: `${first.l.tenderId} · ${shortReason(first.s.text)}`, detail: fit(`${first.l.tenderId} · ${shortReason(first.s.text)}`, `${first.l.tenderId}, ${shortReason(first.s.text).replace(/ received.*$/, '').replace(/^./, (c) => c.toLowerCase())}`), ref: { k: 'Target', v: '0' }, tone: issued ? 'red' : 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Stale packs'), stalePacks(ctx).map((x) => x.l.tenderId)),
   },
