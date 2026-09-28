@@ -79,7 +79,7 @@
 /* ----------------------------------------------------------- promise */
 .plc-promise {
   display: flex; gap: 14px; align-items: flex-start; padding: 15px 18px; margin-bottom: var(--gap);
-  border: 1px solid var(--line); border-left: 3px solid var(--plc-accent); border-radius: var(--radius-lg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); /* no side bar (plan 028): the icon tile keeps the accent */
 }
 .plc-promise-ic { flex: none; width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; background: var(--plc-accent-soft); color: var(--plc-accent-ink); }
 .plc-promise-t { font-size: 14px; font-weight: 600; letter-spacing: -0.15px; }

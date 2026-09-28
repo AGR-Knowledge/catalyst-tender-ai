@@ -11,10 +11,12 @@
 .dg3-ev-sum .t-red { font-weight: 600; }
 
 .dg3-lines { list-style: none; margin: 0; padding: 0; display: grid; }
-.dg3-line { display: grid; gap: 5px; padding: 11px 12px; border-top: 1px solid var(--line-3); border-left: 3px solid transparent; }
+.dg3-line { display: grid; gap: 5px; padding: 11px 12px; border-top: 1px solid var(--line-3); }
 .dg3-line:first-child { border-top: 0; }
-.dg3-line.s-fail { border-left-color: var(--red); background: var(--red-soft); border-radius: var(--radius-sm); border-top-color: transparent; }
+/* A failing line: the "! Fails" pill, on a red tint bordered all round; no side bar (plan 028). */
+.dg3-line.s-fail { border: 1px solid var(--red-line); background: var(--red-soft); border-radius: var(--radius-sm); }
 .dg3-line.s-fail + .dg3-line { border-top-color: transparent; }
+.dg3-line.s-fail + .dg3-line.s-fail { margin-top: 6px; border-top-color: var(--red-line); }
 .dg3-line-h { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .dg3-line-l { font-size: 13.5px; font-weight: 600; color: var(--ink); }
 .dg3-block { margin-left: auto; font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--red); }

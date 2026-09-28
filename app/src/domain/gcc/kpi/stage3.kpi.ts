@@ -30,6 +30,9 @@ const stalePacks = (ctx: KpiCtx) => liveIn(ctx, 3).flatMap((l) => {
 /** "Addendum 2 received 08 Mar 09:12 changes 2 packages …" → "Addendum 2 received 08 Mar 09:12". */
 const shortReason = (text: string) => text.replace(/^since \d\d:\d\d \((.*)\)$/, '$1').split(/ changes |: /)[0];
 
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
+
 export const KPIS: KpiDef[] = [
   {
     id: 'DEC-1', label: 'Awaiting DG2', kind: 'state',
@@ -40,7 +43,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = awaiting(ctx);
-      if (!list.length) return { display: '0', sub: 'No pack is waiting for DG2' };
+      if (!list.length) return { display: '0', sub: 'No pack is waiting for DG2', detail: 'No pack waiting for DG2' };
       const { l, g } = list[0];
       const f = l.facts?.stage === 3 ? l.facts : null;
       const sees = can(ctx.viewer, 'see.positions', tenderCtx(ctx.tenant, l)).ok;
@@ -49,6 +52,8 @@ export const KPIS: KpiDef[] = [
       return {
         display: String(list.length), tone,
         sub: [sees && f ? `${f.positions.recorded} of ${f.positions.of} positions` : null, `quorum ${DG2_QUORUM}`, time].filter(Boolean).join(' · '),
+        detail: sees && f ? fit(`${f.positions.recorded} of ${f.positions.of} positions · quorum ${DG2_QUORUM}`, `${f.positions.recorded} of ${f.positions.of} positions`) : `Quorum ${DG2_QUORUM}`,
+        ref: g.onTime ? { k: 'Time left', v: hoursText(g.leftHours) } : { k: 'Worst', v: `overdue by ${hoursText(g.leftHours)}` },
       };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Awaiting DG2'), awaiting(ctx).map((x) => x.l.tenderId)),
@@ -62,10 +67,10 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = stalePacks(ctx);
-      if (!list.length) return { display: '0', sub: 'Every pack is fresh', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every pack is fresh', detail: 'Every pack is fresh', tone: 'green' };
       const issued = list.some((x) => x.l.facts?.stage === 3 && x.l.facts.pack === 'issued');
       const first = list[0];
-      return { display: String(list.length), sub: `${first.l.tenderId} · ${shortReason(first.s.text)}`, tone: issued ? 'red' : 'orange' };
+      return { display: String(list.length), sub: `${first.l.tenderId} · ${shortReason(first.s.text)}`, detail: fit(`${first.l.tenderId} · ${shortReason(first.s.text)}`, `${first.l.tenderId}, ${shortReason(first.s.text).replace(/ received.*$/, '').replace(/^./, (c) => c.toLowerCase())}`), tone: issued ? 'red' : 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Stale packs'), stalePacks(ctx).map((x) => x.l.tenderId)),
   },

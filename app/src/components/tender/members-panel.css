@@ -40,8 +40,9 @@
 .mp-chip.tone-none { background: transparent; border: 1px dashed var(--line-strong); color: var(--ink-3); }
 .mp-at { font-size: 11.5px; color: var(--ink-3); }
 .mp-flag { font-size: 11px; font-weight: 500; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--orange-soft); color: var(--ink); }
-.mp-comment { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); padding-left: 8px; border-left: 2px solid var(--line-2); }
-.mp-coi { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink); padding-left: 8px; border-left: 2px solid var(--orange); }
+/* The member's words, a quiet quote; a declared conflict is a FlagLine ("!" in orange). No rule beside either (plan 028). */
+.mp-comment { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink-2); padding: 5px 9px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-sunken); }
+.mp-coi { margin: 0; font-size: 12.5px; line-height: 1.45; color: var(--ink); }
 .mp-conds { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
 .mp-conds li { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink); line-height: 1.4; }
 .mp-conds li::before { content: '▸'; color: var(--ink-4); font-size: 10px; }

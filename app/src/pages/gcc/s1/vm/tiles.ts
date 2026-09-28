@@ -4,7 +4,7 @@ import { can, holdersOf } from '@/data/access';
 import { kpi, type KpiCtx, type KpiInfo, type KpiKind } from '@/domain/gcc/kpi';
 import { previousOf, windowOf, type PeriodKey } from '@/domain/gcc/period';
 import { DEMO_NOW } from '@/domain/gcc/clock';
-import type { DrillVM, TileVM } from '@/domain/gcc/viewmodels';
+import type { DrillVM, TileRefVM, TileVM } from '@/domain/gcc/viewmodels';
 
 /**
  * The header strip of a Stage 1 screen (catalogue §D): tiles from the KPI
@@ -40,13 +40,13 @@ export function registryTile(id: string, ctx: KpiCtx, here: string): TileVM | nu
   try { r = def.compute(ctx); } catch (e) { console.error(`KPI ${id} failed`, e); r = { display: 'Not available', tone: 'muted' as const }; }
   let drill: DrillVM | null = null;
   try { drill = r.masked ? null : drillOn(def.drill?.(ctx), here); } catch { drill = null; }
-  return { id, label: r.label ?? label, display: r.display, sub: r.sub, tone: r.tone, ownerTag: r.ownerTag, masked: r.masked, info: { ...info, label: r.label ?? label }, drill };
+  return { id, label: r.label ?? label, display: r.display, sub: r.sub, detail: r.detail, ref: r.ref, status: r.status, tone: r.tone, ownerTag: r.ownerTag, masked: r.masked, info: { ...info, label: r.label ?? label }, drill };
 }
 
 /** A tile over a value a rule module derives, for a catalogue KPI the registry does not hold yet. */
-export function valueTile(id: string, label: string, display: string, info: KpiInfo & { kind: KpiKind }, ctx: KpiCtx, opts: { sub?: string; tone?: Tone; drill?: DrillVM | null } = {}): TileVM {
+export function valueTile(id: string, label: string, display: string, info: KpiInfo & { kind: KpiKind }, ctx: KpiCtx, opts: { sub?: string; detail?: string; ref?: TileRefVM; status?: string; tone?: Tone; drill?: DrillVM | null } = {}): TileVM {
   const { kind, ...rest } = info;
-  return { id, label, display, sub: opts.sub, tone: opts.tone, info: { label, ...rest, period: periodText(kind, ctx) }, drill: opts.drill ?? null };
+  return { id, label, display, sub: opts.sub, detail: opts.detail, ref: opts.ref, status: opts.status, tone: opts.tone, info: { label, ...rest, period: periodText(kind, ctx) }, drill: opts.drill ?? null };
 }
 
 /** Registry tiles first where registered; the ids the registry lacks are left out (the report lists them). */

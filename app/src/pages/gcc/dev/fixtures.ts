@@ -5,6 +5,7 @@ import { GCC_STAGES, stageLabel, stageShortLabel, stepLabel } from '@/data/gcc/s
 import { personById } from '@/data/people';
 import { convert, money } from '@/domain/money';
 import { windowOf, type PeriodWindow } from '@/domain/gcc/period';
+import { GATE_SUB, splitNote } from '@/domain/gcc/flows/notes';
 
 /**
  * KIT PREVIEW FIXTURES (development only). Hand-written view models that
@@ -137,7 +138,7 @@ export const FIXTURE_TILES: TileVM[] = [
   {
     id: 'SCR-6', label: 'Credentials at risk', display: '2', tone: 'orange', ownerTag: 'Finance', sub: 'Zakat 30 Apr · before T-2026-118 opens 10 May',
     info: { label: 'Credentials at risk', period: now, means: 'Company certificates that expire before a live bid is opened. Saudi tenders require them to be valid on the opening date, so an expiry here can disqualify the bid.', counted: 'Credentials whose expiry falls before the opening date of any live bid.', target: '0', source: 'Credentials vault' },
-    drill: { kind: 'route', to: '/company' },
+    drill: { kind: 'route', to: '/company?tab=credentials&bids=affects' },
   },
   {
     id: 'CAP-1', label: 'Bid-team load', display: '78%', tone: 'green', sub: 'Water team, next 4 weeks · 96% if T-2026-118 is pursued',
@@ -155,29 +156,38 @@ export const FIXTURE_TILES: TileVM[] = [
 
 const dr = (label: string, list: string[]) => ({ kind: 'table' as const, label: `From funnel: ${label} · ${W.label}`, ids: list, status: 'all' as const });
 
+/** A funnel column as the domain builds it (plan 027d): the rate is the first part's share of all its parts. */
+const col = (key: string, label: string, sub: string, noun: string, parts: FlowZoneVM['steps'][number]['parts']) => ({ key, label, sub, parts, note: splitNote(parts, noun) });
+
 export const FIXTURE_FLOW: FlowZoneVM = {
   id: 'PF-5', label: 'Decision funnel',
   info: { label: 'Decision funnel', period, means: 'Decisions made in this period at each gate, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up', counted: 'Notices captured; DG1, DG2 and DG3 decisions; bids submitted; results received, in the window.', source: 'Intake events and gate records' },
   steps: [
-    { key: 'captured', label: 'Captured', parts: [{ key: 'n', count: 176, label: 'notices', drill: null }] },
-    { key: 'dg1', label: 'DG1', parts: [
-      { key: 'pursue', count: 4, label: 'pursued', drill: dr('DG1 pursued', ['T-2026-109', 'T-2026-104', 'T-2026-101', 'T-2026-106']) },
-      { key: 'discard', count: 7, label: 'discarded', drill: dr('DG1 discarded', ['T-2026-112', 'T-2026-115', 'T-2026-107']) },
-      { key: 'hold', count: 1, label: 'held', drill: dr('DG1 held', ['T-2026-119']) },
-    ] },
-    { key: 'dg2', label: 'DG2', parts: [
-      { key: 'bid', count: 4, label: 'bid', drill: dr('DG2 bid', ['T-2025-341', 'T-2025-336', 'T-2025-329', 'T-2025-322']) },
-      { key: 'nobid', count: 1, label: 'no-bid', drill: dr('DG2 no-bid', ['T-2026-099']) },
-    ] },
-    { key: 'dg3', label: 'DG3', parts: [
-      { key: 'approved', count: 4, label: 'approved', drill: dr('DG3 approved', ['T-2025-298', 'T-2025-291', 'T-2026-079', 'T-2025-284']) },
-      { key: 'rejected', count: 0, label: 'rejected', drill: null },
-    ] },
-    { key: 'submitted', label: 'Submitted', parts: [{ key: 'n', count: 3, label: 'bids', drill: dr('Submitted', ['T-2025-291', 'T-2026-079', 'T-2025-284']) }] },
-    { key: 'results', label: 'Results', parts: [
-      { key: 'won', count: 1, label: 'won', tone: 'green', drill: dr('Won', ['T-2025-262']) },
-      { key: 'lost', count: 2, label: 'lost', drill: dr('Lost', ['T-2025-255', 'T-2025-270']) },
-    ] },
+    col('captured', 'Captured', 'New notices', 'received', [
+      { key: 'notices', count: 176, label: 'new', outcome: 'on', drill: null },
+      { key: 'linked', count: 18, label: 'linked', outcome: 'stopped', drill: null },
+    ]),
+    col('dg1', 'DG1', GATE_SUB.DG1, 'decided', [
+      { key: 'pursue', count: 4, label: 'pursued', outcome: 'on', drill: dr('DG1 pursued', ['T-2026-109', 'T-2026-104', 'T-2026-101', 'T-2026-106']) },
+      { key: 'discard', count: 7, label: 'discarded', outcome: 'stopped', drill: dr('DG1 discarded', ['T-2026-112', 'T-2026-115', 'T-2026-107']) },
+      { key: 'hold', count: 1, label: 'held', outcome: 'held', drill: dr('DG1 held', ['T-2026-119']) },
+    ]),
+    col('dg2', 'DG2', GATE_SUB.DG2, 'decided', [
+      { key: 'bid', count: 4, label: 'bid', outcome: 'on', drill: dr('DG2 bid', ['T-2025-341', 'T-2025-336', 'T-2025-329', 'T-2025-322']) },
+      { key: 'nobid', count: 1, label: 'no-bid', outcome: 'stopped', drill: dr('DG2 no-bid', ['T-2026-099']) },
+    ]),
+    col('dg3', 'DG3', GATE_SUB.DG3, 'decided', [
+      { key: 'approved', count: 4, label: 'approved', outcome: 'on', drill: dr('DG3 approved', ['T-2025-298', 'T-2025-291', 'T-2026-079', 'T-2025-284']) },
+      { key: 'rejected', count: 0, label: 'rejected', outcome: 'stopped', drill: null },
+    ]),
+    col('submitted', 'Submitted', 'Bids sent', 'submitted', [
+      { key: 'on-time', count: 3, label: 'on time', outcome: 'on', drill: dr('Submitted on time', ['T-2025-291', 'T-2026-079', 'T-2025-284']) },
+      { key: 'late', count: 0, label: 'late', outcome: 'stopped', drill: null },
+    ]),
+    col('results', 'Results', 'Won or lost', 'results', [
+      { key: 'won', count: 1, label: 'won', outcome: 'on', drill: dr('Won', ['T-2025-262']) },
+      { key: 'lost', count: 2, label: 'lost', outcome: 'stopped', drill: dr('Lost', ['T-2025-255', 'T-2025-270']) },
+    ]),
   ],
 };
 
@@ -211,6 +221,17 @@ const METRICS = [
 ];
 const MARKERS = GCC_STAGES.filter((s) => s.gateAfter).map((s) => ({ after: String(s.n), label: s.gateAfter! }));
 
+/** The graph's key as `buildGraph` writes it for a "now" measure with a comparison; the kit's bars filter the table. */
+const kitKey = (noun: string, where: 'stage' | 'step', gates: boolean): GraphVM['key'] => ({
+  title: 'How to read this graph',
+  items: [
+    { mark: 'bar', text: `Blue bar: ${noun} in each ${where} now. One colour, because it is one measure.` },
+    { mark: 'ghost', text: `Pale dashed bar: the same measure at the start of the window, ${W.startText}, so you can see what grew or shrank.` },
+    ...(gates ? [{ mark: 'gate' as const, text: 'Violet dashed line: a decision gate (DG1, DG2, DG3), between the stages it closes.' }] : []),
+  ],
+  foot: 'Click a bar to see those tenders in the table.',
+});
+
 const countsNow = GCC_STAGES.map((s) => FIXTURE_ROWS.filter((r) => r.live && r.stage === s.n).length);
 const valuesNow = GCC_STAGES.map((s) => FIXTURE_ROWS.filter((r) => r.live && r.stage === s.n).reduce((a, r) => a + (r.value?.amount ?? 0), 0));
 
@@ -225,6 +246,7 @@ export function fixtureStagesGraph(metric: string): GraphVM {
     metric: isValue ? 'kit.value' : 'kit.count', metricLabel: label, kind: 'state', axis: 'stages', points, markers: MARKERS, metrics: METRICS,
     compareLabel: `At the start of the window (${W.startText})`, empty: false,
     summary: `${label} by stage: ${points.map((p) => `${p.label} ${p.display}`).join(', ')}`,
+    key: kitKey(isValue ? 'value' : 'tenders', 'stage', true),
   };
 }
 
@@ -240,6 +262,7 @@ export const FIXTURE_STEPS_GRAPH: GraphVM = (() => {
     metric: 'kit.steps.count', metricLabel: 'Tenders now', kind: 'state', axis: 'steps', points, markers: [],
     metrics: [{ id: 'kit.steps.count', label: 'Tenders now' }], compareLabel: `At the start of the window (${W.startText})`, empty: false,
     summary: `Tenders now by step: ${points.map((p) => `${p.label} ${p.display}`).join(', ')}`,
+    key: kitKey('tenders', 'step', false),
   };
 })();
 
@@ -306,6 +329,18 @@ export const FIXTURE_TRACKERS: Record<string, TrackerVM> = {
     }),
     now: null,
     outcome: 'Discarded at DG1 · below the value band · 3 Mar · Omar Siddiqui',
+  },
+  // Plan 027d: a tender whose standing DG1 decision is Hold (the seed has none live), for the orange diamond.
+  'T-2026-119': {
+    tenderId: 'T-2026-119', title: 'Jazan seawater intake and outfall', value: sar(310), health: 'on-track',
+    nodes: nodes({
+      s1: { status: 'current', from: '2026-02-24', days: 12, ownerInitials: 'AQ' },
+      dg1: { status: 'done', decision: { label: 'Hold', tone: 'orange', byName: BY.faisal, at: '2026-03-02T13:05', onTime: false, lateBy: '3 h' }, note: 'Waiting for the parent-company guarantee' },
+    }),
+    now: {
+      stageLabel: stageLabel(1), stepLabel: stepLabel(1, 'screened'), withName: 'Aisha Al-Qahtani', withRole: 'Tender Coordinator',
+      team: 'Water team: Omar Siddiqui (Bid Manager)', status: 'Held at DG1 · guarantee letter requested from Finance', next: 'DG1 again once the letter is in', blocker: null,
+    },
   },
 };
 

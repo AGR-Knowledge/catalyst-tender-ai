@@ -1,0 +1,49 @@
+/* ───────── Suppliers (plan 027c). Builds on s1.css, company.css (chips, lists) and the Stage 2 grid in s2.css; sizes and colours come from tokens.css. ───────── */
+
+/* Screening chips, above the search and selects; the chip itself is company.css's `.co-chip`. */
+.sp-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 22px 10px; }
+
+/* The master table: no row stripe on the open supplier (user, 2026-09-28); the row's own highlight is enough. */
+.sp-grid { border-top: 1px solid var(--line-2); }
+.sp-grid .s2-grid .ag-row-selected::before { display: none; }
+.sp-grid .ag-row { cursor: pointer; }
+/* Tighter cell padding than the dashboard table, so ten columns fit 1440 without a scrollbar. */
+.sp-grid .ag-cell, .sp-grid .ag-header-cell { padding-left: 9px; padding-right: 9px; }
+.sp-grid .s1-two { line-height: 1.25; gap: 1px; }
+.sp-trades { display: flex; align-items: center; gap: 4px; min-width: 0; overflow: hidden; }
+.sp-trade { flex: none; padding: 1px 7px; font-size: 11.5px; color: var(--ink-2); background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius-pill); white-space: nowrap; }
+.sp-more { flex: none; font-size: 11.5px; color: var(--ink-3); }
+.sp-icv { display: grid; gap: 3px; width: 100%; }
+.sp-icv .num { font-size: 12.5px; }
+.sp-icv-bar { display: block; height: 3px; border-radius: 2px; background: var(--track); overflow: hidden; }
+.sp-icv-bar > span { display: block; height: 100%; background: var(--ink-3); border-radius: inherit; }
+.sp-r { justify-items: end; text-align: right; }
+
+/* The supplier sheet */
+.sp-sheet .s1-sheet-top { margin-bottom: 2px; }
+.sp-loc { font-size: 12.5px; color: var(--ink-3); }
+.sp-why { margin: 0 0 6px; font-size: 13px; font-weight: 500; line-height: 1.45; }
+.sp-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.sp-checks li { display: grid; grid-template-columns: minmax(0, 1fr) auto 150px; gap: 10px; align-items: center; font-size: 13px; }
+.sp-check-l { color: var(--ink); }
+.sp-check-d { font-size: 12px; color: var(--ink-3); text-align: right; }
+.sp-next { margin: 10px 0 4px; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.sp-next b { font-weight: 600; }
+/* A passed re-screen date reads in orange (the base `.t-orange` loses to `.sp-next`'s ink otherwise). */
+.sp-next.t-orange { color: var(--orange); }
+.sp-sub-h { margin: 12px 0 6px; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.sp-meters { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 4px 24px; margin: 2px 0 2px; }
+.sp-rfqs { list-style: none; margin: 0; padding: 0; display: grid; }
+.sp-rfqs li { display: grid; grid-template-columns: minmax(0, 1fr) 190px auto; gap: 12px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line-3); font-size: 13px; }
+.sp-rfqs li:first-child { border-top: 0; }
+.sp-rfq-t { display: grid; gap: 2px; min-width: 0; }
+.sp-rfq-t a { color: var(--link); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-rfq-t a:hover { color: var(--link-hover); text-decoration: underline; }
+.sp-rfq-p { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-rfq-d { display: grid; gap: 1px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.sp-at { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) {
+  .sp-checks li, .sp-rfqs li { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+  .sp-check-d { text-align: left; }
+  .sp-meters { grid-template-columns: minmax(0, 1fr); }
+}

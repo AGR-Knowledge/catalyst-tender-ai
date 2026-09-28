@@ -422,13 +422,16 @@ The page header strip shows these KPIs. "Rights" uses the roles doc levels: V vi
 | DG1 decisions | D | SCR-1, SCR-2 | Pursue (assign team) / Discard (reasons) / Hold (request) | BidMgr (D assigned), HoT (D as delegate), others (V) |
 | Packages & RFQs | B / C2 | SRC-1, SRC-2, SRC-4, SRC-7 | Approve packages; approve shortlist; send RFQs; open supplier preview | Proc (D), BidMgr (V, comment), HoT (V) |
 | Quote levelling | E | SRC-6, SRC-2, SRC-9, SRC-10 | Confirm adjustments; approve best-fit; override with reason | Proc (D), Commercial (V), BidMgr (V summary) |
-| Suppliers | B | total · screened current · due · blocked · SRC-8 | Add and screen; re-screen; edit profile | Proc (E), HoT (V) |
+| Suppliers (sidebar: Company › Suppliers) | B | total · screened current · due · blocked · SRC-8 | Filter by screening, trade and country; open a supplier's sheet (screening, approvals, performance, RFQs open with you, no prices); add and screen; re-screen | Proc (E), HoT (V), Exec (V) |
 | Bid / No-Bid packs | C2 tab | DEC-7, DEC-8, DEC-3 | Request inputs; re-run; issue pack | BidMgr (E), HoT (V), contributors (E own section) |
 | DG2 committee | D | DEC-1, quorum, SLA | Record position; declare conflict; record decision (chair) | Members (position), Exec (decision), HoT (secretary), BidMgr (present) |
 | Pipeline | board / list | count and value by stage; CAP-2 | Open workspace; filter | All (scoped) |
 | Calendar | calendar | CAP-3; holidays overlay | Open date; export ICS (demo toast) | All (scoped) |
-| Company › Credentials | B | SCR-6; expiring in 90 days | Upload renewal; assign owner | HoT (A), credential owners (E own), BidMgr / Coord (V) |
-| Company › Capability profile | F | none | Edit profile, sectors, geographies | HoT (A) |
+| Company profile › Overview | F | turnover · net worth · similar projects · credentials held · facility headroom · bid-team load | Open the tab behind each tile; open a registration, a project or a tender's eligibility | Every role with `company.view` (V) |
+| Company profile › Credentials | B | SCR-6; expiring in 90 days; expired | Upload renewal; assign owner | HoT (A), credential owners (E own), BidMgr / Coord (V) |
+| Company profile › Projects | B | none | Search; filter by country and role; open a project's sheet (what it counts for, where it is evidence) | HoT (A), others (V) |
+| Company profile › Financials | F | none | Accounts by year, group entities, bank guarantee facility | Finance (E facility), HoT (A), others (V) |
+| Company profile › Teams and partners | F | none | Team load; JV and design partners | HoT (A), others (V) |
 | Administration › Users & roles | F | GOV-5 | Invite, assign role and scope, "View as" | HoT (A) |
 | Administration › Committees & gates | F | gates without owners | Seats, quorum, SLAs, referral threshold | HoT (A) |
 | Administration › Sources & integrations | F | INT-4 | Connect, credentials, assisted mode | HoT (A) |
@@ -438,6 +441,15 @@ The page header strip shows these KPIs. "Rights" uses the roles doc levels: V vi
 | Administration › Audit log | B | GOV-1, GOV-6 | Filter; export (demo) | HoT (V) |
 | Tender Workspace | C2 | stage track, due, SLA, badges | Per tab (spec §4.1) | Scoped per role |
 | Platform Console | G | PLT-1…6 | Break-glass request | Platform only |
+
+**Company profile** (plan 027c, user decision 2026-09-28): its own sidebar entry, beside Suppliers. It opens on the **Overview**, which reads like a bidder's profile:
+- the identity card: name, head office, employees, financial year end, sectors, geographies, and the registrations the vault holds (commercial registration, classification, contractors authority, chamber, engineers council), each with its state;
+- six key-figure tiles, each opening its tab;
+- turnover by year (a draft year shows as draft, with its audit date), with net worth and the current ratio where stated;
+- the project record by country and by role, and the three most recent projects;
+- where this profile is used: the viewer's live tenders with an eligibility check, how many meet every line, how many have a gap, and the first three gaps by name.
+
+Old links still land: `?tab=profile` opens Overview and `?tab=facility` opens Financials.
 
 ---
 

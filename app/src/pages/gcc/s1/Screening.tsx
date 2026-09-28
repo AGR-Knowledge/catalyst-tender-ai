@@ -87,7 +87,12 @@ export default function Screening() {
     valueTile('triage.load', 'Load if all pursued', busiest ? `${busiest.peak.pct}%` : '–', {
       kind: 'state', means: "The busiest bid team's peak month if every tender in the triage table were pursued, on top of what it already carries",
       counted: `Committed hours plus each tender's effort estimate, over available hours, month by month. ${triage.windowLabel}.`, target: 'Up to 100% of bid capacity', source: 'Bid-team commitments and effort estimates',
-    }, ctx, { sub: busiest ? `${busiest.name}, ${busiest.peak.month}` : 'No effort estimates', tone: busiest && busiest.peak.pct > 100 ? 'red' : 'ink' }),
+    }, ctx, {
+      sub: busiest ? `${busiest.name}, ${busiest.peak.month}` : 'No effort estimates', tone: busiest && busiest.peak.pct > 100 ? 'red' : 'ink',
+      detail: busiest ? busiest.name : 'No effort estimates', ...(busiest ? { ref: { k: 'Peak', v: busiest.peak.month } } : {}),
+      // Over 100% of bid capacity: "Off track" would read as a schedule.
+      ...(busiest && busiest.peak.pct > 100 ? { status: 'Over capacity' } : {}),
+    }),
   ];
 
   const columns = useMemo<ColDef<Row>[]>(() => ([

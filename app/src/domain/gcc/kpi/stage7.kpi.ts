@@ -4,7 +4,7 @@ import type { Lifecycle, S7Facts } from '@/data/gcc/lifecycle';
 import { NEAR_WD, RATE_BANDS } from '@/data/gcc/targets';
 import { slaState } from '../clock';
 import { deadlineWd, openGate } from '../lifecycle';
-import type { KpiCtx, KpiDef } from './types';
+import type { KpiCtx, KpiDef, KpiResult } from './types';
 import { idsDrill, liveIn, onTimeRate, pctOf, plural, qOf, rateTone, STAGE_BANDS, tileLabel } from './stages';
 
 /**
@@ -39,6 +39,14 @@ function sumOf(ctx: KpiCtx, pick: (f: S7Facts) => number) {
 /** The tile's sub-line: "on T-…" for one tender, else "Most: T-…", the tender with the largest count. */
 export const on = (s: { rows: S7[]; most?: S7 }) => (s.rows.length === 1 ? `on ${s.rows[0].l.tenderId}` : `Most: ${s.most?.l.tenderId}`);
 
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
+
+/** A count's tile lines: the one tender, or how many tenders with the worst named (the same facts as `on`). */
+const onSplit = (s: { rows: S7[]; most?: S7 }, pick: (f: S7Facts) => number): Pick<KpiResult, 'detail' | 'ref'> =>
+  s.rows.length === 1 ? { detail: `On ${s.rows[0].l.tenderId}` }
+    : { detail: `Across ${plural(s.rows.length, 'tender')}`, ...(s.most ? { ref: { k: 'Worst', v: `${s.most.l.tenderId}, ${pick(s.most.f)}` } } : {}) };
+
 export const KPIS: KpiDef[] = [
   {
     id: 'CMP-1', label: 'Mandatory gaps', kind: 'state',
@@ -49,9 +57,9 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.mandatoryGaps);
-      if (!s.n) return { display: '0', sub: s7Of(ctx).length ? 'Every mandatory line is evidenced' : 'No bids in compliance', tone: 'green' };
+      if (!s.n) return { display: '0', sub: s7Of(ctx).length ? 'Every mandatory line is evidenced' : 'No bids in compliance', detail: s7Of(ctx).length ? 'All lines evidenced' : 'No bids in compliance', tone: 'green' };
       const tone: Tone = s.nearAny ? 'red' : 'orange';
-      return { display: String(s.n), sub: on(s), tone };
+      return { display: String(s.n), sub: on(s), ...onSplit(s, (f) => f.mandatoryGaps), tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Mandatory gaps'), sumOf(ctx, (f) => f.mandatoryGaps).rows.map((x) => x.l.tenderId)),
   },
@@ -68,7 +76,7 @@ export const KPIS: KpiDef[] = [
       const ev = rows.reduce((s, x) => s + x.f.requirements.evidenced, 0);
       const total = rows.reduce((s, x) => s + x.f.requirements.total, 0);
       const pct = pctOf(ev, total);
-      return { display: `${pct}%`, sub: `${ev.toLocaleString('en-GB')} of ${plural(total, 'requirement')}`, tone: rateTone(pct, STAGE_BANDS.full) };
+      return { display: `${pct}%`, sub: `${ev.toLocaleString('en-GB')} of ${plural(total, 'requirement')}`, detail: fit(`${ev.toLocaleString('en-GB')} of ${plural(total, 'requirement')}`, `${ev.toLocaleString('en-GB')} of ${total.toLocaleString('en-GB')}`), tone: rateTone(pct, STAGE_BANDS.full) };
     },
   },
   {
@@ -80,8 +88,8 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.redlinesOpen);
-      if (!s.n) return { display: '0', sub: 'Every contract position is decided' };
-      return { display: String(s.n), sub: on(s), ...(s.nearAny ? { tone: 'orange' as const } : {}) };
+      if (!s.n) return { display: '0', sub: 'Every contract position is decided', detail: 'All positions decided' };
+      return { display: String(s.n), sub: on(s), ...onSplit(s, (f) => f.redlinesOpen), ...(s.nearAny ? { tone: 'orange' as const } : {}) };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Redlines open'), sumOf(ctx, (f) => f.redlinesOpen).rows.map((x) => x.l.tenderId)),
   },
@@ -94,7 +102,7 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.risksWithoutOwner);
-      return s.n ? { display: String(s.n), sub: on(s), tone: 'red' } : { display: '0', sub: 'Every risk has an owner', tone: 'green' };
+      return s.n ? { display: String(s.n), sub: on(s), ...onSplit(s, (f) => f.risksWithoutOwner), tone: 'red' } : { display: '0', sub: 'Every risk has an owner', detail: 'Every risk has an owner', tone: 'green' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Risks without owner'), sumOf(ctx, (f) => f.risksWithoutOwner).rows.map((x) => x.l.tenderId)),
   },
@@ -107,12 +115,17 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = dg3Waiting(ctx);
-      if (!list.length) return { display: '0', sub: 'No bid is waiting for DG3' };
+      if (!list.length) return { display: '0', sub: 'No bid is waiting for DG3', detail: 'No bid waiting for DG3' };
       const { l, g } = list[0];
       const s = slaState(g.openedAt, g.slaEnd, ctx.now);
       // The approver's first name fits the tile ("Head of Tendering" squeezes the label); no tag for the approver themself.
       const hot = firstWithRole(ctx.tenant, 'hot');
-      return { display: String(list.length), sub: `${l.tenderId} · ${s.text}`, tone: s.tone, ...(hot && hot.id !== ctx.viewer.id ? { ownerTag: hot.name.split(' ')[0] } : {}) };
+      return {
+        display: String(list.length), sub: `${l.tenderId} · ${s.text}`, tone: s.tone, ...(hot && hot.id !== ctx.viewer.id ? { ownerTag: hot.name.split(' ')[0] } : {}),
+        // The approver's chip shares the reference line, so the tender goes there and the time on the detail line.
+        detail: s.breached ? s.text : s.text.replace(/ of .*$/, ''),
+        ref: { k: s.breached ? 'Worst' : 'Next', v: l.tenderId },
+      };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'DG3 waiting'), dg3Waiting(ctx).map((x) => x.l.tenderId)),
   },
@@ -123,7 +136,7 @@ export const KPIS: KpiDef[] = [
       counted: 'DG3 decisions made within 48 h of pack issue ÷ DG3 decisions in the period.',
       target: '100% green; 90% or more orange', source: 'DG3 decisions',
     },
-    compute: (ctx) => onTimeRate(qOf(ctx).gateEventsIn(ctx.window, 'DG3').map((x) => ({ onTime: x.g.onTime })), 'No DG3 decisions in this period', RATE_BANDS['CMP-6'], 'within 48 h'),
+    compute: (ctx) => { const r = onTimeRate(qOf(ctx).gateEventsIn(ctx.window, 'DG3').map((x) => ({ onTime: x.g.onTime })), 'No DG3 decisions in this period', RATE_BANDS['CMP-6'], 'within 48 h'); return { ...r, detail: r.sub }; },
     drill: (ctx) => idsDrill(`From tile: DG3 decisions · ${ctx.window.label}`, qOf(ctx).gateEventsIn(ctx.window, 'DG3').map((x) => x.l.tenderId)),
   },
 ];

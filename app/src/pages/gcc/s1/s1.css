@@ -91,7 +91,10 @@
 .vq-gt .mono { font-size: 12px; color: var(--ink-3); font-weight: 500; }
 .vq-group { display: grid; gap: 12px; padding: 4px 22px 18px; }
 .vq { border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; background: var(--surface); display: grid; gap: 8px; }
-.vq.conflict { border-left: 3px solid var(--orange); padding-left: 12px; }
+/* An open conflict: an orange tint with a hairline all round, beside its "! Conflict" pill; once resolved it reads plain. */
+.vq.conflict:not(.resolved) { border-color: var(--orange-line); background: var(--orange-soft); }
+/* On the orange tint, the orange tags keep their shape: a surface fill and a hairline. */
+.vq.conflict:not(.resolved) .vq-block, .vq.conflict:not(.resolved) .status-pill.tone-orange { background: var(--surface); border: 1px solid var(--orange-line); }
 .vq.resolved { background: var(--surface-2); border-style: dashed; }
 .vq-head { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .vq-field { font-size: 14px; font-weight: 600; color: var(--ink); }
@@ -105,7 +108,7 @@
 .vq-opt .btn { justify-self: start; }
 .vq-opt-top, .vq-val { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
 .vq-v { font-family: var(--font-mono); font-size: 20px; font-weight: 600; color: var(--ink); letter-spacing: -0.4px; }
-.vq-snip { margin: 0; padding: 4px 0 4px 10px; border-left: 2px solid var(--line-strong); font-size: 12px; color: var(--ink-3); line-height: 1.45; flex-basis: 100%; }
+.vq-snip { margin: 0; padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-sunken); font-size: 12px; color: var(--ink-3); line-height: 1.45; flex-basis: 100%; }
 .vq-rule { margin: 0; font-size: 12px; color: var(--ink-3); }
 .vq-done { display: grid; gap: 2px; font-size: 13px; color: var(--ink-2); }
 .vq-kept { font-size: 12px; color: var(--ink-3); }
@@ -178,7 +181,7 @@
 .kd-cd { font-size: 12px; color: var(--ink-3); text-align: right; }
 .kd-src { justify-self: end; }
 .kd-note { grid-column: 1 / -1; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
-.kd-flag { grid-column: 1 / -1; font-size: 12px; color: var(--ink-2); line-height: 1.45; padding-left: 8px; border-left: 2px solid var(--orange); }
+.kd-flag { grid-column: 1 / -1; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
 .kd-rem { grid-column: 1 / -1; display: inline-flex; align-items: baseline; gap: 5px; font-size: 11.5px; color: var(--ink-3); }
 .kd.compact .kd-row { padding: 6px 0; grid-template-columns: minmax(100px, 1fr) auto minmax(80px, max-content) auto; }
 .kd-fallback { margin: 0 0 8px; font-size: 12px; color: var(--ink-3); }
@@ -194,7 +197,7 @@
 .qy-clause { font-size: 12px; color: var(--ink-3); }
 .qy-head .status-pill { margin-left: auto; }
 .qy-from { margin: 0; font-size: 12px; color: var(--ink-3); }
-.qy-text { margin: 0; padding: 8px 12px; border-left: 2px solid var(--line-strong); background: var(--surface-2); font-size: 13px; color: var(--ink-2); line-height: 1.55; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.qy-text { margin: 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-sunken); font-size: 13px; color: var(--ink-2); line-height: 1.55; }
 .qy-edit textarea { width: 100%; min-height: 84px; padding: 8px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface); color: var(--ink); font: inherit; font-size: 13px; line-height: 1.55; resize: vertical; }
 .qy-edit textarea:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
 .qy-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
@@ -215,8 +218,7 @@
 .rq-top:empty { display: none; }
 .rq-flags { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .rq-flag { padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); }
-.rq-flag.sev-high { border-left: 3px solid var(--red); }
-.rq-flag.sev-medium { border-left: 3px solid var(--orange); }
+.rq-flag.sev-high { border-color: var(--red-line); background: var(--red-soft); }
 .rq-flag-h { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .rq-flag-t { font-size: 13px; font-weight: 600; color: var(--ink); }
 .rq-flag p { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); line-height: 1.5; }
@@ -284,18 +286,6 @@
 .dg1-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .dg1-reopen { display: grid; gap: 8px; }
 .dg1-prev { margin: 0; padding-left: 18px; font-size: 12.5px; color: var(--ink-3); display: grid; gap: 3px; }
-
-/* Calendar */
-.cal { list-style: none; margin: 0; padding: 0 22px 12px; display: grid; }
-.cal-row { display: grid; grid-template-columns: 170px minmax(0, 1fr) auto; gap: 2px 14px; align-items: baseline; padding: 9px 0; border-bottom: 1px solid var(--line-3); font-size: 13px; }
-.cal-row:last-child { border-bottom: 0; }
-.cal-w { color: var(--ink-2); grid-row: span 2; }
-.cal-l { color: var(--ink); font-weight: 500; }
-.cal-row.gate .cal-l { color: var(--cyan); }
-.cal-t { grid-column: 2; font-size: 12px; color: var(--ink-3); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cal-t:hover { color: var(--ink); text-decoration: underline; }
-.cal-cd { grid-column: 3; grid-row: 1; font-size: 12px; color: var(--ink-3); white-space: nowrap; }
-.cal-flag { grid-column: 2 / -1; }
 
 /* The legacy `.callout` rule (components.css) adds a 16 px inset; the Stage 1 screens lay callouts out themselves. */
 .s1 .callout, .qyl .callout, .elp .callout, .rq-top .callout, .ad .callout, .s1-sheet .callout { margin: 0; }

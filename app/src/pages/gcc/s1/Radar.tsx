@@ -72,11 +72,17 @@ export default function Radar() {
     valueTile('INT-9', 'Restricted lane', String(laneCount), {
       kind: 'state', means: 'Tenders routed to the restricted lane. Their titles and documents are shown only to cleared people',
       counted: 'Captures today marked restricted at the sensitivity check. When unsure, the agent routes to the lane.', target: 'None (information)', source: 'Sensitivity flags',
-    }, ctx, { sub: laneCount ? (cleared ? 'Shown in the list, badged' : 'Titles hidden: cleared people only') : 'None today', tone: laneCount ? 'ink' : 'muted' }),
+    }, ctx, {
+      sub: laneCount ? (cleared ? 'Shown in the list, badged' : 'Titles hidden: cleared people only') : 'None today',
+      detail: laneCount ? (cleared ? 'Shown in the list, badged' : 'Titles: cleared people only') : 'None today', tone: laneCount ? 'ink' : 'muted',
+    }),
     valueTile('INT-8', 'Linked, not duplicated', String(linked.length), {
       kind: 'flow', means: 'Documents that belong to a tender already on the register: an addendum linked to its parent, or the same tender from a second source',
       counted: 'Addenda linked and duplicates merged today, from the register check.', target: 'None (information)', source: 'Register checks',
-    }, ctx, { sub: `${addenda} addend${addenda === 1 ? 'um' : 'a'} linked · ${linked.length - addenda} duplicate${linked.length - addenda === 1 ? '' : 's'} merged` }),
+    }, ctx, {
+      sub: `${addenda} addend${addenda === 1 ? 'um' : 'a'} linked · ${linked.length - addenda} duplicate${linked.length - addenda === 1 ? '' : 's'} merged`,
+      detail: `${addenda} addend${addenda === 1 ? 'um' : 'a'} · ${linked.length - addenda} duplicate${linked.length - addenda === 1 ? '' : 's'}`,
+    }),
   ];
 
   const facets = [

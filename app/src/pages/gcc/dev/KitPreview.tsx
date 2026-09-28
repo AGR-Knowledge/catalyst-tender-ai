@@ -25,6 +25,7 @@ import { addWorkingDays } from '@/domain/gcc/s1/common';
 import { coverageBar } from '@/domain/gcc/s2/coverage';
 import { DISCARD_REASONS } from '@/domain/gcc/dg1/decision';
 import { Callout } from '@/components/tender/Callout';
+import { FlagLine } from '@/components/tender/FlagLine';
 import { SourceHost } from '@/components/tender/SourceHost';
 import { SourceChip } from '@/components/tender/SourceChip';
 import { RecommendationCard } from '@/components/tender/RecommendationCard';
@@ -125,7 +126,7 @@ export default function KitPreview() {
         </Card>
 
         <Card>
-          <CardHead title="Trackers" meta="Live · won · discarded at DG1" />
+          <CardHead title="Trackers" meta="Live · won · discarded at DG1 · held at DG1" />
           <div style={{ ...pad, display: 'grid', gap: 'var(--gap)' }}>
             {Object.values(FIXTURE_TRACKERS).map((t) => <TenderTracker key={t.tenderId} vm={t} focusOnOpen={false} onOpen={(id) => console.info('[kit] open tender', id)} />)}
           </div>
@@ -189,6 +190,15 @@ function KitPart2() {
           <Callout variant="block" title="PQ-05 fails: classification Grade 2 against Grade 1 required">A partner at Grade 1 would clear it.</Callout>
           <Callout variant="verdict" word="DG1" title="Pursue, recorded by Omar Siddiqui">Sun 8 Mar, 10:42 · within the 24 h time limit</Callout>
           <Callout variant="stale" title="Pack is stale: Addendum 2 changes two packages" action={<button type="button" className="btn btn-sm">Re-run</button>} />
+        </div>
+      </Card>
+
+      <Card>
+        <CardHead title="Flag line" meta="orange · red · cyan; a flagged sentence, no side rule" />
+        <div style={{ ...pad, display: 'grid', gap: 8, fontSize: 12.5 }}>
+          <FlagLine tone="orange">Ramadan hours at the authority: submissions close early.</FlagLine>
+          <FlagLine tone="red">The guarantee expires before the bid validity ends.</FlagLine>
+          <FlagLine tone="cyan">Machine translation. The Arabic text prevails.</FlagLine>
         </div>
       </Card>
 

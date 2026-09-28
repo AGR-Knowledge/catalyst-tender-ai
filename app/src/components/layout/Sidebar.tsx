@@ -92,7 +92,7 @@ function badge(key: string, l: Live): Badge {
 /** Icons for the GCC entries that aren't stages; stages show their number in a circle. */
 const GCC_ICON: Record<string, ReactNode> = {
   dashboard: <LayoutGrid {...I} />, calendar: <CalendarDays {...I} />, requests: <Inbox {...I} />,
-  company: <Building2 {...I} />, admin: <SlidersHorizontal {...I} />, settings: <SettingsIcon {...I} />,
+  company: <Building2 {...I} />, suppliers: <Factory {...I} />, admin: <SlidersHorizontal {...I} />, settings: <SettingsIcon {...I} />,
 };
 
 /** Which trees each viewer has folded or unfolded: `{ personId: { itemKey: open } }`. A convenience only. */
@@ -118,7 +118,7 @@ function LiveGateChip({ gate }: { gate: GateKey }) {
 /**
  * The GCC rail (dashboards.md §8.3): Dashboard, Calendar and My requests; the
  * stages the person may open, each header opening its stage dashboard and a
- * chevron unfolding its screens; Company; Administration and Settings pinned
+ * chevron unfolding its screens; Company (Company profile and Suppliers); Administration and Settings pinned
  * at the bottom. Entries come from `navFor`, so access stays in access.ts.
  */
 function GccNav({ mini, onClose }: { mini: boolean; onClose(): void }) {

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { OverrideModal, type OverrideResult } from '@/components/tender/OverrideModal';
 import { RecommendationCard } from '@/components/tender/RecommendationCard';
+import { FlagLine } from '@/components/tender/FlagLine';
 import type { ReasonCode } from '@/components/tender/ReasonCodePicker';
 import { PanelHead, QuoteAmount, Tag, Why, byLine, refusal, whoAt } from './ui';
 import type { DeskCtx } from './vm/desk';
@@ -139,7 +140,7 @@ export function BestFitPanel({ desk }: { desk: DeskCtx }) {
                       </button> {titles.get(p.pkgId)}
                     </th>
                     <td>
-                      {p.name}{p.overridden && <span className="s2-over-tag">Override: {p.overridden}</span>}
+                      {p.name}{p.overridden && <FlagLine tone="orange" className="s2-over-tag">Override: {p.overridden}</FlagLine>}
                       {editing && p.overridden && (
                         <button type="button" className="btn-link s2-undo" onClick={() => setOverrides(overrides.filter((o) => o.pkgId !== p.pkgId))}>Use the {MIX_LABEL[option].toLowerCase()} pick</button>
                       )}

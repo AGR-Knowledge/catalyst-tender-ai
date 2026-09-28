@@ -1,13 +1,11 @@
-/* ───────── Company (plan 010). Builds on s1.css; sizes and colours come from tokens.css. ───────── */
+/* ───────── Company profile (plans 010 and 027c). Builds on s1.css; sizes and colours come from tokens.css. ───────── */
 
 .co-tabs .tabs { padding: 0 4px; }
 .co-panel { display: grid; gap: var(--gap); }
 .co-panel:focus { outline: none; }
 .co-panel > .card { margin: 0; }
 
-/* Credentials table: a left rule by state (ui-direction §5 B), never colour alone (the State column says it). */
-.co-grid .co-row-risk { box-shadow: inset 3px 0 0 var(--orange); }
-.co-grid .co-row-expired { box-shadow: inset 3px 0 0 var(--red); }
+/* Tables carry no row stripe (user, 2026-09-28): a state is a word in its column. */
 .co-clip { display: block; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .co-more { font-family: var(--font-sans); font-size: 11.5px; font-weight: 400; color: var(--ink-3); }
 
@@ -39,9 +37,7 @@
 }
 .co-attach svg { color: var(--ink-3); flex: none; }
 
-/* Capability profile */
-.co-profile-cols { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); }
-@media (max-width: 1099px) { .co-profile-cols { grid-template-columns: minmax(0, 1fr); } }
+/* Chips and the accounts table */
 .co-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
 .co-chips .pill { color: var(--ink-2); }
 .co-table-wrap { overflow-x: auto; padding: 0 22px 12px; }
@@ -75,3 +71,82 @@
   .co-facility { grid-template-columns: minmax(0, 1fr); }
   .co-teams { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ───────── Overview (plan 027c) ───────── */
+
+/* Identity card: the mark in the tenant's own accent, then the facts, sectors and geographies, then the registrations. */
+.co-id { padding-bottom: 8px; }
+.co-id-top { display: flex; align-items: center; gap: 14px; padding: 18px 22px 12px; }
+.tn-mark.co-mark { width: 48px; height: 48px; border-radius: 11px; font-size: 16px; letter-spacing: 0.4px; }
+.co-id-name { min-width: 0; }
+.co-id-name h2 { margin: 0; font-size: 19px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink); }
+.co-id-name p { margin: 3px 0 0; font-size: 13px; color: var(--ink-2); }
+.co-id-tags { display: flex; flex-wrap: wrap; gap: 10px 32px; padding: 0 22px 4px; }
+.co-id-group { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.co-id-k { font-size: 12px; font-weight: 600; color: var(--ink-3); }
+.co-regs { list-style: none; margin: 0; padding: 0 22px 8px; display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 8px 16px; }
+.co-regs li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-rows: auto auto; gap: 2px 12px; align-items: center; padding: 9px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); background: var(--surface); }
+.co-regs .status-pill { grid-column: 2; grid-row: 1 / span 2; }
+.co-reg-t { font-size: 13px; font-weight: 500; line-height: 1.35; color: var(--ink); text-decoration: none; min-width: 0; }
+.co-reg-t:hover { color: var(--link-hover); text-decoration: underline; }
+.co-reg-m { font-size: 11.5px; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Two columns at 1100 and wider (turnover | project record); stacked below. */
+.co-ov-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--gap); align-items: stretch; }
+.co-ov-cols > .card { margin: 0; }
+@media (max-width: 1099px) { .co-ov-cols { grid-template-columns: minmax(0, 1fr); } }
+
+/* Turnover by year: CSS columns in the data blue; a draft year pale, with a dashed outline. */
+.co-bars { list-style: none; margin: 0; padding: 8px 22px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.co-bars li { display: grid; grid-template-rows: auto 150px auto auto; gap: 6px; justify-items: center; text-align: center; min-width: 0; }
+.co-bar-v { font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.co-bar-col { display: flex; align-items: flex-end; justify-content: center; width: 100%; height: 150px; border-bottom: 1px solid var(--line); }
+.co-bar { display: block; width: min(56px, 70%); background: var(--blue); border-radius: 4px 4px 0 0; }
+.co-bars li.draft .co-bar { background: var(--blue-soft); border: 1.5px dashed var(--blue); border-bottom: 0; }
+.co-bar-y { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.co-bar-n { font-size: 11.5px; color: var(--ink-3); line-height: 1.35; }
+.co-bars li.draft .co-bar-n { color: var(--ink-2); }
+
+/* Project record: two short bar lists, then the three latest projects. */
+.co-rec-lists { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 24px; padding: 0 22px; }
+@media (max-width: 1439px) { .co-rec-lists { grid-template-columns: minmax(0, 1fr); } }
+.co-rl .s1-h3 { margin-top: 10px; }
+.co-rl ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.co-rl li { display: grid; grid-template-columns: minmax(96px, 1.1fr) minmax(40px, 1fr) 22px auto; align-items: center; gap: 10px; font-size: 12.5px; }
+.co-rl-l { color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-rl-bar { height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.co-rl-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.co-rl-n { text-align: right; font-weight: 600; color: var(--ink); }
+.co-rl-v { text-align: right; color: var(--ink-3); white-space: nowrap; }
+.co-rl li.zero .co-rl-l, .co-rl li.zero .co-rl-n { color: var(--ink-3); font-weight: 400; }
+.co-recent { list-style: none; margin: 0; padding: 0 22px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 1279px) { .co-recent { grid-template-columns: minmax(0, 1fr); } }
+.co-recent li { display: grid; gap: 3px; align-content: start; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); min-width: 0; }
+.co-recent-t { font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; line-height: 1.35; }
+.co-recent-t:hover { color: var(--link-hover); text-decoration: underline; }
+.co-recent-m { font-size: 12px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-recent-f { font-size: 12px; color: var(--ink-2); }
+.co-rec-foot { display: flex; justify-content: flex-end; padding: 10px 22px 14px; }
+.co-rec-foot .btn svg, .co-turn .card-meta .btn svg { margin-left: 4px; }
+
+/* Where this profile is used */
+.co-use-stats { list-style: none; margin: 0; padding: 2px 22px 12px; display: flex; flex-wrap: wrap; gap: 8px 28px; font-size: 13px; color: var(--ink-2); }
+.co-use-stats .num { font-size: 18px; font-weight: 600; color: var(--ink); margin-right: 4px; }
+.co-gaps { list-style: none; margin: 0; padding: 0 22px 14px; display: grid; }
+.co-gaps li { display: grid; grid-template-columns: 118px minmax(180px, 1.1fr) minmax(0, 2fr); gap: 12px; align-items: center; padding: 9px 0; border-top: 1px solid var(--line-3); font-size: 13px; }
+.co-gaps .status-pill { justify-self: start; }
+.co-gap-t { color: var(--link); text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-gap-t:hover { color: var(--link-hover); text-decoration: underline; }
+.co-gap-x { color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 1099px) { .co-gaps li { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+.co-pad-b { padding-bottom: 14px; }
+
+/* ───────── Projects (plan 027c) ───────── */
+.co-chipset { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.co-chipset-l { font-size: 12px; color: var(--ink-3); margin-right: 2px; }
+.co-chip { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px; font: inherit; font-size: 12px; color: var(--ink-2); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-pill); cursor: pointer; }
+.co-chip .num { color: var(--ink-3); }
+.co-chip:hover { border-color: var(--line-strong); color: var(--ink); }
+.co-chip.on { border-color: var(--ink); color: var(--ink); background: var(--surface-active); }
+.co-chip.on .num { color: var(--ink); }
+.co-chip:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }

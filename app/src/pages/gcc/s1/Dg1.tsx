@@ -63,16 +63,17 @@ function List({ s1 }: { s1: S1 }) {
   const ctx = kpiCtxOf({ tenant, viewer, viewAs, done }, '30d', 'dg1');
   const held = rows.filter((r) => r.held).length;
   const today = decided.filter((d) => d.source === 'demo').length;
+  const todaySplit = today ? `${decided.filter((d) => d.source === 'demo' && d.decision === 'pursue').length} Pursue · ${decided.filter((d) => d.source === 'demo' && d.decision === 'discard').length} Discard` : 'None yet';
   const tiles = [
     ...tilesOf(['SCR-1'], ctx, HERE),
     valueTile('dg1.held', 'On hold', String(held), {
       kind: 'state', means: 'Tenders at DG1 where the decider asked a person for information. The 24-hour limit keeps running',
       counted: 'Tenders in the DG1 queue with an open Hold.', target: 'None (information)', source: 'DG1 records',
-    }, ctx, { sub: held ? 'Waiting on the person asked' : 'None', tone: held ? 'orange' : 'muted' }),
+    }, ctx, { sub: held ? 'Waiting on the person asked' : 'None', detail: held ? 'Waiting on the person asked' : 'None', tone: held ? 'orange' : 'muted' }),
     valueTile('dg1.today', 'Recorded today', String(today), {
       kind: 'state', means: 'Pursue and Discard decisions recorded today, in this demo',
       counted: 'DG1 decisions recorded since the demo started, still standing.', target: 'None (information)', source: 'DG1 records',
-    }, ctx, { sub: today ? `${decided.filter((d) => d.source === 'demo' && d.decision === 'pursue').length} Pursue · ${decided.filter((d) => d.source === 'demo' && d.decision === 'discard').length} Discard` : 'None yet', tone: today ? 'ink' : 'muted' }),
+    }, ctx, { sub: todaySplit, detail: todaySplit, tone: today ? 'ink' : 'muted' }),
   ];
 
   const qCols = useMemo<ColDef<QRow>[]>(() => [

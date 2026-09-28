@@ -36,7 +36,7 @@ KPI IDs refer to the dictionary in [kpi-and-screen-catalogue.md](kpi-and-screen-
 | DB-10 | **Stages 4–9** get real tenders, owners, dates and step status, and each has a stage dashboard. The working screens inside them (programme, cost build-up, drafting) stay out of the demo |
 | DB-11 | **Build order:** the shared kit and shell first, then the dashboards, then the Stage 1–3 working screens and the gate screens |
 | DB-12 | **New libraries, approved:** `ag-grid-community` and `ag-grid-react` (MIT; Community modules only, never Enterprise) and `recharts` (MIT) |
-| DB-13 | **User decision, 2026-09-26: less empty space.** The flow (Z3) is one thin line under the tiles, not a card. Z5 (Table or Graph) sits at two thirds of the width with Z4 (Needs your action) beside it at one third. The graph is one bar per stage or step, with buttons **Tenders · Value · Weighted** and the other measures under **More** (§1, §6) |
+| DB-13 | **User decision, 2026-09-26: less empty space.** The flow (Z3) sits under the tiles; since 2026-09-28 it is its own card whose columns share five rows (§1, plan 027d). Z5 (Table or Graph) sits at two thirds of the width with Z4 (Needs your action) beside it at one third. The graph is one bar per stage or step, with buttons **Tenders · Value · Weighted** and the other measures under **More** (§1, §6) |
 
 ---
 
@@ -50,15 +50,21 @@ The same page, top to bottom, at 1440 px:
 │ Calendar     ││     Faisal Al-Harbi · Najd Arcline · As of Sun 8 Mar 2026, 10:00 AST      │
 │ STAGES       ││ Z2  ┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐   six KPI tiles     │
 │ 1 Intake   ▸ ││     └──────┘└──────┘└──────┘└──────┘└──────┘└──────┘                     │
-│ 2 Sourcing ▸ ││ Z3  Decision funnel ⓘ  Captured 176 › DG1 4 pursued · 7 discarded … ›     │
-│ 3 Bid dec. ▸ ││ Z5  ┌ Table | Graph (8/12) ───────────────────┐ Z4 ┌ Needs your ────────┐ │
-│ 4 Planning   ││     │ Table: 10 rows, the rest scroll inside  │    │ action (4/12)      │ │
-│ …            ││     │ … or Graph: Tenders | Value | Weighted  │    │ most urgent first  │ │
-│ 9 Results    ││     │ More ▾ · bars · ghost bar = compare     │    │ rows scroll inside │ │
-│ Company      ││     │                                         │    │ Show all (n)       │ │
-│ ──────────── ││     └─────────────────────────────────────────┘    └────────────────────┘ │
-│ Admin        ││ Z6  ┌ Tender tracker (after a row click) ───────────────────────────────┐ │
-│ Settings     ││     │ S1 ✓ · DG1 ✓ · S2 ● · S3 · DG2 · S4 … S9 · who · team · next      │ │
+│ 2 Sourcing ▸ ││ Z3  ┌ Decision funnel ⓘ ─────────── ▬ Went on ▬ Stopped ▬ Waiting ──────┐ │
+│ 3 Bid dec. ▸ ││     │ Captured   › DG1      › DG2      › DG3      › Submit.  › Results  │ │
+│ 4 Planning   ││     │ 176 new    4 pursued  4 bid      4 approv.  3 on time  1 won      │ │
+│ …            ││     │ ▇▇▇▇▇▇▇▇░░ ▇▇▇░░░░░░▪ ▇▇▇▇▇▇▇░░░ ▇▇▇▇▇▇▇▇▇▇ ▇▇▇▇▇▇▇▇▇▇ ▇▇▇░░░░░░░ │ │
+│ 9 Results    ││     │ 18 linked  7 disc. …  1 no-bid   0 reject.  0 late     2 lost     │ │
+│ Company      ││     │ 91% new …  33% purs.… 80% bid …  4 of 4 …   3 of 3 …   1 of 3 …   │ │
+│ ──────────── ││     └───────────────────────────────────────────────────────────────────┘ │
+│ Admin        ││ Z5  ┌ Table | Graph (8/12) ───────────────────┐ Z4 ┌ Needs your ────────┐ │
+│ Settings     ││     │ Table: 10 rows, the rest scroll inside  │    │ action (4/12)      │ │
+│              ││     │ … or Graph: Tenders | Value | Weighted  │    │ most urgent first  │ │
+│              ││     │ More ▾ · bars · ghost bar = compare     │    │ rows scroll inside │ │
+│              ││     │                                         │    │ Show all (n)       │ │
+│              ││     └─────────────────────────────────────────┘    └────────────────────┘ │
+│              ││ Z6  ┌ Tender tracker (after a row click) ───────────────────────────────┐ │
+│              ││     │ ● ✓ ◆ ✓ ● ● ○ ◇ ○ … ◇ ○ ○ · five rows a node · Now: who, next     │ │
 └──────────────┘│     └───────────────────────────────────────────────────────────────────┘ │
                 └─────────────────────────────────────────────────────────────────────────┘
 ```
@@ -73,12 +79,24 @@ The same page, top to bottom, at 1440 px:
 - **Six tiles on every dashboard** (four on My requests). One row at ≥ 1440 px; 3 × 2 at 1280 px; 2 × 3 below 1100 px.
 - Tile anatomy and the ⓘ are in §3.
 
-### Z3 · Flow strip
-- **User decision, 2026-09-26:** one thin line under the tiles, not a card: the label and its ⓘ, then the steps separated by ›. The period is the page's filter (the ⓘ repeats it). It wraps to a second line only when the page is too narrow.
-- **One horizontal flow per dashboard, for the selected period:** the role's funnel. For the Head of Tendering it is the decision funnel: Captured → DG1 → DG2 → DG3 → Submitted → Results. Each gate shows what went through and what stopped ("4 pursued · 7 discarded · 1 held").
-- **Every number is a link.** It switches the main view to the Table, filtered to exactly those tenders (including closed ones).
-- The strip has its own ⓘ. It says the counts are decisions made in the period, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up.
-- **Stage dashboards use one rule:** the strip shows **how many tenders entered each step of the stage in the period**, then **Moved on** (entered the next stage) and **Stopped** (closed in this stage). A stage that ends in a gate shows the gate's decisions instead of Moved on and Stopped. All of it is derived from the stage log (§12.1), so every stage's strip is honest and needs no extra data. Stage 1 starts with the notices captured; My requests uses the request statuses.
+### Z3 · Flow strip: the funnel card
+- **User decision, 2026-09-28: the funnel is its own card; every column has the same five rows (step, number, split bar, other outcomes, rate). It replaces the thin line of 2026-09-26.** It sits at full width under the tiles, about 140 px tall at 1440 with its header.
+- **The header:** the flow's label and its ⓘ, and at the right a key of the outcome colours that occur in this flow: **Went on** (green), **Stopped** (grey), **Waiting** (orange).
+- **One column per step,** equal widths, separated by a hairline and a small chevron. The five rows sit on one grid, so the numbers, bars and notes line up across columns:
+  1. the step and what it is or decides, in two or three words ("DG1 · Pursue or discard"; a gate's label is violet mono);
+  2. the part that went on, the column's main number ("15 pursued");
+  3. **a bar split by the column's own outcomes**: green went on, grey stopped, orange still waiting. A non-zero segment is at least 4% wide, so a single "held" stays visible; a column of zeros shows the empty track. The bar only draws the counts: its words are in rows 2 and 4, and screen readers skip it;
+  4. the other outcomes, zeros included, so every column reads the same ("29 discarded · 2 held", "0 late");
+  5. the rate: "33% pursued of 46 decided". Under five, the counts only ("2 pursued of 3 decided"), the tiles' small-sample rule; with nothing, "None in this period".
+- **It is not a tapered funnel.** The counts are decisions in the period, not one group of tenders followed through, so each bar splits its own column only.
+- **The Head of Tendering's decision funnel** (PF-5): Captured (new · linked) → DG1 (pursued · discarded · held) → DG2 (bid · no-bid) → DG3 (approved · rejected) → Submitted (on time · late) → Results (won · lost). "Linked" counts duplicates and addenda linked to a tender already on the register. The Bid Manager's starts at DG1.
+- **Every non-zero number is a link.** It switches the main view to the Table, filtered to exactly those tenders (including closed ones). "520 new" opens the tender radar; "linked" has no list. A zero is plain text.
+- The card has its own ⓘ. It says the counts are decisions made in the period, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up.
+- **Stage dashboards use one rule:** a **step column** takes the tenders that entered the step in the period and splits them by where each is now: **moved on** (a later step or stage), **still here**, or **stopped** (closed in this step). Its main number is "moved on", as in every other column, and the note says of how many: "50% moved on of 12 entered". A stage that ends in a gate shows the gate's decisions; the others end with "Left {stage}" (moved on · stopped, "80% moved on of 10 left"). All of it is derived from the stage log (§12.1), so every stage's card is honest and needs no extra data.
+  - **Stage 1:** Captured (new · linked) → Logged → Screened → Awaiting DG1 → DG1. The separate Linked column of §10.4 folds into Captured (plan 027d, 2026-09-28).
+  - **Stage 9:** Result received (won · lost) → Handover or debrief → Lessons captured → Closed. A result closed after its handover or debrief is done, so it counts as moved on.
+  - **My requests:** Requested → Submitted → Accepted, one number each on a neutral bar, with a note saying what it counts ("Asked of you in the period").
+- **No row wraps** at 1440 or 1280: a row that doesn't fit ends in an ellipsis, with its full text on hover.
 
 ### Z4 · Needs your action
 - **User decision, 2026-09-26:** a column beside Z5 at one third of the width, exactly as tall as the main card. Each row is compact (type chip and TID with the button on the first line, then the title, what is needed and the due), and the rows scroll inside the column.
@@ -102,7 +120,7 @@ The same page, top to bottom, at 1440 px:
 It opens **below the main view** when a table row is selected (§7). Clicking the same row again, the ×, or Esc closes it. It doesn't open from the Graph, whose clicks navigate instead.
 
 ### Responsiveness
-- At 1440 and 1280 px: Z5 and Z4 stay side by side, at 8/12 and 4/12 (2026-09-26). Z3 is one line at 1440 and may wrap to two at 1280.
+- At 1440 and 1280 px: Z5 and Z4 stay side by side, at 8/12 and 4/12 (2026-09-26). Z3's columns fit at both widths (Stage 2 has seven; with seven or more, rows 4 and 5 are set half a point smaller). Below that they scroll inside the card.
 - Below 1100 px Z4 stacks under Z5 at its own height.
 - The table scrolls horizontally inside its box, with TID and Tender pinned left. The page never scrolls horizontally.
 
@@ -140,11 +158,18 @@ It opens **below the main view** when a table row is selected (§7). Clicking th
 
 ## 3. KPI tiles and the ⓘ
 
-**Tile anatomy**, top to bottom:
-- **Label + ⓘ.** Sentence case, at most four words.
-- **Main value.** Money through `Money`, dates through `When`. The tone colour comes from the registry's thresholds; information KPIs are neutral.
-- **Sub-line:** n, the comparison, the worst item, or the target in force.
-- **Owner tag** ("Finance") when the thing measured waits on someone else.
+**Tile anatomy**, top to bottom. Every tile has the same four rows, and tiles side by side keep them level (each row of tiles is one grid, so a pill that wraps moves every value in the row together):
+- **Label, ⓘ and the status pill.** The label is sentence case, at most four words. The pill sits at the right; on a narrow tile it wraps under the label, never over it.
+  - The pill is the tone as a word with its glyph: green "✓ On track", orange "! Watch", red "! Off track". Information tones, masked tiles and small samples have no pill.
+  - A tile may replace the word where the default misleads, keeping the glyph. At most eight such overrides in all; today: "Below target" (Win / loss, Decisions on time and Hit rate when orange), "Renew soon" and "Expired" (Credentials at risk), "Within capacity" and "Over capacity" (Bid-team load, and Load if all pursued on Screening).
+- **Main value,** in ink whatever the tone. Money through `Money`, dates through `When`.
+- **Detail:** one line, what the value is made of: a count, a scope or a split ("15 live tenders", "68 of 70 on time", "Water team, next 4 weeks"). At most two items joined by " · ", about 24 characters so six tiles fit across at 1440 px; dates as "30 Apr". It never wraps: a longer one ends in an ellipsis, with the full sentence in its title.
+- **Reference:** one line under a hairline, a key and its value ("Target 25%", "Largest SAR 450.0 M", "Since 9 Dec 15 in, 20 out"). The key is muted, from a short list: Target, Cap, Since {date}, Largest, Oldest, Latest late, Next, Peak, Worst, Average, Renew by, Time left, With {tender}. A tile without one keeps the row, empty.
+- **Owner chip** ("Finance"), when the thing measured waits on someone else: a small muted chip at the right of the reference line.
+
+The detail and reference say the same facts as the KPI's full sentence (`sub`), split and shortened, never a new fact. The full sentence stays in the registry: the tile's accessible name reads it with the status word ("Win / loss: 2 won · 7 lost, Below target. Win rate 22% (n = 9) · SAR 842.0 M won · target 25%. Show these tenders"), and the dev checks read it. A tile that has no detail yet shows its full sentence in the detail's place, on two lines at most.
+
+User decision, 2026-09-28: no coloured stripe; status is a word. The action type chip in Needs your action and the workspace rail follows the same rule: a small dot in its tone before the word, not a coloured edge.
 
 **Click.** A tile click applies its drill-down: usually it switches the main view to the Table with a filter and scrolls to it. Where the drill-down is another screen (for example Company › Credentials), it navigates there. A tile with no drill-down isn't clickable and doesn't look it.
 
@@ -167,7 +192,7 @@ Source          Intake events
 - `kind: 'flow' | 'state'`;
 - `info: { means, counted, target?, source }`, written in plain UK English;
 - `periodAware: boolean`;
-- `compute(ctx) → { value, display, sub, tone, n? }`, where `ctx` carries the tenant, the viewer, the scope and the window;
+- `compute(ctx) → { value, display, sub, tone, n?, detail?, ref?, status? }`, where `ctx` carries the tenant, the viewer, the scope and the window (`detail`, `ref: { k, v }` and `status` are the display split above, plan 027a);
 - `drill?: { kind: 'table-filter' | 'route', … }`.
 
 ---
@@ -323,7 +348,14 @@ Synthetic tenders use URLs on the reserved `.example` domain (e.g. `https://etim
   - The chart has `role="img"` and an `aria-label` summary ("Tenders now by stage: Intake 12, Sourcing 2, …"), including the note lines.
   - A visually hidden `<table>` carries the same data.
   - Keyboard: Recharts' accessibility layer moves between bars; Enter on a focused bar does the click.
-- **Colours:** bars use `var(--brand)`; the ghost bar the same at low opacity with a dashed outline; gate lines use `var(--line-strong)`; axis text uses `var(--ink-3)` at 11–11.5 px. No animation.
+- **Colours (user decision, 2026-09-28: "one colour: blue or some smooth colour"):** bars use `var(--blue)` whatever the tenant's brand, because they are one measure, and the tenant's accent (Qurain's crimson, Dafna's gold) would read as danger or warning. The ghost bar is the same blue at about 12% with a dashed blue outline. Gate lines and their labels are dashed `var(--violet)`, the colour of decision gates everywhere (the funnel's gate labels, the tracker's diamonds). A target line is dashed `var(--orange)`. Axis text uses `var(--ink-3)` at 11–11.5 px. No animation. The accent stays on controls: buttons, the Compare box, the selected row.
+- **The legend** names the bar, the ghost (or "No comparison for this measure"), the target when drawn, and **"Decision gates"** with a short dashed violet line when the gates are drawn. The legend is decoration for screen readers, which read the chart's summary and hidden table.
+- **"How to read this graph"**, an ⓘ at the end of the legend. It opens on hover, keyboard focus and tap; Esc closes it; at most 320 px wide. One line per mark drawn for this measure and viewer, each with its mark drawn as in the plot, then what a click does. `buildGraph` writes it (`GraphVM.key`). For Tenders now on a portfolio dashboard:
+  - "Blue bar: tenders in each stage now. One colour, because it is one measure." (On a stage dashboard "in each step"; for a flow measure "in the period"; for Average days "in each stage, for tenders that left it in the period".)
+  - "Pale dashed bar: the same measure at the start of the window, Sat 7 Feb, so you can see what grew or shrank." (A flow measure: "in the previous period, Thu 8 Jan – Fri 6 Feb 2026". Only with a comparison, and only while Compare is on.)
+  - "Violet dashed line: a decision gate (DG1, DG2, DG3), between the stages it closes." (Portfolio only.)
+  - "Orange dashed line: the target, {value}." (Only when a target is drawn.)
+  - Then, muted, what a click does, following the bars' own drills (Click, below): "Click a bar to open that stage's dashboard.", "Click a bar to see those tenders in the table.", or, when some stages open and some filter (the Bid Manager's stage 9), "Click a bar to open that stage's dashboard, or to see its tenders in the table where you can't open it."
 - **Empty:** "No tenders in these stages in this period.", or the measure's own line (for Weighted: "No bid has a win probability yet: it is set when the Bid / No-Bid pack is issued.").
 
 ---
@@ -334,12 +366,14 @@ It opens under the main view for the selected row. It is a card at full width.
 
 ```
 T-2026-109 · Tabuk water transmission pipeline, Phase 1 · SAR 260.0 M · [On track]            ×
- 1 Intake ─ DG1 ─ 2 Sourcing ─ 3 Bid decision ─ DG2 ─ 4 ─ 5 ─ 6 ─ 7 ─ DG3 ─ 8 ─ 9
-   ✓          ✓        ●              ○            ○    ○   ○   ○   ○    ○    ○   ○
- 28 Feb–4 Mar  Pursue    since 4 Mar
- 5 d · Aisha   Omar S.   RFQs out
-               4 Mar 11:20
-               on time
+                                     ○ Stage  ◇ Decision gate │ ✓ Done  ● Now  ✕ Stopped here
+                 ░░░░░░░░░░░░░░                                  ░░░░░░░░░░░░░░
+       (✓) ─────────── ◆✓ ──────────── (●) ─────────── ( ) ──────────── ◇  ── … S4–S7 ◇ DG3 S8 S9
+     Intake           DG1           Sourcing      Bid decision        DG2
+     [5 d]          [Pursue]      [4 d so far]
+ 28 Feb – 4 Mar   4 Mar 11:20     since 4 Mar
+      (AQ)       (OS) · on time       (JM)
+                 ░░░░░░░░░░░░░░                                  ░░░░░░░░░░░░░░
 ┌ Now: 2 · Sourcing · RFQs out ──────────────────────────────────────────────────────────┐
 │ With     Joseph Mathew, Procurement Lead                                               │
 │ Team     Water team: Omar Siddiqui (Bid Manager), 4 engineers, 2 estimators            │
@@ -350,12 +384,21 @@ T-2026-109 · Tabuk water transmission pipeline, Phase 1 · SAR 260.0 M · [On t
 ```
 
 **Nodes.** One per stage and one per gate, in lifecycle order: S1 · DG1 · S2 · S3 · DG2 · S4 · S5 · S6 · S7 · DG3 · S8 · S9.
-- **Stage node:** ✓ done / ● current / ○ not reached / ✕ where the tender stopped. It shows the dates in and out, days spent, and the owner's initials.
-- **Gate node:**
-  - a decision chip (Pursue · Discard · Hold · Bid · No-bid · Approved · Rejected);
-  - who and when;
-  - "on time" or "late by 3 h".
-- **A stopped tender** (discarded, no-bid, rejected, withdrawn, lost) greys every node after the stop. The stop node carries the reason ("Discarded at DG1 · below the value band · 3 Mar · Omar Siddiqui").
+- **User decision, 2026-09-28: decision gates stand out at first glance.** Circles and rounded squares, both green when done, looked alike. Now a gate differs from a stage in shape **and** colour, and each mark keeps its glyph, so status is never colour alone:
+  - **Stage: a circle.** Done: green with ✓. Now: a blue ring with a dot ●. Not reached: a grey outline. Stopped here: red with ✕.
+  - **Gate: a diamond,** on a faint violet band behind the node and its text, the full height of the track. Passed: violet with ✓. Open or not reached: a violet outline (open adds a dot ●). On hold: orange with ‖. Stopped here: red with ✕.
+  - The line between nodes is green between done nodes, and grey after.
+  - A small key sits above the track, drawn with the real marks: "○ Stage ◇ Decision gate │ ✓ Done ● Now ✕ Stopped here".
+- **The same five rows under every node, on one grid, so they line up** (user feedback 2026-09-28: "the text below each stage and DG is inconsistent"):
+  1. the mark;
+  2. the label: the stage's short name, or "DG1" in violet mono;
+  3. a chip: a stage's days ("4 d", or "26 d so far" for the current stage), neutral; a gate's decision (Pursue · Discard · Hold · Bid · No-bid · Approved · Rejected) in its decision colour; "Open" for an open gate. Nothing for a node not reached, with the row's space kept;
+  4. when, on one line: a stage's dates ("30 Oct – 3 Nov", or "since 10 Feb"); a gate's decision time ("3 Nov 10:30"), or "since 7 Mar" while it is open;
+  5. who: an initials avatar, the stage's owner or the gate's decider (the decider's full name shows on hover). A gate adds "· on time", or "· 3 h late" in red.
+  - An optional note sits under the five rows: an open gate's time left ("6 h 10 m left of 24 h"), a re-open, a result.
+  - The track has a column minimum of about 88 px: at 1440 it fits the dashboard's card, and in a narrower box it scrolls inside.
+  - Screen readers hear each node as one sentence: "DG1, passed, Pursue, Omar Siddiqui, 3 Nov 10:30, on time".
+- **A stopped tender** (discarded, no-bid, rejected, withdrawn, lost) shows the stop in red with ✕ and fades every node after it. The reason is the outcome line under the track ("Discarded at DG1 · below the value band · 3 Mar · Omar Siddiqui").
 - **A won tender** ends at S9 with "Won · SAR 142.0 M · handover Sun 15 Mar".
 
 **Now card:**
@@ -379,7 +422,7 @@ T-2026-109 · Tabuk water transmission pipeline, Phase 1 · SAR 260.0 M · [On t
 | n | Sidebar name | Full name (spec and proposal) | Owner (stage dashboard is their home) | Working screens under it |
 | --- | --- | --- | --- | --- |
 | 1 | **Intake** | Tender Identification & Screening | Tender Coordinator | Tender radar · Intake queue · Screening · DG1 decisions |
-| 2 | **Sourcing** | Subcontractor & Internal Input Orchestration | Procurement Lead | Packages & RFQs · Quote levelling · Suppliers |
+| 2 | **Sourcing** | Subcontractor & Internal Input Orchestration | Procurement Lead | Packages & RFQs · Quote levelling (Suppliers moved to the Company section, §8.3, 2026-09-28) |
 | 3 | **Bid decision** | Bid / No-Bid Decisioning | Bid Committee | Bid packs · DG2 approvals |
 | 4 | **Planning** | Project Scheduling & Planning | Planning Manager | none (dashboard only) |
 | 5 | **Pricing** | Financial & Cost Modelling | Commercial Manager | none |
@@ -414,7 +457,7 @@ STAGES                     ← section label
 1 Intake            ▸      ← the header opens the stage dashboard; ▸ expands its screens
    Tender radar · Intake queue · Screening · DG1 decisions [DG1]
 2 Sourcing          ▸
-   Packages & RFQs · Quote levelling · Suppliers
+   Packages & RFQs · Quote levelling
 3 Bid decision      ▸
    Bid packs · DG2 approvals [DG2]
 4 Planning
@@ -424,7 +467,9 @@ STAGES                     ← section label
    DG3 approvals [DG3]
 8 Submission
 9 Results
-Company
+COMPANY                    ← section label
+Company profile            ← /company: Overview, Credentials, Projects, Financials, Teams and partners
+Suppliers                  ← /suppliers: the supplier master (supplier.view)
 ────────────────────────── (pinned to the bottom)
 Administration      ▸      ← Head of Tendering only
 Settings
@@ -436,6 +481,7 @@ Settings
 - **Expansion** is remembered per viewer (`ctai.nav.open`, try/catch). The group holding the current route is always open.
 - **Gate chips** DG1, DG2 and DG3 sit beside their entries: outline normally, orange when something waits on the viewer, red when an SLA is breached. Badges are derived, never typed.
 - **Bottom group.** Administration and Settings are pinned to the bottom of the rail, with a divider. The collapsed rail keeps them at the bottom too.
+- **Company section.** Two entries under the label "Company": **Company profile** (`company.view`) and **Suppliers** (`supplier.view`: the Head of Tendering, the CEO and the Procurement Lead). Suppliers is no longer a Stage 2 screen, so one page has one entry; on `/suppliers` the Suppliers entry is highlighted and Stage 2 stays folded unless opened. **User decision, 2026-09-28** (plan 027c): "The company profile and procurement/supplier pages … should be present separately in the menubar."
 
 **The Pipeline page is dropped.** The Head of Tendering's dashboard table is the all-tenders register.
 
@@ -590,7 +636,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   4. INT-4 Sources healthy (state)
   5. INT-3 Missed tenders (flow, over the reconciliations in the period)
   6. INT-10 Documents to buy (state)
-- **Flow strip:** Captured (notices) → Linked (duplicates and addenda) → Logged → Screened → Awaiting DG1 → DG1 (pursued · discarded · held).
+- **Flow card:** Captured (new · linked: duplicates and addenda) → Logged → Screened → Awaiting DG1 → DG1 (pursued · discarded · held). Linked folded into Captured on 2026-09-28 (§1).
 - **Needs your action:**
   - validation items (blocking DG1 first);
   - booklet purchases (requested; waiting on the Head of Tendering);

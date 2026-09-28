@@ -15,8 +15,9 @@
 .s2-chips { display: inline-flex; flex-wrap: wrap; gap: 4px; vertical-align: middle; }
 .s2-why { font-size: 12px; color: var(--ink-3); }
 .s2-note { margin: 8px 0 0; padding: 7px 10px; font-size: 12.5px; color: var(--ink-2); background: var(--surface-sunken); border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); }
-.s2-rule { margin: 8px 0 0; font-size: 12.5px; font-weight: 500; color: var(--ink-2); padding-left: 9px; border-left: 2px solid var(--brand, var(--ink)); }
-.s2-over { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); padding-left: 9px; border-left: 2px solid var(--orange); }
+.s2-rule { margin: 8px 0 0; font-size: 12.5px; font-weight: 500; color: var(--ink-2); padding: 6px 10px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-sunken); }
+/* An override or a person's note: a FlagLine ("!" in orange), no rule beside it (plan 028). */
+.s2-over { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-2); }
 .s2-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--ink-2); }
 
 /* Tags: a word with its tone, never colour alone. */
@@ -152,7 +153,7 @@
 .s2-lowest { margin-left: 6px; font-size: 11px; font-weight: 600; color: var(--green); }
 .s2-trace { margin: 4px 0 0; padding-left: 16px; font-size: 11.5px; }
 .s2-exp { display: inline-flex; align-items: center; gap: 3px; color: var(--ink); }
-.s2-over-tag { display: block; margin-top: 2px; font-size: 11.5px; color: var(--ink-2); }
+.s2-over-tag { display: flex; margin-top: 2px; font-size: 11.5px; color: var(--ink-2); }
 .s2-undo { margin-top: 2px; font-size: 11.5px; }
 
 /* Tracking */
@@ -172,8 +173,9 @@
 .s2-grid .ag-right-aligned-cell { justify-content: flex-end; }
 .s2-grid .ag-row-selected::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--brand); z-index: 1; }
 .s2-plan { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 12.5px; }
-.s2-plan li { display: grid; gap: 1px; padding-left: 10px; border-left: 2px solid var(--line-strong); }
-.s2-plan li.p-sent { border-left-color: var(--ink); }
+/* Each step leads with its state word ("Sent", "Planned"); no rule beside it (plan 028). */
+.s2-plan li { display: grid; gap: 1px; }
+.s2-plan li.p-sent .s2-plan-w { color: var(--ink); }
 .s2-plan li.p-not-needed { opacity: 0.65; }
 .s2-plan-w { font-size: 11.5px; font-weight: 600; color: var(--ink-3); }
 .s2-plan-t { color: var(--ink-2); }
@@ -183,7 +185,9 @@
 /* Clarifications */
 .s2-clars { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
 .s2-clar { padding: 12px 22px; border-bottom: 1px solid var(--line-3); font-size: 13px; }
-.s2-clar.stale { box-shadow: inset 3px 0 0 var(--red); }
+/* Stale beyond the SLA: the "Stale: due …" tag, on a faint red row (plan 028). */
+.s2-clar.stale { background: var(--red-soft); }
+.s2-clar.stale .s2-tag.tone-red { background: var(--surface); box-shadow: inset 0 0 0 1px var(--red-line); }
 .s2-clar-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .s2-clar-q { margin: 6px 0 4px; color: var(--ink); }
 .s2-clar-a { margin: 6px 0 0; color: var(--ink-2); }
@@ -198,7 +202,6 @@
 .s2-sbs { margin-bottom: 14px; }
 .s2-adjs { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line-2); }
 .s2-adj { padding: 11px 22px; border-bottom: 1px solid var(--line-3); font-size: 13px; }
-.s2-adj.s-proposed { box-shadow: inset 3px 0 0 var(--orange); }
 .s2-adj.s-rejected .s2-adj-l { text-decoration: line-through; color: var(--ink-3); }
 .s2-adj-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
 .s2-adj-l { font-weight: 500; color: var(--ink); }
@@ -226,13 +229,7 @@
 .s2-opt-v { font-size: 18px; font-weight: 600; color: var(--ink); }
 .s2-nopo { display: flex; align-items: center; gap: 8px; margin: 12px 0 0; padding-top: 10px; padding-bottom: 12px; font-size: 13px; font-weight: 500; color: var(--ink); border-top: 1px solid var(--line-2); }
 
-/* Suppliers */
-.s2-search { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); color: var(--ink-3); }
-.s2-search input { border: 0; background: none; font: inherit; font-size: 12.5px; color: var(--ink); width: 220px; outline: none; }
-.s2-search:focus-within { border-color: var(--focus-ring); }
-.s2-filters { display: flex; flex-wrap: wrap; gap: 6px; padding-bottom: 10px; }
-.s2-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 3px 10px; border: 1px solid var(--line); border-radius: var(--radius-pill); background: var(--surface); color: var(--ink-2); }
-.s2-chip.on { border-color: var(--ink); color: var(--ink); background: var(--surface-active); }
+/* Suppliers moved to pages/gcc/suppliers (plan 027c), with its own styles. */
 
 @media (max-width: 900px) {
   .s2-steps { grid-template-columns: minmax(0, 1fr); }

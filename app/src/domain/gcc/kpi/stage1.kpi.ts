@@ -20,6 +20,11 @@ const sourcesOf = (tenant: string): Source[] => (isGccTenantKey(tenant) ? gccDat
 
 /** "Etimad 7 · portals 1 · email 2 · scanned 1": the busiest portal by name, then the rest by kind. */
 function sourceSplit(tenant: string, bySource: Record<string, number>): string {
+  return sourceParts(tenant, bySource).map(([label, n]) => `${label} ${n}`).join(' · ');
+}
+
+/** The split's parts: the busiest portal by name, then the rest by kind, each with its count. */
+function sourceParts(tenant: string, bySource: Record<string, number>): [string, number][] {
   const sources = sourcesOf(tenant);
   const kindOf = (id: string) => sources.find((s) => s.id === id)?.kind ?? 'manual';
   const lead = Object.entries(bySource)
@@ -33,13 +38,36 @@ function sourceSplit(tenant: string, bySource: Record<string, number>): string {
   ];
   // The lead portal's name without its qualifier, to fit the tile: "Monaqasat (Ministry of Finance)" reads "Monaqasat".
   const leadName = (id: string) => (sources.find((s) => s.id === id)?.name ?? id).replace(/\s*\(.*\)$/, '');
-  const parts = lead ? [`${leadName(lead[0])} ${lead[1]}`] : [];
+  const parts: [string, number][] = lead ? [[leadName(lead[0]), lead[1]]] : [];
   for (const [label, test] of groups) {
     const n = Object.entries(bySource).filter(([id]) => id !== lead?.[0] && test(kindOf(id))).reduce((s, [, v]) => s + v, 0);
-    if (n) parts.push(`${label} ${n}`);
+    if (n) parts.push([label, n]);
   }
-  return parts.join(' · ');
+  return parts;
 }
+
+/**
+ * The detail line keeps two parts of the split: the busiest portal, then the
+ * rest together ("Etimad 7 · others 4"). A portal name too long for the line
+ * joins the other portals ("Portals 150 · others 185").
+ */
+function sourceDetail(tenant: string, bySource: Record<string, number>): string {
+  const two = (parts: [string, number][]) => (parts.length <= 2 ? parts.map(([label, n]) => `${label} ${n}`).join(' · ')
+    : `${parts[0][0]} ${parts[0][1]} · others ${parts.slice(1).reduce((s, [, n]) => s + n, 0)}`).replace(/^./, (c) => c.toUpperCase());
+  const parts = sourceParts(tenant, bySource);
+  const lead = parts[0];
+  if (!lead || lead[0] === 'portals') return two(parts);
+  // The lead portal back among the portals: "portals" first, then email, scanned and manual as before.
+  const rest = parts.slice(1);
+  const portals = lead[1] + (rest.find(([label]) => label === 'portals')?.[1] ?? 0);
+  return fit(two(parts), two([['portals', portals], ...rest.filter(([label]) => label !== 'portals')]));
+}
+
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
+
+/** "12 Mar": a reference line's date, without the weekday. */
+const dm = (iso: string) => dayText(iso).replace(/^\w{3} /, '');
 
 const STATE_RANK: Record<Source['state'], number> = { down: 0, degraded: 1, 'credentials-expiring': 2, healthy: 3 };
 const STATE_TEXT: Record<Source['state'], string> = { down: 'down', degraded: 'degraded', 'credentials-expiring': 'credentials expiring', healthy: 'healthy' };
@@ -74,6 +102,7 @@ export const KPIS: KpiDef[] = [
       return {
         display: c.captured.toLocaleString('en-GB'),
         sub: c.captured ? sourceSplit(ctx.tenant, c.bySource) : `None captured · ${ctx.prev.label.toLowerCase()}: ${prev}`,
+        detail: c.captured ? sourceDetail(ctx.tenant, c.bySource) : `${ctx.prev.label}: ${prev}`,
         n: c.captured,
       };
     },
@@ -88,11 +117,11 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const items = openFields(ctx).flatMap((g) => g.items);
-      if (!items.length) return { display: '0', sub: 'Nothing to check', tone: 'green' };
+      if (!items.length) return { display: '0', sub: 'Nothing to check', detail: 'Nothing to check', tone: 'green' };
       const blocking = items.filter((i) => i.item.blocksDg1).length;
       const oldest = items.reduce((a, b) => (b.ageMin > a.ageMin ? b : a));
       const tone: Tone = oldest.ageMin > STAGE_BANDS.queueOldestRedH * 60 ? 'red' : blocking ? 'orange' : 'ink';
-      return { display: String(items.length), sub: `${blocking} block DG1 · oldest ${oldest.ageText}`, tone, n: items.length };
+      return { display: String(items.length), sub: `${blocking} block DG1 · oldest ${oldest.ageText}`, detail: `${blocking} block DG1`, ref: { k: 'Oldest', v: oldest.ageText }, tone, n: items.length };
     },
     drill: (ctx) => route('/intake-queue') ?? idsDrill(tileLabel(ctx, 'Fields to check'), openFields(ctx).map((g) => g.tenderId)),
   },
@@ -106,9 +135,9 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const mins = qOf(ctx).capturesIn(ctx.window).minutes;
       const p90 = nearestRank(mins, 90);
-      if (p90 === null) return { display: 'No notices logged', sub: 'in this period' };
+      if (p90 === null) return { display: 'No notices logged', sub: 'in this period', detail: 'In this period' };
       const tone: Tone = p90 <= INTAKE_TARGET_MIN ? 'green' : p90 <= STAGE_BANDS.intakeOrangeMin ? 'orange' : 'red';
-      return { display: `${p90} min`, sub: `worst ${Math.max(...mins)} min`, tone, n: mins.length };
+      return { display: `${p90} min`, sub: `worst ${Math.max(...mins)} min`, detail: fit(`Slowest tenth of ${plural(mins.length, 'notice')}`, `${plural(mins.length, 'notice')} logged`), ref: { k: 'Worst', v: `${Math.max(...mins)} min` }, tone, n: mins.length };
     },
     drill: () => route('/radar'),
   },
@@ -126,7 +155,10 @@ export const KPIS: KpiDef[] = [
       const worst = [...s].sort((a, b) => STATE_RANK[a.state] - STATE_RANK[b.state])[0];
       const tone: Tone = worst.state === 'down' ? 'red' : worst.state === 'healthy' ? 'green' : 'orange';
       const why = worst.note ? worst.note.replace(/^./, (c) => c.toLowerCase()) : STATE_TEXT[worst.state];
-      return { display: `${healthy} of ${s.length}`, sub: worst.state === 'healthy' ? 'Every connection is working' : `${worst.name}: ${why}`, tone };
+      return {
+        display: `${healthy} of ${s.length}`, sub: worst.state === 'healthy' ? 'Every connection is working' : `${worst.name}: ${why}`, tone,
+        ...(worst.state === 'healthy' ? { detail: 'Every connection working' } : { detail: fit(why, STATE_TEXT[worst.state]).replace(/^./, (c) => c.toUpperCase()), ref: { k: 'Worst', v: worst.name.replace(/\s*\(.*\)$/, '') } }),
+      };
     },
     drill: () => route('/radar'),
   },
@@ -143,6 +175,7 @@ export const KPIS: KpiDef[] = [
       return {
         display: String(missed), tone: missed ? 'red' : 'green',
         sub: recon ? `last reconciled ${recon.at.slice(11, 16)} · ${plural(recon.sources, 'source')}` : undefined,
+        ...(recon ? { detail: `Last reconciled ${recon.at.slice(11, 16)}` } : {}),
       };
     },
     drill: () => route('/radar'),
@@ -156,13 +189,15 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = toBuy(ctx);
-      if (!list.length) return { display: '0', sub: 'Every booklet is in hand' };
+      if (!list.length) return { display: '0', sub: 'Every booklet is in hand', detail: 'Every booklet is in hand' };
       const { l, d } = list[0];
       const approved = !!ctx.done[`booklet-approved:${l.tenderId}`];
       const tone: Tone = wdTo(ctx.tenant, l, d.purchaseBy) <= STAGE_BANDS.bookletWd ? 'orange' : 'ink';
       return {
         display: String(list.length), tone,
         sub: `${l.tenderId} · ${money(d.fee.amount, d.fee.ccy)} · closes ${dayText(d.purchaseBy)}${approved ? ' · approved, to buy' : ''}`,
+        detail: approved ? `${l.tenderId} · approved` : `${l.tenderId} · ${money(d.fee.amount, d.fee.ccy)}`,
+        ref: { k: 'Next', v: `closes ${dm(d.purchaseBy)}` },
       };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Documents to buy'), toBuy(ctx).map((x) => x.l.tenderId)),

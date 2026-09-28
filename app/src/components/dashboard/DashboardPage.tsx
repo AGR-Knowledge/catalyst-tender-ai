@@ -6,7 +6,7 @@ import type { PeriodKey, PeriodWindow } from '@/domain/gcc/period';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { PeriodFilter } from './PeriodFilter';
 import { KpiTiles } from './KpiTile';
-import { FlowStrip } from './FlowStrip';
+import { FlowCard } from './FlowCard';
 import { ActionList } from './ActionList';
 import { ViewToggle, useMainView } from './ViewToggle';
 import { TenderGrid } from './grid/TenderGrid';
@@ -17,8 +17,9 @@ import './dashboard.css';
 const StageChart = lazy(() => import('./chart/StageChart'));
 
 /**
- * One layout for every dashboard (dashboards.md §1, amended 2026-09-26): Z1
- * header and period, Z2 tiles, Z3 the flow on one thin line, then one row with
+ * One layout for every dashboard (dashboards.md §1, amended 2026-09-26 and
+ * 2026-09-28): Z1 header and period, Z2 tiles, Z3 the flow as its own card at
+ * full width (plan 027d), then one row with
  * Z5 Table | Graph at two thirds and Z4 Needs your action at one third, and Z6
  * the tracker for a selected row. It renders the view model; it computes
  * nothing.
@@ -94,8 +95,8 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
       {/* Z2 */}
       <KpiTiles tiles={vm.tiles} onDrill={drill} />
 
-      {/* Z3: one line, not a card */}
-      {vm.flow && <FlowStrip flow={vm.flow} onDrill={drill} />}
+      {/* Z3: the funnel card, full width under the tiles */}
+      {vm.flow && <FlowCard flow={vm.flow} onDrill={drill} />}
 
       <div className="db-row">
         {/* Z5: the table stays mounted and sets the box's height; the graph lies over it, so toggling never moves the page. */}

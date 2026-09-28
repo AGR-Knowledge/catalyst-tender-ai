@@ -19,7 +19,8 @@ export const HARD_BLOCK_TEXT = 'This is a hard block, not a warning.';
  * A page-level message (ui-direction §6.2): `route` (orange, a referral or a
  * wait), `block` (red, a hard block), `verdict` (neutral, a decision on
  * record) and `stale` (orange, with its re-run action). The word beside the
- * icon names the variant for screen readers and in greyscale.
+ * icon names the variant for screen readers and in greyscale. `gc` keeps the
+ * kit's look off the legacy `.callout` (see tender.css).
  */
 export function Callout({ variant, title, children, action, word, compact = false }: {
   variant: CalloutVariant;
@@ -32,7 +33,7 @@ export function Callout({ variant, title, children, action, word, compact = fals
 }) {
   const { word: w, Icon } = META[variant];
   return (
-    <div className={`callout v-${variant} ${compact ? 'compact' : ''}`} role="note">
+    <div className={`callout gc v-${variant} ${compact ? 'compact' : ''}`} role="note">
       <span className="co-ic" aria-hidden><Icon size={14} strokeWidth={2} /></span>
       <div className="co-main">
         <div className="co-head">

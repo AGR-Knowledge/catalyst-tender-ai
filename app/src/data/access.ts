@@ -405,8 +405,8 @@ export function can(person: Person, cap: Capability, ctx: CanCtx = {}): CanResul
 /* =====================================================================
  * GCC navigation model (dashboards.md §8.3). Data only: the sidebar renders it.
  * Dashboard on top, then Calendar and My requests; the nine numbered stages the
- * person may open, each with its working screens; Company; and Administration
- * and Settings pinned to the bottom.
+ * person may open, each with its working screens; the Company section (Company
+ * profile and Suppliers); and Administration and Settings pinned to the bottom.
  * ===================================================================== */
 
 export interface GccNavItem {
@@ -448,7 +448,6 @@ const STAGE_SCREENS: Partial<Record<StageN, GccNavItem[]>> = {
   2: [
     { key: 'sourcing', label: 'Packages & RFQs', path: '/sourcing', cap: 'sourcing.view' },
     { key: 'levelling', label: 'Quote levelling', path: '/levelling', cap: 'levelling.view' },
-    { key: 'suppliers', label: 'Suppliers', path: '/suppliers', cap: 'supplier.view' },
   ],
   3: [
     { key: 'packs', label: 'Bid packs', path: '/packs', cap: 'pack.view' },
@@ -470,8 +469,10 @@ export const NAV_GCC: GccNavGroup[] = [
     key: `stage-${st.n}`, label: stageShortLabel(st.n), path: `/stages/${st.n}`, cap: 'stage.view' as const, stage: st.n,
     children: STAGE_SCREENS[st.n] ?? [],
   })) },
-  { key: 'company', items: [
-    { key: 'company', label: 'Company', path: '/company', cap: 'company.view' },
+  // Company profile and the supplier master, beside the stages rather than under Stage 2 (user decision, 2026-09-28).
+  { key: 'company', label: 'Company', items: [
+    { key: 'company', label: 'Company profile', path: '/company', cap: 'company.view' },
+    { key: 'suppliers', label: 'Suppliers', path: '/suppliers', cap: 'supplier.view' },
   ] },
   { key: 'bottom', pinned: 'bottom', items: [
     { key: 'admin', label: 'Administration', path: '/admin', cap: 'admin.view', children: [
@@ -499,21 +500,22 @@ export const NAV_GCC: GccNavGroup[] = [
  *
  * Self-check against dashboards.md §8.3 (every role also gets Dashboard and Settings):
  *
- * | Role                 | Calendar | My requests | Stages, and their screens                                                        | Company | Administration |
- * | -------------------- | -------- | ----------- | -------------------------------------------------------------------------------- | ------- | -------------- |
- * | hot                  | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: packages, levelling, suppliers · 3: packs, DG2 · 7: DG3 | yes | all 7 |
- * | exec                 | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: all three · 3: packs, DG2               | yes     | Audit log, under a header that isn't a link |
- * | bid                  | yes      | no          | 1–8 · 1: radar, queue, screening, DG1 · 2: packages, levelling · 3: packs, DG2 · 7: DG3 | yes | no          |
- * | coord                | yes      | no          | 1 · radar, queue, screening, DG1                                                 | yes     | no             |
- * | proc                 | yes      | no          | 2 · packages, levelling, suppliers                                               | yes     | no             |
- * | member               | yes      | no          | 3 · packs, DG2                                                                   | yes     | no             |
- * | comm                 | yes      | yes         | 2 as a label over levelling · 5, no screens                                      | no      | no             |
- * | plan, prop, dir      | yes      | yes         | their own stage (4, 6, 9), no screens                                            | no      | no             |
- * | comp                 | yes      | yes         | 7 · DG3                                                                          | no      | no             |
- * | fin                  | yes      | home        | none                                                                             | yes     | no             |
- * | hr                   | no       | home        | none                                                                             | yes     | no             |
- * | supplier, platform   | no       | no          | none                                                                             | no      | no             |
+ * | Role                 | Calendar | My requests | Stages, and their screens                                                    | Company profile | Suppliers | Administration |
+ * | -------------------- | -------- | ----------- | ---------------------------------------------------------------------------- | --------------- | --------- | -------------- |
+ * | hot                  | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: packages, levelling · 3: packs, DG2 · 7: DG3 | yes  | yes       | all 7          |
+ * | exec                 | yes      | no          | 1–9 · 1: radar, queue, screening, DG1 · 2: packages, levelling · 3: packs, DG2 | yes             | yes       | Audit log, under a header that isn't a link |
+ * | bid                  | yes      | no          | 1–8 · 1: radar, queue, screening, DG1 · 2: packages, levelling · 3: packs, DG2 · 7: DG3 | yes  | no        | no             |
+ * | coord                | yes      | no          | 1 · radar, queue, screening, DG1                                             | yes             | no        | no             |
+ * | proc                 | yes      | no          | 2 · packages, levelling                                                      | yes             | yes       | no             |
+ * | member               | yes      | no          | 3 · packs, DG2                                                               | yes             | no        | no             |
+ * | comm                 | yes      | yes         | 2 as a label over levelling · 5, no screens                                  | no              | no        | no             |
+ * | plan, prop, dir      | yes      | yes         | their own stage (4, 6, 9), no screens                                        | no              | no        | no             |
+ * | comp                 | yes      | yes         | 7 · DG3                                                                      | no              | no        | no             |
+ * | fin                  | yes      | home        | none                                                                         | yes             | no        | no             |
+ * | hr                   | no       | home        | none                                                                         | yes             | no        | no             |
+ * | supplier, platform   | no       | no          | none                                                                         | no              | no        | no             |
  *
+ * Suppliers sits in the Company section, not under Stage 2, so one page has one entry (user decision, 2026-09-28).
  * The supplier gets the Supplier Portal (plan 008) and the operator the Platform Console (plan 011), each in its own shell.
  */
 export function navFor(person: Person): GccNavGroup[] {

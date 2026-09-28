@@ -9,6 +9,7 @@ import type { ActionDue, ActionVM } from '@/domain/gcc/viewmodels';
 import { RecommendationCard } from '@/components/tender/RecommendationCard';
 import { Callout } from '@/components/tender/Callout';
 import { StatusPill } from '@/components/tender/StatusPill';
+import { FlagLine } from '@/components/tender/FlagLine';
 import { SlaClock } from '@/components/tender/SlaClock';
 import { When, whenLabel } from '@/components/tender/When';
 import type { WorkspaceCtx } from './tabs';
@@ -143,7 +144,7 @@ export function Rail({ vm, ctx }: { vm: RailVM; ctx: WorkspaceCtx }) {
                 <span className="rl-dl">{d.label}</span>
                 <When date={d.date} time={d.time} tz={d.tz} short />
                 <span className="rl-dcd num">{d.daysLeft === 0 ? 'Today' : `in ${countdownText(DEMO_TODAY, d.date, cc)}`}</span>
-                {d.flags.map((f) => <span key={f.key} className="rl-flagline"><span aria-hidden>! </span>{f.text}</span>)}
+                {d.flags.map((f) => <FlagLine key={f.key} tone="orange" className="rl-flagline">{f.text}</FlagLine>)}
               </li>
             ))}
           </ul>

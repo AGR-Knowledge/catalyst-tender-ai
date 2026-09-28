@@ -3,9 +3,10 @@ import {
   Bar, BarChart, CartesianGrid, LabelList, ReferenceLine, ResponsiveContainer, Text, Tooltip, XAxis, YAxis, type TooltipContentProps,
 } from 'recharts';
 import type { NameType, ValueType } from 'recharts/types/component/DefaultTooltipContent';
-import { ChevronDown } from 'lucide-react';
-import type { GraphPointVM, GraphVM } from '@/domain/gcc/viewmodels';
+import { ChevronDown, Info } from 'lucide-react';
+import type { GraphKeyVM, GraphPointVM, GraphVM } from '@/domain/gcc/viewmodels';
 import { EmptyState } from '@/components/tender/EmptyState';
+import { usePop } from '@/components/tender/Tip';
 
 /**
  * The dashboard graph (dashboards.md §6, user decision 2026-09-26): one bar
@@ -16,6 +17,11 @@ import { EmptyState } from '@/components/tender/EmptyState';
  * focused with the arrow keys, calls `onPoint`; the page decides where that
  * goes. Every number and every sentence comes from the view model; colours
  * are CSS variables only.
+ *
+ * Colours (plan 027d): the bars are one calm blue whatever the tenant's brand,
+ * because they are one measure; the ghost is the same blue, pale and dashed;
+ * gate lines are violet, the colour of decision gates everywhere; a target
+ * line is orange. "How to read this graph" (the ⓘ after the legend) says so.
  */
 
 export interface StageChartProps {
@@ -60,6 +66,29 @@ function BarLabel(props: { x?: number | string; y?: number | string; width?: num
       x={Number(props.x) + Number(props.width) / 2} y={Number(props.y) - 6} textAnchor="middle"
       fill="var(--ink-2)" fontSize={11.5} fontWeight={500} style={{ fontVariantNumeric: 'tabular-nums' }}
     >{text}</text>
+  );
+}
+
+/** "How to read this graph": each mark drawn as in the plot, what it means, then what a click does. */
+function GraphKey({ k, compare }: { k: GraphKeyVM; compare: boolean }) {
+  const pop = usePop<HTMLButtonElement>({ width: 320 });
+  // The ghost is only drawn while Compare is on.
+  const items = k.items.filter((i) => i.mark !== 'ghost' || compare);
+  return (
+    <>
+      <button type="button" className="info-btn sc-key-btn" aria-label={k.title} {...pop.triggerProps}>
+        <Info size={15} strokeWidth={1.7} aria-hidden />
+      </button>
+      {pop.render(
+        <div className="info-pop sc-key-pop">
+          <div className="ip-t">{k.title}</div>
+          <ul className="sc-key">
+            {items.map((i) => <li key={i.mark}><span className={`sc-mk ${i.mark}`} aria-hidden />{i.text}</li>)}
+          </ul>
+          {k.foot && <div className="ip-note">{k.foot}</div>}
+        </div>,
+      )}
+    </>
   );
 }
 
@@ -132,11 +161,15 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
       </div>
 
       <div className="sc-cap">
-        <span className="sc-legend" aria-hidden>
-          <span className="k main" />{vm.metricLabel}{vm.unit && <span className="unit">{vm.unit}</span>}
-          {showCompare && <><span className="k cmp" />{vm.compareLabel}</>}
-          {vm.compareLabel === null && <span className="none">No comparison for this measure</span>}
-          {vm.target && <><span className="k tgt" />{vm.target.label}</>}
+        <span className="sc-leg">
+          <span className="sc-legend" aria-hidden>
+            <span className="k main" />{vm.metricLabel}{vm.unit && <span className="unit">{vm.unit}</span>}
+            {showCompare && <><span className="k cmp" />{vm.compareLabel}</>}
+            {vm.compareLabel === null && <span className="none">No comparison for this measure</span>}
+            {vm.target && <><span className="k tgt" />{vm.target.label}</>}
+            {markers.length > 0 && <><span className="k gate" />Decision gates</>}
+          </span>
+          {vm.key && <GraphKey k={vm.key} compare={showCompare} />}
         </span>
         {notes.map((n) => <span key={n} className="sc-note">{n}</span>)}
       </div>
@@ -171,18 +204,18 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
                 />
                 {markers.map((mk) => (
                   <ReferenceLine
-                    key={mk.label} xAxisId="main" x={mk.next.label} position="start" stroke="var(--line-strong)" strokeDasharray="4 4"
-                    label={{ value: mk.label, position: 'top', fill: 'var(--ink-3)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+                    key={mk.label} xAxisId="main" x={mk.next.label} position="start" stroke="var(--violet)" strokeWidth={1.5} strokeDasharray="4 4"
+                    label={{ value: mk.label, position: 'top', fill: 'var(--violet)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
                   />
                 ))}
                 <Tooltip axisId="main" content={TooltipBody} cursor={{ fill: 'var(--surface-hover)' }} isAnimationActive={false} />
                 {showCompare && (
                   <Bar
-                    xAxisId="ghost" dataKey="c" name={vm.compareLabel ?? ''} fill="var(--brand)" fillOpacity={0.1}
-                    stroke="var(--brand)" strokeOpacity={0.45} strokeDasharray="4 3" radius={[4, 4, 0, 0]} maxBarSize={60} isAnimationActive={false}
+                    xAxisId="ghost" dataKey="c" name={vm.compareLabel ?? ''} fill="var(--blue)" fillOpacity={0.12}
+                    stroke="var(--blue)" strokeOpacity={0.6} strokeDasharray="4 3" radius={[4, 4, 0, 0]} maxBarSize={60} isAnimationActive={false}
                   />
                 )}
-                <Bar xAxisId="main" dataKey="v" name={vm.metricLabel} fill="var(--brand)" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={false}>
+                <Bar xAxisId="main" dataKey="v" name={vm.metricLabel} fill="var(--blue)" radius={[3, 3, 0, 0]} maxBarSize={44} isAnimationActive={false}>
                   <LabelList dataKey="t" content={BarLabel} />
                 </Bar>
                 {vm.target && (
@@ -195,25 +228,28 @@ export function StageChart({ vm, onPoint, metric, setMetric, lead }: StageChartP
             </ResponsiveContainer>
           </div>
         )}
-        <table className="sr-only">
-          <caption>{vm.summary}</caption>
-          <thead>
-            <tr>
-              <th scope="col">{vm.axis === 'stages' ? 'Stage' : 'Step'}</th>
-              <th scope="col">{vm.metricLabel}</th>
-              {vm.compareLabel && <th scope="col">{vm.compareLabel}</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {vm.points.map((p) => (
-              <tr key={p.key}>
-                <th scope="row">{p.label}</th>
-                <td>{p.display}</td>
-                {vm.compareLabel && <td>{p.compareDisplay}</td>}
+        {/* A table ignores .sr-only's 1 px width, so the wrapper clips it; otherwise the card scrolls sideways when its key opens. */}
+        <div className="sr-only">
+          <table>
+            <caption>{vm.summary}</caption>
+            <thead>
+              <tr>
+                <th scope="col">{vm.axis === 'stages' ? 'Stage' : 'Step'}</th>
+                <th scope="col">{vm.metricLabel}</th>
+                {vm.compareLabel && <th scope="col">{vm.compareLabel}</th>}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {vm.points.map((p) => (
+                <tr key={p.key}>
+                  <th scope="row">{p.label}</th>
+                  <td>{p.display}</td>
+                  {vm.compareLabel && <td>{p.compareDisplay}</td>}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </figure>
     </div>
   );

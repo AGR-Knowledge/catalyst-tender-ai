@@ -6,6 +6,7 @@ import {
 } from '@/domain/gcc/s2';
 import { Card } from '@/components/ui/primitives';
 import { Callout } from '@/components/tender/Callout';
+import { FlagLine } from '@/components/tender/FlagLine';
 import { PanelHead, Tag, Why, byLine, refusal } from './ui';
 import type { DeskCtx } from './vm/desk';
 import { plural } from '@/domain/format';
@@ -196,7 +197,7 @@ function ShortlistEditor({ desk, pkgId, onDone }: { desk: DeskCtx; pkgId: string
       {approved && !editing && approved.overrides.length > 0 && (
         <div className="s2-pad-x">
           {approved.overrides.map((o) => (
-            <p key={`${o.action}${o.supplierId}`} className="s2-over">Override recorded: {o.action === 'add' ? 'added' : 'left out'} {supplierOf(tenant, o.supplierId)?.name ?? o.supplierId}. {o.reason}</p>
+            <FlagLine key={`${o.action}${o.supplierId}`} as="p" tone="orange" className="s2-over">Override recorded: {o.action === 'add' ? 'added' : 'left out'} {supplierOf(tenant, o.supplierId)?.name ?? o.supplierId}. {o.reason}</FlagLine>
           ))}
         </div>
       )}

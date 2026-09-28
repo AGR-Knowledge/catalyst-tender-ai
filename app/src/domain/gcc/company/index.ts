@@ -10,9 +10,10 @@ import type { Done } from '../s1/done';
 import { dataOf, dayMonth, profileOf } from '../s1/common';
 
 /**
- * Company (plan 010): the credentials vault and its renewal, and the
- * read-only company views beside it (capability profile, bank guarantee
- * facility, teams and partners). Read models only; nothing here writes.
+ * Company (plans 010 and 027c): the credentials vault and its renewal, and the
+ * read-only company views beside it (the profile, its project register, bank
+ * guarantee facility, teams and partners). The Overview's reading is in
+ * `overview.ts`. Read models only; nothing here writes.
  */
 
 export * from './vault';
@@ -20,6 +21,9 @@ export * from './renewal';
 
 const COUNTRY_NAME: Record<string, string> = {
   SA: 'Saudi Arabia', AE: 'United Arab Emirates', QA: 'Qatar', OM: 'Oman', KW: 'Kuwait', BH: 'Bahrain', JO: 'Jordan', LB: 'Lebanon', EG: 'Egypt',
+  // Where the supplier masters' manufacturers are (plan 027c).
+  AT: 'Austria', CH: 'Switzerland', CN: 'China', DE: 'Germany', ES: 'Spain', FR: 'France', GB: 'United Kingdom', HR: 'Croatia', IE: 'Ireland',
+  IT: 'Italy', JP: 'Japan', KR: 'South Korea', NL: 'Netherlands', PL: 'Poland', PT: 'Portugal', SE: 'Sweden', SI: 'Slovenia', TN: 'Tunisia', TR: 'Türkiye',
 };
 export const countryName = (code: string) => COUNTRY_NAME[code] ?? code;
 
@@ -41,7 +45,18 @@ export interface ProfileVM {
   geographies: string[];
   financials: { fy: number; turnover: MoneyVM; audited: boolean; auditDate?: string; netWorth?: MoneyVM; currentRatio?: number }[];
   entities: { id: string; name: string; country: string; note: string; latest?: { fy: number; turnover: MoneyVM } }[];
-  projects: { id: string; title: string; client: string; country: string; value: MoneyVM; completed: string; role: string; scope: string; capacityM3d?: number; holder?: string }[];
+  projects: ProjectVM[];
+}
+
+/** A similar project as the register holds it; `role` is the label, `roleKey` the seed's value. */
+export interface ProjectVM {
+  id: string; title: string; client: string; country: string; value: MoneyVM; completed: string; role: string; roleKey: SimilarProject['role']; scope: string;
+  capacityM3d?: number; tertiary?: boolean; holder?: string;
+  /** The O&M period, when the company ran the plant. */
+  om?: { from: string; to: string };
+  /** Fields of work it counts for, and other measured quantities by unit ("m span": 52). */
+  fields?: string[];
+  measures?: Record<string, number>;
 }
 
 export function profileFor(tenant: string): ProfileVM {
@@ -67,8 +82,10 @@ export function profileFor(tenant: string): ProfileVM {
       return { id: e.id, name: e.name, country: countryName(e.country), note: e.note, ...(latest ? { latest: { fy: latest.fy, turnover: latest.turnover } } : {}) };
     }),
     projects: [...d.projects].sort((a, b) => b.completed.localeCompare(a.completed)).map((x) => ({
-      id: x.id, title: x.title, client: x.client, country: countryName(x.country), value: x.value, completed: x.completed, role: PROJECT_ROLE[x.role], scope: x.scope,
-      ...(x.capacityM3d ? { capacityM3d: x.capacityM3d } : {}), ...(x.holder && entityName.has(x.holder) ? { holder: entityName.get(x.holder) } : {}),
+      id: x.id, title: x.title, client: x.client, country: countryName(x.country), value: x.value, completed: x.completed, role: PROJECT_ROLE[x.role], roleKey: x.role, scope: x.scope,
+      ...(x.capacityM3d ? { capacityM3d: x.capacityM3d } : {}), ...(x.tertiary ? { tertiary: true } : {}),
+      ...(x.holder && entityName.has(x.holder) ? { holder: entityName.get(x.holder) } : {}),
+      ...(x.om ? { om: x.om } : {}), ...(x.fields?.length ? { fields: x.fields } : {}), ...(x.measures ? { measures: x.measures } : {}),
     })),
   };
 }
@@ -87,7 +104,8 @@ export interface FacilityVM {
   confirmedBy?: string;
 }
 
-const inCcy = (m: { amount: number; ccy: MoneyVM['ccy'] }, ccy: MoneyVM['ccy']): MoneyVM =>
+/** An amount in `ccy`, keeping the amount as stated when it was converted. */
+export const inCcy = (m: { amount: number; ccy: MoneyVM['ccy'] }, ccy: MoneyVM['ccy']): MoneyVM =>
   (m.ccy === ccy ? m : { amount: convert(m.amount, m.ccy, ccy), ccy, original: m });
 
 export function facilityFor(tenant: string): FacilityVM {

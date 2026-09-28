@@ -19,6 +19,10 @@ const INVITE_REASON = 'Demo: invitations are sent from the product';
 
 type Row = AdminUser;
 
+/** The detail line keeps two parts of the split by group: the first, then the rest together (dashboards.md §3). */
+const seatSplit = (groups: { group: string; n: number }[]) => (groups.length <= 2 ? groups.map((g) => `${g.group} ${g.n}`).join(' · ')
+  : `${groups[0].group} ${groups[0].n} · others ${groups.slice(1).reduce((s, g) => s + g.n, 0)}`);
+
 export default function Users() {
   const { tenant, check, profile } = useAdmin();
   const { state, startViewAs } = useDemo();
@@ -41,7 +45,7 @@ export default function Users() {
       means: 'People holding a licensed seat in this company, against the seats licensed. Licensing and adoption',
       counted: 'Company users by group. Suppliers answer RFQs through the portal and hold no seat.',
       source: 'Users',
-    }, { sub: vm.seats.byGroup.map((g) => `${g.group} ${g.n}`).join(' · ') }),
+    }, { sub: vm.seats.byGroup.map((g) => `${g.group} ${g.n}`).join(' · '), detail: seatSplit(vm.seats.byGroup) }),
     valueTile('seats.committee', 'Committee seats filled', `${committee.filled} of ${committee.total}`, {
       means: 'Bid Committee members named for DG2. Each records a named position on the pack',
       counted: 'Voting seats with a member: CEO, CFO, Technical Director, Operations Director and Sector Head.',

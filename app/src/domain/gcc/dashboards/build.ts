@@ -12,7 +12,7 @@ import { metric as metricDef } from '../metrics';
 import type { Measure } from '../metrics/types';
 import type { KpiCtx, KpiKind } from '../kpi/types';
 import type {
-  ActionVM, ActionsZoneVM, DashboardVM, DataPort, DrillVM, FlowZoneVM, GraphMeasureVM, GraphPointVM, GraphVM, InfoVM, TableZoneVM, TileVM,
+  ActionVM, ActionsZoneVM, DashboardVM, DataPort, DrillVM, FlowZoneVM, GraphKeyVM, GraphMeasureVM, GraphPointVM, GraphVM, InfoVM, TableZoneVM, TileVM,
 } from '../viewmodels';
 import type { DashboardSpec } from './types';
 import { homeDashboardKey, stageOfKey } from './home';
@@ -95,7 +95,7 @@ function buildTile(id: string, ctx: KpiCtx): TileVM {
   const r = safe(`KPI ${id}`, () => def.compute(ctx), { display: 'Not available', tone: 'muted' as const });
   const label = r.label ?? baseLabel;
   return {
-    id, label, display: r.display, sub: r.sub, tone: r.tone, ownerTag: r.ownerTag, masked: r.masked, smallSample: r.smallSample,
+    id, label, display: r.display, sub: r.sub, detail: r.detail, ref: r.ref, status: r.status, tone: r.tone, ownerTag: r.ownerTag, masked: r.masked, smallSample: r.smallSample,
     info: info(label, r.smallSample),
     drill: r.masked ? null : safe(`KPI ${id} drill`, () => def.drill?.(ctx) ?? null, null),
   };
@@ -207,15 +207,50 @@ export function buildGraph(spec: DashboardSpec, ctx: KpiCtx, metricId?: string):
   });
   const notes = res.notes ?? [];
   const empty = points.every((p) => !p.value);
+  const target = res.target ?? null;
   return {
     metric: def.id, metricLabel: def.label, kind: def.kind, axis: g.axis, points, markers, metrics, measures, more,
     compareLabel: !hasCompare ? null
       : def.kind === 'state' ? `At the start of the window (${ctx.window.startText})` : `${ctx.prev.label} (${ctx.prev.rangeText})`,
     summary: `${def.label} by ${axisWord}: ${points.map((p) => `${p.label} ${p.display}`).join(', ')}${notes.map((n) => `. ${n.replace(/\.$/, '')}`).join('')}`,
-    notes, target: res.target ?? null, ...(res.unit ? { unit: res.unit } : {}),
+    notes, target, ...(res.unit ? { unit: res.unit } : {}),
     empty,
     ...(empty && notes.length ? { emptyText: notes[0] } : {}),
+    key: graphKey(def, g.axis, ctx, { compare: hasCompare, gates: markers.length > 0, target, points }),
   };
+}
+
+/** Metrics whose label doesn't read as a noun in "Blue bar: … in each stage now". */
+const BAR_NOUN: Record<string, string> = { 'stages.atRisk': 'tenders at risk or overdue' };
+
+/**
+ * "How to read this graph" (plan 027d): one line per mark drawn for this metric
+ * and viewer, then what a click on a bar does. The foot follows the points'
+ * drills, which are what `onPoint` opens.
+ */
+function graphKey(
+  def: { id: string; label: string; kind: KpiKind }, axis: 'stages' | 'steps', ctx: KpiCtx,
+  drawn: { compare: boolean; gates: boolean; target: GraphVM['target']; points: GraphPointVM[] },
+): GraphKeyVM {
+  const where = axis === 'stages' ? 'stage' : 'step';
+  const base = def.label.replace(/ (now|in the period)$/, '');
+  const noun = BAR_NOUN[def.id] ?? (/^[A-Z][a-z]/.test(base) ? base[0].toLowerCase() + base.slice(1) : base);
+  const bar = /^average /i.test(noun)
+    ? `${noun.replace(/ in (stage|step)$/, '')} in each ${where}, for tenders that left it in the period`
+    : `${noun} in each ${where} ${def.kind === 'state' ? 'now' : 'in the period'}`;
+  const items: GraphKeyVM['items'] = [{ mark: 'bar', text: `Blue bar: ${bar}. One colour, because it is one measure.` }];
+  if (drawn.compare) {
+    const when = def.kind === 'state' ? `at the start of the window, ${ctx.window.startText}` : `in the previous period, ${ctx.prev.rangeText}`;
+    items.push({ mark: 'ghost', text: `Pale dashed bar: the same measure ${when}, so you can see what grew or shrank.` });
+  }
+  if (drawn.gates) items.push({ mark: 'gate', text: 'Violet dashed line: a decision gate (DG1, DG2, DG3), between the stages it closes.' });
+  if (drawn.target) items.push({ mark: 'target', text: `Orange dashed line: the target, ${drawn.target.display}.` });
+  const drills = drawn.points.flatMap((p) => (p.drill ? [p.drill.kind] : []));
+  const foot = !drills.length ? ''
+    : drills.every((k) => k === 'route') ? 'Click a bar to open that stage’s dashboard.'
+      : drills.every((k) => k === 'table') ? 'Click a bar to see those tenders in the table.'
+        : 'Click a bar to open that stage’s dashboard, or to see its tenders in the table where you can’t open it.';
+  return { title: 'How to read this graph', items, foot };
 }
 
 /** Portfolio: open the stage's dashboard when the viewer may, else filter the table. Stage dashboards filter by step. */

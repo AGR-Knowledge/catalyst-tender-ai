@@ -1,8 +1,8 @@
 import type { Tone } from '@/data/types';
 import type { Lifecycle, S4Facts } from '@/data/gcc/lifecycle';
 import { NEAR_WD, RATE_BANDS, TURNAROUND_HOURS } from '@/data/gcc/targets';
-import type { KpiCtx, KpiDef } from './types';
-import { dayText, dueInWindow, idsDrill, liveIn, onTimeRate, qOf, tileLabel, turnaround, wdText, wdTo } from './stages';
+import type { KpiCtx, KpiDef, KpiResult } from './types';
+import { dayText, dueInWindow, hoursShort, idsDrill, liveIn, nearestRank, onTimeRate, qOf, tileLabel, turnaround, wdText, wdTo } from './stages';
 
 /**
  * Stage 4 · Planning (plan 013 Phase 2.4, dashboards.md §10.7 and §11.2).
@@ -27,6 +27,25 @@ export const overTime = (ctx: KpiCtx) => s4Of(ctx).filter((x) => x.f.durationPla
 /** Stage 4–8 tenders whose peak key resources overlap another bid's (the Stage 4 facts carry the clash). */
 const clashes = (ctx: KpiCtx) => qOf(ctx).live().flatMap((l) => (l.facts?.stage === 4 && l.facts.clashWith ? [{ l, with: l.facts.clashWith }] : []));
 
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
+
+/** "12 Mar": a reference line's date, without the weekday. */
+const dm = (iso: string) => dayText(iso).replace(/^\w{3} /, '');
+
+/** A due date's tile lines: the first tender and its date, then the working days left (or how late the worst is). */
+const dueSplit = (tenderId: string, due: string, wd: number): Pick<KpiResult, 'detail' | 'ref'> => ({
+  detail: `${tenderId} · ${dm(due)}`,
+  ref: wd < 0 ? { k: 'Worst', v: wdText(wd) } : { k: 'Time left', v: wdText(wd) },
+});
+
+/** A turnaround tile's lines (`turnaround` in ./stages): the p90 in the period, against its target. */
+function turnSplit(ctx: KpiCtx, kind: 'replan' | 'reprice', target: number): Pick<KpiResult, 'detail' | 'ref'> {
+  const list = qOf(ctx).workEventsIn(ctx.window, kind);
+  const p90 = nearestRank(list.map((x) => x.e.turnaroundH), 90);
+  return p90 === null ? {} : { detail: `p90 turnaround ${hoursShort(p90)}`, ref: { k: 'Target', v: hoursShort(target) } };
+}
+
 export const KPIS: KpiDef[] = [
   {
     id: 'PLN-1', label: 'Baselines due', kind: 'state',
@@ -37,10 +56,10 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = baselinesDue(ctx);
-      if (!list.length) return { display: '0', sub: 'No baseline due this week', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'No baseline due this week', detail: 'None due this week', tone: 'green' };
       const first = list[0];
       const tone: Tone = list.some((x) => x.wd < 0) ? 'red' : 'orange';
-      return { display: String(list.length), sub: `First: ${first.l.tenderId} · ${dayText(first.f.baselineDue)} · ${wdText(first.wd)}`, tone };
+      return { display: String(list.length), sub: `First: ${first.l.tenderId} · ${dayText(first.f.baselineDue)} · ${wdText(first.wd)}`, ...dueSplit(first.l.tenderId, first.f.baselineDue, first.wd), tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Baselines due'), baselinesDue(ctx).map((x) => x.l.tenderId)),
   },
@@ -53,9 +72,9 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = overTime(ctx);
-      if (!list.length) return { display: '0', sub: 'Every programme fits the time allowed', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every programme fits the time allowed', detail: 'All fit the time allowed', tone: 'green' };
       const w = list[0];
-      return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.durationPlannedM} vs ${w.f.durationRequiredM} months`, tone: 'red' };
+      return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.durationPlannedM} vs ${w.f.durationRequiredM} months`, detail: `${w.f.durationPlannedM} vs ${w.f.durationRequiredM} months`, ref: { k: 'Worst', v: w.l.tenderId }, tone: 'red' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Programme over time'), overTime(ctx).map((x) => x.l.tenderId)),
   },
@@ -68,8 +87,8 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = clashes(ctx);
-      if (!list.length) return { display: '0', sub: 'No two bids need the same people or plant', tone: 'green' };
-      return { display: String(list.length), sub: `${list[0].l.tenderId} with ${list[0].with}`, tone: 'orange' };
+      if (!list.length) return { display: '0', sub: 'No two bids need the same people or plant', detail: 'No two bids clash', tone: 'green' };
+      return { display: String(list.length), sub: `${list[0].l.tenderId} with ${list[0].with}`, detail: fit(`${list[0].l.tenderId} with ${list[0].with}`, `With ${list[0].with}`), tone: 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Resource clashes'), clashes(ctx).map((x) => x.l.tenderId)),
   },
@@ -80,7 +99,7 @@ export const KPIS: KpiDef[] = [
       counted: 'Re-plans triggered in the period (addendum, quote lead time, scope change), with the 90th percentile turnaround.',
       target: `p90 turnaround ${TURNAROUND_HOURS.replan} h or less`, source: 'Programme change log',
     },
-    compute: (ctx) => turnaround(ctx, 'replan', TURNAROUND_HOURS.replan, 're-plan'),
+    compute: (ctx) => ({ ...turnaround(ctx, 'replan', TURNAROUND_HOURS.replan, 're-plan'), ...turnSplit(ctx, 'replan', TURNAROUND_HOURS.replan) }),
     drill: (ctx) => idsDrill(`From tile: Re-plans · ${ctx.window.label}`, qOf(ctx).workEventsIn(ctx.window, 'replan').map((x) => x.l.tenderId)),
   },
   {
@@ -90,7 +109,7 @@ export const KPIS: KpiDef[] = [
       counted: 'M2 reconciliations due in the period that were completed by their planned date ÷ M2 reconciliations due in the period.',
       target: '100% green; 80% or more orange', source: 'M2 reconciliation records',
     },
-    compute: (ctx) => onTimeRate(dueInWindow(ctx, 'm2'), 'No M2 due in this period', RATE_BANDS['PLN-6'], 'by their date'),
+    compute: (ctx) => { const r = onTimeRate(dueInWindow(ctx, 'm2'), 'No M2 due in this period', RATE_BANDS['PLN-6'], 'by their date'); return { ...r, detail: r.sub }; },
     drill: (ctx) => idsDrill(`From tile: M2 due · ${ctx.window.label}`, dueInWindow(ctx, 'm2').map((x) => x.l.tenderId), { order: dueInWindow(ctx, 'm2').filter((x) => !x.onTime).map((x) => x.l.tenderId) }),
   },
 ];

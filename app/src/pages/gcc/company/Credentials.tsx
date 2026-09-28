@@ -9,7 +9,7 @@ import {
   type ExpiryWindow, type Vault, type VaultBid, type VaultRow,
 } from '@/domain/gcc/company';
 import type { RequestStatus } from '@/domain/gcc/requests';
-import { dayMonth, dayMonthYear, profileOf, shortDate, shortWhen } from '@/domain/gcc/s1/common';
+import { dayMonth, dayMonthYear, plural, profileOf, shortDate, shortWhen } from '@/domain/gcc/s1/common';
 import type { TileVM } from '@/domain/gcc/viewmodels';
 import { Card, CardHead, KV } from '@/components/ui/primitives';
 import { StatusPill } from '@/components/tender/StatusPill';
@@ -186,23 +186,37 @@ export function Credentials({ s1, vault }: { s1: S1; vault: Vault }) {
   const ctx = kpiCtxOf({ tenant, viewer: vault.reader, viewAs: false, done }, '30d', 'company');
   const soon = all.filter((r) => expiryWindow(r.validTo) === 'soon');
   const expired = all.filter((r) => r.state === 'expired');
+  const atRisk = all.filter((r) => r.state === 'at-risk');
+  const next = all.filter((r) => r.validTo !== null && r.validTo >= DEMO_TODAY).sort((a, b) => a.validTo!.localeCompare(b.validTo!))[0];
+  const firstNeeded = vault.risks.flatMap((r) => r.bids.map((b) => b.checkDate)).sort()[0];
   const scr6 = registryTile('SCR-6', ctx, HERE);
+  // The detail and reference lines (plan 027c): the KPI's own once plan 027a sets them, else the same facts from the vault.
+  const scr6Lines = {
+    detail: scr6?.detail ?? (atRisk.length ? rowsText(atRisk).replace(/, | and /g, ' · ') : 'No live bid affected'),
+    ref: scr6?.ref ?? (firstNeeded ? { k: 'First needed', v: dayMonth(firstNeeded) } : next ? { k: 'Next expiry', v: rowsText([next], 1) } : undefined),
+  };
   const tiles: TileVM[] = [
-    ...(scr6 ? [{ ...scr6, drill: { kind: 'route' as const, to: `${HERE}?bids=affects`, label: 'Show the credentials that affect live bids' } }] : []),
+    ...(scr6 ? [{ ...scr6, ...scr6Lines, drill: { kind: 'route' as const, to: `${HERE}?tab=credentials&bids=affects`, label: 'Show the credentials that affect live bids' } }] : []),
     valueTile('company.expiring', `Expiring in ${EXPIRING_DAYS} days`, String(vault.counts.expiring), {
       kind: 'state', means: `Company credentials that expire in the next ${EXPIRING_DAYS} days, whether or not a live bid needs them yet.`,
       counted: `Credentials valid today whose expiry, after any renewal recorded, falls on or before ${dayMonthYear(addDays(DEMO_TODAY, EXPIRING_DAYS))}.`,
       target: 'None: renew ahead of the date', source: 'Credentials vault',
     }, ctx, {
       sub: soon.length ? rowsText(soon) : `Nothing expires in the next ${EXPIRING_DAYS} days`, tone: soon.length ? 'orange' : 'green',
-      drill: { kind: 'route', to: `${HERE}?window=soon`, label: `Show what expires within ${EXPIRING_DAYS} days` },
+      detail: soon.length ? rowsText(soon).replace(/, | and /g, ' · ') : `None in ${EXPIRING_DAYS} days`,
+      ...(soon[0]?.daysLeft != null ? { ref: { k: 'Next', v: `in ${plural(soon[0].daysLeft, 'day')}` } } : next ? { ref: { k: 'Next expiry', v: rowsText([next], 1) } } : {}),
+      ...(soon.length ? { status: 'Renew soon' } : {}),
+      drill: { kind: 'route', to: `${HERE}?tab=credentials&window=soon`, label: `Show what expires within ${EXPIRING_DAYS} days` },
     }),
     valueTile('company.expired', 'Expired', String(vault.counts.expired), {
       kind: 'state', means: 'Company credentials past their expiry date. A bid that needs one cannot be submitted until it is renewed.',
       counted: 'Credentials whose expiry, after any renewal recorded, is before today.', target: 'None', source: 'Credentials vault',
     }, ctx, {
       sub: expired.length ? rowsText(expired) : 'No credential has expired', tone: expired.length ? 'red' : 'green',
-      drill: { kind: 'route', to: `${HERE}?window=expired`, label: 'Show the expired credentials' },
+      detail: expired.length ? rowsText(expired).replace(/, | and /g, ' · ') : 'No credential expired',
+      ...(expired.length ? { ref: { k: 'Oldest', v: dayMonth([...expired].sort((a, b) => a.validTo!.localeCompare(b.validTo!))[0].validTo!) }, status: 'Renew now' }
+        : next ? { ref: { k: 'Next expiry', v: rowsText([next], 1) } } : {}),
+      drill: { kind: 'route', to: `${HERE}?tab=credentials&window=expired`, label: 'Show the expired credentials' },
     }),
   ];
 
@@ -268,8 +282,8 @@ export function Credentials({ s1, vault }: { s1: S1; vault: Vault }) {
         />
         <div className="co-grid">
           {rows.length
-            ? <S1Grid rows={rows} columns={columns} onOpen={(id) => setParam((n) => n.set('cred', id))} label="Company credentials" rowHeight={52}
-                rowClassRules={{ 'co-row-risk': (p) => p.data?.state === 'at-risk', 'co-row-expired': (p) => p.data?.state === 'expired' }} />
+            // No row stripe (user, 2026-09-28): the State column says "At risk" or "Expired".
+            ? <S1Grid rows={rows} columns={columns} onOpen={(id) => setParam((n) => n.set('cred', id))} label="Company credentials" rowHeight={52} />
             : <EmptyState title="No credentials match these filters." body="Clear the filters to see the whole vault." compact />}
         </div>
         <p className="s1-foot">Profile edits and credential owners are set by the Head of Tendering. A renewed certificate is uploaded by its owner or the Head of Tendering, and every eligibility check re-runs at once.</p>

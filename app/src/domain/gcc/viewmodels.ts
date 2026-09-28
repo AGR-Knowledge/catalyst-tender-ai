@@ -103,8 +103,15 @@ export interface TileVM {
   label: string;
   /** The main value, already formatted (money through `domain/money.ts`, dates through `domain/calendar.ts`). */
   display: string;
+  /** The full sentence under the value: the aria-label and the dev checks read it. Shown only when `detail` is absent. */
   sub?: string;
+  /** Wave 9 (plan 027a): the sub-line split for display. One short line: what the value is made of ("15 live tenders"). */
+  detail?: string;
+  /** Wave 9: one reference pair under a hairline: `{ k: 'Target', v: '25%' }`. Same facts as `sub`, never new ones. */
+  ref?: TileRefVM;
   tone?: Tone;
+  /** Wave 9: the status word for the tone when the default ("On track", "Watch", "Off track") would mislead. */
+  status?: string;
   /** "Finance", when the thing measured waits on someone else. */
   ownerTag?: string;
   /** The viewer may not see the value; `by` names who can. The tile keeps its place. */
@@ -116,10 +123,23 @@ export interface TileVM {
   missing?: boolean;
 }
 
+/** A tile's reference line (plan 027a): a key from a short fixed list (Target, Since, Largest, Latest, Peak, First needed …) and its value. */
+export interface TileRefVM { k: string; v: string }
+
 /** One number in the flow strip: "4 pursued". */
-export interface FlowPartVM { key: string; count: number; label: string; tone?: Tone; drill: DrillVM | null }
+export interface FlowPartVM {
+  key: string; count: number; label: string; tone?: Tone; drill: DrillVM | null;
+  /** Wave 9 (plan 027a): went on to the next step, stopped, or still waiting. Colours the step's split bar. */
+  outcome?: 'on' | 'stopped' | 'held';
+}
 /** One step of the strip: "DG1" with its parts, or "Captured" with one part. */
-export interface FlowStepVM { key: string; label: string; parts: FlowPartVM[] }
+export interface FlowStepVM {
+  key: string; label: string; parts: FlowPartVM[];
+  /** Wave 9: what the step is or decides, in two or three words ("Pursue or discard"). */
+  sub?: string;
+  /** Wave 9: the step's rate as text ("33% pursued of 46 decided"), built in the domain. */
+  note?: string;
+}
 /** What a flow definition computes for the window. */
 export interface FlowVM { steps: FlowStepVM[] }
 /** The Z3 zone as rendered. */
@@ -225,7 +245,12 @@ export interface GraphVM {
   /** What an empty graph says, when the metric knows better than the generic line. */
   emptyText?: string;
   missing?: boolean;
+  /** Wave 9 (plan 027a): "How to read this graph", what each mark means for this metric and viewer. */
+  key?: GraphKeyVM;
 }
+
+/** The graph's colour key (plan 027a): one line per mark drawn, then what a click does. */
+export interface GraphKeyVM { title: string; items: { mark: 'bar' | 'ghost' | 'gate' | 'target'; text: string }[]; foot: string }
 
 /** The minimum a My requests row carries (plan 013's `Request`), for the sort presets. */
 export interface RequestRowVM { id: string; requestedAt: string; due: string | null }

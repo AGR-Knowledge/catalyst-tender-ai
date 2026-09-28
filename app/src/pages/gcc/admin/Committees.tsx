@@ -32,14 +32,17 @@ export default function Committees() {
       means: 'Gates whose deciding role has nobody in this company. Such a gate blocks every tender that reaches it',
       counted: 'DG1, DG2 and DG3, each checked for someone who may record its decision (and, for DG2, a quorum of members; for DG3, someone to issue the pack).',
       target: '0', source: 'Users and the gate rules in access',
-    }, { tone: vm.withoutOwners ? 'red' : 'green', sub: vm.withoutOwners ? 'Blocking every tender that reaches them' : 'Every gate has an owner' }),
+    }, {
+      tone: vm.withoutOwners ? 'red' : 'green', sub: vm.withoutOwners ? 'Blocking every tender that reaches them' : 'Every gate has an owner',
+      detail: vm.withoutOwners ? 'Blocking every tender that reaches them' : 'Every gate has an owner',
+    }),
     valueTile('gates.seats', 'Committee seats filled', `${c.filled} of ${c.total}`, {
       means: 'Bid Committee members named for DG2', counted: 'Voting seats with a member.', source: 'Users: committee seats',
     }, { tone: c.filled >= c.quorum ? undefined : 'red' }),
     valueTile('gates.quorum', 'DG2 quorum', `${c.quorum} of ${c.total}`, {
       means: 'Positions the committee must record before the Head of Tendering may approve DG2',
       counted: 'Named positions recorded on the issued pack.', source: 'Targets & SLAs',
-    }, { sub: 'positions before approval' }),
+    }, { sub: 'positions before approval', detail: 'Positions before approval' }),
   ];
 
   return (

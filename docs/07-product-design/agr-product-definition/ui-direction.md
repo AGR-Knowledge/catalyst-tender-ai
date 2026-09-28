@@ -64,8 +64,12 @@ The Workbench numbers its gates differently. Always use the spec's numbering.
 | `grey` | Not applicable, dormant, declined | Not stated, declined, muted later stages |
 | `ink` | Neutral fact | Most numbers |
 
-- **Colour is never alone.** Every status also has a word, and where space allows an icon (✓, !, ×, –). The Workbench used colour-only left rules; ours pair the rule with a label.
-- **Status carries through as** a 3px left rule on rows and cards, a coloured value, or a thin bar. Big filled blocks are reserved for the one callout that matters on a page.
+- **Colour is never alone.** Every status also has a word, and where space allows an icon (✓, !, ×, –). The Workbench used colour-only left rules; we don't use them at all (next rule).
+- **Status is never a one-sided stripe: a word, and a full tint where it needs weight** (user, 2026-09-28; plan 028):
+  - a flagged card or row shows its status word in a pill; a hard block, a conflict or a failing line also takes the tone's soft background with a 1px `-line` border all the way round;
+  - a flagged sentence starts with a small "!" in the tone colour ("✕" for red), with no rule beside it (`FlagLine`);
+  - a quote (a document snippet, a query, a member's comment) sits in a quiet sunken box with a hairline border;
+  - otherwise status shows as a coloured value or a meter. The selected table row and the sidebar's current page keep their marker: they show where you are, not a status. Big filled blocks are reserved for the one callout that matters on a page.
 
 ### 3.2 Typography
 - **IBM Plex Sans** for UI, **IBM Plex Mono** for IDs, references, page numbers and clause numbers (`T-2026-118`, `p. 14`, `cl. 4.2.1`).
@@ -211,7 +215,7 @@ A single-column, phone-friendly page with the tenant's branding. It is the only 
 | `When` | Dates in the authority's time zone | date-time, tz; shows "Sun 12 Apr, 10:00 AST", "in 35 days (24 working days)"; optional GCC-calendar flags |
 | `Masked` | Value hidden by permission | "Masked for your role", with a lock icon and a tooltip saying who can see it. Never a blank or a dash |
 | `LangBadge`, `BilingualValue` | Arabic support | EN / AR / EN+AR badge; the English value with the Arabic source beside it (`dir="rtl"`), a toggle to show all sources |
-| `Callout` | Page-level message | variants: `route` (orange, referral or waiting), `block` (red, hard block: "This is a hard block, not a warning."), `verdict` (neutral), `stale` (orange, "Pack is stale: Addendum 2 …", with Re-run) |
+| `Callout` | Page-level message | variants: `route` (orange, referral or waiting), `block` (red, hard block: "This is a hard block, not a warning."), `verdict` (neutral), `stale` (orange, "Pack is stale: Addendum 2 …", with Re-run). Each is an icon tile and its word, on the tone's soft tint with a 1px `-line` border all round (`verdict`: plain, `--line`); never a side bar. A single flagged sentence is a `FlagLine`, not a callout |
 | `RequestButton` | Replaces toast-only nudges | Creates a request with a due date, which lands in the person's My requests; the button shows "Requested 10:42 · due tomorrow" afterwards |
 | `AuditEntry` | One audit line | actor, role, time, action, before → after, snapshot link |
 | `DemoTag` | Marks presenter tooling | small outline tag "Demo" |

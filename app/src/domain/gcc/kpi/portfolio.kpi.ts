@@ -43,6 +43,9 @@ const valueOf = (ctx: KpiCtx, l: Lifecycle) => valueIn(ctx, l.value.amount, l.va
 const m = (ctx: KpiCtx, amount: number) => money(amount, tenantCcy(ctx.tenant));
 
 const count = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
+
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
 const pct = (num: number, den: number) => Math.round((num / den) * 100);
 const uniq = (ids: string[]) => [...new Set(ids)];
 
@@ -54,6 +57,13 @@ const tableOf = (label: string, ids: string[], extra: Partial<Extract<DrillVM, {
   ({ kind: 'table', label, ids: uniq(ids), status: 'all', ...extra });
 
 const fromTile = (ctx: KpiCtx, what: string) => `From tile: ${what} · ${ctx.window.label}`;
+
+/**
+ * The reference line's "Since …" key (plan 027a): the window's first day as
+ * "9 Dec", without weekday or year (the period filter and the ⓘ carry the full
+ * range), or "00:00" for Today. It moves with the period filter.
+ */
+const sinceKey = (w: PeriodWindow) => `Since ${w.key === 'today' ? w.startText : dayMonth(w.from).replace(/ \d{4}$/, '')}`;
 
 /* ------------------------------------------------------------- pipeline moves */
 
@@ -100,6 +110,8 @@ const PF1: KpiDef = {
     return {
       display: m(ctx, total),
       sub: `${count(live.length, 'tender')} · ${inIds.length} in, ${outIds.length} out since ${ctx.window.startText}`,
+      detail: count(live.length, 'live tender'),
+      ref: { k: sinceKey(ctx.window), v: `${inIds.length} in, ${outIds.length} out` },
       n: live.length,
       ...(ctx.scope.kind === 'assigned' ? { label: 'My live bids' } : {}),
     };
@@ -126,6 +138,8 @@ const PF2: KpiDef = {
     return {
       display: m(ctx, values.reduce((a, b) => a + b, 0) / values.length),
       sub: `${count(subs.length, 'bid')} · largest ${m(ctx, Math.max(...values))}`,
+      detail: `${count(subs.length, 'bid')} in the period`,
+      ref: { k: 'Largest', v: m(ctx, Math.max(...values)) },
       n: subs.length,
     };
   },
@@ -157,6 +171,11 @@ const PF3: KpiDef = {
     return {
       display: `${won.length} won · ${n - won.length} lost`,
       sub: `Win rate ${rate}% (n = ${n})${won.length ? ` · ${m(ctx, valueWon)} won` : ''}${target !== null && n >= MIN_N ? ` · target ${target}%` : ''}`,
+      detail: won.length ? `${rate}% · ${m(ctx, valueWon)} won` : `Win rate ${rate}%`,
+      // Under five results there is no rating yet; the reference line still says when there will be.
+      ...(target !== null ? { ref: { k: 'Target', v: n >= MIN_N ? `${target}%` : `${target}% from ${MIN_N} results` } } : {}),
+      // "Watch" would say it may slip; an orange hit rate is already under target.
+      ...(tone === 'orange' ? { status: 'Below target' } : {}),
       tone, n, ...(n < MIN_N ? { smallSample: true } : {}),
     };
   },
@@ -187,7 +206,14 @@ const PF4: KpiDef = {
     const first = late[0];
     const lateText = !first ? 'all on time'
       : `${late.length} late${late.length > 1 ? ', latest' : ''}: ${first.g.gate} on ${first.l.tenderId} (${lateBy(first.g)})`;
-    return { display: `${p}%`, sub: `${on} of ${ev.length} · ${lateText}`, tone: bandTone(p, RATE_BANDS['PF-4']), n: ev.length };
+    const tone = bandTone(p, RATE_BANDS['PF-4']);
+    return {
+      display: `${p}%`, sub: `${on} of ${ev.length} · ${lateText}`, tone, n: ev.length,
+      detail: `${on} of ${ev.length} on time`,
+      ref: { k: 'Latest late', v: first ? first.l.tenderId : 'None' },
+      // The target is 100%: orange is already below it, not something to watch.
+      ...(tone === 'orange' ? { status: 'Below target' } : {}),
+    };
   },
   drill(ctx) {
     const ev = gateDecisions(ctx);
@@ -226,6 +252,8 @@ const PF6: KpiDef = {
     return {
       display: `${dayText(l.submissionDeadline!.date)}, ${l.submissionDeadline!.time}`,
       sub: `${l.tenderId} · ${count(wd, 'working day')}${second ? ` · next: ${second.l.tenderId} ${dayText(second.l.submissionDeadline!.date)}` : ''}`,
+      detail: l.tenderId,
+      ref: { k: 'Time left', v: count(wd, 'working day') },
       tone,
     };
   },
@@ -249,7 +277,7 @@ const SCR1: KpiDef = {
   },
   compute(ctx) {
     const open = dg1Open(ctx);
-    if (!open.length) return { display: '0', sub: 'No DG1 decisions due', tone: 'green', n: 0 };
+    if (!open.length) return { display: '0', sub: 'No DG1 decisions due', detail: 'No DG1 decisions due', tone: 'green', n: 0 };
     const breached = open.filter((x) => !x.g.onTime);
     const first = open[0];
     const leftMin = minutesBetween(ctx.now, first.g.slaEnd);
@@ -257,19 +285,22 @@ const SCR1: KpiDef = {
       ? `${breached.length} late: ${breached[0].l.tenderId}, by ${durationText(-minutesBetween(ctx.now, breached[0].g.slaEnd))}`
       : `first in ${durationText(leftMin)} · ${first.l.tenderId}`;
     const tone: Tone | undefined = breached.length ? 'red' : first.g.leftShare <= SLA_AT_RISK_SHARE ? 'orange' : undefined;
-    return { display: String(open.length), sub, tone, n: open.length };
+    const split = breached.length
+      ? { detail: `${breached.length} of ${open.length} late`, ref: { k: 'Worst', v: `${breached[0].l.tenderId}, ${durationText(-minutesBetween(ctx.now, breached[0].g.slaEnd))}` } }
+      : { detail: `${first.l.tenderId} first`, ref: { k: 'Time left', v: durationText(leftMin) } };
+    return { display: String(open.length), sub, ...split, tone, n: open.length };
   },
   drill: (ctx) => ({ kind: 'table', label: 'From tile: DG1 due · now', ids: dg1Open(ctx).map((x) => x.l.tenderId), status: 'live' }),
 };
 
-interface EligRisk { l: Lifecycle; fail: number; atRisk: number; pursued: boolean; what: string }
+interface EligRisk { l: Lifecycle; fail: number; atRisk: number; pursued: boolean; what: string; whatShort: string }
 
 /** Live Stage 1–3 tenders with a failing or at-risk prequalification line (SCR-5): 007a's eligibility, or the interim counts. */
 function eligibilityRisks(ctx: KpiCtx): EligRisk[] {
   const d = gccData(ctx.tenant);
   return liveInScope(ctx).filter((l) => currentOf(l).stage <= 3).flatMap((l) => {
     const reg = d.register.find((t) => t.id === l.tenderId);
-    let fail = 0; let atRisk = 0; let what = '';
+    let fail = 0; let atRisk = 0; let what = ''; let whatShort = '';
     if (reg?.requirements?.length) {
       const e = eligibilityFor(ctx.tenant, l.tenderId, ctx.done);
       if (!e) return [];
@@ -277,11 +308,12 @@ function eligibilityRisks(ctx: KpiCtx): EligRisk[] {
       const lines = e.lines.filter((x) => x.state === (fail ? 'fail' : 'at-risk'));
       const renew = lines.flatMap((x) => x.renew ?? []).map((r) => shortCred(r.label));
       what = renew.length ? `${listText(uniq(renew))} expire before ${e.lines.find((x) => x.renew?.length)?.checkedAgainst.label ?? 'opening'}` : '';
+      whatShort = renew.length ? `${listText(uniq(renew))} expiring` : '';
     } else if (l.facts?.stage === 1 && l.facts.eligibility) {
       fail = l.facts.eligibility.fail; atRisk = l.facts.eligibility.atRisk;
     }
     if (!fail && !atRisk) return [];
-    return [{ l, fail, atRisk, pursued: currentOf(l).stage >= 2, what }];
+    return [{ l, fail, atRisk, pursued: currentOf(l).stage >= 2, what, whatShort }];
   }).sort((a, b) => Number(b.pursued && b.fail > 0) - Number(a.pursued && a.fail > 0) || b.fail - a.fail || b.atRisk - a.atRisk);
 }
 
@@ -301,12 +333,15 @@ const SCR5: KpiDef = {
   },
   compute(ctx) {
     const risks = eligibilityRisks(ctx);
-    if (!risks.length) return { display: '0', sub: 'No eligibility risks on live tenders', tone: 'green', n: 0 };
+    if (!risks.length) return { display: '0', sub: 'No eligibility risks on live tenders', detail: 'None on live tenders', tone: 'green', n: 0 };
     const top = risks[0];
     const sub = top.fail
       ? `${top.l.tenderId}: ${count(top.fail, 'line')} ${top.fail === 1 ? 'fails' : 'fail'}${top.pursued ? ' on a pursued bid' : ''}`
       : `${top.l.tenderId}: ${top.what || `${count(top.atRisk, 'line')} at risk`}`;
-    return { display: String(risks.length), sub, tone: risks.some((r) => r.pursued && r.fail) ? 'red' : 'orange', n: risks.length };
+    const detail = top.fail
+      ? `${count(top.fail, 'line')} ${top.fail === 1 ? 'fails' : 'fail'}${top.pursued ? ' · pursued' : ''}`
+      : top.whatShort || `${count(top.atRisk, 'line')} at risk`;
+    return { display: String(risks.length), sub, detail, ref: { k: 'Worst', v: top.l.tenderId }, tone: risks.some((r) => r.pursued && r.fail) ? 'red' : 'orange', n: risks.length };
   },
   drill: (ctx) => ({ kind: 'table', label: 'From tile: eligibility risks · now', ids: eligibilityRisks(ctx).map((r) => r.l.tenderId), status: 'live' }),
 };
@@ -323,13 +358,21 @@ const SCR6: KpiDef = {
   },
   compute(ctx) {
     const risks = credentialsAtRisk(ctx);
-    if (!risks.length) return { display: '0', sub: 'Every certificate holds past its bids’ openings', tone: 'green', n: 0 };
+    if (!risks.length) return { display: '0', sub: 'Every certificate holds past its bids’ openings', detail: 'All hold past openings', tone: 'green', n: 0 };
     const first = risks[0];
     const bid = first.bids[0];
+    // The certificates this tile counts, soonest expiry first; and the first date any of them must hold.
+    const named = risks.slice(0, 2).map((r) => `${shortCred(r.cred.label)} ${dayMonth(r.validTo)}`);
+    const needed = risks.flatMap((r) => r.bids.map((b) => b.checkDate)).sort()[0];
+    const expired = risks.some((r) => r.validTo < DEMO_TODAY);
     return {
+      detail: first.requested ? `${shortCred(first.cred.label)} renewal requested` : risks.length > 2 ? `${named[0]} · ${risks.length - 1} more` : named.join(' · '),
+      ref: { k: 'Renew by', v: dayMonth(needed) },
+      // "Watch" and "Off track" say nothing about what to do: renew, or it has already lapsed.
+      status: expired ? 'Expired' : 'Renew soon',
       display: String(risks.length),
       sub: `${shortCred(first.cred.label)} ${dayMonth(first.validTo)} · before ${bid.l.tenderId} ${bid.checkLabel} ${dayMonth(bid.checkDate)}${first.requested ? ' · renewal requested' : ''}`,
-      tone: risks.some((r) => r.validTo < DEMO_TODAY) ? 'red' : 'orange',
+      tone: expired ? 'red' : 'orange',
       ownerTag: ownerTag(first.cred.ownerId) ?? undefined,
       n: risks.length,
     };
@@ -362,19 +405,28 @@ const CAP1: KpiDef = {
     // The sub-line holds two clauses: the committed peak if it goes over capacity, else what pursuing the hero would do.
     const short = (name: string) => name.replace(/ tendering team$/i, ' team');
     const parts = [`${short(top.team.name)}, next 4 weeks`];
+    let ref: KpiResult['ref'];
     const until = top.team.commitments.reduce((mx, c) => (c.to > mx ? c.to : mx), to);
     const peak = peakMonth(top.team, from, until);
     const hero = Q(ctx).one(HERO_ID);
     const effort = s1Data(ctx.tenant).effort.find((e) => e.tenderId === HERO_ID);
     const heroTeam = effort && d.teams.find((t) => t.id === effort.teamId);
-    if (peak.pct > 100 && peak.pct > p) parts.push(`peaks at ${peak.pct}% in ${peak.month}`);
+    if (peak.pct > 100 && peak.pct > p) {
+      parts.push(`peaks at ${peak.pct}% in ${peak.month}`);
+      ref = { k: 'Peak', v: `${peak.pct}% in ${peak.month}` };
+    }
     else if (hero && !hero.closedAt && !standingGate(hero, 'DG1') && effort && heroTeam) {
       // While the hero is undecided at DG1: what pursuing it would do to its team.
       const withHero = Math.round(teamLoad(heroTeam, from, to, [asCommitment(effort)]) * 100);
       parts.push(`${heroTeam.id === top.team.id ? '' : `${short(heroTeam.name)} `}${withHero}% with ${HERO_ID}`);
+      ref = { k: `With ${HERO_ID}`, v: `${heroTeam.id === top.team.id ? '' : `${short(heroTeam.name)} `}${withHero}%` };
     }
     const b = PORTFOLIO_BANDS.teamLoadPct;
-    return { display: `${p}%`, sub: parts.join(' · '), tone: p <= b.green ? 'green' : p <= b.orange ? 'orange' : 'red' };
+    const tone: Tone = p <= b.green ? 'green' : p <= b.orange ? 'orange' : 'red';
+    // A load is within capacity or over it; "On track" and "Off track" would read as a schedule.
+    const status = tone === 'green' ? 'Within capacity' : tone === 'red' ? 'Over capacity' : undefined;
+    const team = short(top.team.name);
+    return { display: `${p}%`, sub: parts.join(' · '), detail: fit(parts[0], `${team}, 4 weeks`, team), ref, tone, ...(status ? { status } : {}) };
   },
   drill: () => ({ kind: 'route', to: '/company?tab=teams', label: 'Open Company › Teams' }),
 };
@@ -401,7 +453,7 @@ const DEC4: KpiDef = {
     if (!bids.length) return { display: 'No bids at DG2', n: 0 };
     const weighted = bids.reduce((s, l) => s + valueOf(ctx, l) * (l.facts?.stage === 3 ? l.facts.win.p / 100 : 0), 0);
     const total = bids.reduce((s, l) => s + valueOf(ctx, l), 0);
-    return { display: m(ctx, weighted), sub: `${count(bids.length, 'bid')} · unweighted ${m(ctx, total)}`, n: bids.length };
+    return { display: m(ctx, weighted), sub: `${count(bids.length, 'bid')} · unweighted ${m(ctx, total)}`, detail: `${m(ctx, total)} unweighted`, n: bids.length };
   },
   drill: (ctx) => ({ kind: 'table', label: 'From tile: weighted pipeline · now', ids: issuedPacks(ctx).map((l) => l.tenderId), status: 'live' }),
 };
@@ -434,6 +486,8 @@ const DEC5: KpiDef = {
     return {
       display: `${c.ratio}%`,
       sub: `${c.total}% of capacity vs safe ${c.safe}% · as of ${dayText(c.load.asOf)}`,
+      detail: `${c.total}% of capacity`,
+      ref: { k: 'Cap', v: `${c.safe}% safe level` },
       tone: c.ratio <= b.green ? 'green' : c.ratio <= b.orange ? 'orange' : 'red',
     };
   },
@@ -461,6 +515,7 @@ const DEC6: KpiDef = {
     return {
       display: money(h, f.headroom.ccy),
       sub: open ? `${money(open.f.facilityAfter.amount, open.f.facilityAfter.ccy)} after ${open.l.tenderId} · as of ${asOf}` : `As of ${asOf}`,
+      detail: open ? `${money(open.f.facilityAfter.amount, open.f.facilityAfter.ccy)} after DG2 bid` : `As of ${dayMonth(f.asOf)}`,
       tone: h < 0 ? 'red' : h < limit * PORTFOLIO_BANDS.facilityWarningShare ? 'orange' : 'green',
       ownerTag: 'Finance',
     };
@@ -479,7 +534,7 @@ const DEC7: KpiDef = {
   },
   compute(ctx) {
     const open = inputsOutstanding(ctx);
-    if (!open.length) return { display: '0', sub: 'Every requested input is in', tone: 'green', n: 0 };
+    if (!open.length) return { display: '0', sub: 'Every requested input is in', detail: 'Every input is in', tone: 'green', n: 0 };
     const late = open.filter((x) => x.late);
     const first = late[0];
     const onIssued = late.some((x) => x.l.facts?.stage === 3 && x.l.facts.pack === 'issued');
@@ -487,6 +542,8 @@ const DEC7: KpiDef = {
     return {
       display: String(open.length),
       sub: first ? `${late.length} late · ${first.item.what} · ${owner}` : `none late · next due ${dayText(open[0].item.due)} ${open[0].item.due.slice(11, 16)}`,
+      detail: first ? `${late.length} late · ${first.l.tenderId}` : 'None late',
+      ...(first ? {} : { ref: { k: 'Next', v: `${dayMonth(open[0].item.due)}, ${open[0].item.due.slice(11, 16)}` } }),
       tone: !late.length ? 'green' : onIssued ? 'red' : 'orange',
       ...(first ? { ownerTag: ownerTag(first.item.ownerId) ?? undefined } : {}),
       n: open.length,
@@ -521,6 +578,8 @@ const OUT3: KpiDef = {
     return {
       display: w.length ? m(ctx, won) : noneText(ctx.window, 'No contracts won'),
       sub: `${w.length ? `${count(w.length, 'win')} · ` : ''}${p}% of the ${m(ctx, target)} target`,
+      detail: `${w.length ? `${count(w.length, 'win')} · ` : ''}${p}% of target`,
+      ref: { k: 'Target', v: m(ctx, target) },
       tone: short ? undefined : p >= b.green ? 'green' : p >= b.orange ? 'orange' : 'red',
       n: w.length,
     };

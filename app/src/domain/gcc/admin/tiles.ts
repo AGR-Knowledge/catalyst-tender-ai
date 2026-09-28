@@ -4,7 +4,7 @@ import { can, holdersOf } from '@/data/access';
 import { kpi, type KpiCtx, type KpiInfo } from '@/domain/gcc/kpi';
 import { previousOf, windowOf } from '@/domain/gcc/period';
 import { DEMO_NOW } from '@/domain/gcc/clock';
-import type { TileVM } from '@/domain/gcc/viewmodels';
+import type { TileRefVM, TileVM } from '@/domain/gcc/viewmodels';
 
 /**
  * The header strips of the Administration pages (ui-direction §5 F): a
@@ -32,10 +32,10 @@ export function registryTile(id: string, base: AdminBase): TileVM | null {
     return { id, label: def.label, display: 'Masked for your role', masked: { by: holdersOf(def.cap) }, info, drill: null };
   }
   const r = def.compute(adminCtx(base));
-  return { id, label: r.label ?? def.label, display: r.display, sub: r.sub, tone: r.tone, info, drill: null };
+  return { id, label: r.label ?? def.label, display: r.display, sub: r.sub, detail: r.detail, ref: r.ref, status: r.status, tone: r.tone, info, drill: null };
 }
 
-/** A tile over a derived value. */
-export function valueTile(id: string, label: string, display: string, info: KpiInfo, opts: { sub?: string; tone?: Tone } = {}): TileVM {
-  return { id, label, display, sub: opts.sub, tone: opts.tone, info: { label, ...info, period: NOW_TEXT }, drill: null };
+/** A tile over a derived value. `detail`, `ref` and `status` are the tile's display lines (plan 027a, dashboards.md §3). */
+export function valueTile(id: string, label: string, display: string, info: KpiInfo, opts: { sub?: string; detail?: string; ref?: TileRefVM; status?: string; tone?: Tone } = {}): TileVM {
+  return { id, label, display, sub: opts.sub, detail: opts.detail, ref: opts.ref, status: opts.status, tone: opts.tone, info: { label, ...info, period: NOW_TEXT }, drill: null };
 }

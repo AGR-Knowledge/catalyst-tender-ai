@@ -2,7 +2,7 @@ import type { Tone } from '@/data/types';
 import type { Person } from '@/data/people';
 import type { Capability } from '@/data/access';
 import type { PeriodWindow } from '../period';
-import type { DrillVM, RowScope } from '../viewmodels';
+import type { DrillVM, RowScope, TileRefVM } from '../viewmodels';
 
 /**
  * The KPI registry's contract (dashboards.md §3, catalogue §0.3). Every KPI is
@@ -44,6 +44,10 @@ export interface KpiResult {
   smallSample?: boolean;
   /** Overrides the label for this reading, e.g. "My live bids" in the Bid Manager's scope. */
   label?: string;
+  /** Wave 9 (plan 027a), see `TileVM`: the display split of `sub`, and the status word override. */
+  detail?: string;
+  ref?: TileRefVM;
+  status?: string;
 }
 
 export interface KpiDef {

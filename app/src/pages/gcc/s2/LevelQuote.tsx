@@ -9,6 +9,7 @@ import { Card } from '@/components/ui/primitives';
 import { Masked } from '@/components/tender/Masked';
 import { Money } from '@/components/tender/Money';
 import { SourceChip } from '@/components/tender/SourceChip';
+import { FlagLine } from '@/components/tender/FlagLine';
 import { When } from '@/components/tender/When';
 import { PanelHead, QuoteAmount, Tag, Why, byLine, refusal } from './ui';
 import type { DeskCtx } from './vm/desk';
@@ -161,7 +162,7 @@ function AdjustmentRow({ desk, quoteId, a, seeded, noLevel }: { desk: DeskCtx; q
       </p>
       <p className="s2-adj-src"><SourceChip source={{ kind: a.kind === 'currency' || a.kind === 'delivery' || a.kind === 'exclusion' ? 'calc' : 'quote', label: a.kind === 'currency' ? 'Calc: FX' : a.kind === 'delivery' ? 'Calc: freight' : a.kind === 'exclusion' ? 'Calc: allowance' : 'Quote', detail: source }} /> {source}</p>
       {a.proposedDelta && a.delta && desk.seesQuotes && <p className="s2-muted">Changed from the agent's {signed(a.proposedDelta)}.</p>}
-      {a.note && <p className="s2-over">Note: {a.note}</p>}
+      {a.note && <FlagLine as="p" tone="orange" className="s2-over">Note: {a.note}</FlagLine>}
       {decided && lev && <p className="s2-muted">{a.state === 'confirmed' ? 'Confirmed' : 'Rejected'} by {byLine(lev.byId, lev.at)}. Both the agent's proposal and your decision are kept.</p>}
       {decided && seeded && <p className="s2-muted">Decided before today.</p>}
 

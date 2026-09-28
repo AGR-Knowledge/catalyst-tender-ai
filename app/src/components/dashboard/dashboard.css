@@ -18,10 +18,15 @@
 .ts-head-r { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .ts-head-r .money { font-size: 15px; font-weight: 600; }
 
-/* Z2: tiles. Six across at 1440, 3 × 2 from 1100, 2 × 3 below. */
+/*
+ * Z2: tiles. Six across at 1440, 3 × 2 from 1100, 2 × 3 below.
+ * Every tile has the same four rows (dashboards.md §3): head (label, ⓘ, status
+ * pill), value, detail, reference. Each tile is a subgrid of the tile row, so
+ * those rows share their heights across the tiles side by side: when one
+ * pill wraps under its label, every value in the row stays level.
+ */
 .kt-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 12px; margin-bottom: var(--gap); }
 .kt-grid[data-n='4'] { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.kt-grid > [role='listitem'] { min-width: 0; display: flex; }
 @media (max-width: 1439px) {
   .kt-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .kt-grid[data-n='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -29,32 +34,47 @@
 @media (max-width: 1099px) { .kt-grid, .kt-grid[data-n='4'] { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 .kt {
-  position: relative; flex: 1; min-width: 0; display: flex; flex-direction: column; min-height: 112px;
-  padding: 13px 16px 15px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface);
+  position: relative; min-width: 0; display: grid; grid-row: span 4; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr); row-gap: 0;
+  padding: 12px 12px 12px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface);
   box-shadow: var(--shadow-card); animation: rowIn 240ms var(--ease-out) both;
   transition: border-color var(--dur-fast) ease, box-shadow 200ms var(--ease-out);
 }
-.kt.tone-red, .kt.tone-orange, .kt.tone-green { border-left-width: 3px; padding-left: 14px; }
-.kt.tone-red { border-left-color: var(--red); }
-.kt.tone-orange { border-left-color: var(--orange); }
-.kt.tone-green { border-left-color: var(--green); }
-.kt-head { position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; min-height: 24px; pointer-events: none; }
+/* Label and ⓘ on the left, the pill at the right; on a narrow tile the pill wraps under the label, never over it. */
+.kt-head { grid-row: 1; position: relative; z-index: 1; display: flex; flex-wrap: wrap; align-items: center; align-content: flex-start; gap: 2px 6px; min-height: 24px; pointer-events: none; }
 .kt-head .info-btn { pointer-events: auto; }
-/* The label wraps to a second line rather than losing words beside an owner tag. */
-.kt-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; min-width: auto; line-height: 1.3; overflow-wrap: break-word; }
-.kt-owner { margin-left: auto; pointer-events: auto; font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 5px; line-height: 16px; white-space: nowrap; }
-.kt-body, .kt-hit { display: block; width: 100%; text-align: left; margin-top: 6px; }
+.kt-lab { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 2px; }
+.kt-label { font-size: 12.5px; color: var(--ink-3); font-weight: 500; min-width: 0; line-height: 1.3; overflow-wrap: break-word; }
+.kt-pill { flex: none; display: flex; }
+.kt-pill .status-pill { font-size: 11px; line-height: 17px; gap: 4px; padding: 0 7px 0 6px; }
+.kt-pill .status-pill .ic { font-size: 10.5px; width: 9px; }
+.kt-body, .kt-hit {
+  grid-row: 2 / span 3; display: grid; grid-template-rows: subgrid; grid-template-columns: minmax(0, 1fr); row-gap: 0;
+  width: 100%; min-width: 0; text-align: left;
+}
 .kt-value {
+  grid-row: 1; align-self: last baseline; margin-top: 6px; color: var(--ink);
   font-family: var(--font-mono); font-size: 25px; font-weight: 600; letter-spacing: -0.8px; line-height: 1.2;
   font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .kt-value.md { font-size: 22px; letter-spacing: -0.7px; }
 .kt-value.sm { font-size: 19px; letter-spacing: -0.6px; line-height: 1.35; }
 .kt-value.xs { font-size: 16.5px; letter-spacing: -0.5px; line-height: 1.5; }
+.kt-value.xxs { font-size: 14.5px; letter-spacing: -0.4px; line-height: 1.7; }
 .kt-value.long { font-family: var(--font-sans); font-size: 14.5px; letter-spacing: -0.1px; white-space: normal; line-height: 1.35; }
 .kt-value.masked-v { font-family: var(--font-sans); font-size: 14px; font-weight: 500; letter-spacing: 0; white-space: normal; padding: 6px 0 4px; }
 .kt-value.masked-v .masked { white-space: normal; }
-.kt-sub { font-size: 12px; color: var(--ink-3); margin-top: 5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* One line: what the value is made of. The full sentence is in its title and the tile's aria-label. */
+.kt-detail { grid-row: 2; margin-top: 3px; font-size: 12.5px; line-height: 18px; color: var(--ink-2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A tile not yet converted: its full sub-line, two lines at most. */
+.kt-sub { grid-row: 2; font-size: 12px; color: var(--ink-3); margin-top: 5px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+/* One reference pair under a hairline, "Target 25%"; the owner chip at its right. Kept, empty, on a tile without one. */
+.kt-ref {
+  grid-row: 3; display: flex; align-items: center; gap: 4px; min-width: 0; min-height: 26px;
+  margin-top: 9px; padding-top: 7px; border-top: 1px solid var(--line-2);
+}
+.kt-ref-k { flex: none; font-size: 11.5px; line-height: 18px; color: var(--ink-3); white-space: nowrap; }
+.kt-ref-v { min-width: 0; font-size: 12px; line-height: 18px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kt-owner { flex: none; margin-left: auto; font-size: 10.5px; color: var(--ink-3); border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; line-height: 16px; white-space: nowrap; }
 .kt.click { cursor: pointer; }
 .kt.click:hover { border-color: var(--line-strong); }
 @media (hover: hover) and (pointer: fine) { .kt.click:hover { box-shadow: var(--shadow-lift); } }
@@ -62,7 +82,7 @@
 .kt-hit:focus-visible { outline: none; }
 .kt-hit:focus-visible::after { outline: 2px solid var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-lg); }
 .kt-hit:active::after { background: color-mix(in srgb, var(--ink) 3%, transparent); }
-.kt.missing { border-style: dashed; box-shadow: none; }
+.kt.missing { display: block; border-style: dashed; box-shadow: none; }
 .kt-miss { margin-top: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); }
 
 .info-btn {
@@ -76,26 +96,55 @@
 .info-pop dd { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
 .info-pop .ip-note { margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--line-2); font-size: 12px; color: var(--ink-3); line-height: 1.45; }
 
-/* Z3: the flow on one thin line under the tiles, not a card (dashboards.md §1, 2026-09-26). It wraps only when the page is narrow. */
-.fs {
-  display: flex; align-items: center; flex-wrap: wrap; gap: 3px 10px; margin: calc(var(--gap) * -0.35) 0 12px; padding: 5px 10px 5px 12px;
-  border: 1px solid var(--line-2); border-radius: var(--radius); background: var(--surface-sunken); min-width: 0;
+/*
+ * Z3: the funnel as its own card at full width under the tiles (dashboards.md §1, user decision 2026-09-28; plan 027d).
+ * Every column has the same five rows at fixed heights, so the numbers, bars and notes line up across columns. No row
+ * wraps: a long one ends in an ellipsis and its full text is in `title`. Below 1280 the columns scroll inside the card.
+ */
+.fc { margin-bottom: var(--gap); }
+.fc-head { display: flex; align-items: center; flex-wrap: wrap; gap: 2px 16px; min-height: 34px; padding: 6px 16px 0 14px; }
+.fc-title { display: inline-flex; align-items: center; gap: 2px; font-size: 13px; font-weight: 600; color: var(--ink); }
+.fc-title .info-btn { width: 22px; height: 22px; }
+.fc-key { list-style: none; margin-left: auto; display: flex; flex-wrap: wrap; gap: 2px 14px; font-size: 11.5px; color: var(--ink-3); }
+.fc-key li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.fc-sw { width: 14px; height: 6px; border-radius: 3px; }
+.fc-miss { padding: 6px 16px 14px 14px; font-size: 12.5px; color: var(--ink-3); }
+.fc-scroll { overflow-x: auto; scrollbar-width: thin; }
+.fc-cols {
+  list-style: none; display: grid; grid-template-columns: repeat(var(--fc-n), minmax(118px, 1fr)); min-width: calc(var(--fc-n) * 118px);
+  padding: 5px 6px 9px;
 }
-.fs-title { display: inline-flex; align-items: center; gap: 2px; flex: none; font-size: 12.5px; font-weight: 600; color: var(--ink); }
-.fs-title .info-btn { width: 22px; height: 22px; }
-.fs-steps { list-style: none; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 0; min-width: 0; }
-.fs-step { display: inline-flex; align-items: baseline; gap: 4px; white-space: nowrap; }
-.fs-arrow { flex: none; align-self: center; color: var(--ink-6); margin: 0 3px; }
-.fs-label { font-size: 12px; font-weight: 500; color: var(--ink-3); }
-.fs-part { display: inline-flex; align-items: baseline; gap: 3px; }
-.fs-dot { color: var(--ink-5); }
-.fs-link, .fs-static { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; border-radius: 5px; padding: 1px 4px; margin: -1px -4px; }
-.fs-link { transition: background-color var(--dur-fast) ease; }
-.fs-link:hover { background: var(--surface-active); }
-.fs-link:hover .fs-l { color: var(--link); }
-.fs-n { font-size: 13px; font-weight: 600; color: var(--ink); letter-spacing: -0.2px; }
-.fs-l { font-size: 12px; color: var(--ink-3); }
-.fs-miss { font-size: 12px; color: var(--ink-3); }
+.fc-col { position: relative; min-width: 0; display: grid; grid-template-rows: 16px 25px 6px 16px 15px; row-gap: 3px; padding: 0 8px; }
+.fc-col + .fc-col { border-left: 1px solid var(--line-2); }
+.fc-arrow { position: absolute; left: -7px; top: 24px; width: 14px; height: 14px; padding: 1px; border-radius: 50%; background: var(--surface); color: var(--ink-5); }
+.fc-r1 { display: flex; align-items: baseline; gap: 6px; min-width: 0; white-space: nowrap; overflow: hidden; }
+/* The sub gives way; the label only when the column is narrower than the label alone. */
+.fc-label { flex: none; max-width: 100%; overflow: hidden; text-overflow: ellipsis; font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.fc-label.gate { font-family: var(--font-mono); font-size: 11.5px; color: var(--violet); }
+.fc-sub { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 11.5px; color: var(--ink-3); }
+.fc-r2, .fc-r4 { display: flex; align-items: baseline; min-width: 0; white-space: nowrap; overflow: hidden; }
+/* A part is a flex item of its row, so it gives way with an ellipsis only when the column is too narrow. */
+.fc-part { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fc-hit { border-radius: 5px; padding: 0 4px; margin: 0 -4px; transition: background-color var(--dur-fast) ease; }
+.fc-hit:hover { background: var(--surface-active); }
+.fc-hit:hover .fc-l { color: var(--link); }
+.fc-part.main .fc-n { font-size: 22px; font-weight: 600; letter-spacing: -0.6px; line-height: 25px; color: var(--ink); }
+.fc-part.main .fc-l { font-size: 12.5px; color: var(--ink-2); }
+.fc-other { display: flex; align-items: baseline; flex: none; min-width: 0; font-size: 12px; }
+.fc-other:last-child { flex: 0 1 auto; overflow: hidden; }
+.fc-other .fc-n { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.fc-other .fc-l { color: var(--ink-3); }
+.fc-dot { margin: 0 3px; color: var(--ink-5); }
+.fc-note { font-size: 11.5px; line-height: 15px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fc-cols.dense .fc-col { padding: 0 7px; }
+.fc-cols.dense .fc-other, .fc-cols.dense .fc-other .fc-n { font-size: 11.5px; }
+.fc-cols.dense .fc-note { font-size: 11px; }
+/* The bar splits the column's own outcomes: green went on, grey stopped, orange still waiting. Its words are in the rows. */
+.fc-bar { display: flex; gap: 2px; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.fc-seg { flex: 0 1 0; min-width: 0; }
+.fc-seg.o-on, .fc-sw.o-on { background: var(--green); }
+.fc-seg.o-stopped, .fc-sw.o-stopped { background: var(--ink-6); }
+.fc-seg.o-held, .fc-sw.o-held { background: var(--orange); }
 
 /*
  * Z5 · Z4: one row, the main card at two thirds and Needs your action at one
@@ -124,14 +173,16 @@
 .al-row:last-child { border-bottom: 0; }
 .al-row.done { background: var(--green-panel); }
 .al-t { grid-area: t; display: flex; align-items: center; gap: 7px; min-width: 0; }
+/* The action's type: a hairline chip, with a 6 px dot in its tone before the word (never a coloured edge). */
 .ac-type {
-  flex: none; font-size: 11px; font-weight: 500; line-height: 18px; color: var(--ink-2); white-space: nowrap;
-  border: 1px solid var(--line); border-left: 3px solid var(--line-strong); border-radius: 4px; padding: 0 6px; background: var(--surface);
+  flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; line-height: 18px; color: var(--ink-2); white-space: nowrap;
+  border: 1px solid var(--line); border-radius: 4px; padding: 0 6px; background: var(--surface);
 }
-.ac-type.tone-red { border-left-color: var(--red); }
-.ac-type.tone-orange { border-left-color: var(--orange); }
-.ac-type.tone-green { border-left-color: var(--green); }
-.ac-type.tone-cyan { border-left-color: var(--cyan); }
+.ac-type[class*='tone-']::before { content: ''; flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--ink-4); }
+.ac-type.tone-red::before { background: var(--red); }
+.ac-type.tone-orange::before { background: var(--orange); }
+.ac-type.tone-green::before { background: var(--green); }
+.ac-type.tone-cyan::before { background: var(--cyan); }
 .al-tid { font-size: 11.5px; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .al-main { grid-area: main; min-width: 0; }
 .al-title { font-size: 13px; font-weight: 500; color: var(--ink); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -263,10 +314,19 @@
 .sc-cmp:has(input:disabled) { color: var(--ink-4); cursor: default; }
 .sc-cmp input { accent-color: var(--brand); }
 .sc-cap { flex: none; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 16px; padding: 8px 14px 0; min-height: 28px; }
+.sc-leg { display: inline-flex; align-items: center; gap: 2px; min-width: 0; }
 .sc-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; min-width: 0; }
-.sc-legend .k { width: 11px; height: 11px; border-radius: 2px; background: var(--brand); flex: none; }
-.sc-legend .k.cmp { background: color-mix(in srgb, var(--brand) 10%, transparent); border: 1px dashed color-mix(in srgb, var(--brand) 55%, transparent); margin-left: 8px; }
-.sc-legend .k.tgt { width: 16px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--orange); margin-left: 8px; }
+/* The graph's marks (plan 027d): one blue for the bars whatever the tenant's brand, pale dashed blue for the ghost, violet dashed gates, orange dashed target. */
+.sc-legend .k, .sc-mk { width: 11px; height: 11px; border-radius: 2px; background: var(--blue); flex: none; }
+.sc-legend .k.cmp, .sc-mk.ghost { background: color-mix(in srgb, var(--blue) 12%, transparent); border: 1px dashed color-mix(in srgb, var(--blue) 60%, transparent); }
+.sc-legend .k.tgt, .sc-mk.target { width: 16px; height: 0; border-radius: 0; background: none; border-top: 2px dashed var(--orange); }
+.sc-legend .k.gate, .sc-mk.gate { width: 0; height: 13px; border-radius: 0; background: none; border-left: 2px dashed var(--violet); }
+.sc-legend .k.cmp, .sc-legend .k.tgt, .sc-legend .k.gate { margin-left: 8px; }
+.sc-key-btn { width: 22px; height: 22px; }
+.sc-key { list-style: none; display: grid; gap: 7px; }
+.sc-key li { display: grid; grid-template-columns: 18px minmax(0, 1fr); align-items: baseline; gap: 8px; font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
+.sc-key .sc-mk { justify-self: center; transform: translateY(1px); }
+.sc-key .sc-mk.target { transform: translateY(-3px); }
 .sc-legend .none { margin-left: 8px; color: var(--ink-4); }
 .sc-legend .unit { color: var(--ink-4); }
 .sc-legend .unit::before { content: '·'; margin: 0 5px 0 1px; }
@@ -288,27 +348,57 @@
 .tt-title .mono { font-size: 13px; font-weight: 500; color: var(--ink-2); }
 .tt-sep { color: var(--ink-5); font-weight: 400; }
 .tt-x { flex: none; }
-.tt-track { overflow-x: auto; padding: 16px 12px 12px; scrollbar-width: thin; }
-.tt-nodes { list-style: none; display: grid; grid-template-columns: repeat(12, minmax(76px, 1fr)); min-width: 912px; }
-.tt-node { position: relative; display: grid; gap: 3px; align-content: start; justify-items: center; text-align: center; padding: 0 4px; font-size: 11.5px; }
-.tt-node + .tt-node::before { content: ''; position: absolute; top: 10px; left: -50%; right: 50%; height: 2px; background: var(--line); z-index: 0; }
-.tt-node.s-done + .tt-node::before, .tt-node.s-done + .tt-node.s-current::before, .tt-node.s-done + .tt-node.s-done::before { background: var(--green-line); }
-.tt-mark { position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-5); }
-.tt-node.k-gate .tt-mark { border-radius: 6px; width: 20px; height: 20px; margin-top: 1px; }
-.tt-node.s-done .tt-mark { background: var(--green); border-color: var(--green); color: var(--surface); }
-.tt-node.s-current .tt-mark { background: var(--brand-soft); border-color: var(--brand); color: var(--brand); }
-.tt-node.s-stopped .tt-mark { background: var(--red-soft); border-color: var(--red); color: var(--red); }
-.tt-label { font-size: 12px; font-weight: 600; color: var(--ink-2); margin-top: 3px; white-space: nowrap; }
-.tt-node.k-gate .tt-label { font-family: var(--font-mono); font-size: 11.5px; }
-.tt-node.s-not-reached .tt-label { color: var(--ink-4); font-weight: 500; }
-.tt-detail { display: grid; gap: 1px; color: var(--ink-3); line-height: 1.35; }
-.tt-dec { justify-self: center; font-size: 11px; font-weight: 600; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); }
-.tt-dec.tone-green { background: var(--green-soft); }
-.tt-dec.tone-red { background: var(--red-soft); }
-.tt-dec.tone-orange { background: var(--orange-soft); }
+/*
+ * The track (plan 027d): a stage is a circle, a decision gate a diamond on a faint violet band, so the three gates stand
+ * out at first glance. Every node has the same rows at fixed heights (mark, label, chip, when, who), so they line up;
+ * an optional note sits under them. Colour is never alone: ✓ done, ● now, ✕ stopped, ‖ on hold.
+ */
+.tt-track { overflow-x: auto; padding: 10px 12px 12px; scrollbar-width: thin; }
+/* The key sits above the scrolling track, so it stays in view when the track opens at the current node. */
+.tt-key { list-style: none; display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 3px 14px; margin: 10px 18px -2px; padding: 0; font-size: 11.5px; color: var(--ink-3); }
+.tt-key li { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.tt-key li.sep { padding-left: 14px; border-left: 1px solid var(--line); }
+.tt-kmark { display: inline-grid; place-items: center; width: 14px; height: 14px; }
+.tt-nodes { list-style: none; display: grid; grid-template-columns: repeat(12, minmax(88px, 1fr)); min-width: 1056px; }
+.tt-nodes > .tt-node {
+  position: relative; display: grid; grid-template-rows: 26px 17px 19px 16px 22px auto; row-gap: 3px; align-items: center; justify-items: center;
+  align-content: start; text-align: center; padding: 6px 4px 8px; font-size: 11.5px; min-width: 0;
+}
+.tt-nodes > .k-gate { background: var(--violet-soft); border-radius: 8px; }
+.tt-nodes > .tt-node + .tt-node::before { content: ''; position: absolute; top: 18px; left: -50%; right: 50%; height: 2px; background: var(--line); z-index: 0; }
+.tt-nodes > .s-done + .s-done::before { background: var(--green-line); }
+.tt-mark {
+  position: relative; z-index: 1; width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 11px; font-weight: 700; line-height: 1; background: var(--surface); border: 1.5px solid var(--line-strong); color: var(--ink-5);
+}
+.v-done > .tt-mark { background: var(--green); border-color: var(--green); color: var(--surface); }
+.v-current > .tt-mark { background: var(--blue-soft); border: 2px solid var(--blue); color: var(--blue); font-size: 9px; }
+.v-stopped > .tt-mark { background: var(--red); border-color: var(--red); color: var(--surface); }
+.v-hold > .tt-mark { background: var(--orange); border-color: var(--orange); color: var(--surface); }
+/* A gate: a square turned 45°, its glyph turned back. */
+.k-gate > .tt-mark { width: 18px; height: 18px; border-radius: 3px; transform: rotate(45deg); border-color: var(--violet); }
+.k-gate > .tt-mark > .tt-glyph { transform: rotate(-45deg); }
+.k-gate.v-done > .tt-mark { background: var(--violet); border-color: var(--violet); color: var(--surface); }
+.k-gate.v-current > .tt-mark { background: var(--violet-soft); border: 2px solid var(--violet); color: var(--violet); }
+.k-gate.v-stopped > .tt-mark { background: var(--red); border-color: var(--red); color: var(--surface); }
+.k-gate.v-hold > .tt-mark { background: var(--orange); border-color: var(--orange); color: var(--surface); }
+.tt-kmark > .tt-mark { width: 14px; height: 14px; font-size: 8px; border-width: 1.5px; }
+.tt-kmark.k-gate > .tt-mark { width: 11px; height: 11px; border-radius: 2px; }
+.tt-kmark.v-current > .tt-mark { font-size: 6px; }
+.tt-label { font-size: 12px; font-weight: 600; line-height: 17px; color: var(--ink-2); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.k-gate > .tt-label { font-family: var(--font-mono); font-size: 11.5px; color: var(--violet); }
+.s-not-reached > .tt-label { color: var(--ink-4); font-weight: 500; }
+.tt-chip-row { display: flex; justify-content: center; max-width: 100%; }
+.tt-dec { font-size: 11px; font-weight: 600; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); white-space: nowrap; }
+.tt-dec.tone-green { background: var(--green-soft); color: var(--green); }
+.tt-dec.tone-red { background: var(--red-soft); color: var(--red); }
+.tt-dec.tone-orange { background: var(--orange-soft); color: var(--orange); }
+.tt-when { font-size: 11px; line-height: 16px; color: var(--ink-3); font-variant-numeric: tabular-nums; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.tt-who { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; color: var(--ink-3); white-space: nowrap; }
+.tt-who .avatar.xs { width: 20px; height: 20px; font-size: 8.5px; }
 .tt-ok { color: var(--ink-3); }
-.tt-note { color: var(--ink-3); font-size: 11px; line-height: 1.35; }
-.tt-node.after-stop { opacity: 0.4; }
+.tt-note { align-self: start; max-width: 100%; color: var(--ink-3); font-size: 11px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.tt-nodes > .after-stop { opacity: 0.4; }
 .tt-outcome { margin: 0 18px 14px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-sunken); border: 1px solid var(--line-2); font-size: 12.5px; color: var(--ink-2); }
 .tt-now { margin: 0 18px 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); }
 .tt-now-h { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }

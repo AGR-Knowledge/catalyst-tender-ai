@@ -1,6 +1,7 @@
 import { useId } from 'react';
 import { Lock, PenLine, UserRoundCheck } from 'lucide-react';
 import type { CanResult } from '@/data/access';
+import { FlagLine } from './FlagLine';
 import { Masked } from './Masked';
 import { whenLabel } from './When';
 import './members-panel.css';
@@ -110,7 +111,7 @@ export function MembersPanel({ rows, headline, quorum, majority, masked, onRecor
                   {r.at && <span className="mp-at num">{whenLabel(r.at.slice(0, 10), r.at.slice(11, 16), undefined, true)}</span>}
                   {r.flags?.map((f) => <span key={f} className="mp-flag">{f}</span>)}
                 </div>
-                {r.conflict && <p className="mp-coi">Conflict of interest declared: {r.conflict}</p>}
+                {r.conflict && <FlagLine as="p" tone="orange" className="mp-coi">Conflict of interest declared: {r.conflict}</FlagLine>}
                 {r.comment && !r.conflict && <p className="mp-comment">{r.comment}</p>}
                 {r.conditions && r.conditions.length > 0 && (
                   <ul className="mp-conds" aria-label={`Conditions from ${r.name}`}>

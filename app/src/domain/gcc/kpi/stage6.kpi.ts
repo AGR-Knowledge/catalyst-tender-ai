@@ -15,6 +15,9 @@ type S6 = { l: Lifecycle; f: S6Facts };
 
 export const s6Of = (ctx: KpiCtx): S6[] => liveIn(ctx, 6).flatMap((l) => (l.facts?.stage === 6 ? [{ l, f: l.facts }] : []));
 
+/** "On T-2025-317", "Across 2 proposals": a lower-case sub-line clause as a line of its own. */
+const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
+
 export const belowPass = (ctx: KpiCtx) => s6Of(ctx).filter((x) => x.f.simScore < x.f.passMark).sort((a, b) => (a.f.simScore - a.f.passMark) - (b.f.simScore - b.f.passMark));
 
 export const KPIS: KpiDef[] = [
@@ -28,11 +31,11 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.sections.late > 0);
       const n = rows.reduce((s, x) => s + x.f.sections.late, 0);
-      if (!n) return { display: '0', sub: 'Every section is on time', tone: 'green' };
+      if (!n) return { display: '0', sub: 'Every section is on time', detail: 'Every section is on time', tone: 'green' };
       const most = [...rows].sort((a, b) => b.f.sections.late - a.f.sections.late)[0];
       const urgent = rows.some((x) => { const wd = deadlineWd(x.l, ctx.tenant); return wd !== null && wd <= NEAR_WD; });
       const tone: Tone = urgent ? 'red' : 'orange';
-      return { display: String(n), sub: `Most: ${most.l.tenderId} (${most.f.sections.late})`, tone };
+      return { display: String(n), sub: `Most: ${most.l.tenderId} (${most.f.sections.late})`, detail: `Across ${plural(rows.length, 'tender')}`, ref: { k: 'Worst', v: `${most.l.tenderId}, ${most.f.sections.late}` }, tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Sections late'), s6Of(ctx).filter((x) => x.f.sections.late > 0).map((x) => x.l.tenderId)),
   },
@@ -53,6 +56,8 @@ export const KPIS: KpiDef[] = [
       return {
         display: `${pctOf(locked, total)}%`,
         sub: `Least: ${least.l.tenderId}, ${least.f.sections.locked} of ${least.f.sections.total}${wd !== null ? ` · ${wdText(wd)} left` : ''}`.replace(' due today left', ', due today'),
+        detail: `${locked} of ${plural(total, 'section')}`,
+        ref: { k: 'Worst', v: least.l.tenderId },
       };
     },
   },
@@ -65,9 +70,9 @@ export const KPIS: KpiDef[] = [
     },
     compute(ctx) {
       const list = belowPass(ctx);
-      if (!list.length) return { display: '0', sub: 'Every proposal clears its pass mark', tone: 'green' };
+      if (!list.length) return { display: '0', sub: 'Every proposal clears its pass mark', detail: 'All clear the pass mark', tone: 'green' };
       const w = list[0];
-      return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.simScore} vs ${w.f.passMark}`, tone: 'red' };
+      return { display: String(list.length), sub: `${w.l.tenderId}: ${w.f.simScore} vs ${w.f.passMark}`, detail: `${w.f.simScore} vs ${w.f.passMark} pass mark`, ref: { k: 'Worst', v: w.l.tenderId }, tone: 'red' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Below pass mark'), belowPass(ctx).map((x) => x.l.tenderId)),
   },
@@ -81,8 +86,9 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.smeOverdue > 0);
       const n = rows.reduce((s, x) => s + x.f.smeOverdue, 0);
-      if (!n) return { display: '0', sub: 'No specialist is late', tone: 'green' };
-      return { display: String(n), sub: rows.length === 1 ? `on ${rows[0].l.tenderId}` : `across ${plural(rows.length, 'tender')}`, tone: 'orange' };
+      if (!n) return { display: '0', sub: 'No specialist is late', detail: 'No specialist is late', tone: 'green' };
+      const sub = rows.length === 1 ? `on ${rows[0].l.tenderId}` : `across ${plural(rows.length, 'tender')}`;
+      return { display: String(n), sub, detail: cap(sub), tone: 'orange' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'SME tasks overdue'), s6Of(ctx).filter((x) => x.f.smeOverdue > 0).map((x) => x.l.tenderId)),
   },
@@ -93,7 +99,7 @@ export const KPIS: KpiDef[] = [
       counted: 'Red-team reviews due in the period that were held by their date ÷ reviews due in the period. A review due today and not yet held is not counted.',
       target: '100% green', source: 'Review records',
     },
-    compute: (ctx) => onTimeRate(dueInWindow(ctx, 'review'), 'No reviews due in this period', STAGE_BANDS.full, 'held by their date'),
+    compute: (ctx) => { const r = onTimeRate(dueInWindow(ctx, 'review'), 'No reviews due in this period', STAGE_BANDS.full, 'held by their date'); return { ...r, detail: r.sub }; },
     drill: (ctx) => idsDrill(`From tile: Reviews due · ${ctx.window.label}`, dueInWindow(ctx, 'review').map((x) => x.l.tenderId)),
   },
   {
@@ -108,7 +114,7 @@ export const KPIS: KpiDef[] = [
       if (!rows.length) return { display: 'No proposals in drafting' };
       const total = rows.reduce((s, x) => s + valueOf(ctx.tenant, x.l), 0);
       const pct = total ? round1(rows.reduce((s, x) => s + x.f.reusePct * valueOf(ctx.tenant, x.l), 0) / total) : 0;
-      return { display: `${Math.round(pct)}%`, sub: `across ${plural(rows.length, 'proposal')}` };
+      return { display: `${Math.round(pct)}%`, sub: `across ${plural(rows.length, 'proposal')}`, detail: cap(`across ${plural(rows.length, 'proposal')}`) };
     },
   },
 ];

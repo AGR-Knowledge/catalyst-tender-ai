@@ -44,6 +44,12 @@ function sentIn(ctx: KpiCtx) {
 
 const ids = (xs: { l: Lifecycle }[]) => xs.map((x) => x.l.tenderId);
 
+/** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
+const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
+
+/** "On T-2026-104", "Across 3 tenders": a lower-case sub-line clause as a line of its own. */
+const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
+
 export const KPIS: KpiDef[] = [
   {
     // Flow: with no clock running it reads the period's trailing rate.
@@ -62,14 +68,16 @@ export const KPIS: KpiDef[] = [
         return {
           display: s.breached ? s.text : s.text.replace(/ of .*$/, ''), tone: s.tone,
           sub: `${first.l.tenderId} · ${f?.rfqs.total ? `${f.rfqs.sent} of ${f.rfqs.total} RFQs sent` : 'packages being set up'}${live.length > 1 ? ` · ${live.length - 1} more running` : ''}`,
+          detail: f?.rfqs.total ? `${f.rfqs.sent} of ${f.rfqs.total} RFQs sent` : 'Packages being set up',
+          ref: { k: 'Next', v: first.l.tenderId },
         };
       }
       const sent = sentIn(ctx);
-      if (!sent.length) return { display: 'No RFQs sent in this period', sub: 'No tender is on the 24 h clock now' };
+      if (!sent.length) return { display: 'No RFQs sent in this period', sub: 'No tender is on the 24 h clock now', detail: 'None on the 24 h clock' };
       const on = sent.filter((x) => x.onTime).length;
       const pct = pctOf(on, sent.length);
       return {
-        display: `${pct}%`, sub: `RFQs within 24 h of DG1 · ${on} of ${sent.length}`, n: sent.length,
+        display: `${pct}%`, sub: `RFQs within 24 h of DG1 · ${on} of ${sent.length}`, detail: `${on} of ${sent.length} within 24 h`, n: sent.length,
         ...(isSmall(sent.length) ? { smallSample: true } : { tone: pct === 100 ? 'green' as const : 'orange' as const }),
       };
     },
@@ -90,12 +98,16 @@ export const KPIS: KpiDef[] = [
       const quoted = all.filter((x) => atOrPast(x.l, 2, 'quotes-in'));
       const waiting = all.length - quoted.length;
       const more = waiting ? ` · ${waiting} awaiting quotes` : '';
-      if (!quoted.length) return { display: all.length ? 'No quotes in yet' : 'No tenders in sourcing', sub: all.length ? `${plural(all.length, 'tender')} with RFQs out` : undefined };
+      if (!quoted.length) return { display: all.length ? 'No quotes in yet' : 'No tenders in sourcing', ...(all.length ? { sub: `${plural(all.length, 'tender')} with RFQs out`, detail: `${plural(all.length, 'tender')} with RFQs out` } : {}) };
       const covered = quoted.reduce((s, x) => s + x.f.packages.covered, 0);
       const total = quoted.reduce((s, x) => s + x.f.packages.total, 0);
       const least = [...quoted].sort((a, b) => a.f.packages.covered / a.f.packages.total - b.f.packages.covered / b.f.packages.total)[0];
       const pct = pctOf(covered, total);
-      return { display: `${pct}%`, sub: `${least.l.tenderId}: ${least.f.packages.covered} of ${least.f.packages.total}${more}`, tone: rateTone(pct, STAGE_BANDS.covered) };
+      return {
+        display: `${pct}%`, sub: `${least.l.tenderId}: ${least.f.packages.covered} of ${least.f.packages.total}${more}`, tone: rateTone(pct, STAGE_BANDS.covered),
+        detail: fit(`${covered} of ${total} packages${more}`, `${covered} of ${total} packages`),
+        ref: { k: 'Worst', v: `${least.l.tenderId}, ${least.f.packages.covered} of ${least.f.packages.total}` },
+      };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Packages covered'), ids(s2Of(ctx).filter((x) => x.f.packages.covered < x.f.packages.total && atOrPast(x.l, 2, 'quotes-in')))),
   },
@@ -109,10 +121,10 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const all = s2Of(ctx);
       const due = all.reduce((s, x) => s + x.f.rfqs.dueSoFar, 0);
-      if (!due) return { display: 'No replies due yet', sub: all.length ? 'Reply dates are still ahead' : undefined };
+      if (!due) return { display: 'No replies due yet', ...(all.length ? { sub: 'Reply dates are still ahead', detail: 'Reply dates still ahead' } : {}) };
       const on = all.reduce((s, x) => s + x.f.rfqs.answeredOnTime, 0);
       const pct = pctOf(on, due);
-      return { display: `${pct}%`, sub: `${on} of ${due} replies by their date`, tone: rateTone(pct, STAGE_BANDS.repliesOnTime), n: due };
+      return { display: `${pct}%`, sub: `${on} of ${due} replies by their date`, detail: fit(`${on} of ${due} replies by their date`, `${on} of ${due} by their date`), tone: rateTone(pct, STAGE_BANDS.repliesOnTime), n: due };
     },
   },
   {
@@ -127,7 +139,7 @@ export const KPIS: KpiDef[] = [
       const overdue = all.reduce((s, x) => s + x.f.rfqs.overdue, 0);
       const escalated = all.reduce((s, x) => s + x.f.rfqs.escalated, 0);
       const tone: Tone = !overdue ? 'green' : escalated ? 'red' : 'orange';
-      return { display: String(overdue), sub: `${escalated} escalated`, tone };
+      return { display: String(overdue), sub: `${escalated} escalated`, detail: `${escalated} escalated`, tone };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Overdue RFQs'), ids(s2Of(ctx).filter((x) => x.f.rfqs.overdue > 0))),
   },
@@ -142,7 +154,7 @@ export const KPIS: KpiDef[] = [
       const all = s2Of(ctx);
       const open = all.reduce((s, x) => s + x.f.clarifications.open, 0);
       const stale = all.reduce((s, x) => s + x.f.clarifications.stale, 0);
-      return { display: String(open), sub: `${stale} stale`, tone: stale ? 'red' : 'green' };
+      return { display: String(open), sub: `${stale} stale`, detail: `${stale} stale`, tone: stale ? 'red' : 'green' };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Open clarifications'), ids(s2Of(ctx).filter((x) => x.f.clarifications.open > 0))),
   },
@@ -156,8 +168,9 @@ export const KPIS: KpiDef[] = [
     compute(ctx) {
       const withQuotes = s2Of(ctx).filter((x) => x.f.toLevel > 0);
       const n = withQuotes.reduce((s, x) => s + x.f.toLevel, 0);
-      if (!n) return { display: '0', sub: 'Every quote is confirmed' };
-      return { display: String(n), sub: withQuotes.length === 1 ? `on ${withQuotes[0].l.tenderId}` : `across ${plural(withQuotes.length, 'tender')}` };
+      if (!n) return { display: '0', sub: 'Every quote is confirmed', detail: 'Every quote is confirmed' };
+      const sub = withQuotes.length === 1 ? `on ${withQuotes[0].l.tenderId}` : `across ${plural(withQuotes.length, 'tender')}`;
+      return { display: String(n), sub, detail: cap(sub) };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'To level'), ids(s2Of(ctx).filter((x) => x.f.toLevel > 0))),
   },
@@ -172,9 +185,16 @@ export const KPIS: KpiDef[] = [
       const n = scopeStage(ctx) ?? 4;
       const rows = liveIn(ctx, n).flatMap((l) => (l.facts?.stage === 4 ? [{ l, f: l.facts as S4Facts }] : []));
       const total = rows.reduce((s, x) => s + x.f.longLeadAtRisk, 0);
-      if (!total) return { display: '0', sub: rows.length ? 'Every package can arrive in time' : 'No programmes in this stage', tone: 'green' };
+      if (!total) {
+        const sub = rows.length ? 'Every package can arrive in time' : 'No programmes in this stage';
+        return { display: '0', sub, detail: fit(sub, rows.length ? 'All arrive in time' : 'No programmes here'), tone: 'green' };
+      }
       const worst = [...rows].sort((a, b) => b.f.longLeadAtRisk - a.f.longLeadAtRisk)[0];
-      return { display: String(total), sub: `Most: ${worst.l.tenderId}, ${plural(worst.f.longLeadAtRisk, 'package')}`, tone: 'red' };
+      const affected = rows.filter((x) => x.f.longLeadAtRisk > 0).length;
+      return {
+        display: String(total), sub: `Most: ${worst.l.tenderId}, ${plural(worst.f.longLeadAtRisk, 'package')}`, tone: 'red',
+        detail: `Across ${plural(affected, 'tender')}`, ref: { k: 'Worst', v: `${worst.l.tenderId}, ${worst.f.longLeadAtRisk}` },
+      };
     },
     drill: (ctx) => idsDrill(tileLabel(ctx, 'Long-lead at risk'), liveIn(ctx, scopeStage(ctx) ?? 4).filter((l) => l.facts?.stage === 4 && l.facts.longLeadAtRisk > 0).map((l) => l.tenderId)),
   },

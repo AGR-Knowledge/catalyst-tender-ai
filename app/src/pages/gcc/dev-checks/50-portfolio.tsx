@@ -89,6 +89,9 @@ const tileText = (vm: DashboardVM, id: string) => {
   return t ? [t.display, t.sub].filter(Boolean).join(' · ') : 'missing';
 };
 const flowText = (vm: DashboardVM, key: string) => vm.flow?.steps.find((s) => s.key === key)?.parts.map((p) => p.count.toLocaleString('en-GB')).join(' · ') ?? '0';
+/** §12.3's totals where plan 027d split a column: Captured is its new-notices part (not the linked ones), Submitted is on time plus late. */
+const partText = (vm: DashboardVM, key: string, part: string) => (vm.flow?.steps.find((s) => s.key === key)?.parts.find((p) => p.key === part)?.count ?? 0).toLocaleString('en-GB');
+const sumText = (vm: DashboardVM, key: string) => (vm.flow?.steps.find((s) => s.key === key)?.parts.reduce((n, p) => n + p.count, 0) ?? 0).toLocaleString('en-GB');
 const actionText = (vm: DashboardVM) => vm.actions.rows.map((r) => `${r.type} ${r.tenderId ?? ''}`.trim());
 const graphText = (vm: DashboardVM) => vm.graph?.points.map((p) => p.display).join(' · ') ?? 'no graph';
 
@@ -103,11 +106,11 @@ function checks(tenant: GccTenantKey): Check[] {
     if (!vm) { add('portfolio.hot', 'not registered'); break; }
     const t = tenant === 'najd' ? NAJD_FLOWS[k] : undefined;
     const pf4 = vm.tiles.find((x) => x.id === 'PF-4')!;
-    add(`${label} · funnel: captured`, flowText(vm, 'captured'), t?.captured);
+    add(`${label} · funnel: captured`, partText(vm, 'captured', 'notices'), t?.captured);
     add(`${label} · funnel: DG1 (pursued · discarded · held)`, flowText(vm, 'dg1'), t?.dg1);
     add(`${label} · funnel: DG2 (bid · no-bid)`, flowText(vm, 'dg2'), t?.dg2);
     add(`${label} · funnel: DG3 (approved · rejected)`, flowText(vm, 'dg3'), t?.dg3);
-    add(`${label} · funnel: submitted`, flowText(vm, 'submitted'), t?.submitted);
+    add(`${label} · funnel: submitted`, sumText(vm, 'submitted'), t?.submitted);
     add(`${label} · funnel: results (won · lost)`, flowText(vm, 'results'), t?.results);
     out.push({ name: `${label} · PF-2`, got: vm.tiles.find((x) => x.id === 'PF-2')!.display, expected: t?.pf2, match: 'prefix' });
     out.push({ name: `${label} · PF-3`, got: vm.tiles.find((x) => x.id === 'PF-3')!.display, expected: t?.pf3, match: 'prefix' });

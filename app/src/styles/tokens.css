@@ -42,6 +42,15 @@
   --green-panel: #f3f8f4;
   --green-line: #cfe3d6;
   --cyan-soft: #eaf5f9;
+  /* Fixed hues that never follow the tenant's accent (wave 9, 2026-09-28): the graph's one measure colour, and decision gates and calendar categories. */
+  --blue: #4a7cd1;
+  --blue-soft: #eef3fb;
+  --violet: #7054c9;
+  --violet-soft: #f4f1fb;
+  --violet-line: #ddd4f2;
+  /* Full-border tints for flagged cards (plan 028): status shows as a word and a tint, never a one-sided stripe. */
+  --orange-line: #eedcc0;
+  --cyan-line: #cde6ef;
 
   --link: #0a7ea4;
   --link-hover: #065f7c;
@@ -127,6 +136,13 @@
   --green-panel: rgba(92, 189, 134, 0.08);
   --green-line: rgba(92, 189, 134, 0.3);
   --cyan-soft: rgba(79, 182, 218, 0.12);
+  --blue: #7ea6e6;
+  --blue-soft: rgba(126, 166, 230, 0.13);
+  --violet: #a791ef;
+  --violet-soft: rgba(167, 145, 239, 0.13);
+  --violet-line: rgba(167, 145, 239, 0.32);
+  --orange-line: rgba(229, 161, 74, 0.3);
+  --cyan-line: rgba(79, 182, 218, 0.3);
 
   --link: #5cbfe2;
   --link-hover: #8ad2ec;

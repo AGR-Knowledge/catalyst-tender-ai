@@ -71,8 +71,15 @@
 .pk-secs { display: grid; gap: var(--gap); }
 .pk-sec { border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--surface); box-shadow: var(--shadow-card); padding: 14px 20px 16px; scroll-margin-top: var(--pk-offset); }
 .pk-sec.is-lens { border-color: var(--brand, var(--line-strong)); box-shadow: 0 0 0 1px var(--brand, var(--line-strong)), var(--shadow-card); }
-.pk-sec.f-stale { border-left: 3px solid var(--orange); }
-.pk-sec.f-waiting { border-left: 3px solid var(--orange); }
+/* Stale or waiting: FreshBadge says which, on a faint orange header band; no side bar (plan 028). */
+.pk-sec.f-stale > .pk-head, .pk-sec.f-waiting > .pk-head {
+  margin: -14px -20px 0; padding: 12px 20px; background: var(--orange-soft);
+  border-bottom: 1px solid var(--orange-line); border-radius: calc(var(--radius-lg) - 1px) calc(var(--radius-lg) - 1px) 0 0;
+}
+details.pk-sec.f-stale:not([open]) > .pk-head, details.pk-sec.f-waiting:not([open]) > .pk-head { margin-bottom: -14px; border-bottom: 0; border-radius: calc(var(--radius-lg) - 1px); }
+.pk-sec.f-stale > .pk-meta, .pk-sec.f-waiting > .pk-meta { margin-top: 10px; }
+/* On the band, the orange badge keeps its shape: a surface fill and a hairline. */
+.pk-sec.f-stale > .pk-head .pk-fresh, .pk-sec.f-waiting > .pk-head .pk-fresh { background: var(--surface); box-shadow: inset 0 0 0 1px var(--orange-line); }
 details.pk-sec > summary { list-style: none; cursor: pointer; }
 details.pk-sec > summary::-webkit-details-marker { display: none; }
 details.pk-sec > summary::after { content: '▸'; margin-left: 8px; color: var(--ink-4); font-size: 11px; transition: transform var(--dur-fast) var(--ease-out); }
@@ -180,7 +187,7 @@ details.pk-sec:not([open]) { padding-bottom: 14px; }
 .pk-risk { display: grid; grid-template-columns: 66px minmax(0, 1fr); gap: 10px; padding: 8px 0; border-top: 1px solid var(--line-3); }
 .pk-risk:first-child { border-top: 0; }
 .pk-risks.compact .pk-risk { padding: 6px 0; }
-.pk-rate { justify-self: start; font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--surface-active); color: var(--ink-2); }
+.pk-rate { justify-self: start; align-self: start; font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 7px; border-radius: var(--radius-pill); background: var(--surface-active); color: var(--ink-2); }
 .pk-rate.tone-red { background: var(--red-soft); color: var(--red); }
 .pk-rate.tone-orange { background: var(--orange-soft); color: var(--ink); }
 .pk-risk-t { font-size: 13px; color: var(--ink); line-height: 1.45; }
@@ -192,7 +199,7 @@ details.pk-sec:not([open]) { padding-bottom: 14px; }
 .pk-note-box { border-top: 1px solid var(--line-2); padding-top: 10px; }
 .pk-note-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
 .pk-lock { display: inline-flex; align-items: center; gap: 4px; font-size: 11.5px; color: var(--ink-3); }
-.pk-quote { margin: 6px 0 0; padding: 8px 12px; border-left: 3px solid var(--line-strong); background: var(--surface-sunken); font-size: 13px; line-height: 1.5; color: var(--ink); border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.pk-quote { margin: 6px 0 0; padding: 8px 12px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--surface-sunken); font-size: 13px; line-height: 1.5; color: var(--ink); }
 .pk-quote footer { margin-top: 4px; font-size: 11.5px; color: var(--ink-3); }
 .pk-textarea, .s3-field textarea, .s3-field input, .s3-field select {
   width: 100%; font: inherit; font-size: 13px; color: var(--ink); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 7px 9px;
