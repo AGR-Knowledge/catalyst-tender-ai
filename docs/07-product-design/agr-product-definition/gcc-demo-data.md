@@ -558,6 +558,18 @@ Self-performed (earthworks, paving, drainage installation, bridge structures, li
 | Batinah (D) | Hero (by email from a partner); **scanned Arabic roads tender** (real, §9); **Lebanon roads tender** (real, §9); Sohar–Buraimi road dualling (fictional) | Muscat interchange upgrade | none | 25 bids, 8 won (32%) |
 | Qurain (E) | Hero (Etimad via the KSA subsidiary); **Kuwait ccTLD Arabic IT tender** (real, §9: out of sector, low fit); Wadi Zarqa PQ (real, multi-country) | Two large Kuwait bids in S2 (they drive the 118% load) | Kuwait STP rehabilitation at DG2 (not scripted) | 30 bids, 8 won (27%) |
 
+**History rules for all five tenants** (plan 034):
+- **Our place and the gap to the winner:** government and semi-government employers publish the opening results on about 80% of losses, private employers on about 30%.
+  - Price: 2nd to 4th, 0.8–12% above the winner, most under 7%.
+  - Local content: 2nd, 0.5–3% above the winner.
+  - Technical: the technical ranking on about half, never a gap.
+  - PQ: never opened, so neither.
+  - Other: a place on about half, a gap on about a third.
+  - A figure stated on a tender (such as T-2025-270's) is kept.
+- **Value won:** the 12-month value won is 0.9–1.3× FY2025 turnover in every tenant, one year's work won for one year done. Corniche and Batinah win the mid-size jobs and lose the largest on price. Batinah's order-intake target is OMR 50 M (1.15× turnover).
+- **Calibration:** in Corniche, Batinah and Qurain every judged band is within ±10 points. Dafna (18 decided bids) is below the 20 calibration needs. Najd's over-confident < 30% band (§5.1) is the one intended exception.
+- **No 12-month bid shares its title with a completed register project**, and licensed seats are never fewer than seats in use.
+
 ### 5.3 KPI target readings on demo day, tenant A (preset "DG1 due")
 The derived values should land here (catalogue §A IDs):
 

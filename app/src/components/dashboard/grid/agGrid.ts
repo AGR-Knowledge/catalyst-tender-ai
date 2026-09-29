@@ -2,7 +2,7 @@
 import {
   CellStyleModule, ClientSideRowModelModule, ColumnApiModule, ColumnAutoSizeModule, DateFilterModule, ExternalFilterModule,
   ModuleRegistry, NumberFilterModule, RowApiModule, RowSelectionModule, RowStyleModule, ScrollApiModule,
-  ValidationModule, type Module,
+  TooltipModule, ValidationModule, type Module,
 } from 'ag-grid-community';
 
 /**
@@ -23,6 +23,7 @@ export const GRID_MODULES: Module[] = [
   ColumnApiModule,            // applyColumnState (presets), setColumnsVisible (Columns menu)
   RowApiModule,               // getRowNode (selection sync)
   ScrollApiModule,            // ensureNodeVisible (a drill that selects a row)
+  TooltipModule,              // headerTooltip (the supplier master's Load and On time)
 ];
 
 let done = false;

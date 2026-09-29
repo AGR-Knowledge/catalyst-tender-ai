@@ -1,6 +1,6 @@
 # 034 — A bid history that reads true
 
-Status: READY · Depends on: wave 10 (committed `4d3f6ee`) · Can run in parallel with: 033 (no shared file)
+Status: DONE (2026-09-29, executor and orchestrator, reviewed) · Depends on: wave 10 (committed `4d3f6ee`) · Can run in parallel with: 033 (no shared file)
 
 ## Goal
 The last 12 months of results read like a real contractor's. On most losses the employer published our place and the gap to the winner. Each company wins roughly what its size allows. The win forecasts of Corniche, Batinah and Qurain calibrate, while Najd keeps the one honest over-confident band the spec asks for. Two seed slips a prospect could spot are fixed: a project that looks listed twice, and more seats in use than licensed.
@@ -125,32 +125,32 @@ The last 12 months of results read like a real contractor's. On most losses the 
 
 ## Steps
 ### Phase 1 — Places and gaps
-- [ ] 1.1 `placing.ts` with `placingFor` and the rules of Design §1, on its own seeded stream.
-- [ ] 1.2 Apply it to folded losses in `fold.ts` and generated losses in `generate.ts`, keeping any stated rank or gap.
-  - [ ] 1.2.1 Confirm the generator's stream is untouched: every generated tender's id, title, dates and amounts are identical before and after this phase. Compare a dump of the lifecycles, without rank and gap, for all five companies.
-- [ ] 1.3 Check the readers on screen:
+- [x] 1.1 `placing.ts` with `placingFor` and the rules of Design §1, on its own seeded stream.
+- [x] 1.2 Apply it to folded losses in `fold.ts` and generated losses in `generate.ts`, keeping any stated rank or gap.
+  - [x] 1.2.1 Confirm the generator's stream is untouched: every generated tender's id, title, dates and amounts are identical before and after this phase. Compare a dump of the lifecycles, without rank and gap, for all five companies.
+- [x] 1.3 Check the readers on screen:
   - the tracker's outcome line on a lost history tender;
   - the Stage 9 table;
   - the regret letter in the Library;
   - Why we lost on Bid record (Najd and Batinah).
 
 ### Phase 2 — Value won
-- [ ] 2.1 Measure each company's 12-month value won ÷ FY2025 turnover. Report the five multiples before any change.
-- [ ] 2.2 Batinah and Corniche: lower won values (authored rows first, then generated wins by scaling the drawn amount) until 0.9–1.3× holds, keeping every value in the company's band. Leave losses as they are.
-- [ ] 2.3 Batinah's order-intake target: OMR 50 M.
-- [ ] 2.4 Re-measure all five, and report the multiples after. Check OUT-3's tone in each company at 12 months and at 90 days.
+- [x] 2.1 Measure each company's 12-month value won ÷ FY2025 turnover. Report the five multiples before any change.
+- [x] 2.2 Batinah and Corniche: lower won values (authored rows first, then generated wins by scaling the drawn amount) until 0.9–1.3× holds, keeping every value in the company's band. Leave losses as they are.
+- [x] 2.3 Batinah's order-intake target: OMR 50 M.
+- [x] 2.4 Re-measure all five, and report the multiples after. Check OUT-3's tone in each company at 12 months and at 90 days.
 
 ### Phase 3 — Calibration
-- [ ] 3.1 Report `calibrationFor(history.outcomes)` per company before any change: n, and each band's bids, won, predicted and actual.
-- [ ] 3.2 Re-set predictions in Corniche, Batinah and Qurain (Design §3), with no new draw on the generator's stream.
-- [ ] 3.3 Report the bands after. Najd's must be byte-identical to before.
+- [x] 3.1 Report `calibrationFor(history.outcomes)` per company before any change: n, and each band's bids, won, predicted and actual.
+- [x] 3.2 Re-set predictions in Corniche, Batinah and Qurain (Design §3), with no new draw on the generator's stream.
+- [x] 3.3 Report the bands after. Najd's must be byte-identical to before.
 
 ### Phase 4 — Seed slips
-- [ ] 4.1 Retitle `BA-O03`, and check the title is unique across Batinah's rows, register and generated titles. No generated tender's id, title or dates changes (compare as in 1.2.1).
-- [ ] 4.2 Licensed seats ≥ seats in use in every GCC company. The Users page and the Platform Console's tenant panel agree.
+- [x] 4.1 Retitle `BA-O03`, and check the title is unique across Batinah's rows, register and generated titles. No generated tender's id, title or dates changes (compare as in 1.2.1).
+- [x] 4.2 Licensed seats ≥ seats in use in every GCC company. The Users page and the Platform Console's tenant panel agree.
 
 ### Phase 5 — Checks and docs
-- [ ] 5.1 New `69-history.tsx`, each row across the five companies:
+- [x] 5.1 New `69-history.tsx`, each row across the five companies:
   - places published on at least half the losses, and gaps on at least half the price losses;
   - every place ≤ its bidders, and every gap > 0;
   - no pq loss has a place;
@@ -159,16 +159,16 @@ The last 12 months of results read like a real contractor's. On most losses the 
   - Najd's bands equal `RESULT_SPLITS.calibration`;
   - seats in use ≤ licensed;
   - no 12-month lifecycle title equals a register project's title, compared as sets of lower-case words, so "Wadi crossing bridges, Saham" and "Saham wadi crossing bridges" count as equal.
-- [ ] 5.2 `gcc-demo-data.md` §5 lines (Design §5).
-- [ ] 5.3 Typecheck and build pass. `/dev/checks` has no failing row in any company, and you report the counts. Any pin you updated is listed under Deviations.
-- [ ] 5.4 Click through at 1440, light and dark, with no console errors:
+- [x] 5.2 `gcc-demo-data.md` §5 lines (Design §5).
+- [x] 5.3 Typecheck and build pass. `/dev/checks` has no failing row in any company, and you report the counts. Any pin you updated is listed under Deviations.
+- [x] 5.4 Click through at 1440, light and dark, with no console errors:
   - Company › Bid record in all five companies;
   - home dashboard tiles at 12 months in Batinah and Corniche;
   - `/stages/9` in Najd;
   - a DG2 pack's calibration note in Corniche;
   - Administration › Users in Corniche, Dafna and Batinah;
   - Alpen Bridge Bearings' Projects tab in Batinah.
-- [ ] 5.5 Reset demo returns every screen to the new seed (this plan adds no demo state).
+- [x] 5.5 Reset demo returns every screen to the new seed (this plan adds no demo state).
 
 ## Data and derivation
 - Every change is in `src/data`; every screen moves by derivation (app rule 1). The same tender reads the same place, gap, value and prediction on every screen, because each is stored once on its lifecycle result.
@@ -183,9 +183,37 @@ The last 12 months of results read like a real contractor's. On most losses the 
 - Typecheck, build and every dev check pass.
 
 ## Execution report
-(Filled in by the executor.)
+(The executor stopped after the data, `placing.ts` and dev check 69. The orchestrator finished it: the docs, the checks and this report.)
 - Changed files:
+  - `data/gcc/lifecycle/placing.ts` (new): `placingFor` on its own stream (`place:<tenant>:<id>`), and `placeLosses`, which publishes exact shares per company and group (price and local content by public or private client, technical, other, pq);
+  - `data/gcc/lifecycle/generate.ts`: `placeLosses(all)` after the ids are allocated. Folded and generated losses go through one call, so `fold.ts` is unchanged;
+  - `data/gcc/tenants/corniche.ts`, `batinah.ts`, `qurain.ts`: the `OUTCOMES` values and predictions, and the retitles of `BA-O03` and `QU-O04`;
+  - `data/gcc/portfolio.ts`: Batinah's target, OMR 50 M;
+  - `data/tenants.ts`: seats of 16 for Corniche, Dafna and Batinah;
+  - `pages/gcc/dev-checks/69-history.tsx` (new);
+  - `docs/.../gcc-demo-data.md` §5.2: the history rules;
+  - review fix outside the list: `domain/gcc/company/record.ts` rounds the median place and field to whole places.
 - Verification:
+  - Typecheck and build pass. `/dev/checks` has no failing row: Najd 961, Corniche 552, Dafna 533, Batinah 541, Qurain 556. Row 69 passes 9 of 9 in every company.
+  - Stream (1.2.1, 4.1): every lifecycle compared with the last commit, without rank, gap and prediction. The only differences are the edited authored rows: Corniche T-2025-176, T-2025-180, T-2025-308 (values); Batinah T-2024-350, T-2024-360 (and its title), T-2024-366, T-2025-072, T-2025-265 (values); Qurain T-2024-383 (title). Najd and Dafna are identical.
+  - Places: published on 16 of 24 losses in Najd, 9/16 Corniche, 7/13 Dafna, 10/17 Batinah, 14/22 Qurain. Gaps on 10/13, 6/8, 3/6, 7/9 and 8/10 price losses. No pq loss has either.
+  - Value won ÷ FY2025 turnover (2.1, 2.4): before, Najd 1.04×, Corniche 2.0×, Dafna 1.05×, Batinah 4.1×, Qurain 1.00× (wave 10 review). After, 1.04×, 1.21×, 1.05×, 1.28×, 1.00×. OUT-3 on Stage 9 reads On track at 12 months and 90 days: Batinah 111% and 235%, Corniche 167% and 184%.
+  - Calibration (3.1, 3.3): before, 0 of 2 judged bands within ±10 in Corniche, 0 of 3 in Batinah, 0 of 2 in Qurain (wave 10 review). After: Corniche 50–70% −8.0 and < 30% −8.0 (n 22); Batinah −7.4 and −6.1 (n 25); Qurain −8.0 and −8.0 (n 30). Dafna has 18, not judged. Najd: > 70 2 of 3, 50–70 4 of 7, 30–50 3 of 10, < 30 0 of 13, unchanged.
+  - Seats (4.2): Najd 16 of 20, and 16 of 16 in the other four. The Platform Console reads the same `seats`.
+  - Screens (1.3, 5.4): at 1440, light and dark, no console errors:
+    - Bid record in all five;
+    - Stage 9 in Najd;
+    - T-2025-177's tracker line, Stage 9 row and regret letter all read "ranked 2 of 6";
+    - Corniche's DG2 pack on T-2026-029: "Calibrated on 22 decided bids: every band within ±10 points";
+    - Users in Corniche;
+    - Alpen Bridge Bearings' Projects tab: only the 2021 register project names Saham, and its awarded packages (OMR 75,000 and OMR 66,700) are far below the tenders' new values.
+  - Reset (5.5): the plan adds no demo state.
 - Deviations from plan:
-- Blockers / questions:
+  - No generated win was scaled and no generated prediction re-set: the authored rows alone meet both rules.
+  - `QU-O04` "Northern oil field water injection plant" became "Raudhatain field water injection upgrade". Its title equalled register project `qurain-p4`'s, which dev check 69's title row caught.
+  - Neither new title is one the pools can produce (the stream comparison confirms no generated title moved).
+  - No existing dev-check pin needed changing.
+- Blockers / questions: none.
 - Follow-ups noticed (not done):
+  - Corniche's order-intake target (AED 900 M, 0.73× turnover) makes Value won read 167% of target.
+  - Batinah's price losses have a median place of 4th, by the draw.

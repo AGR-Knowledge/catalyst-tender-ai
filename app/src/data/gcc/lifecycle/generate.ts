@@ -9,6 +9,7 @@ import {
   DEADLINE_TIME, byEventTime, capturedBefore, changeEvent, cityFrom, clientTypeOf, discardNote, issuerFor, openedBefore, pickSource, resultClose, resultEvents, timeIn, workEvents, type Draft,
 } from './fold';
 import { ccOf, refFor, sourceOf } from './live/common';
+import { placeLosses } from './placing';
 import { POOLS, type TenantPool } from './pools';
 import { rngOf, type Rng } from './rng';
 import { WINDOW_FROM, WINDOW_KEYS, type DecisionCounts, type FlowTarget } from './targets';
@@ -527,5 +528,7 @@ export function generateHistory(input: GenerateInput): GenerateResult {
   const all = [...drafts, ...made];
   balanceEvents(all, r);
   allocateIds(seed, fixed, all);
+  // Places and gaps on folded and generated losses (plan 034 §1): each on its own stream, seeded by the id just given.
+  placeLosses(all);
   return { lifecycles: all.map((d) => buildChain(finalSpec(d, seed))), generated: made.length, notes };
 }

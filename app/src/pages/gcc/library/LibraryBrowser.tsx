@@ -98,7 +98,8 @@ export function FileGrid({ rows, withFolder, folderHead = 'Folder', onOpen, rowE
       cellRenderer: (p: ICellRendererParams<LibraryFileVM>) => (p.data ? <span className="lib-two"><span className="lib-src">{p.data.source.label}</span>{byOf(p.data) && <span className="lib-sub">By {byOf(p.data)}</span>}</span> : null),
     },
     {
-      headerName: 'Received', colId: 'at', flex: 0.8, minWidth: 120, valueGetter: (p) => p.data?.receivedAt ?? '',
+      // Date: received, sent or made, as the viewer's header says (plan 033).
+      headerName: 'Date', colId: 'at', flex: 0.8, minWidth: 120, valueGetter: (p) => p.data?.receivedAt ?? '',
       cellRenderer: (p: ICellRendererParams<LibraryFileVM>) => {
         const w = p.data?.receivedAt ? whenCell(p.data.receivedAt) : '';
         const m = w.match(/^(.*) (\d{2}:\d{2})$/);

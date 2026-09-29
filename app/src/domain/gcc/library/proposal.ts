@@ -31,6 +31,8 @@ export function proposalFiles(c: LibCtx): LibraryFileVM[] {
   const at = s?.at ?? start;
   const by = nameOf(l.bidManagerId);
   const state = s ? 'As submitted' : 'Draft';
+  // Drafts are ours until the bid is submitted; then they left with it.
+  const dated = s ? 'sent' as const : 'made' as const;
   const seeMargin = c.can('see.margin');
   const mask: FacCell = { masked: c.holders('see.margin') };
   const price = l.result?.value ?? (l.value.amount ? { amount: l.value.amount, ccy: l.value.ccy } : null);
@@ -42,14 +44,14 @@ export function proposalFiles(c: LibCtx): LibraryFileVM[] {
   const source = { channel: 'person' as const, label: `Prepared by ${by ?? 'the bid team'}` };
   const out: LibraryFileVM[] = [
     fileOf('05/technical', 'technical', {
-      kind: 'proposal', name: fileName(c.prefix, 'Technical proposal'), title: 'Technical proposal', type: 'PDF', source, receivedAt: at, by, tags: [state],
+      kind: 'proposal', name: fileName(c.prefix, 'Technical proposal'), title: 'Technical proposal', type: 'PDF', source, receivedAt: at, dated, by, tags: [state],
       ...facsimileFile(() => head('Technical proposal', [
         { heading: 'Contents', list: ['Understanding of the scope', 'Method statement and programme', 'Organisation and key personnel', 'Similar projects and references', 'Quality, health, safety and environment plans', 'Local content plan'] },
         { heading: 'Understanding of the scope', paragraphs: [`${c.company} proposes to deliver ${l.title} for ${c.issuer}${l.city ? ` in ${l.city}` : ''}, as set out in the tender documents.`], newPage: true },
       ]), 2),
     }),
     fileOf('05/commercial', 'commercial', {
-      kind: 'proposal', name: fileName(c.prefix, 'Commercial proposal'), title: 'Commercial proposal', type: 'PDF', source, receivedAt: at, by, tags: [state],
+      kind: 'proposal', name: fileName(c.prefix, 'Commercial proposal'), title: 'Commercial proposal', type: 'PDF', source, receivedAt: at, dated, by, tags: [state],
       ...(seeMargin ? {} : { masked: { by: c.holders('see.margin') } }),
       ...facsimileFile(() => head('Commercial proposal', [
         { heading: 'Form of price', rows: [
@@ -69,7 +71,7 @@ export function proposalFiles(c: LibCtx): LibraryFileVM[] {
   if (bond) {
     out.push(fileOf('05/forms', 'bond', {
       kind: 'proposal', name: fileName(c.prefix, 'Bid bond'), title: 'Bid bond (initial guarantee)', type: 'PDF',
-      source: { channel: 'person', label: `Requested by ${by ?? 'the bid team'}` }, receivedAt: at, by, tags: [f8 && !f8.issued ? 'Requested' : state],
+      source: { channel: 'person', label: `Requested by ${by ?? 'the bid team'}` }, receivedAt: at, dated, by, tags: [f8 && !f8.issued ? 'Requested' : state],
       ...(seeMargin ? {} : { masked: { by: c.holders('see.margin') } }),
       ...facsimileFile(() => ({
         title: `${c.prefix} Bid bond`, issuer: 'Issuing bank', heading: 'Bid bond (initial guarantee)', ref: c.ref ?? l.tenderId, date: docDate(at.slice(0, 10)),
@@ -83,7 +85,7 @@ export function proposalFiles(c: LibCtx): LibraryFileVM[] {
     }));
   }
   out.push(fileOf('05/forms', 'form', {
-    kind: 'proposal', name: fileName(c.prefix, 'Form of tender'), title: 'Form of tender', type: 'Form', source, receivedAt: at, by, tags: [state],
+    kind: 'proposal', name: fileName(c.prefix, 'Form of tender'), title: 'Form of tender', type: 'Form', source, receivedAt: at, dated, by, tags: [state],
     ...facsimileFile(() => head('Form of tender', [
       { paragraphs: [`We, ${c.company}, offer to execute and complete ${l.title} in conformity with the tender documents, for the price stated in our commercial proposal.`, 'This offer remains valid for the bid validity period stated in the tender documents.'] },
     ]), 1),
@@ -111,7 +113,7 @@ export function evidenceFiles(c: LibCtx): LibraryFileVM[] {
       const holder = d.partners.find((p) => p.credentials.includes(cr))?.name ?? d.company.entities?.find((x) => x.id === cr.holder)?.name ?? c.company;
       out.push(fileOf('06', `cred-${cr.id}`, {
         kind: 'credential', name: `${safe(cr.label.split(':')[0])}${cr.number ? ` ${safe(cr.number)}` : ''}.pdf`, title: cr.label, type: 'PDF',
-        source: { channel: 'vault', label: 'From the credentials vault' }, receivedAt: null, by: nameOf(cr.ownerId),
+        source: { channel: 'vault', label: 'From the credentials vault' }, receivedAt: null, dated: 'made', by: nameOf(cr.ownerId),
         tags: [validTo ? `Valid to ${dateText(validTo)}` : 'No expiry'],
         link: { to: `/company?tab=credentials&cred=${encodeURIComponent(cr.id)}`, label: 'Open in Company › Credentials' },
         ...facsimileFile(() => ({
@@ -138,7 +140,7 @@ export function evidenceFiles(c: LibCtx): LibraryFileVM[] {
       const holder = partner?.name ?? entity?.name ?? c.company;
       out.push(fileOf('06', `fin-${ev.id}`, {
         kind: 'credential', name: `${safe(holder)} FY${fy} ${fin.audited ? 'audited' : 'draft'} accounts.pdf`, title: ev.label, type: 'PDF',
-        source: { channel: 'vault', label: 'From the credentials vault' }, receivedAt: fin.auditDate ?? null, by: holder,
+        source: { channel: 'vault', label: 'From the credentials vault' }, receivedAt: fin.auditDate ?? null, dated: 'made', by: holder,
         tags: [fin.audited ? 'Audited' : 'Draft'],
         link: { to: '/company?tab=credentials', label: 'Open in Company › Credentials' },
         ...facsimileFile(() => ({
@@ -172,7 +174,7 @@ export function resultFiles(c: LibCtx): LibraryFileVM[] {
       : [`${c.issuer} has cancelled the tender for ${l.title}.`, ...(l.closedNote ? [l.closedNote] : [])];
   return [fileOf('07', 'result', {
     kind: 'result', name: fileName(c.prefix, what), title: what, type: 'Letter',
-    source: { channel: 'authority', label: 'From the authority' }, receivedAt: r.at, by: c.issuer,
+    source: { channel: 'authority', label: 'From the authority' }, receivedAt: r.at, dated: 'received', by: c.issuer,
     tags: [r.result === 'won' ? 'Won' : r.result === 'lost' ? 'Lost' : 'Cancelled'],
     ...(r.result === 'won' && r.value && !seeValue ? { masked: { by: c.holders('see.margin') } } : {}),
     ...facsimileFile(() => ({

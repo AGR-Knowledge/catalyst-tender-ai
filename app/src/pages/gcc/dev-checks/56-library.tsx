@@ -3,14 +3,17 @@ import { useTenantKey } from '@/domain/tenancy';
 import { firstWithRole, type Person } from '@/data/people';
 import { isGccTenantKey } from '@/data/gcc';
 import { port } from '@/domain/gcc/lifecycle.port';
+import { queriesFor } from '@/domain/gcc/lifecycle';
 import { addendaFor } from '@/domain/gcc/s1';
+import { dataOf } from '@/domain/gcc/s1/common';
+import { dg1PackFor, dg1Write } from '@/domain/gcc/dg1';
 import { quotesFor, rfqsFor, sentBy } from '@/domain/gcc/s2';
 import { documentFor } from '@/domain/gcc/documents';
 import { HERO_ID } from '@/data/gcc/hero';
 import {
-  WATERMARK, flatFolders, libFileWrite, libFilesOf, libraryFor, type LibraryFileVM, type LibraryVM,
+  DATED_WORD, WATERMARK, flatFolders, libFileWrite, libFilesOf, libraryFor, type LibraryFileVM, type LibraryVM,
 } from '@/domain/gcc/library';
-import { boqOf } from '@/domain/gcc/library/documents';
+import { boqOf, dg1PursueOf } from '@/domain/gcc/library/documents';
 import { CardHead } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -20,7 +23,9 @@ import { DataTable } from '@/components/ui/DataTable';
  * writes into a copy), so it changes nothing. The library agrees with the
  * modules it reads (addenda, RFQs and replies, the tracker's gates), masks what
  * the viewer may not see, and every facsimile is a watermarked document with
- * no script.
+ * no script. Plan 033 (rows 13–18): every tender pursued at DG1 has its
+ * booklet (the held PDF, else one extract), and every file's date says
+ * Received, Sent or Made.
  */
 
 interface Check { name: string; ok: boolean; got: string }
@@ -141,17 +146,74 @@ function checks(tenant: string): Check[] {
   const empty = all.flatMap(({ id, lib }) => flatFolders(lib.folders).filter((f) => !f.count && !f.id.startsWith('05')).map((f) => `${id} ${f.id}`));
   add('No empty folder, except 05 Our proposal', !empty.length, `empty: ${list(empty)}`);
 
+  // Plan 033. 13–14. A tender we pursued at DG1 has its booklet: the held PDF, else exactly one extract in 01. No other tender has an extract.
+  const lcs = queriesFor({ tenant, viewer: hot, done: DONE });
+  const extracts = (lib: LibraryVM) => lib.files.filter((f) => f.kind === 'booklet-extract');
+  const pursued = all.filter(({ id }) => { const l = lcs.one(id); return !!l && !!dg1PursueOf(l); });
+  const wantExtract = pursued.filter(({ id }) => !documentFor(tenant, id));
+  const extractOff = wantExtract.filter(({ lib }) => { const x = extracts(lib); return x.length !== 1 || x[0].folderId !== '01'; }).map((x) => x.id);
+  add('Every DG1 Pursue without a held PDF: one booklet extract in 01', !extractOff.length,
+    `${pursued.length} pursued · ${pursued.length - wantExtract.length} with the held PDF · ${wantExtract.length} extracts · off: ${list(extractOff)}`);
+  const pursuedIds = new Set(pursued.map((x) => x.id));
+  const strayExtract = all.filter(({ id, lib }) => extracts(lib).length && (!pursuedIds.has(id) || !!documentFor(tenant, id))).map((x) => x.id);
+  add('No extract without a DG1 Pursue, or beside a held PDF', !strayExtract.length, `${all.length - wantExtract.length} tenders without one · with one: ${list(strayExtract)}`);
+
+  // 15. The extract reaches us with the booklet receipt in 02 or after it (bought through the portal), never before.
+  const withReceipt = wantExtract.flatMap(({ id, lib }) => {
+    const x = extracts(lib)[0];
+    const r = lib.files.find((f) => f.folderId === '02' && f.title === 'Booklet purchase receipt');
+    return x && r ? [{ id, x, r }] : [];
+  });
+  const beforeReceipt = withReceipt.filter(({ x, r }) => !x.receivedAt || !r.receivedAt || x.receivedAt < r.receivedAt).map((x) => x.id);
+  add('Extract dated at or after the booklet receipt', !beforeReceipt.length,
+    withReceipt.length ? `${withReceipt.map(({ id, x }) => `${id} ${x.receivedAt}`).join(', ')} · before it: ${list(beforeReceipt)}` : 'no pursued tender here bought its booklet through the portal');
+
+  // 16. Every file says what its date is: Received, Sent or Made.
+  const filesAll = all.flatMap(({ lib }) => lib.files);
+  const byWord = (w: string) => filesAll.filter((f) => f.dated === w).length;
+  const undated = filesAll.filter((f) => !f.dated || !(f.dated in DATED_WORD)).map((f) => f.name);
+  add('Every file says Received, Sent or Made', !undated.length,
+    `${filesAll.length} files · ${byWord('received')} received · ${byWord('sent')} sent · ${byWord('made')} made · without: ${list(undated, 2)}`);
+
+  // 17. No two files in one tender share a name, across its folders.
+  const tenderDupes = all.filter(({ lib }) => new Set(lib.files.map((f) => f.name.toLowerCase())).size !== lib.files.length).map((x) => x.id);
+  add('No two files in one tender share a name', !tenderDupes.length, `${all.length} tenders · repeated in: ${list(tenderDupes)}`);
+
+  // 18. A DG1 Pursue recorded in the demo adds the extract; an Arabic tender's is tagged AR and points to the Arabic original.
+  const arabicIds = new Set(dataOf(tenant).intakeToday.filter((e) => e.language === 'AR').flatMap((e) => (e.tenderId ? [e.tenderId] : [])));
+  const livePursue = (ids: string[]) => {
+    for (const id of ids) {
+      const pack = dg1PackFor(tenant, id, DONE);
+      if (!pack) continue;
+      try {
+        const w = dg1Write({ tenderId: id, decision: 'pursue', reasonCodes: [], note: 'Dev check', at: '2026-03-08T10:20' }, hot.id, pack, DONE);
+        const d = { ...DONE, ...Object.fromEntries(w.writes.map((x) => [x.key, x.value])) };
+        const lib = libraryFor({ tenant, viewer: hot, done: d }, id);
+        return { id, x: lib ? extracts(lib) : [] };
+      } catch { /* refused (a field still being validated): try the next */ }
+    }
+    return null;
+  };
+  const waiting = rows.filter((r) => r.live && r.stage === 1 && !documentFor(tenant, r.id)).map((r) => r.id);
+  const en = livePursue(waiting.filter((id) => !arabicIds.has(id)));
+  const ar = livePursue(waiting.filter((id) => arabicIds.has(id)));
+  const arOk = !ar || (ar.x.length === 1 && ar.x[0].lang === 'AR' && !!htmlOf(ar.x[0])?.includes('Arabic original'));
+  // Dated at the Pursue's minute (10:20) or at an earlier portal purchase, never after the demo clock.
+  add('A DG1 Pursue in the demo adds the extract, never dated after it; Arabic: AR and the original',
+    (!en || (en.x.length === 1 && !!en.x[0].receivedAt && en.x[0].receivedAt <= '2026-03-08T10:20')) && arOk,
+    `${en ? `${en.id} ${en.x.length} extract${en.x[0] ? ` dated ${en.x[0].receivedAt}` : ''}` : 'no tender to pursue'} · ${ar ? `${ar.id} ${ar.x[0]?.lang ?? 'no language'}${arOk ? ', points to the Arabic original' : ', off'}` : 'no Arabic tender waiting for DG1'}`);
+
   return out;
 }
 
 export default function LibraryCheck() {
   const tenant = useTenantKey();
   const rows = useMemo(() => (isGccTenantKey(tenant) ? checks(tenant) : []), [tenant]);
-  if (!isGccTenantKey(tenant)) return <CardHead title="Tender library (plan 030)" meta="No GCC seed for this tenant" />;
+  if (!isGccTenantKey(tenant)) return <CardHead title="Tender library (plans 030, 033)" meta="No GCC seed for this tenant" />;
   const failing = rows.filter((r) => !r.ok).length;
   return (
     <>
-      <CardHead title="Tender library (plan 030)" meta={failing ? `${failing} of ${rows.length} failing` : `All ${rows.length} pass`} />
+      <CardHead title="Tender library (plans 030, 033)" meta={failing ? `${failing} of ${rows.length} failing` : `All ${rows.length} pass`} />
       <DataTable
         rows={rows}
         rowKey={(c) => c.name}

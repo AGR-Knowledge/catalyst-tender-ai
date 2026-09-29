@@ -48,8 +48,32 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 030 | [Tender library and the file viewer](030-tender-library.md): every tender's files in folders (notice, booklet, addenda, correspondence, DG packs, RFQs and quotes, our proposal, evidence, result) with source and time; View in an iframe on the right; Add file; a company-wide Tender library page | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
 | 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | DONE (2026-09-29, reviewed) |
 | 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
-| 033 | [Booklets and file dates](033-booklets-and-file-dates.md): every pursued tender has its booklet in the Library (the real PDF, or a watermarked extract built from its data); each file's date says Received, Sent or Made; the supplier profile's crumb; header tooltips on grids | 10b | wave 10 | READY |
-| 034 | [A bid history that reads true](034-history-that-reads-true.md): our place and the gap to the winner on most losses; value won in proportion to company size (Batinah, Corniche); forecasts that calibrate outside Najd; the Saham duplicate; seats within the licence | 10b | wave 10 | READY |
+| 033 | [Booklets and file dates](033-booklets-and-file-dates.md): every pursued tender has its booklet in the Library (the real PDF, or a watermarked extract built from its data); each file's date says Received, Sent or Made; the supplier profile's crumb; header tooltips on grids | 10b | wave 10 | DONE (2026-09-29, reviewed) |
+| 034 | [A bid history that reads true](034-history-that-reads-true.md): our place and the gap to the winner on most losses; value won in proportion to company size (Batinah, Corniche); forecasts that calibrate outside Najd; the Saham duplicate; seats within the licence | 10b | wave 10 | DONE (2026-09-29, executor and orchestrator, reviewed) |
+
+**Wave 10b review of 033 and 034 (orchestrator, 2026-09-29): both accepted.**
+- 034's executor stopped before its report, with the data and dev check 69 in place. The orchestrator measured what was left, finished it (the docs lines, the checks, the report) and reviewed both plans together.
+- Typecheck and build pass (the circular-chunk warning predates wave 10). `/dev/checks` has no failing row: Najd 961, Corniche 552, Dafna 533, Batinah 541, Qurain 556.
+- The generator's stream is untouched. A dump of every lifecycle against the last commit, without place, gap and prediction, differs only on the edited authored rows: 3 Corniche wins, 5 Batinah wins (one of them the retitled Saham row) and Qurain's retitled QU-O04. Najd and Dafna are identical.
+- Readings: value won is 1.04× FY2025 turnover in Najd, 1.21× in Corniche, 1.05× in Dafna, 1.28× in Batinah and 1.00× in Qurain. Forecast accuracy reads "On track, 2 of 2 bands" in Corniche, Batinah and Qurain. Najd's bands are unchanged, < 30% still 0 of 13.
+- Clicked through at 1440, light and dark, with no console errors:
+  - Bid record in the five companies;
+  - Stage 9 at 12 months in Najd, with places and gaps on most losses;
+  - the tracker line, Stage 9 and the regret letter all read "ranked 2 of 6" on T-2025-177;
+  - Corniche's DG2 pack reads "every band within ±10 points";
+  - Users reads 16 of 16 in Corniche, Dafna and Batinah;
+  - Alpen Bridge Bearings no longer meets the Saham pair;
+  - OUT-3 on Stage 9 in Batinah and Corniche at 12 months and 90 days;
+  - T-2026-097's notice and extract; a DG2 pack reads "Made"; the Load tooltip; the profile's crumb.
+- Review fixes (orchestrator):
+  - Why we lost rounds the median place and field to whole places (`record.ts`). Two technical losses, 7th of 7 and 4th of 4, read "5.5 of 5.5".
+  - 033's open question: a booklet for a Pursue recorded in the demo is dated at the Pursue's own minute, never after the demo clock (`bookletAt`). Dev check 56 row 18 asserts it.
+- Deviations accepted:
+  - 034: no generated win was scaled and no generated prediction re-set, because the authored rows alone meet both rules. QU-O04 is retitled because its title equalled register project `qurain-p4`'s, the same slip as Saham. Seats are 16 in Corniche, Dafna and Batinah. No existing pin moved.
+  - 033: `dated` is optional on the file type (031's supplier documents share it); the extract never states the full booklet's page count.
+- Open:
+  - Corniche's order-intake target (AED 900 M) is 0.73× its turnover, so Value won reads 167% of target. Only Batinah's target was in scope.
+  - Batinah's price losses have a median place of 4th, by the draw; the five companies together sit close to the 3:2:1 weights.
 
 **Wave 10 review of 031 (orchestrator, 2026-09-29): accepted, committed after 029, 030 and 032.**
 - Typecheck and build pass. `/dev/checks`: Najd 946 and Batinah 526, with no failure (68 passes 14 of 14). The executor ran all five tenants.

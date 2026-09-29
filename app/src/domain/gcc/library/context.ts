@@ -10,7 +10,7 @@ import { dataOf, tenderOf } from '@/domain/gcc/s1/common';
 import type { Done } from '@/domain/gcc/s1/done';
 import { brandingOf } from '@/domain/gcc/admin/branding';
 import { refPrefix } from './names';
-import type { FileSourceVM, LibraryFileVM } from './types';
+import type { FileDated, FileSourceVM, LibraryFileVM } from './types';
 
 /**
  * What every folder builder reads (plan 030 Phase 2): the tender's lifecycle
@@ -80,7 +80,7 @@ export function docDate(iso: string | null | undefined): string | undefined {
 
 export const DEMO_YEAR = DEMO_TODAY.slice(0, 4);
 
-/** A file with the fields every builder repeats. The tree sets its folder path. */
-export function fileOf(folderId: string, key: string, f: Omit<LibraryFileVM, 'id' | 'folderId' | 'path' | 'tags'> & { tags?: string[] }): LibraryFileVM {
+/** A file with the fields every builder repeats. The tree sets its folder path. Every builder says what its date is (`dated`). */
+export function fileOf(folderId: string, key: string, f: Omit<LibraryFileVM, 'id' | 'folderId' | 'path' | 'tags' | 'dated'> & { tags?: string[]; dated: FileDated }): LibraryFileVM {
   return { ...f, tags: f.tags ?? [], id: `${folderId}/${key}`, folderId, path: [] };
 }

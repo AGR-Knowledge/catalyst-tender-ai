@@ -60,7 +60,7 @@ export function sourcingFiles(c: LibCtx): SourcingPart {
       const buyer = nameOf(c.t?.bidManagerId ?? l.bidManagerId);
       files.push(fileOf(folder, `rfq-${r.id}`, {
         kind: 'rfq', name: fileName(`RFQ ${pkg.id}`, safe(sName)), title: `RFQ ${pkg.id} ${pkg.title}, to ${sName}`, type: 'PDF',
-        source: { channel: 'person', label: `Sent to ${sName}` }, receivedAt: r.sentAt, by: r.source === 'demo' ? buyer : OUTREACH,
+        source: { channel: 'person', label: `Sent to ${sName}` }, receivedAt: r.sentAt, dated: 'sent', by: r.source === 'demo' ? buyer : OUTREACH,
         tags: [r.source === 'demo' ? 'Sent in the demo' : 'Sent'],
         ...facsimileFile((): FacsimileSpec => ({
           title: `RFQ ${pkg.id} ${sName}`, issuer: c.company, issuerLines: ['Procurement'], heading: 'Request for quotation',
@@ -87,7 +87,7 @@ export function sourcingFiles(c: LibCtx): SourcingPart {
       if (r.declined) {
         files.push(fileOf(folder, `decline-${r.id}`, {
           kind: 'decline', name: fileName(`Decline ${pkg.id}`, safe(sName), 'eml'), title: `${sName} declined`, type: 'Email',
-          source: { channel: 'supplier', label: `From ${sName}, via the Supplier Portal` }, receivedAt: r.declined.at, by: sName,
+          source: { channel: 'supplier', label: `From ${sName}, via the Supplier Portal` }, receivedAt: r.declined.at, dated: 'received', by: sName,
           ...facsimileFile((): FacsimileSpec => ({
             title: `Decline ${pkg.id} ${sName}`, issuer: sName,
             email: { from: sName, to: c.company, subject: `RFQ ${l.tenderId}-${pkg.id}: we will not quote`, received: docDate(r.declined!.at) ?? '' },
@@ -104,7 +104,7 @@ export function sourcingFiles(c: LibCtx): SourcingPart {
       const level: FacCell | null = lv ? (seeQuotes || seeSummary ? money(lv.levelled.amount, lv.levelled.ccy, { full: true }) : { masked: c.holders('see.quotes.summary') }) : null;
       files.push(fileOf(folder, `quote-${q.id}`, {
         kind: 'quote', name: fileName(`Quote ${pkg.id}`, safe(sName)), title: `Quote ${pkg.id} from ${sName}`, type: 'PDF',
-        source: { channel: 'supplier', label: `From ${sName}, via the Supplier Portal` }, receivedAt: q.receivedAt, by: sName,
+        source: { channel: 'supplier', label: `From ${sName}, via the Supplier Portal` }, receivedAt: q.receivedAt, dated: 'received', by: sName,
         tags: lv ? [lv.state === 'levelled' ? 'Levelled' : 'To level'] : [],
         ...(seeQuotes ? {} : { masked: { by: c.holders('see.quotes') } }),
         ...facsimileFile((): FacsimileSpec => ({

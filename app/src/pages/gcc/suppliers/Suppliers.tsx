@@ -160,9 +160,9 @@ const COLS: ColDef<MasterRow>[] = [
   { colId: 'avl', headerName: 'Approved by', valueGetter: (p) => p.data?.avl.length ?? 0, cellRenderer: AvlCell, ...fixed(98) },
   { colId: 'icv', headerName: 'ICV', valueGetter: (p) => p.data?.s.icv ?? -1, cellRenderer: IcvCell, ...fixed(60) },
   { colId: 'screening', headerName: 'Screening', valueGetter: (p) => (p.data ? screeningText(p.data.sc) : ''), cellRenderer: ScreeningCell, ...fixed(158) },
-  { colId: 'ontime', headerName: 'On time', valueGetter: (p) => p.data?.s.performance.onTimePct, cellRenderer: OnTimeCell, type: 'rightAligned', ...fixed(70) },
+  { colId: 'ontime', headerName: 'On time', headerTooltip: 'Share of deliveries on time in the last 12 months. The second line is NCRs raised in the same 12 months.', valueGetter: (p) => p.data?.s.performance.onTimePct, cellRenderer: OnTimeCell, type: 'rightAligned', ...fixed(70) },
   { colId: 'replies', headerName: 'Replies', valueGetter: (p) => p.data?.s.response.ratePct, cellRenderer: RepliesCell, type: 'rightAligned', ...fixed(76) },
-  { colId: 'load', headerName: 'Load', valueGetter: (p) => ['low', 'medium', 'high'].indexOf(p.data?.s.load ?? 'low'), cellRenderer: LoadCell, ...fixed(76) },
+  { colId: 'load', headerName: 'Load', headerTooltip: 'The supplier’s whole order book, across all its clients. The second line is its jobs for us now.', valueGetter: (p) => ['low', 'medium', 'high'].indexOf(p.data?.s.load ?? 'low'), cellRenderer: LoadCell, ...fixed(76) },
   { colId: 'health', headerName: 'Health', valueGetter: (p) => (p.data?.glance ? HEALTH_ORDER.indexOf(p.data.glance.health) : -1), cellRenderer: HealthCell, ...fixed(90) },
   { colId: 'rfqs', headerName: 'Open RFQs', valueGetter: (p) => p.data?.openRfqs ?? 0, type: 'rightAligned', ...fixed(84) },
 ];

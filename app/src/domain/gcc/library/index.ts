@@ -10,7 +10,8 @@ import { FOLDERS, filesOf, flatFolders, treeOf, type FolderDef } from './folders
 import { contentOf, libFilesOf } from './uploads';
 import type { LibraryFileVM, LibraryVM } from './types';
 
-export type { FileTypeTag, FileSourceVM, FileViewVM, LibraryFileVM, LibraryFolderVM, LibraryVM, SourceChannel } from './types';
+export type { FileDated, FileTypeTag, FileSourceVM, FileViewVM, LibraryFileVM, LibraryFolderVM, LibraryVM, SourceChannel } from './types';
+export { DATED_WORD } from './types';
 export { FOLDERS, ADD_DEFAULT, flatFolders, filesOf } from './folders';
 export { facsimileHtml, WATERMARK, type FacsimileSpec, type FacSection, type FacCell } from './facsimile';
 export { csvHtml, csvItemRows, parseCsv } from './csv';
@@ -40,7 +41,7 @@ function addedFiles(c: LibCtx, folders: FolderDef[]): LibraryFileVM[] {
       id: `${f.folderId}/added:${f.name.toLowerCase()}`, kind: 'added', folderId: f.folderId, path: [],
       name: f.name, title: f.name,
       type: ext === 'pdf' || f.type === 'application/pdf' ? 'PDF' : ext === 'csv' ? 'CSV' : f.type.startsWith('image/') ? 'Image' : 'File',
-      source: { channel: 'added', label: 'Added to the library' }, receivedAt: f.at, by,
+      source: { channel: 'added', label: 'Added to the library' }, receivedAt: f.at, dated: 'made', by,
       tags: [`Added by ${by}`, ...(f.version > 1 ? [`v${f.version}`] : [])],
       view: { kind: 'added', mime: f.type, bytes: f.size, at: f.at, byName: by, src: () => contentOf(f.key) },
     } satisfies LibraryFileVM;

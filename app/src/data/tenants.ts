@@ -91,7 +91,7 @@ export const TENANTS: ProfiledTenant[] = [
   {
     key: 'corniche', name: 'Corniche Lattice MEP LLC', legal: 'Corniche Lattice MEP LLC, Dubai', country: 'United Arab Emirates', currency: 'AED',
     residency: 'UAE (me-central-1)', sso: 'Okta', admin: 'Rania Khoury', adminEmail: 'r.khoury@corniche.example',
-    created: '2025-08-04', live: true, goLive: 'November 2025', seats: 14,
+    created: '2025-08-04', live: true, goLive: 'November 2025', seats: 16,
     sources: [
       { name: 'Dubai government e-procurement portal', mode: 'Scheduled, login' },
       { name: 'Abu Dhabi government procurement portal', mode: 'Scheduled, login' },
@@ -106,7 +106,7 @@ export const TENANTS: ProfiledTenant[] = [
   {
     key: 'dafna', name: 'Dafna Keystone Civil W.L.L.', legal: 'Dafna Keystone Civil W.L.L., Doha, with a registered branch in Riyadh', country: 'Qatar', currency: 'QAR',
     residency: 'Qatar, in-country region', sso: 'Google Workspace', admin: 'Nasser Al-Kuwari', adminEmail: 'n.alkuwari@dafna.example',
-    created: '2025-09-01', live: true, goLive: 'December 2025', seats: 12,
+    created: '2025-09-01', live: true, goLive: 'December 2025', seats: 16,
     sources: [
       { name: 'Monaqasat (Ministry of Finance)', mode: 'Scheduled, login' },
       { name: 'Etimad (Riyadh branch)', mode: 'Scheduled, login' },
@@ -120,7 +120,7 @@ export const TENANTS: ProfiledTenant[] = [
   {
     key: 'batinah', name: 'Batinah Waypoint Roads LLC', legal: 'Batinah Waypoint Roads LLC, Sohar', country: 'Oman', currency: 'OMR',
     residency: 'UAE (me-central-1)', sso: 'Microsoft Entra ID', admin: 'Said Al-Balushi', adminEmail: 's.albalushi@batinah.example',
-    created: '2025-10-12', live: true, goLive: 'January 2026', seats: 12,
+    created: '2025-10-12', live: true, goLive: 'January 2026', seats: 16,
     sources: [
       { name: 'Tender Board e-tendering', mode: 'Scheduled, login' },
       { name: 'bids@batinah.example mailbox', mode: 'IMAP, attachments opened. Partner referrals arrive here' },

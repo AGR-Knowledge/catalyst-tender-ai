@@ -12,6 +12,17 @@
 /** The type tag on a file's row. */
 export type FileTypeTag = 'PDF' | 'CSV' | 'Letter' | 'Email' | 'Form' | 'Record' | 'Image' | 'File';
 
+/**
+ * What a file's date is (plan 033): when it reached us (a notice, a quote, the
+ * employer's letters), when it left us (a query or an RFQ we sent, our
+ * proposal as submitted), or when we made it (a gate pack or record, a draft,
+ * evidence, a file added in the demo).
+ */
+export type FileDated = 'received' | 'sent' | 'made';
+
+/** The word before a file's date: "Received Sun 8 Mar 07:33". */
+export const DATED_WORD: Record<FileDated, string> = { received: 'Received', sent: 'Sent', made: 'Made' };
+
 /** How a file reached the company, or who made it. */
 export type SourceChannel = 'portal' | 'email' | 'scan' | 'upload' | 'authority' | 'agent' | 'person' | 'supplier' | 'vault' | 'added';
 
@@ -52,8 +63,10 @@ export interface LibraryFileVM {
   /** The pages read by OCR, in words ("pp. 15–17"), when known. */
   ocrText?: string;
   source: FileSourceVM;
-  /** Tenant-local `YYYY-MM-DDTHH:MM` (or a date). Null when the data has no time. */
+  /** Tenant-local `YYYY-MM-DDTHH:MM` (or a date). Null when the data has no time. `dated` says what it is. */
   receivedAt: string | null;
+  /** What `receivedAt` is. Every library builder sets it; a file without it (a supplier's document) reads as received. */
+  dated?: FileDated;
   /** A person's name, or the issuing body. */
   by: string | null;
   /** Pages or rows, when known. */

@@ -130,7 +130,7 @@ export interface LossRowVM {
   sharePct: number;
   /** Bar width against the most common reason, 0–100. */
   pct: number;
-  /** Our median place and the median field, over the losses that record it. */
+  /** Our median place and the median field, over the losses that record it, each rounded to a whole place. */
   place: { median: number; of: number; n: number } | null;
   /** The median gap to the winner (%), over the losses that record it; masked without `see.margin` on every one of them. */
   gap: { medianPct: number; n: number } | null | 'masked';
@@ -425,7 +425,8 @@ function lossesOf(tenant: string, viewer: Person, res: Sets['res']): LossesVM {
     const gaps = xs.filter((x) => x.r.gapToWinnerPct !== undefined);
     const row: LossRowVM = {
       key, label: LOSS_LABEL[key], count: xs.length, sharePct: Math.round((xs.length / lost.length) * 100), pct: 0,
-      place: ranked.length ? { median: median(ranked.map((x) => x.r.rank![0])), of: median(ranked.map((x) => x.r.rank![1])), n: ranked.length } : null,
+      // Whole places: two losses 7th of 7 and 4th of 4 read "6 of 6", never "5.5 of 5.5" (orchestrator review, plan 034).
+      place: ranked.length ? { median: Math.round(median(ranked.map((x) => x.r.rank![0]))), of: Math.round(median(ranked.map((x) => x.r.rank![1]))), n: ranked.length } : null,
       gap: !xs.every((x) => marginOn(x.l)) ? 'masked' : gaps.length ? { medianPct: Math.round(median(gaps.map((x) => x.r.gapToWinnerPct!)) * 10) / 10, n: gaps.length } : null,
       ids: uniq(xs.map((x) => x.l.tenderId)),
     };

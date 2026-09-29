@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Download, ExternalLink, FileText, X } from '
 import { usePresence } from '@/state/presence';
 import { dateText, DEMO_TODAY } from '@/domain/calendar';
 import { csvHtml } from '@/domain/gcc/library/csv';
-import type { LibraryFileVM } from '@/domain/gcc/library/types';
+import { DATED_WORD, type LibraryFileVM } from '@/domain/gcc/library/types';
 import { LangBadge } from './LangBadge';
 import { Masked } from './Masked';
 import './file-viewer.css';
@@ -208,7 +208,8 @@ export function FileViewer({ file, files, onIndex, onClose, extra }: {
   const v = f.view;
   const held = v.kind === 'url' ? pdfAt(v.src) : v.kind === 'csv' ? v.src : v.kind === 'added' ? v.src() : null;
   const by = byOf(f);
-  const line = [f.source.label, f.receivedAt ? `Received ${whenText(f.receivedAt)}` : null, by ? `By ${by}` : null].filter(Boolean).join(' · ');
+  // Received, Sent or Made, by what the file's date is (plan 033); a file that doesn't say reads as received.
+  const line = [f.source.label, f.receivedAt ? `${DATED_WORD[f.dated ?? 'received']} ${whenText(f.receivedAt)}` : null, by ? `By ${by}` : null].filter(Boolean).join(' · ');
 
   return createPortal(
     <div className="fv-wrap" ref={wrap} role="presentation" data-closing={closing || undefined} style={{ zIndex: z }}>

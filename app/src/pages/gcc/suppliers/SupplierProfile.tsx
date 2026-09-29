@@ -117,8 +117,6 @@ function BackBar({ onBack, children }: { onBack(): void; children?: ReactNode })
   return (
     <div className="spf-top">
       <button type="button" className="spf-back" onClick={onBack}><ChevronLeft size={14} aria-hidden />Suppliers</button>
-      <span className="spf-crumb" aria-hidden>│</span>
-      <span className="spf-crumb">Supplier</span>
       <span className="spf-top-r">{children}</span>
     </div>
   );
