@@ -46,8 +46,26 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 027e | [A reference line on every tile](027e-tile-reference-lines.md): no tile keeps an empty reference row, in any tenant, period or strip; a dev check that keeps it so | 9b | wave 9 | DONE (2026-09-28, reviewed) |
 | 029 | [Tender workspace layout](029-workspace-layout.md): no stage chain in the header; the tracker runs the full width on Overview with all 12 nodes visible; cards side by side share width and height in every workspace tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
 | 030 | [Tender library and the file viewer](030-tender-library.md): every tender's files in folders (notice, booklet, addenda, correspondence, DG packs, RFQs and quotes, our proposal, evidence, result) with source and time; View in an iframe on the right; Add file; a company-wide Tender library page | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
-| 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | DONE — awaiting review (2026-09-29) |
+| 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | DONE (2026-09-29, reviewed) |
 | 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
+
+**Wave 10 review of 031 (orchestrator, 2026-09-29): accepted, committed after 029, 030 and 032.**
+- Typecheck and build pass. `/dev/checks`: Najd 946 and Batinah 526, with no failure (68 passes 14 of 14). The executor ran all five tenants.
+- Clicked through as the Head of Tendering in Najd at 1440, with no console errors:
+  - the master fits with Health and the two-line Load and On time cells; double-click opens `/suppliers/rhein-aqua`;
+  - its six tiles equal its master row (2 awards, 93% on time, 0 NCRs, 92% replies in 5 days, Medium load with 2 jobs for us, Strong health);
+  - the six tabs agree with each other: 14 deliveries, 2 awards, jobs on T-2025-251 and T-2025-262, started after their award dates;
+  - its documents open in the file viewer;
+  - Tarvessa leads with its hard block.
+- Review fixes (orchestrator):
+  - the master's Health column is 90 px, down from 98, so the grid no longer scrolls 6 px sideways at 1440;
+  - a yearly certificate's issue date is the latest anniversary on or before demo day (`issuedBefore` in `profiles/generate.ts`); Rhein Aqua's insurance certificate read "dated 4 Nov 2026". No profile now has a past-event date after 8 Mar 2026 (a scan of all 143).
+- Deviations accepted: B1 (load is the whole order book; Delivered for us), B2 (own currency, EUR or "Reported in USD"), B3 (the `screenHead` line), B4 (no RFQs-received column), B5 (two-line cells), and no export line in `data/gcc/s2/index.ts` (an import cycle). Also accepted: the locked rows for jobs on unshared tenders, call-off deliveries, the Blocked standing in Where it fits now, and the rolled-forward certificates for featured suppliers.
+- Open:
+  - `TooltipModule` isn't registered, so no grid can use `headerTooltip`.
+  - Batinah's register project "Wadi crossing bridges, Saham" and the lifecycle T-2024-360 read as one project.
+  - The profile's crumb reads "Suppliers | Supplier" rather than the supplier's name.
+  - Qarn Air (Corniche) shows T-2026-061 only after a DG1 Pursue.
 
 **Wave 10 review of 029, 030 and 032 (orchestrator, 2026-09-29): all three accepted; 031 still in progress.**
 - Typecheck and build pass. The build's circular-chunk warning on `domain/gcc/s1` predates wave 10 (the last commit's build shows it too). `/dev/checks` in Najd: 946 rows, no failure (032's 920, 030's 12 in 56 and 031's 14 in 68). The executors ran all five tenants.

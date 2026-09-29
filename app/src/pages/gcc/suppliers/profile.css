@@ -1,0 +1,112 @@
+/* ───────── The supplier profile (plan 031). Builds on s1.css and the .eq-row contract in components.css; sizes and colours come from tokens.css.
+   Colours and their meaning: --blue is one measure (revenue, progress, on-time and score bars); status words carry their own tones
+   (green on track / valid / strong, orange watch / renew soon, red late / expired / blocked). No coloured stripes. ───────── */
+
+.spf { display: grid; gap: var(--gap); }
+.spf > .card, .spf-panel > .card { margin: 0; }
+
+/* Back, the place, and the demo control on the right */
+.spf-top { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; min-height: 30px; }
+.spf-back {
+  display: inline-flex; align-items: center; gap: 2px; padding: 4px 8px 4px 4px; font: inherit; font-size: 13px; font-weight: 500; color: var(--link);
+  background: none; border: 0; border-radius: var(--radius-sm); cursor: pointer;
+}
+.spf-back:hover { color: var(--link-hover); background: var(--surface-hover); }
+.spf-back:focus-visible { outline: 2px solid var(--focus-ring, var(--link)); outline-offset: 1px; }
+.spf-crumb { font-size: 12.5px; color: var(--ink-3); }
+.spf-top-r { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+.spf-top-r .demo-chip { margin-left: 4px; }
+
+/* Header: the name, the status words, one line of facts */
+.spf-head { display: grid; gap: 6px; padding: 2px 0 0; }
+.spf-title { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.spf-name { margin: 0; font-size: 21px; font-weight: 600; letter-spacing: -0.3px; color: var(--ink); }
+.spf-pills { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.spf-line { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.spf .s1-strip { margin: 0; }
+
+.spf-tabs .tabs { padding: 0 4px; }
+.spf-panel { display: grid; gap: var(--gap); }
+.spf-panel:focus { outline: none; }
+
+/* Card bodies */
+.spf-pad { padding: 12px 22px 14px; }
+.spf-pad-x { padding-left: 22px; padding-right: 22px; }
+.spf-lede { display: grid; gap: 6px; border-bottom: 1px solid var(--line-3); }
+.spf-lede .s1-lede { margin: 0; padding: 0; }
+.spf-sub { display: block; margin-top: 1px; font-size: 11.5px; font-weight: 400; color: var(--ink-3); }
+.spf .s1-kv .kv .v .spf-sub { text-align: right; }
+.spf-pair { display: inline-grid; justify-items: end; gap: 1px; }
+.spf-eq { font-size: 11.5px; color: var(--ink-3); }
+.spf-eq .money { font-weight: 400; }
+
+/* Tables: no row stripe; states are words in their column */
+.spf-table-wrap { overflow-x: auto; padding: 0 22px 10px; }
+.spf-table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.spf-table th, .spf-table td { padding: 8px 8px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line-3); white-space: nowrap; }
+.spf-table thead th { font-size: 11.5px; font-weight: 600; color: var(--ink-3); border-bottom-color: var(--line-2); vertical-align: bottom; }
+.spf-table tbody th, .spf-table tfoot th { font-weight: 500; color: var(--ink); }
+.spf-table tfoot th, .spf-table tfoot td { font-weight: 600; border-top: 1px solid var(--line-2); border-bottom: 0; }
+.spf-table .r { text-align: right; }
+.spf-table .spf-wrap { white-space: normal; min-width: 120px; }
+.spf-table tbody tr:last-child th, .spf-table tbody tr:last-child td { border-bottom: 0; }
+
+/* Revenue with its blue bar */
+.spf-accounts .spf-rev-bar { width: 100%; max-width: 110px; margin: 6px 0 0 auto; }
+.spf-rev-bar, .spf-bar { display: block; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.spf-rev-bar > span, .spf-bar > span { display: block; height: 100%; background: var(--blue); border-radius: inherit; }
+
+/* Lists: one row anatomy everywhere (title and meta on the left, the word on the right) */
+.spf-rows { list-style: none; margin: 0; padding: 0 22px 6px; display: grid; }
+.spf-rows > li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line-3); font-size: 13px; }
+.spf-rows > li:last-child { border-bottom: 0; }
+.spf-row-t { display: grid; gap: 2px; min-width: 0; }
+.spf-row-n { font-weight: 500; color: var(--ink); display: inline-flex; align-items: center; gap: 6px; }
+.spf-row-m { font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spf-ic { color: var(--ink-3); flex: none; }
+.spf-tender { color: var(--link); text-decoration: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.spf-tender:hover { color: var(--link-hover); text-decoration: underline; }
+.spf-hidden { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-3); }
+.spf-plain { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; font-size: 13px; }
+.spf-plain li { display: grid; gap: 1px; }
+.spf-check { display: inline-flex; align-items: center; gap: 8px; }
+.spf-contact .spf-reach { display: grid; justify-items: end; gap: 2px; font-size: 12px; color: var(--ink-2); }
+.spf-reach svg { vertical-align: -2px; margin-right: 4px; color: var(--ink-3); }
+.spf-reach a { display: inline-flex; align-items: center; }
+
+/* Financial health line, above its cards */
+.spf-health { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; padding: 0 2px; }
+.spf-health-l { font-size: 13px; font-weight: 600; color: var(--ink); }
+
+/* Projects with us */
+.spf-sec { display: grid; gap: 10px; }
+.spf-sec-h { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.spf-sec-h h2 { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink); }
+.spf-job .card-head { flex-wrap: nowrap; }
+.spf-job .card-title { min-width: 0; overflow: hidden; }
+.spf-job .card-title .spf-tender { display: block; }
+.spf-job-p { margin: 0 0 8px; font-size: 13px; font-weight: 500; color: var(--ink); }
+.spf-progress { display: grid; gap: 4px; margin: 0 0 4px; }
+.spf-progress-l { font-size: 12px; color: var(--ink-3); }
+
+/* Performance: on time as blue columns, the evaluation's five scores */
+.spf-chart { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: end; height: 190px; padding: 6px 4px 0; }
+.spf-col { display: grid; grid-template-rows: auto 1fr auto; gap: 6px; height: 100%; justify-items: center; min-width: 0; }
+.spf-col-v { font-size: 12.5px; color: var(--ink-2); }
+.spf-col-track { position: relative; width: 38px; height: 100%; background: var(--track); border-radius: 4px 4px 0 0; overflow: hidden; }
+.spf-col-bar { position: absolute; left: 0; right: 0; bottom: 0; background: var(--blue); border-radius: 4px 4px 0 0; }
+.spf-col-k { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.spf-eval { display: grid; grid-template-columns: 160px minmax(0, 1fr); gap: 12px 28px; align-items: center; }
+.spf-eval-overall { display: grid; gap: 2px; }
+.spf-eval-n { font-size: 30px; font-weight: 600; letter-spacing: -0.5px; color: var(--ink); line-height: 1.1; }
+.spf-scores { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.spf-scores li { display: grid; grid-template-columns: 120px minmax(0, 1fr) 52px; gap: 12px; align-items: center; font-size: 13px; }
+.spf-score-l { color: var(--ink-2); }
+.spf-score-track { display: block; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.spf-score-track > span { display: block; height: 100%; background: var(--blue); border-radius: inherit; }
+.spf-scores .num { text-align: right; color: var(--ink-2); }
+
+@media (max-width: 1099px) {
+  .spf-eval { grid-template-columns: minmax(0, 1fr); }
+  .spf-top-r { margin-left: 0; }
+}

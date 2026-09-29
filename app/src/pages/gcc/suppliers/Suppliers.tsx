@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useCallback, useEffect, useId, useMemo, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import type { ColDef, ICellRendererParams } from 'ag-grid-community';
-import { ExternalLink, Lock, Search, X } from 'lucide-react';
+import { ArrowUpRight, ExternalLink, Lock, Search, X } from 'lucide-react';
 import type { Screening } from '@/domain/gcc/s2';
 import {
   LOAD_LABEL, PREQUAL_LABEL, RESCREEN_DAYS, RFQ_STATE, SCREENING_TONE, supplierMasterFor, supplierProfileFor,
   type SupplierProfileVM, type SupplierRowVM,
 } from '@/domain/gcc/suppliers/profile';
+import { supplierGlanceOf, type SupplierGlance } from '@/domain/gcc/suppliers/detail';
+import type { HealthWord } from '@/domain/gcc/suppliers/health';
 import { dayMonth, dayMonthYear, plural } from '@/domain/gcc/s1/common';
 import type { TileVM } from '@/domain/gcc/viewmodels';
 import { Card, CardHead, KV, Meter } from '@/components/ui/primitives';
@@ -20,6 +22,7 @@ import { kpiCtxOf, valueTile } from '../s1/vm/tiles';
 import { Strip } from '../s1/parts/Strip';
 import { S2Grid } from '../s2/S2Grid';
 import { usePortalPreview } from '../s2/portalLink';
+import { HEALTH_ICON } from './profile/parts';
 import '@/components/dashboard/dashboard.css';
 import '../s1/s1.css';
 import '../s2/s2.css';
@@ -33,6 +36,11 @@ import './suppliers.css';
  * screening, approvals, performance and the RFQs it has open with the
  * company. Counts, dates and states only: never a quoted price, a rate or a
  * package value. Filters and the open supplier live in the URL.
+ *
+ * Plan 031: the master adds Health, and the jobs with us under Load; a double-click or Enter on
+ * a row opens the supplier's full profile (`/suppliers/:id`), a click or Space
+ * its sheet, which opens the profile from its top and adds three rows
+ * (financial health, work for us now, the last evaluation).
  */
 
 const HERE = '/suppliers';
@@ -53,9 +61,13 @@ function At({ iso }: { iso: string }) {
   return <span className="sp-at">{whenLabel(iso.slice(0, 10), iso.length > 10 ? iso.slice(11, 16) : undefined, t.tzLabel, true)}</span>;
 }
 
+/** A master row with its profile glance (plan 031): health, jobs now, the last evaluation. */
+type MasterRow = SupplierRowVM & { glance: SupplierGlance | null };
+
+
 /* ------------------------------------------------------------------ cells */
 
-function SupplierCell(p: ICellRendererParams<SupplierRowVM>) {
+function SupplierCell(p: ICellRendererParams<MasterRow>) {
   if (!p.data) return null;
   return (
     <span className="s1-two">
@@ -67,7 +79,7 @@ function SupplierCell(p: ICellRendererParams<SupplierRowVM>) {
 
 /** Whole chips only: up to three while they fit the column's budget of characters, then "+N". */
 const TRADE_CHARS = 22;
-function TradesCell(p: ICellRendererParams<SupplierRowVM>) {
+function TradesCell(p: ICellRendererParams<MasterRow>) {
   if (!p.data) return null;
   const t = p.data.trades;
   // In the master's order: stop at three, or at the first chip that would pass the budget (the first always shows).
@@ -86,7 +98,7 @@ function TradesCell(p: ICellRendererParams<SupplierRowVM>) {
   );
 }
 
-function AvlCell(p: ICellRendererParams<SupplierRowVM>) {
+function AvlCell(p: ICellRendererParams<MasterRow>) {
   if (!p.data) return null;
   const a = p.data.avl;
   return a.length
@@ -94,7 +106,7 @@ function AvlCell(p: ICellRendererParams<SupplierRowVM>) {
     : <span className="tk-sub">None</span>;
 }
 
-function IcvCell(p: ICellRendererParams<SupplierRowVM>) {
+function IcvCell(p: ICellRendererParams<MasterRow>) {
   const v = p.data?.s.icv;
   if (v === undefined) return <span className="tk-sub">None</span>;
   return (
@@ -108,40 +120,56 @@ function IcvCell(p: ICellRendererParams<SupplierRowVM>) {
 /** "Screened 18 Nov 2025": the rule's label without the weekday, so the pill fits its column. */
 const screeningText = (sc: Screening) => (sc.state === 'current' ? `Screened ${dmy(sc.lastChecked)}` : sc.label);
 
-function ScreeningCell(p: ICellRendererParams<SupplierRowVM>) {
+function ScreeningCell(p: ICellRendererParams<MasterRow>) {
   return p.data ? <StatusPill label={screeningText(p.data.sc)} tone={SCREENING_TONE[p.data.sc.state]} /> : null;
 }
 
-function RepliesCell(p: ICellRendererParams<SupplierRowVM>) {
+function RepliesCell(p: ICellRendererParams<MasterRow>) {
   if (!p.data) return null;
   const r = p.data.s.response;
   return <span className="s1-two sp-r"><span className="num">{r.ratePct}%</span><span className="s1-sub">in {plural(r.avgDays, 'day')}</span></span>;
 }
 
-function LoadCell(p: ICellRendererParams<SupplierRowVM>) {
+/** "93%" over "1 NCR": both are the last 12 months' delivery record (B5). */
+function OnTimeCell(p: ICellRendererParams<MasterRow>) {
+  if (!p.data) return null;
+  const f = p.data.s.performance;
+  return <span className="s1-two sp-r"><span className="num">{f.onTimePct}%</span><span className="s1-sub">{plural(f.ncrs12m, 'NCR')}</span></span>;
+}
+
+/** The load is the supplier's whole order book; under it, the jobs it is doing for you now (B1, B5). */
+function LoadCell(p: ICellRendererParams<MasterRow>) {
   if (!p.data) return null;
   const l = LOAD_LABEL[p.data.s.load];
-  return <StatusPill label={l.label} tone={l.tone} />;
+  const now = p.data.glance?.now ?? 0;
+  return <span className="s1-two sp-load"><StatusPill label={l.label} tone={l.tone} /><span className="s1-sub">{now} with us</span></span>;
+}
+
+function HealthCell(p: ICellRendererParams<MasterRow>) {
+  const g = p.data?.glance;
+  return g ? <StatusPill label={g.health} tone={g.healthTone} icon={HEALTH_ICON[g.health]} /> : null;
 }
 
 // Fixed columns never shrink below their content; the two text columns share what is left. At 1440 they fit; at 1280 the grid scrolls inside.
+// Plan 031 (B5): NCRs sit under On time and the jobs with us under Load, as two-line cells like Replies, so Health fits at 1440.
 const fixed = (width: number) => ({ width, minWidth: width, suppressSizeToFit: true });
-const COLS: ColDef<SupplierRowVM>[] = [
+const HEALTH_ORDER: HealthWord[] = ['Watch', 'Adequate', 'Strong'];
+const COLS: ColDef<MasterRow>[] = [
   { colId: 'name', headerName: 'Supplier', valueGetter: (p) => p.data?.s.name, cellRenderer: SupplierCell, flex: 1.1, minWidth: 168 },
   { colId: 'trades', headerName: 'Trades', valueGetter: (p) => p.data?.trades.join(', '), cellRenderer: TradesCell, flex: 1.5, minWidth: 214, sortable: false },
   { colId: 'avl', headerName: 'Approved by', valueGetter: (p) => p.data?.avl.length ?? 0, cellRenderer: AvlCell, ...fixed(98) },
   { colId: 'icv', headerName: 'ICV', valueGetter: (p) => p.data?.s.icv ?? -1, cellRenderer: IcvCell, ...fixed(60) },
   { colId: 'screening', headerName: 'Screening', valueGetter: (p) => (p.data ? screeningText(p.data.sc) : ''), cellRenderer: ScreeningCell, ...fixed(158) },
-  { colId: 'ontime', headerName: 'On time', valueGetter: (p) => p.data?.s.performance.onTimePct, valueFormatter: (p) => `${p.value}%`, type: 'rightAligned', ...fixed(70) },
-  { colId: 'ncrs', headerName: 'NCRs (12 m)', valueGetter: (p) => p.data?.s.performance.ncrs12m, type: 'rightAligned', ...fixed(90) },
+  { colId: 'ontime', headerName: 'On time', valueGetter: (p) => p.data?.s.performance.onTimePct, cellRenderer: OnTimeCell, type: 'rightAligned', ...fixed(70) },
   { colId: 'replies', headerName: 'Replies', valueGetter: (p) => p.data?.s.response.ratePct, cellRenderer: RepliesCell, type: 'rightAligned', ...fixed(76) },
   { colId: 'load', headerName: 'Load', valueGetter: (p) => ['low', 'medium', 'high'].indexOf(p.data?.s.load ?? 'low'), cellRenderer: LoadCell, ...fixed(76) },
+  { colId: 'health', headerName: 'Health', valueGetter: (p) => (p.data?.glance ? HEALTH_ORDER.indexOf(p.data.glance.health) : -1), cellRenderer: HealthCell, ...fixed(90) },
   { colId: 'rfqs', headerName: 'Open RFQs', valueGetter: (p) => p.data?.openRfqs ?? 0, type: 'rightAligned', ...fixed(84) },
 ];
 
 /* ------------------------------------------------------------------ the sheet */
 
-function SupplierPanel({ vm }: { vm: SupplierProfileVM }) {
+function SupplierPanel({ vm, glance, onProfile }: { vm: SupplierProfileVM; glance: SupplierGlance | null; onProfile(): void }) {
   const s = vm.s;
   const preview = usePortalPreview();
   const prequal = PREQUAL_LABEL[s.prequal];
@@ -157,6 +185,18 @@ function SupplierPanel({ vm }: { vm: SupplierProfileVM }) {
         </span>
         <span className="sp-loc">{s.city}, {vm.country}</span>
       </div>
+      <div className="sp-open">
+        <button type="button" className="btn btn-sm" onClick={onProfile}><ArrowUpRight size={13} aria-hidden />Open full profile</button>
+        <span className="tk-sub">Company, financials, work with us, performance, compliance and contacts</span>
+      </div>
+
+      {glance && (
+        <div className="s1-kv sp-glance">
+          <KV k="Financial health" v={<span className="sp-kv-line"><StatusPill label={glance.health} tone={glance.healthTone} icon={HEALTH_ICON[glance.health]} /><span className="tk-sub">FY{glance.fy} accounts</span></span>} />
+          <KV k="Working for us now" v={<>{plural(glance.now, 'job')} <span className="tk-sub">{glance.delivered ? `plus ${glance.delivered} delivered in 12 months` : 'none delivered in 12 months'}</span></>} />
+          <KV k="Last evaluation" v={<><span className="num">{glance.evaluation.overall.toFixed(1)}</span> of 5 <span className="tk-sub">{dmy(glance.evaluation.at)}, {glance.evaluation.byRole}</span></>} />
+        </div>
+      )}
 
       <h3 className="s1-h3">Screening</h3>
       {vm.sc.reason && <p className={`sp-why ${vm.sc.state === 'blocked' ? 't-red' : 't-orange'}`}>{vm.sc.reason}.</p>}
@@ -204,7 +244,7 @@ function SupplierPanel({ vm }: { vm: SupplierProfileVM }) {
         <KV k="Non-conformance reports" v={<span className="num">{s.performance.ncrs12m}</span>} />
         <KV k="Quotes and awards" v={`${plural(s.performance.quotes12m, 'quote')}, ${s.performance.awards12m} awarded`} />
         <KV k="Average reply" v={plural(s.response.avgDays, 'day')} />
-        <KV k="Current load" v={LOAD_LABEL[s.load].label} />
+        <KV k="Current load" v={<>{LOAD_LABEL[s.load].label} <span className="tk-sub">its whole order book, not only ours</span></>} />
       </div>
 
       <h3 className="s1-h3">Open with us</h3>
@@ -256,7 +296,9 @@ export default function Suppliers() {
   const [params, setParams] = useSearchParams();
   const [text, setText] = useState('');
   const vm = useMemo(() => supplierMasterFor(tenant, done), [tenant, done]);
-  const all = vm.rows;
+  const all = useMemo<MasterRow[]>(() => vm.rows.map((r) => ({ ...r, glance: supplierGlanceOf(tenant, r.id) })), [vm, tenant]);
+  const navigate = useNavigate();
+  const openProfile = useCallback((sid: string) => navigate(`${HERE}/${encodeURIComponent(sid)}`), [navigate]);
 
   const values = useMemo(() => Object.fromEntries(FILTER_KEYS.map((k) => [k, params.get(k) ?? ''])) as Record<(typeof FILTER_KEYS)[number], string>, [params]);
   const setParam = useCallback((edit: (n: URLSearchParams) => void) => {
@@ -267,14 +309,14 @@ export default function Suppliers() {
 
   // Each facet counts the rows the other filters leave, so its numbers always match the count line.
   const needle = text.trim().toLowerCase();
-  const match = useCallback((r: SupplierRowVM, skip?: (typeof FILTER_KEYS)[number]) =>
+  const match = useCallback((r: MasterRow, skip?: (typeof FILTER_KEYS)[number]) =>
     (skip === 'screening' || !values.screening || r.sc.state === values.screening)
     && (skip === 'trade' || !values.trade || (r.s.trades as string[]).includes(values.trade))
     && (skip === 'country' || !values.country || r.s.country === values.country)
     && (!needle || [r.s.name, r.s.city, r.country, ...r.trades, ...r.s.avl].some((x) => x.toLowerCase().includes(needle))), [values, needle]);
   const rows = useMemo(() => all.filter((r) => match(r)), [all, match]);
 
-  const count = (skip: (typeof FILTER_KEYS)[number], test: (r: SupplierRowVM) => boolean) => all.filter((r) => match(r, skip) && test(r)).length;
+  const count = (skip: (typeof FILTER_KEYS)[number], test: (r: MasterRow) => boolean) => all.filter((r) => match(r, skip) && test(r)).length;
   const tradeNames = new Map<string, string>();
   all.forEach((r) => r.s.trades.forEach((t, i) => tradeNames.set(t, r.trades[i])));
   const tradeOptions = [...tradeNames].map(([value, label]) => ({ value, label, n: count('trade', (r) => (r.s.trades as string[]).includes(value)) }))
@@ -292,6 +334,20 @@ export default function Suppliers() {
     setParam((n) => FILTER_KEYS.forEach((k) => n.delete(k)));
   }, [openId, index, all, setParam]);
   const open = (sid: string | null) => setParam((n) => (sid ? n.set('supplier', sid) : n.delete('supplier')));
+
+  // Double-click or Enter on a row opens the full profile; Space opens its sheet (a click still does). The grid's own
+  // Enter would toggle the sheet, so the key is taken before it reaches the grid.
+  const rowIdAt = (el: EventTarget | null) => (el instanceof HTMLElement ? el.closest<HTMLElement>('.ag-row[row-id]')?.getAttribute('row-id') ?? null : null);
+  const onGridDoubleClick = (e: ReactMouseEvent<HTMLDivElement>) => { const sid = rowIdAt(e.target); if (sid) openProfile(sid); };
+  const onGridKey = (e: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const sid = rowIdAt(e.target);
+    if (!sid) return;
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.key === 'Enter') openProfile(sid);
+    else open(openId === sid ? null : sid);
+  };
 
   // Tiles: the same facts as the master, each a shortcut to its screening filter.
   const ctx = kpiCtxOf({ tenant, viewer, viewAs, done }, '30d', 'suppliers');
@@ -353,13 +409,14 @@ export default function Suppliers() {
 
   const selected = index >= 0 ? rows[index] : null;
   const profile = useMemo(() => (selected ? supplierProfileFor(tenant, selected, done, viewer, held.rows) : null), [selected, tenant, done, viewer, held.rows]);
+  const selectedGlance = selected?.glance ?? null;
 
   return (
     <div className="view s1 sp">
       <Strip tiles={tiles} />
       <Card>
-        <CardHead title="Supplier master" meta={<span className="tk-sub">Select a supplier for its sheet</span>} />
-        <p className="s1-lede">Screening, approvals and performance for every supplier. Nothing is sent to a supplier whose screening is not current.</p>
+        <CardHead title="Supplier master" meta={<span className="tk-sub">Click a supplier for its sheet; double-click or Enter opens its profile</span>} />
+        <p className="s1-lede">Screening, approvals and the last 12 months’ performance for every supplier. Nothing is sent to a supplier whose screening is not current.</p>
         <div className="sp-chips" role="group" aria-label="Screening filter">
           {SCREEN_CHIPS.map((chip) => {
             const n = count('screening', (r) => !chip.id || r.sc.state === chip.id);
@@ -394,7 +451,7 @@ export default function Suppliers() {
           <span className="s1-count num" aria-live="polite">{rows.length} of {all.length}</span>
           {active && <button type="button" className="btn btn-sm" onClick={clearAll}><X size={12} aria-hidden />Clear</button>}
         </div>
-        <div className="sp-grid">
+        <div className="sp-grid" onDoubleClick={onGridDoubleClick} onKeyDownCapture={onGridKey}>
           {rows.length
             ? <S2Grid rows={rows} columns={COLS} selectedId={selected?.id ?? null} onSelect={open} label="Supplier master" height={520} />
             : <EmptyState title="No supplier matches." body="Clear the search or a filter." compact />}
@@ -406,7 +463,7 @@ export default function Suppliers() {
         items={rows.map((r) => ({ id: r.id, title: r.s.name }))} index={index >= 0 ? index : null}
         onIndex={(i) => { if (rows[i]) open(rows[i].id); }} onClose={() => open(null)} eyebrow="Supplier"
         returnFocus={(sid) => document.querySelector<HTMLElement>(`.sp-grid [row-id="${CSS.escape(sid)}"] .ag-cell`)}
-        render={(sid) => (profile && profile.id === sid ? <SupplierPanel vm={profile} /> : null)}
+        render={(sid) => (profile && profile.id === sid ? <SupplierPanel vm={profile} glance={selectedGlance} onProfile={() => openProfile(sid)} /> : null)}
       />
     </div>
   );

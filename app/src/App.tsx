@@ -31,6 +31,8 @@ import { can } from '@/data/access';
 const DashboardRoute = lazy(() => import('@/pages/gcc/DashboardRoute'));
 const StageRoute = lazy(() => import('@/pages/gcc/StageRoute'));
 const Workspace = lazy(() => import('@/pages/gcc/workspace/Workspace'));
+/* A supplier's full profile (plan 031). */
+const SupplierProfile = lazy(() => import('@/pages/gcc/suppliers/SupplierProfile'));
 const SupplierPortal = lazy(() => import('@/pages/gcc/supplier/SupplierPortal'));
 /* The presenter's Compare tenants lens (plan 014): a labelled demo view. */
 const Compare = lazy(() => import('@/pages/gcc/demo/Compare'));
@@ -146,6 +148,7 @@ export function App() {
               <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
               <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
               <Route path="tenders/:id" element={<GccOnly>{lazyEl(<Workspace />)}</GccOnly>} />
+              <Route path="suppliers/:id" element={<GccOnly><GuardCap cap="supplier.view">{lazyEl(<SupplierProfile />)}</GuardCap></GccOnly>} />
               <Route path="demo/compare" element={<GccOnly>{lazyEl(<Compare />)}</GccOnly>} />
               {screenRoutes()}
               {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}

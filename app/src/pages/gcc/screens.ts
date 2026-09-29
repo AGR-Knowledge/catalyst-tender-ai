@@ -65,6 +65,7 @@ export function screenHead(pathname: string): { title: string; sub?: string } | 
   const tender = /^\/tenders\/([^/]+)$/.exec(path);
   // The page header carries the tender's identity; the top bar names the place (019 review).
   if (tender) return { title: 'Tender workspace', sub: 'Documents, requirements, sourcing and decisions for one bid.' };
+  if (/^\/suppliers\/[^/]+$/.test(path)) return { title: 'Supplier profile', sub: 'Company facts, financial health, work with us, performance, compliance and contacts for one supplier.' };
   if (import.meta.env.DEV && path === '/dev/checks') return { title: 'Dev checks', sub: 'Tenant foundation, people and seed data. Development only.' };
   if (import.meta.env.DEV && path === '/dev/kit') return { title: 'Kit preview', sub: 'Every dashboard component on fixture data. Development only.' };
   const screen = SCREENS[path];
