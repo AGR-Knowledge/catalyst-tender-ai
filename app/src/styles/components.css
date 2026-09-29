@@ -40,6 +40,22 @@
 .split > *, .grid-3 > *, .stack-gap > * { margin-top: 0 !important; }
 .stack-gap { display: grid; gap: var(--gap); align-content: start; min-width: 0; }
 
+/*
+ * Cards side by side (user rule, 2026-09-29, wave 10 contract): every card in a row has the same width and
+ * the same height. The row is as tall as its tallest card, up to --eq-h; a short card keeps the space, a long
+ * one scrolls inside its .eq-scroll body while its head stays put. --eq-cols sets the number of columns
+ * (default 2). Under 1100 px the cards stack at their natural height.
+ * Use: <div className="eq-row" style={{ '--eq-cols': 3 }}><Card><CardHead …/><div className="eq-scroll">…</div></Card>…</div>
+ */
+.eq-row { display: grid; gap: var(--gap); grid-template-columns: repeat(var(--eq-cols, 2), minmax(0, 1fr)); align-items: stretch; min-width: 0; }
+.eq-row > .card { display: flex; flex-direction: column; min-height: 0; max-height: var(--eq-h, 440px); }
+.eq-row > .card > .card-head, .eq-row > .card > .card-foot { flex: none; }
+.eq-row > .card > .eq-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+@media (max-width: 1099px) {
+  .eq-row { grid-template-columns: minmax(0, 1fr); }
+  .eq-row > .card { max-height: none; }
+}
+
 .section-title { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; margin: 26px 0 12px; }
 .section-title:first-child { margin-top: 0; }
 .section-title h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; }
