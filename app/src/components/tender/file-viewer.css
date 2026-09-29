@@ -1,0 +1,52 @@
+/* ───────── File viewer (plan 030): a whole file in a right-hand panel, over a scrim ───────── */
+
+/* Above a drawer (50); the component lifts it above any overlay open when it opens (a sheet, 52), and one opened from it sits above it. */
+.fv-wrap { position: fixed; inset: 0; z-index: 51; display: flex; justify-content: flex-end; overscroll-behavior: contain; }
+.fv-wrap .scrim { position: absolute; inset: 0; background: var(--scrim); animation: scrimIn 200ms ease-out both; }
+.fv-wrap[data-closing] { pointer-events: none; }
+.fv-wrap[data-closing] .scrim { animation: scrimOut var(--dur-exit) ease-out both; }
+.fv-wrap[data-closing] .fv { animation: drawerOut var(--dur-exit) var(--ease-out) both; }
+
+.fv {
+  position: relative; width: min(62vw, 980px); min-width: 520px; max-width: 100%; height: 100%;
+  background: var(--surface); display: flex; flex-direction: column;
+  box-shadow: var(--shadow-drawer); animation: drawerIn var(--dur-overlay) var(--ease-drawer) both;
+}
+.fv-head { display: flex; align-items: flex-start; gap: 12px; padding: 14px 14px 12px 22px; border-bottom: 1px solid var(--line-2); background: var(--surface); }
+.fv-h-main { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.fv-crumb { display: flex; flex-wrap: wrap; gap: 0; font-size: 12px; color: var(--ink-4); }
+.fv-sep { margin: 0 6px; color: var(--ink-5); }
+.fv-title { font-size: 15px; font-weight: 600; letter-spacing: -0.2px; color: var(--ink); overflow-wrap: anywhere; }
+.fv-line { font-size: 12.5px; color: var(--ink-3); }
+.fv-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin-top: 4px; }
+.fv-tools { display: flex; align-items: center; gap: 2px; flex: none; }
+.fv-tools > .btn-sm { margin-right: 6px; }
+.fv-n { font-size: 12px; color: var(--ink-4); margin-right: 6px; white-space: nowrap; }
+.fv-tools a.btn-icon { display: inline-flex; align-items: center; justify-content: center; }
+
+/* A file's tags: the type in mono caps, others as plain words. Shared with the library's rows. */
+.fv-tag {
+  display: inline-flex; align-items: center; white-space: nowrap;
+  font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; line-height: 16px; letter-spacing: 0.2px;
+  padding: 0 6px; border-radius: 4px; border: 1px solid var(--line-strong); color: var(--ink-3); background: var(--surface);
+}
+.fv-tag-plain { font-family: inherit; font-size: 11px; letter-spacing: 0; border-color: var(--line); }
+
+/* The ground behind the document follows the theme; the page itself stays white paper. */
+.fv-body { position: relative; flex: 1; min-height: 0; background: var(--surface-sunken); display: flex; }
+/* The facsimile's own ground is transparent: a light iframe keeps it so in the dark theme too. */
+.fv-frame { flex: 1; width: 100%; height: 100%; border: 0; display: block; color-scheme: light; background: transparent; }
+.fv-msg { margin: auto; padding: 40px; text-align: center; color: var(--ink-4); font-size: 13px; }
+.fv-img { flex: 1; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 18px; }
+.fv-img img { max-width: 100%; height: auto; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.14), 0 0 0 1px var(--line); background: #fff; }
+.fv-card { margin: 48px auto auto; max-width: 440px; padding: 26px 28px; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); display: grid; gap: 8px; justify-items: center; font-size: 13px; color: var(--ink-2); }
+.fv-card p { margin: 0; }
+.fv-card-ic { color: var(--ink-4); }
+.fv-card-t { font-weight: 600; color: var(--ink); overflow-wrap: anywhere; }
+.fv-card-s { color: var(--ink-4); font-size: 12.5px; }
+
+@media (max-width: 760px) {
+  .fv { width: 100%; min-width: 0; }
+  .fv-head { padding: 12px 10px 10px 14px; flex-wrap: wrap; }
+  .fv-tools { width: 100%; justify-content: flex-end; }
+}

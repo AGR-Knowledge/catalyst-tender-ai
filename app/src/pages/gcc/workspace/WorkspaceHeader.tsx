@@ -11,13 +11,14 @@ import { HERO_ID } from '@/data/gcc/hero';
 
 /**
  * The sticky header of the Tender Workspace (spec §4.1): one line of
- * identity (ID, title, badges, value) and one of track, due and owner. The
- * tab list sits in its last row so the two stick together.
+ * identity (ID, title, badges, value) and one of issuer, due and owner. The
+ * crumb names the stage and step in words; the lifecycle itself is the
+ * tracker on Overview (plan 029), not repeated here. The tab list sits in
+ * its last row so the two stick together.
  */
 
-const MARK = { done: '✓', current: '●', 'not-reached': '', stopped: '✕' } as const;
-
 export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; onBack(): void; tabs: ReactNode }) {
+  const who = `${vm.issuer}${vm.place ? ` · ${vm.place}` : ''}${vm.procurement ? ` · ${vm.procurement}` : ''}`;
   return (
     <header className="wsh">
       <div className="wsh-crumb">
@@ -46,20 +47,7 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
       </div>
 
       <div className="wsh-l2">
-        <span className="wsh-who">
-          {vm.issuer}{vm.place ? ` · ${vm.place}` : ''}{vm.procurement ? ` · ${vm.procurement}` : ''}
-        </span>
-        {vm.track.length > 0 && (
-          <ol className="wsh-track" aria-label="Stages and gates">
-            {vm.track.map((s) => (
-              <li key={s.key} className={`k-${s.gate ? 'gate' : 'stage'} s-${s.status} ${s.muted ? 'muted' : ''}`} title={s.title}>
-                <span className="wsh-dot" aria-hidden>{MARK[s.status]}</span>
-                <span className="wsh-k">{s.short}</span>
-                <span className="sr-only">{s.title}</span>
-              </li>
-            ))}
-          </ol>
-        )}
+        <span className="wsh-who" title={who}>{who}</span>
         <span className={`wsh-due ${vm.due?.near ? 'near' : ''}`}>
           {vm.due ? (
             <>

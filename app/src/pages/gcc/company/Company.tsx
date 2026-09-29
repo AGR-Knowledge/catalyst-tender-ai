@@ -4,6 +4,7 @@ import { vaultFor } from '@/domain/gcc/company';
 import { Tabs, tabPanelProps, type TabItem } from '@/components/tender/Tabs';
 import { useS1 } from '../s1/vm/useS1';
 import { Overview } from './Overview';
+import { BidRecord } from './Record';
 import { Credentials } from './Credentials';
 import { Projects } from './Projects';
 import { Financials } from './Financials';
@@ -13,8 +14,9 @@ import '../s1/s1.css';
 import './company.css';
 
 /**
- * `/company`, Company profile (plans 010 and 027c, catalogue §D): an Overview
- * that reads like a bidder's profile, then the credentials vault with the
+ * `/company`, Company profile (plans 010, 027c and 032, catalogue §D): an
+ * Overview that reads like a bidder's profile, its bid record (`?tab=record`,
+ * with `&sector=`), then the credentials vault with the
  * renewal upload, the similar-projects register, the accounts and bank
  * guarantee facility, and the tendering teams and partners, all read from the
  * seed. The tab and what is open live in the URL (`?tab=`, `?cred=`,
@@ -23,9 +25,9 @@ import './company.css';
  */
 
 const PREFIX = 'company';
-type TabId = 'overview' | 'credentials' | 'projects' | 'financials' | 'teams';
-const TAB_IDS: TabId[] = ['overview', 'credentials', 'projects', 'financials', 'teams'];
-const LABEL: Record<TabId, string> = { overview: 'Overview', credentials: 'Credentials', projects: 'Projects', financials: 'Financials', teams: 'Teams and partners' };
+type TabId = 'overview' | 'record' | 'credentials' | 'projects' | 'financials' | 'teams';
+const TAB_IDS: TabId[] = ['overview', 'record', 'credentials', 'projects', 'financials', 'teams'];
+const LABEL: Record<TabId, string> = { overview: 'Overview', record: 'Bid record', credentials: 'Credentials', projects: 'Projects', financials: 'Financials', teams: 'Teams and partners' };
 /** The tab values of plan 010, so older links still land. */
 const OLD: Record<string, TabId> = { profile: 'overview', facility: 'financials' };
 
@@ -63,6 +65,7 @@ export default function Company() {
       </div>
       <div className="co-panel" {...tabPanelProps(PREFIX, active)}>
         {active === 'overview' && <Overview s1={s1} vault={vault} onTab={openTab} />}
+        {active === 'record' && <BidRecord s1={s1} />}
         {active === 'credentials' && <Credentials s1={s1} vault={vault} />}
         {active === 'projects' && <Projects s1={s1} />}
         {active === 'financials' && <Financials tenant={tenant} />}

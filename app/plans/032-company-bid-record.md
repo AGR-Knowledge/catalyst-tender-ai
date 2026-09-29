@@ -1,6 +1,6 @@
 # 032 — Company profile: the bid record
 
-Status: READY · Depends on: wave 9b (committed `3a00f3f`) and the wave 10 contract (`.eq-row` in `styles/components.css`) · Can run in parallel with: 029, 030, 031
+Status: DONE — awaiting review (2026-09-29) · Depends on: wave 9b (committed `3a00f3f`) and the wave 10 contract (`.eq-row` in `styles/components.css`) · Can run in parallel with: 029, 030, 031
 
 ## Goal
 The company profile shows the company's record as a bidder: how many tenders it bid, won and lost, of what kind (sector, client, country, size), why it lost and how close it came, what it chose not to bid, and how that has moved over five years. The last 12 months are tender by tender and agree with the dashboards; the earlier years are the company's annual record.
@@ -71,37 +71,37 @@ Card: Results, last 12 months (AG Grid: tender → workspace, client, sector, co
 ## Steps
 
 ### Phase 1 — The earlier years' seed
-- [ ] 1.1 `BidYearSeed`: `{ from: 'YYYY-03-09', to: 'YYYY-03-08', submitted, won, lost, withdrawn, valueSubmitted: Money, valueWon: Money, bySector: Record<string, { submitted: number; won: number }> }` in the tenant's currency.
-- [ ] 1.2 Four years per GCC tenant (Najd, Corniche, Dafna, Batinah, Qurain). Size them to each company (its turnover and its last-12-month counts): a steady or improving win rate for most, and one tenant with a dip year to make the chart honest. Sectors come from the company's identity sectors.
-- [ ] 1.3 Acceptance: the seed meets the plausibility rules in Design; every figure lives in `src/data/` only.
+- [x] 1.1 `BidYearSeed`: `{ from: 'YYYY-03-09', to: 'YYYY-03-08', submitted, won, lost, withdrawn, valueSubmitted: Money, valueWon: Money, bySector: Record<string, { submitted: number; won: number }> }` in the tenant's currency.
+- [x] 1.2 Four years per GCC tenant (Najd, Corniche, Dafna, Batinah, Qurain). Size them to each company (its turnover and its last-12-month counts): a steady or improving win rate for most, and one tenant with a dip year to make the chart honest. Sectors come from the company's identity sectors.
+- [x] 1.3 Acceptance: the seed meets the plausibility rules in Design; every figure lives in `src/data/` only.
 
 ### Phase 2 — Derivations (`domain/gcc/company/record.ts`)
-- [ ] 2.1 The 12-month set: submitted, results (won, lost, withdrawn), declines (DG1 discard and DG2 no-bid in the window, with reason codes), each with its lifecycle.
-- [ ] 2.2 Breakdowns: by sector, client type, country, value band (three bands in the company currency, set once in the domain from the tenant's typical bid size and labelled in words, e.g. "Under SAR 50 M"), and top clients (by bids, then wins, up to 8). Each gives bids, won, lost and win rate, with "n = …" where fewer than 5 results.
-- [ ] 2.3 Loss analysis: reasons with count and share; our place (median rank) and the median gap to the winner per reason, masked without `see.margin`.
-- [ ] 2.4 Captured → pursued → submitted → won over 12 months, from the same lifecycles. If `portfolio.flow.ts` already exposes these counts for the 12-month window, read them from it so the funnel card and this row agree.
-- [ ] 2.5 Forecast accuracy: `calibrationFor` over the 12-month outcomes (as OUT-4 reads them).
-- [ ] 2.6 The five-year series: the four seeded years, then the derived last 12 months.
-- [ ] 2.7 Filters: a sector narrows 2.1–2.5 and the table together; the five-year series ignores it.
+- [x] 2.1 The 12-month set: submitted, results (won, lost, withdrawn), declines (DG1 discard and DG2 no-bid in the window, with reason codes), each with its lifecycle.
+- [x] 2.2 Breakdowns: by sector, client type, country, value band (three bands in the company currency, set once in the domain from the tenant's typical bid size and labelled in words, e.g. "Under SAR 50 M"), and top clients (by bids, then wins, up to 8). Each gives bids, won, lost and win rate, with "n = …" where fewer than 5 results.
+- [x] 2.3 Loss analysis: reasons with count and share; our place (median rank) and the median gap to the winner per reason, masked without `see.margin`.
+- [x] 2.4 Captured → pursued → submitted → won over 12 months, from the same lifecycles. If `portfolio.flow.ts` already exposes these counts for the 12-month window, read them from it so the funnel card and this row agree.
+- [x] 2.5 Forecast accuracy: `calibrationFor` over the 12-month outcomes (as OUT-4 reads them).
+- [x] 2.6 The five-year series: the four seeded years, then the derived last 12 months.
+- [x] 2.7 Filters: a sector narrows 2.1–2.5 and the table together; the five-year series ignores it.
 
 ### Phase 3 — The Bid record tab
-- [ ] 3.1 `Company.tsx`: `record` tab labelled **Bid record**, second in the list; `?tab=record`; old links unchanged.
-- [ ] 3.2 `Record.tsx`: tiles (PF-3 via `registryTile`; the others via `valueTile` with the full ⓘ text: means, counted, target, source), then the rows in the Design's order, each an `.eq-row` with `.eq-scroll` bodies, then the results table (AG Grid, since it has more than five rows).
-  - [ ] 3.2.1 Charts: Recharts, bars `--blue` for single series, and Won / Lost / Withdrawn in their stated colours with a legend; each chart has a screen-reader table (as `StageChart` does).
-  - [ ] 3.2.2 A click on a bar, a breakdown row or a tile filters the table and scrolls to it; the table's filter shows as a removable chip.
-  - [ ] 3.2.3 "How to read this" ⓘ on the tab's head explains the colours, the 12-month window, and that earlier years are the annual record.
-- [ ] 3.3 Acceptance, as the Head of Tendering in Najd:
-  - [ ] 3.3.1 The Win / loss tile equals the home dashboard's Win / loss tile at "Last 12 months";
-  - [ ] 3.3.2 the sector breakdown's bids add up to Bids submitted;
-  - [ ] 3.3.3 a lost tender in the table opens its workspace, and its result reads the same there.
+- [x] 3.1 `Company.tsx`: `record` tab labelled **Bid record**, second in the list; `?tab=record`; old links unchanged.
+- [x] 3.2 `Record.tsx`: tiles (PF-3 via `registryTile`; the others via `valueTile` with the full ⓘ text: means, counted, target, source), then the rows in the Design's order, each an `.eq-row` with `.eq-scroll` bodies, then the results table (AG Grid, since it has more than five rows).
+  - [x] 3.2.1 Charts: Recharts, bars `--blue` for single series, and Won / Lost / Withdrawn in their stated colours with a legend; each chart has a screen-reader table (as `StageChart` does).
+  - [x] 3.2.2 A click on a bar, a breakdown row or a tile filters the table and scrolls to it; the table's filter shows as a removable chip.
+  - [x] 3.2.3 "How to read this" ⓘ on the tab's head explains the colours, the 12-month window, and that earlier years are the annual record.
+- [x] 3.3 Acceptance, as the Head of Tendering in Najd:
+  - [x] 3.3.1 The Win / loss tile equals the home dashboard's Win / loss tile at "Last 12 months";
+  - [x] 3.3.2 the sector breakdown's bids add up to Bids submitted;
+  - [x] 3.3.3 a lost tender in the table opens its workspace, and its result reads the same there.
 
 ### Phase 4 — Overview and equal rows
-- [ ] 4.1 The Bid record summary card on Overview, beside the Project record, in an `.eq-row`; **Bid record →** opens the tab.
-- [ ] 4.2 `.co-ov-cols`, `.co-facility`, `.co-teams`, and every other row of cards in Company's tabs become `.eq-row` with `.eq-scroll` bodies. List them in the report (tab, file:line).
-- [ ] 4.3 Acceptance at 1280 and 1440: cards in a row have the same width and height; the long card scrolls inside with its head fixed.
+- [x] 4.1 The Bid record summary card on Overview, beside the Project record, in an `.eq-row`; **Bid record →** opens the tab.
+- [x] 4.2 `.co-ov-cols`, `.co-facility`, `.co-teams`, and every other row of cards in Company's tabs become `.eq-row` with `.eq-scroll` bodies. List them in the report (tab, file:line).
+- [x] 4.3 Acceptance at 1280 and 1440: cards in a row have the same width and height; the long card scrolls inside with its head fixed.
 
 ### Phase 5 — Checks
-- [ ] 5.1 `dev-checks/66-company.tsx`, about 12 new rows per tenant:
+- [x] 5.1 `dev-checks/66-company.tsx`, about 12 new rows per tenant:
   - the 12-month won, lost and value won equal PF-3's at 12 months for the Head of Tendering;
   - submitted equals `submissionsIn` at 12 months;
   - each breakdown sums to its total;
@@ -109,12 +109,12 @@ Card: Results, last 12 months (AG Grid: tender → workspace, client, sector, co
   - declines equal the DG1 discards and DG2 no-bids in the window;
   - forecast accuracy equals `calibrationFor`;
   - the seed has four years, with won + lost + withdrawn = submitted, value won within 40–160% of turnover, and sectors within the company's.
-- [ ] 5.2 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
-- [ ] 5.3 Browser (your own tab; reset the demo in that tab only), at 1280 and 1440, light and dark, no console errors:
-  - [ ] 5.3.1 Najd as the Head of Tendering (everything), the Tender Coordinator (`company.view`, no `see.margin`: gap and predicted win masked), Finance (the Company section only);
-  - [ ] 5.3.2 Corniche and Qurain read sensibly (their currencies, their sectors);
-  - [ ] 5.3.3 after "Start: DG2 committee" (Demo menu) and a DG2 No-Bid on T-2026-097, "Chose not to bid" and the table follow if the decision falls in the window, and the dashboard agrees.
-- [ ] 5.4 Reset demo returns the tab to its seed readings (this plan adds no demo state).
+- [ ] 5.2 typecheck and build pass; `/dev/checks` has no failing row in any tenant. *(Dev checks pass in all five tenants and typecheck is clean in this plan's files; `npm run build` is blocked by plan 031's `data/gcc/s2/profiles/generate.ts`, see Blockers.)*
+- [x] 5.3 Browser (your own tab; reset the demo in that tab only), at 1280 and 1440, light and dark, no console errors:
+  - [x] 5.3.1 Najd as the Head of Tendering (everything), the Tender Coordinator (`company.view`, no `see.margin`: gap and predicted win masked), Finance (the Company section only);
+  - [x] 5.3.2 Corniche and Qurain read sensibly (their currencies, their sectors);
+  - [x] 5.3.3 after "Start: DG2 committee" (Demo menu) and a DG2 No-Bid on T-2026-097, "Chose not to bid" and the table follow if the decision falls in the window, and the dashboard agrees.
+- [x] 5.4 Reset demo returns the tab to its seed readings (this plan adds no demo state).
 
 ## Data and derivation
 - New facts: the four earlier rolling years per tenant in `data/gcc/company/`.
@@ -122,19 +122,54 @@ Card: Results, last 12 months (AG Grid: tender → workspace, client, sector, co
 - No new `done` keys.
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants
-- [ ] Company › Bid record shows won, lost and declined tenders by sector, client type, country, size and client, why we lost, and five years of record
-- [ ] The 12-month figures equal the home dashboard's Win / loss at 12 months for the same viewer
-- [ ] Colours are fixed (won green, lost grey, withdrawn hatched, single series blue) and explained on screen
-- [ ] Cards side by side on every Company tab share width and height; long content scrolls inside
-- [ ] Masking of the gap to winner and the predicted win is correct; Reset returns to the seed
-- [ ] No hard-coded numbers in pages; no role checks outside `access.ts`
+- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants *(build: see Blockers)*
+- [x] Company › Bid record shows won, lost and declined tenders by sector, client type, country, size and client, why we lost, and five years of record
+- [x] The 12-month figures equal the home dashboard's Win / loss at 12 months for the same viewer
+- [x] Colours are fixed (won green, lost grey, withdrawn hatched, single series blue) and explained on screen
+- [x] Cards side by side on every Company tab share width and height; long content scrolls inside
+- [x] Masking of the gap to winner and the predicted win is correct; Reset returns to the seed
+- [x] No hard-coded numbers in pages; no role checks outside `access.ts`
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Rows made equal (tab, file:line):
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+Executor, 2026-09-29.
+
+- **Changed files:**
+  - New: `data/gcc/company/bidRecord.ts` (`BidYearSeed`, `BID_RECORD_YEARS`: four rolling years per tenant); `domain/gcc/company/record.ts` (`bidRecordFor`, `bidSummaryFor`, `valueBandsOf`, `RECORD_PERIOD`, `RECORD_STATUS`, `LOSS_LABEL`, `declineReasonLabel`); `pages/gcc/company/Record.tsx` (the tab, component `BidRecord`); `pages/gcc/company/record/{Cards,FiveYearChart,RecordGrid}.tsx`.
+  - Changed: `pages/gcc/company/Company.tsx` (the `record` tab, second); `Overview.tsx` (the Bid record card, two equal rows, `.eq-scroll` bodies); `Teams.tsx` (equal row); `company.css` (the bid record block; `.co-ov-cols` and `.co-teams` grid rules removed); `domain/gcc/company/overview.ts` (`bids: BidSummaryVM`); `domain/gcc/company/index.ts` (one line, `export * from './record'`; every existing export kept); `pages/gcc/dev-checks/66-company.tsx` (14 rows, 17–30; targets 1–16 unchanged); `pages/gcc/screens.ts` (the `/company` line names the bid record; re-read before editing, one line).
+- **Rows made equal (tab, file:line):**
+  - Overview: `Overview.tsx:316` Project record | Bid record; `Overview.tsx:320` Turnover by year | Where this profile is used (was `.co-ov-cols`, 5fr / 7fr). Bodies: `:158`, `:213`, `:233`, `:246`, `:280`.
+  - Teams and partners: `Teams.tsx:22` (was `.co-teams`, auto-fit 420 px, `align-items: start`); `--eq-cols` is the number of teams (1 fills the row, up to 3); body `:26`.
+  - Bid record (new): `Record.tsx:266` (2), `:277` (3), `:283` (2), `:288` (2); bodies in `Record.tsx:269` and `record/Cards.tsx`.
+  - Not rows of cards, left as they were: `.co-facility` (two columns inside the one facility card, already equal widths), `.co-rec-lists`, `.co-recent`. Credentials, Projects and Financials have no cards side by side.
+- **Verification** (my own headless Chrome over the DevTools protocol, own profile, against the shared dev server on 5173; reset only there):
+  - typecheck: no error in any file of this plan. `npm run build`: see Blockers. `vite build` of the whole app into my scratchpad succeeds (the Company chunk is 106 kB).
+  - `/dev/checks`, every tenant, no failing row on the page: Najd 920, Corniche 511, Dafna 492, Batinah 500, Qurain 515 (wave 9b's counts + 14). The company card reads "All 30 pass".
+  - 3.3.1: Win / loss on the tab equals the home dashboard at "12 months" for the Head of Tendering in all five tenants (Najd "9 won · 24 lost, 27% · SAR 1.72 bn won, Target 25%"). The funnel row equals the dashboard's funnel (2,080 → 60 → 38 → 9); declines 116 + 14 = the funnel's discarded and no-bid.
+  - 3.3.2: sector bids add up to Bids submitted (38) in every tenant (and client type, country, size; row 20).
+  - 3.3.3: T-2025-270 in the table reads Lost · Price · 2 of 6 · decided Thu 5 Mar; its link opens `/tenders/T-2025-270`, whose tracker reads "Lost · price · ranked 2 of 6 · Thu 5 Mar".
+  - Clicks: each tile, breakdown row, loss reason, decline reason, funnel count and part of the last five-year bar sets the table's filter; the table scrolls into view and focus goes to the chip's clear button; the chip clears. The sector chip narrows tiles, rows, funnel (captured says "all sectors") and table; the five years stay. Tooltip on the chart shows the year's figures and sectors.
+  - 5.3.1: Najd Head of Tendering (everything); Tender Coordinator (Forecast accuracy masked, the gap to the winner masked in Why we lost, 26 masked cells in the price-loss table); Finance (sidebar Dashboard, Calendar, Company profile, Settings; the 12 months read 0 with "count only the tenders shared with you"); Bid Manager also checked (assigned every historic bid, so sees all).
+  - 5.3.2: Corniche (AED; Buildings MEP, District cooling, Fit-out) and Qurain (KWD; Water, Infrastructure, Oil and gas facilities) read sensibly; Dafna and Batinah checked too.
+  - 5.3.3: Demo menu › "Start: DG2 committee", a third position recorded as secretary (quorum met), Record No-Bid on T-2026-097 (Capacity conflict): Chose not to bid 130 → 131, "No-bid at DG2" 14 → 15 with "Capacity conflict 1"; the dashboard's funnel reads 15 no-bid. 5.4: Demo › Reset this company returns 130 / 14.
+  - 4.3: at 1280 and 1440, every row's cards share width and height (e.g. 467 × 440 | 467 × 440); long cards scroll inside with the head fixed (checked by scrolling Top clients). Light and dark at 1280 and 1440. No console errors (only React Router's existing future-flag warnings).
+- **Deviations from plan:**
+  1. Value won is the registered OUT-3 (`registryTile`), not a `valueTile`, so it equals the dashboards' Value won at 12 months. With a sector chosen, Win / loss and Value won become `valueTile`s over the narrowed totals, with PF-3's and OUT-3's own ⓘ text plus "Narrowed to …"; OUT-3's order-intake target is dropped for a sector.
+  2. When the viewer cannot open every tender in the window (`partial`, e.g. Finance), PF-3 and OUT-3 keep their values but lose tone and status: a company target would otherwise call a part of the record "Off track".
+  3. The third series is **Withdrawn or cancelled**: the 12-month lifecycles have no `withdrawn` result, only `cancelled` by the employer (2 in Najd, 7 in Corniche). The seed field stays `withdrawn`.
+  4. The predicted win % is masked without `see.margin` **or** `see.positions`: the plan names `see.margin`; the tender table masks it with `see.positions`. Requiring both keeps the two screens from disagreeing (the same for every `company.view` role today).
+  5. By country: each tenant bids in one country, with its cities 1–3 bids each, so the card shows one row and says "Every bid in the last 12 months was in …".
+  6. Value bands are derived once per tenant from the seed's 12-month bids (the thirds, rounded to a round figure), not typed: Najd under SAR 150 M · SAR 150–250 M · SAR 250 M and over; Corniche AED 250 / 400 M; Dafna QAR 150 / 300 M; Batinah OMR 15 / 30 M; Qurain KWD 15 / 30 M.
+  7. The table is "Tenders, last 12 months": it opens on the bids (submitted, or with a result, in the window); a count can also list declines or pursuits, so the status words run Won … In progress. It is my own fixed-height grid (`record/RecordGrid.tsx`, 10 rows, then it scrolls) because `S1Grid` is auto-height and not in my files.
+  8. Overview: two rows, Project record | Bid record and Turnover by year | Where this profile is used. The card adds "Chose not to bid" as its sixth figure. In a half-width card the project record's two bar lists stack, and the usage card's gap rows read on two lines.
+  9. Declines are counted by their first reason code, so the rows add up to the decisions. The history's codes `pq-fail`, `contract-risk` and `price-competition` get words in `record.ts` (`declineReasonLabel`); `reasonLabel` returns them raw.
+  10. The seed check for 2021–22 compares with FY2022: the accounts start at FY2022.
+  11. The dev checks are 14 rows, each across the five tenants (the file's pattern), rather than about 12 per tenant.
+- **Blockers / questions:**
+  - `npm run build` stops at `tsc -b` on `src/data/gcc/s2/profiles/generate.ts(458,9)`: "'delivered' is declared but its value is never read". That is plan 031's file, mid-edit. Re-run several times over about 20 minutes; not touched. The orchestrator should re-run the build once 031 lands.
+- **Follow-ups noticed (not done):**
+  - Our place and the gap to the winner are recorded on 2 of Najd's 24 losses (1 gap) and on none in the other tenants, so "Why we lost" and the table read "Not published" almost everywhere. More places and gaps on the history results (the lifecycle generator, out of scope) would let that card land.
+  - The generated bids are large for Batinah (value won OMR 177.5 M in 12 months, about 4× its FY2025 turnover of OMR 43.5 M) and Corniche (AED 2.46 bn, about 2×). The seeded years keep to 40–160%, so the 12-month value jumps in the chart's tooltip.
+  - Forecast accuracy reads off target in Corniche (0 of 2 bands), Batinah (0 of 3) and Qurain (0 of 2): the generated predictions do not calibrate. It is what `calibrationFor` (OUT-4) says; decide whether that is the intended story.
+  - Catalogue §D and dashboards.md §8.3 do not mention the Bid record tab yet.
+  - Finance opens only invited tenders, so its 12 months read 0. If Finance should read the company's record, that is an access decision.
+  - Loss-reason words are defined three times (`lifecycle.port.ts`, `stage9.kpi.ts`, `record.ts`); `CALIBRATION_MIN_N` and the tolerance are not exported from `s3/win.ts`.

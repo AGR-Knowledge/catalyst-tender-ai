@@ -1,28 +1,26 @@
-import { FileText } from 'lucide-react';
-import { personById } from '@/data/people';
+import { useMemo } from 'react';
 import { dateText } from '@/domain/calendar';
-import { addendaFor, pipelineFor, DISPOSITION_LABEL, type AddendumVM } from '@/domain/gcc/s1';
+import { addendaFor, pipelineFor, type AddendumVM } from '@/domain/gcc/s1';
 import { dataOf, shortWhen, tenderOf } from '@/domain/gcc/s1/common';
-import { ocrOf, pagesText, readingOf } from '@/domain/gcc/arabic';
+import { libraryFor } from '@/domain/gcc/library';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { SourceChip } from '@/components/tender/SourceChip';
-import { useSourceHost } from '@/components/tender/SourceHost';
-import { LangBadge } from '@/components/tender/LangBadge';
 import { Callout } from '@/components/tender/Callout';
 import { EmptyState } from '@/components/tender/EmptyState';
-import { docOf, sourceDocOf } from '@/pages/gcc/s1/vm/docs';
-import { uploadsOf } from '@/pages/gcc/s1/vm/uploads';
 import { IntakeSteps } from '@/pages/gcc/s1/IntakeSteps';
-import { ReadInEnglish } from '../parts/ReadInEnglish';
+import { LibraryBrowser } from '@/pages/gcc/library/LibraryBrowser';
+import { useBookletExtra } from '@/pages/gcc/library/bookletExtra';
 import type { WorkspaceCtx, WorkspaceTabDef } from './types';
 import '@/pages/gcc/s1/s1.css';
 
 /**
- * Documents (order 20, plan 007b): the tender document the demo holds (read
- * through `documentFor`), every source it arrived from (one tender, one ID,
- * spec §6.8), this morning's intake steps (§6.2), and each addendum with what
- * it changed and what that set off. A document read from Arabic offers Read
- * in English beside it, and a scanned one names its OCR pages (plan 012).
+ * Library (id `documents`, order 20; plan 030, first built by 007b): every file
+ * the tender arrived as and every file made for it, in folders, with its
+ * source, time and sender, and View in a panel on the right (`LibraryBrowser`).
+ * Every tender has at least its notice, so the tab always shows. Below it, as
+ * before: this morning's intake steps (spec §6.2) and each addendum with what
+ * it changed and what that set off (script C). An Arabic booklet's row, and
+ * the viewer's header, carry Read in English (plan 012).
  */
 
 const eventsOf = (tenant: string, id: string) => dataOf(tenant).intakeToday.filter((e) => e.tenderId === id);
@@ -64,57 +62,21 @@ function Addendum({ a }: { a: AddendumVM }) {
   );
 }
 
-function Documents({ ctx }: { ctx: WorkspaceCtx }) {
-  const host = useSourceHost();
-  const d = docOf(ctx.tenant, ctx.tenderId);
-  const doc = sourceDocOf(d);
+function Library({ ctx }: { ctx: WorkspaceCtx }) {
+  const lib = useMemo(() => libraryFor({ tenant: ctx.tenant, viewer: ctx.viewer, done: ctx.done }, ctx.tenderId), [ctx.tenant, ctx.viewer, ctx.done, ctx.tenderId]);
   const t = tenderOf(ctx.tenant, ctx.tenderId);
-  const data = dataOf(ctx.tenant);
-  const events = eventsOf(ctx.tenant, ctx.tenderId);
-  const own = events.find((e) => e.disposition !== 'addendum');
+  const own = eventsOf(ctx.tenant, ctx.tenderId).find((e) => e.disposition !== 'addendum');
   const pipeline = own ? pipelineFor(ctx.tenant, own.id) : null;
-  const uploads = uploadsOf(ctx.done, ctx.tenderId);
   const addenda = addendaFor(ctx.tenant, ctx.tenderId);
-  const sourceName = (id: string) => data.sources.find((s) => s.id === id)?.name ?? id;
-  const file = d ? decodeURIComponent(d.url.split('/').pop() ?? d.url) : null;
-  const ocr = ocrOf(d?.record);
-  // A document read from Arabic shows its Arabic title above the English working title, as Read in English does (plan 016b).
-  const titleAr = readingOf(d?.record)?.titleAr;
+  // Read in English on the Arabic booklet's row (and in the viewer's header).
+  const rowExtra = useBookletExtra(ctx.tenant, ctx.tenderId);
 
   return (
     <div className="ws-tab">
       <Card>
-        <CardHead title="Tender documents" />
-        {d ? (
-          <div className="s1-pad doc">
-            <FileText size={22} aria-hidden className="doc-ic" />
-            <div className="doc-m">
-              {titleAr && <div className="rie-title-ar" lang="ar" dir="rtl">{titleAr}</div>}
-              <div className="doc-t">{d.title}</div>
-              <div className="doc-s"><bdi dir="auto" className="mono">{file}</bdi> · {d.record.docType} · {d.record.pages} pages</div>
-              <div className="doc-b"><LangBadge lang={d.lang === 'ar' ? 'AR' : 'EN'} />{d.scanned && <span className="wsh-badge">{ocr.pages.length ? `OCR: ${pagesText(ocr.pages)} scanned` : 'OCR: scanned pages'}</span>}{d.record.issued && <span className="doc-s">Issued {dateText(d.record.issued)}</span>}</div>
-            </div>
-            {d.lang === 'ar' && <ReadInEnglish record={d.record} doc={doc} />}
-            {host && doc && <button type="button" className="btn btn-sm" onClick={(e) => host.open({ doc, page: 1, label: d.title }, e.currentTarget)}>Open the document</button>}
-          </div>
-        ) : <EmptyState title="The demo holds no copy of this tender's documents." body="The register keeps where it came from; its fields were entered from the notice." compact />}
-      </Card>
-
-      <Card>
-        <CardHead title="Received from" meta={<span className="num">{1 + events.length + uploads.length} {1 + events.length + uploads.length === 1 ? 'entry' : 'entries'}</span>} />
-        <p className="s1-lede">One tender, one ID: each copy that arrived is listed here rather than logged twice.</p>
-        <ul className="doc-src">
-          {t && <li><span className="num doc-when">{shortWhen(t.intake.capturedAt)}</span><span>Notice captured from {t.sourceDetail}</span></li>}
-          {events.map((e) => (
-            <li key={e.id}><span className="num doc-when">{shortWhen(e.receivedAt)}</span><span>{e.docType} from {sourceName(e.sourceId)}: {DISPOSITION_LABEL[e.disposition](e.tenderId)}</span></li>
-          ))}
-          {uploads.flatMap((u) => u.times.map((x, i) => (
-            <li key={`${u.key}:${i}`}>
-              <span className="num doc-when">{shortWhen(x.at)}</span>
-              <span>{i === 0 ? 'Uploaded' : 'Uploaded again'} by {personById(x.byId)?.name ?? x.byId}: <bdi dir="auto" className="mono">{u.file}</bdi>{i === 0 ? ', recognised by file name (demo)' : ', flagged as a duplicate'}</span>
-            </li>
-          )))}
-        </ul>
+        {lib
+          ? <LibraryBrowser lib={lib} rowExtra={rowExtra} readOnly={ctx.viewAs ? `Viewing as ${ctx.viewer.name}. Read only` : undefined} />
+          : <EmptyState title="This tender's library isn't part of your role." compact />}
       </Card>
 
       {pipeline && (
@@ -130,11 +92,12 @@ function Documents({ ctx }: { ctx: WorkspaceCtx }) {
 }
 
 export const TABS: WorkspaceTabDef[] = [{
-  id: 'documents', label: 'Documents', order: 20, plan: '007b',
-  shows: (ctx) => !!docOf(ctx.tenant, ctx.tenderId) || eventsOf(ctx.tenant, ctx.tenderId).length > 0 || addendaFor(ctx.tenant, ctx.tenderId).length > 0 || uploadsOf(ctx.done, ctx.tenderId).length > 0,
+  id: 'documents', label: 'Library', order: 20, plan: '030',
+  // Every tender has at least its notice as captured.
+  shows: () => true,
   badge: (ctx) => {
     const a = addendaFor(ctx.tenant, ctx.tenderId);
     return a.length ? { text: `Add. ${a[a.length - 1].no}`, tone: 'cyan' } : null;
   },
-  Panel: Documents,
+  Panel: Library,
 }];

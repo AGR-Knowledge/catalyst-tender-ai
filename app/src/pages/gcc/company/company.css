@@ -1,4 +1,4 @@
-/* ───────── Company profile (plans 010 and 027c). Builds on s1.css; sizes and colours come from tokens.css. ───────── */
+/* ───────── Company profile (plans 010, 027c and 032). Builds on s1.css; sizes and colours come from tokens.css. ───────── */
 
 .co-tabs .tabs { padding: 0 4px; }
 .co-panel { display: grid; gap: var(--gap); }
@@ -62,14 +62,12 @@
 .co-list-m { font-size: 12px; color: var(--ink-3); }
 .co-list-d { font-size: 12.5px; color: var(--ink-2); line-height: 1.45; }
 
-/* Facility and teams */
+/* Facility and teams. The teams are an .eq-row (plan 032): same width and height, a long one scrolls inside.
+   The facility's two columns sit inside one card, so they are a list, not a row of cards: equal widths, as they were. */
 .co-facility { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px 32px; align-items: start; }
-.co-teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(420px, 1fr)); gap: var(--gap); align-items: start; }
-.co-teams > .card { margin: 0; }
 .co-meter { margin: 12px 0 2px; }
 @media (max-width: 1099px) {
   .co-facility { grid-template-columns: minmax(0, 1fr); }
-  .co-teams { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* ───────── Overview (plan 027c) ───────── */
@@ -91,10 +89,11 @@
 .co-reg-t:hover { color: var(--link-hover); text-decoration: underline; }
 .co-reg-m { font-size: 11.5px; color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* Two columns at 1100 and wider (turnover | project record); stacked below. */
-.co-ov-cols { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: var(--gap); align-items: stretch; }
-.co-ov-cols > .card { margin: 0; }
-@media (max-width: 1099px) { .co-ov-cols { grid-template-columns: minmax(0, 1fr); } }
+/* Overview's two rows are .eq-row (plan 032): project record | bid record, turnover | where the profile is used.
+   A card's button row stays under its scrolling body. */
+.eq-row > .card > .co-rec-foot { flex: none; }
+/* Half a row is too narrow for the two bar lists side by side: they stack, and the card scrolls. */
+.eq-row .co-rec-lists { grid-template-columns: minmax(0, 1fr); }
 
 /* Turnover by year: CSS columns in the data blue; a draft year pale, with a dashed outline. */
 .co-bars { list-style: none; margin: 0; padding: 8px 22px 14px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end; }
@@ -150,3 +149,94 @@
 .co-chip.on { border-color: var(--ink); color: var(--ink); background: var(--surface-active); }
 .co-chip.on .num { color: var(--ink); }
 .co-chip:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+
+/* ───────── Bid record (plan 032) ───────── */
+
+/* The tab's head: the window, the sector chips and "How to read this". */
+.co-rh { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; padding: 2px 4px; }
+.co-rh-period { font-size: 13px; color: var(--ink-2); }
+.co-rh-period b { font-weight: 600; color: var(--ink); }
+.co-rh-key { margin-left: auto; }
+.co-rh-key svg { margin-right: 5px; }
+.co-rh-note { margin: -6px 4px 0; font-size: 12px; color: var(--ink-3); }
+
+/* The fixed data colours (plan 032), said in the legends and in "How to read this". */
+.co-mk { display: inline-block; flex: none; width: 11px; height: 11px; border-radius: 2px; }
+.co-mk.won { background: var(--green); }
+.co-mk.lost { background: var(--ink-4); }
+.co-mk.wd { background: repeating-linear-gradient(45deg, var(--line-strong) 0 2px, var(--surface) 2px 4px); border: 1px solid var(--line-strong); }
+.co-mk.rate { width: 16px; height: 0; border-radius: 0; border-top: 2px solid var(--blue); }
+.co-key .co-mk { justify-self: center; transform: translateY(1px); }
+.co-key .co-mk.rate { transform: translateY(-3px); }
+
+/* Five-year record */
+.co-yr { padding: 8px 14px 0; }
+.co-yr-legend { flex-wrap: wrap; white-space: normal; padding: 0 8px 6px; row-gap: 4px; }
+.co-yr-legend .co-mk + * { margin-left: 0; }
+.co-yr-legend .co-mk:not(:first-child) { margin-left: 10px; }
+.co-yr-fig { margin: 0; position: relative; }
+.co-yr-plot { height: 250px; }
+.co-yr-tip { max-width: 300px; }
+.co-yr-fig .recharts-wrapper:focus-visible, .co-yr-fig .recharts-surface:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; border-radius: 6px; }
+.co-yr-fig .recharts-wrapper:focus:not(:focus-visible), .co-yr-fig .recharts-surface:focus:not(:focus-visible) { outline: none; }
+
+/* A breakdown row: the label and its rate, a blue bar, then bids · won · lost. The whole row lists its tenders. */
+.co-bd { list-style: none; margin: 0; padding: 6px 12px 4px; display: grid; gap: 0; }
+.co-bd > li { display: grid; min-width: 0; }
+.co-bd-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'l r' 'bar bar' 'm m'; gap: 5px 10px; align-items: baseline;
+  width: 100%; padding: 8px 10px; font: inherit; text-align: left; color: inherit; background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer;
+}
+.co-bd-row-1 { grid-template-areas: 'l r' 'bar bar'; }
+.co-bd-row:hover { background: var(--surface-hover); }
+.co-bd-row:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: -2px; }
+.co-bd-l { grid-area: l; min-width: 0; font-size: 13px; font-weight: 500; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-bd-r { grid-area: r; font-size: 12.5px; font-weight: 600; color: var(--ink); white-space: nowrap; }
+.co-bd-r.none { font-weight: 400; color: var(--ink-3); }
+.co-bd-bar { grid-area: bar; display: block; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
+.co-bd-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--blue); }
+.co-bd-m { grid-area: m; font-size: 12px; color: var(--ink-3); }
+.co-bd-more { margin: 4px 22px 14px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.co-ls-x { padding: 0 10px 8px; margin-top: -3px; font-size: 12px; color: var(--ink-3); }
+.co-ls-x .masked { vertical-align: -1px; }
+.co-dc-h { display: flex; align-items: baseline; gap: 6px; margin: 14px 22px 0; }
+.co-dc-h .num { color: var(--ink-3); font-weight: 500; }
+.co-dc-none { padding: 6px 22px 4px; }
+
+/* From captured to won: each bar is the share of the step before. */
+.co-fn { list-style: none; margin: 0; padding: 10px 22px 4px; display: grid; gap: 14px; }
+.co-fn li { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'l n' 'bar bar' 'p p'; gap: 5px 12px; align-items: end; }
+.co-fn-l { grid-area: l; font-size: 13px; font-weight: 500; color: var(--ink); }
+.co-fn-sub { display: block; font-size: 11.5px; font-weight: 400; color: var(--ink-3); }
+.co-fn-n { grid-area: n; font-size: 20px; font-weight: 600; line-height: 1.1; color: var(--ink); }
+.co-fn-btn { grid-area: n; padding: 2px 6px; margin: -2px -6px; font: inherit; color: inherit; background: transparent; border: 0; border-radius: var(--radius-sm); cursor: pointer; }
+.co-fn-btn:hover { background: var(--surface-hover); }
+.co-fn-btn:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 0; }
+.co-fn .co-bd-bar { grid-area: bar; }
+.co-fn-p { grid-area: p; font-size: 12px; color: var(--ink-3); }
+
+/* The tenders behind the counts */
+.co-rt { scroll-margin-top: calc(var(--header-h) + 18px); }
+.co-rt-filters { padding-top: 12px; }
+.co-pick { display: inline-flex; align-items: center; gap: 6px; height: 28px; padding: 0 4px 0 12px; font-size: 12.5px; color: var(--ink); background: var(--surface-active); border: 1px solid var(--ink); border-radius: var(--radius-pill); }
+.co-pick-x { display: inline-grid; place-items: center; width: 22px; height: 22px; padding: 0; color: var(--ink-2); background: transparent; border: 0; border-radius: 50%; cursor: pointer; }
+.co-pick-x:hover { color: var(--ink); background: var(--surface-hover); }
+.co-pick-x:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.co-rt-link { text-decoration: none; }
+.co-rt-link:hover { color: var(--link-hover); text-decoration: underline; }
+
+/* Overview › Bid record: the last 12 months in figures, then the largest win. */
+.co-bs { list-style: none; margin: 0; padding: 14px 22px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 16px; }
+.co-bs li { display: grid; gap: 2px; min-width: 0; }
+.co-bs-v { font-size: 18px; font-weight: 600; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.co-bs-k { font-size: 12px; color: var(--ink-3); }
+.co-bs-win { margin: 6px 22px 12px; padding: 10px 12px; display: grid; gap: 3px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); }
+.co-bs-win .co-bs-k { font-weight: 600; }
+.co-bs-win a { font-size: 13px; font-weight: 500; color: var(--ink); text-decoration: none; line-height: 1.35; }
+.co-bs-win a:hover { color: var(--link-hover); text-decoration: underline; }
+.co-bs-win .co-bs-m { font-size: 12px; color: var(--ink-2); }
+.co-bs-note { margin: 0 22px 12px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+
+/* Overview, half width: a gap row reads on two lines (the state and the tender, then the line). */
+.eq-row .co-gaps li { grid-template-columns: 118px minmax(0, 1fr); }
+.eq-row .co-gaps .co-gap-x { grid-column: 2; }

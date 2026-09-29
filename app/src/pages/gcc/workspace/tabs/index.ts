@@ -13,7 +13,7 @@ export type { WorkspaceCtx, WorkspaceTabDef } from './types';
  * | id             | Label              | Order | Owner |
  * | -------------- | ------------------ | ----- | ----- |
  * | `overview`     | Overview           | 10    | 019   |
- * | `documents`    | Documents          | 20    | 007b  |
+ * | `documents`    | Library            | 20    | 030   |
  * | `requirements` | Requirements       | 30    | 007b  |
  * | `eligibility`  | Eligibility & fit  | 40    | 007b  |
  * | `dates`        | Key dates          | 50    | 007b  |
@@ -25,7 +25,7 @@ export type { WorkspaceCtx, WorkspaceTabDef } from './types';
  */
 export const RESERVED_TABS: { id: string; label: string; order: number; plan: string }[] = [
   { id: 'overview', label: 'Overview', order: 10, plan: '019' },
-  { id: 'documents', label: 'Documents', order: 20, plan: '007b' },
+  { id: 'documents', label: 'Library', order: 20, plan: '030' },
   { id: 'requirements', label: 'Requirements', order: 30, plan: '007b' },
   { id: 'eligibility', label: 'Eligibility & fit', order: 40, plan: '007b' },
   { id: 'dates', label: 'Key dates', order: 50, plan: '007b' },

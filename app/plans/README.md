@@ -44,10 +44,41 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 027d | [Funnel, graph and tracker](027d-funnel-graph-tracker.md): the decision funnel as a card whose columns share five rows; one blue for the graph and a "How to read this graph" key; violet gate diamonds and aligned text in the tracker | 9 | wave 8; the wave 9 contract | DONE (2026-09-28, reviewed) |
 | 028 | [Status without stripes](028-no-stripes.md): the rest of the GCC screens lose one-sided coloured stripes; a word and a full tint for flagged cards, a `FlagLine` for flagged sentences, sunken quotes, callouts without the bar | 9 | wave 8; the wave 9 contract | DONE (2026-09-28, reviewed) |
 | 027e | [A reference line on every tile](027e-tile-reference-lines.md): no tile keeps an empty reference row, in any tenant, period or strip; a dev check that keeps it so | 9b | wave 9 | DONE (2026-09-28, reviewed) |
-| 029 | [Tender workspace layout](029-workspace-layout.md): no stage chain in the header; the tracker runs the full width on Overview with all 12 nodes visible; cards side by side share width and height in every workspace tab | 10 | wave 9b; the wave 10 contract | READY |
-| 030 | [Tender library and the file viewer](030-tender-library.md): every tender's files in folders (notice, booklet, addenda, correspondence, DG packs, RFQs and quotes, our proposal, evidence, result) with source and time; View in an iframe on the right; Add file; a company-wide Tender library page | 10 | wave 9b; the wave 10 contract | READY |
-| 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | READY |
-| 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | READY |
+| 029 | [Tender workspace layout](029-workspace-layout.md): no stage chain in the header; the tracker runs the full width on Overview with all 12 nodes visible; cards side by side share width and height in every workspace tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
+| 030 | [Tender library and the file viewer](030-tender-library.md): every tender's files in folders (notice, booklet, addenda, correspondence, DG packs, RFQs and quotes, our proposal, evidence, result) with source and time; View in an iframe on the right; Add file; a company-wide Tender library page | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
+| 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | DONE — awaiting review (2026-09-29) |
+| 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
+
+**Wave 10 review of 029, 030 and 032 (orchestrator, 2026-09-29): all three accepted; 031 still in progress.**
+- Typecheck and build pass. The build's circular-chunk warning on `domain/gcc/s1` predates wave 10 (the last commit's build shows it too). `/dev/checks` in Najd: 946 rows, no failure (032's 920, 030's 12 in 56 and 031's 14 in 68). The executors ran all five tenants.
+- Clicked through as the Head of Tendering and the Tender Coordinator in Najd, at 1280 and 1440, with no console errors on a clean load:
+  - 029: no header chain; the tracker runs the full width with 12 nodes and nothing cut at 1280 and 1440, on the dashboard too. Overview's two cards are 351 px each, at one height.
+  - 030: the hero's booklet opens in the browser's PDF viewer, a notice facsimile in the sandboxed frame, and folder 04 reads "60 files masked for your role" for the Coordinator.
+  - 032: the bid record adds up (38 bids = 9 won + 24 lost + 3 awaiting + 2 cancelled; 130 = 116 + 14), and the Overview and Teams rows are equal.
+- Review fixes (orchestrator):
+  - 029's question: the 12-node fit keys on the tracker's own width (`@container tt (min-width: 900px)`), not the window. It fits from a 1240 px window with the sidebar open and scrolls below, so no label is cut. Overview's pair gets `--eq-h: 460px`, so the Batinah Tender card doesn't scroll for its last 9 px.
+  - 030:
+    - the Received column's minimum width is 120 px ("Sun 11 Jan" was cut by 1 px);
+    - `/library` opens on the hero tender, scrolled into view in the list, not the newest tender, which holds only its notice;
+    - an added file's card names its type in words;
+    - `uploadsOf` moved to `domain/gcc/s1/uploads.ts`, and the page module re-exports it;
+    - the unused `.doc*` rules are gone from `s1.css`.
+  - Docs: s1-s3-demo-spec §4.1 (no header stage track; the Library tab), ui-direction §5 C2 (the full-width flow; `.eq-row`), and dashboards.md §7 (the Now card's two columns; the fit rule).
+- Deviations accepted:
+  - 029: dates break after the dash in a narrow tracker; the Now card is two `<dl>`s; `.tt-dec` gets an ellipsis; one edit in `workspace/index.ts`.
+  - 030:
+    - the award letter's value is masked without `see.margin`;
+    - the extra files (query drafts, submission receipt, DG3 pack, declines);
+    - "files in N folders" counts folders that hold files;
+    - `/library` keeps a narrower tender list beside the library it opens. It is a navigation list, not a row of cards. Both share one height and scroll inside.
+  - 032: Value won as OUT-3; tone dropped when the viewer sees part of the record; "Withdrawn or cancelled"; the predicted win masked without `see.margin` or `see.positions`; value bands derived from the seed.
+- Open (candidates for a wave 10b data plan):
+  - Tenders past DG1 without a held PDF show only their notice in 01 (e.g. T-2026-097 at Stage 3 has no booklet). A booklet facsimile built from the requirements and key dates would close it.
+  - Our place and the gap to the winner are published on 2 of Najd's 24 losses and none elsewhere, so "Why we lost" mostly reads "not published".
+  - The generated 12-month value won is about 4× turnover in Batinah and 2× in Corniche.
+  - Forecast accuracy is off target in Corniche, Batinah and Qurain.
+  - "Received" also labels files we made.
+  - Loss-reason words are defined three times.
 
 **Wave 9b review of 027e and the calendar follow-up (orchestrator, 2026-09-28): both accepted, committed as one milestone.**
 - Typecheck and build pass. `/dev/checks` has no failing row in any tenant: Najd 906, Corniche 497, Dafna 478, Batinah 486 and Qurain 501. That is wave 9's counts plus check 51's 76 rows and the calendar's 5 new rows in 78.
@@ -322,7 +353,7 @@ Plan 001 was verified with a click audit:
   - **030** owns `tabs/documents.tab.tsx`, the `documents` row of `tabs/index.ts`, `components/tender/FileViewer.tsx` and `file-viewer.css` (new), `domain/gcc/library/**` and `pages/gcc/library/**` (new), one `NAV_GCC` entry in `access.ts`, one `GCC_ICON` entry in `Sidebar.tsx`, the `/library` entry of `screens.ts`, the `LEGACY_AT` move of the legacy `/library` route in `App.tsx`, one `KitPreview` section and `dev-checks/56-library.tsx` (new). Its Phase 1 (`FileViewer`, `facsimileHtml`) goes first, because 031 imports them.
   - **031** owns `pages/gcc/suppliers/**`, `domain/gcc/suppliers/**`, `data/gcc/s2/profiles/**` (new), one export line in `data/gcc/s2/index.ts`, one `suppliers/:id` route in `App.tsx` and `dev-checks/68-suppliers.tsx` (new). It reads `profileFor` (032's folder) and imports `FileViewer` (030) without editing them.
   - **032** owns `pages/gcc/company/**`, `domain/gcc/company/**` (keeping every existing export), `data/gcc/company/**` (new) and `dev-checks/66-company.tsx`.
-  - **Shared files, by entry:** `App.tsx` (030 moves `/library` into `LEGACY_AT`, 031 adds one route) and `screens.ts` (030 adds `/library`; 032 may edit the `/company` line). Re-read right before editing, add lines, move nothing else.
+  - **Shared files, by entry:** `App.tsx` (030 moves `/library` into `LEGACY_AT`, 031 adds one route) and `screens.ts` (030 adds `/library`; 032 may edit the `/company` line; 031 adds one `/suppliers/:id` case to `screenHead`, beside the `/tenders/:id` case, approved 2026-09-29). Re-read right before editing, add lines, move nothing else.
   - **Decisions (orchestrator, 2026-09-29):**
     - The header's stage chain goes; the tracker on Overview is the one flow, full width above the main column and the rail. It fits 12 nodes from a 1100 px window up (dashboards' tracker too).
     - Files the demo doesn't hold are shown as watermarked **document facsimiles**: HTML built from the data, in a sandboxed `srcDoc` iframe. No new PDFs are generated, because hundreds of tenders (the generated history included) can open a library. Held PDFs open in the browser's own viewer (`<iframe src>`), which renders in the in-app browser pane (checked). The pdf.js drawer stays for `SourceChip` citations.

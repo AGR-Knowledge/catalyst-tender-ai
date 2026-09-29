@@ -1,6 +1,6 @@
 /* ───────── Tender Workspace (plan 019, ui-direction §5 C2) ───────── */
 
-/* Sticky header: identity, track, due, owner, then the tabs. It runs edge to edge of the content column. */
+/* Sticky header: identity, issuer, due, owner, then the tabs. It runs edge to edge of the content column. */
 .wsh {
   position: sticky; top: var(--header-h); z-index: 15;
   margin: -28px calc(-1 * var(--gutter)) var(--gap); padding: 12px var(--gutter) 0;
@@ -32,7 +32,8 @@
 .wsh-vnote { font-size: 11.5px; color: var(--ink-3); }
 
 .wsh-l2 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; margin-top: 8px; font-size: 12.5px; color: var(--ink-3); }
-.wsh-who { min-width: 0; max-width: 34%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The issuer takes what the due date and the owner leave, down to 200 px; below that the owner wraps to its own row (1280 px). */
+.wsh-who { flex: 1 1 200px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .wsh-owner { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .wsh-owner b { font-weight: 600; color: var(--ink-2); }
 .wsh-due { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
@@ -41,26 +42,11 @@
 .wsh-cd { color: var(--ink-3); }
 .wsh-due.near .wsh-cd { color: var(--red); font-weight: 500; }
 
-/* The compact stage track: S1 · DG1 · S2 · S3 · DG2 · S4 … later stages muted. */
-.wsh-track { display: inline-flex; align-items: center; list-style: none; margin: 0; padding: 0; gap: 0; }
-.wsh-track li { display: inline-flex; align-items: center; gap: 3px; padding: 0 5px; position: relative; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); }
-.wsh-track li + li::before { content: ''; position: absolute; left: -3px; width: 6px; height: 1px; background: var(--line-strong); }
-.wsh-dot { width: 13px; height: 13px; border-radius: 50%; display: grid; place-items: center; font-size: 8px; font-family: var(--font-sans); border: 1px solid var(--line-strong); color: var(--surface); flex: none; }
-.wsh-track .k-gate .wsh-dot { border-radius: 3px; transform: rotate(45deg); width: 10px; height: 10px; }
-.wsh-track .k-gate .wsh-dot { font-size: 0; }
-.wsh-track .s-done .wsh-dot { background: var(--green); border-color: var(--green); }
-.wsh-track .s-done { color: var(--ink-2); }
-.wsh-track .s-current .wsh-dot { background: var(--brand, var(--ink)); border-color: var(--brand, var(--ink)); font-size: 6px; }
-.wsh-track .s-current { color: var(--ink); font-weight: 600; }
-.wsh-track .s-stopped .wsh-dot { background: var(--red); border-color: var(--red); }
-/* Gates read as the tracker's: violet diamonds (plan 027d); the current stage is the tracker's blue, not the tenant accent. */
-.wsh-track .k-gate:not(.muted) .wsh-k { color: var(--violet); }
-.wsh-track .k-gate.s-done .wsh-dot { background: var(--violet); border-color: var(--violet); }
-.wsh-track .k-gate.s-current .wsh-dot { background: var(--violet-soft); border: 1.5px solid var(--violet); }
-.wsh-track .k-stage.s-current .wsh-dot { background: var(--blue-soft); border: 1.5px solid var(--blue); color: var(--blue); }
-.wsh-track .s-stopped { color: var(--red); }
-.wsh-track .muted { color: var(--ink-5); }
-.wsh-track .muted .wsh-dot { border-color: var(--line); }
+/* The flow (plan 029): on Overview the tracker runs the full content width, above the main column and the rail, with the grid's gap under it. */
+.ws-flow { margin-bottom: var(--gap); }
+.ws-flow > .card { margin-bottom: 0; }
+/* Overview's two cards: a little above the contract's 440 px, so the Tender card with an Arabic clause (Batinah) doesn't scroll for its last few pixels. */
+.ws-pair { --eq-h: 460px; }
 
 /* Main 8/12, rail 4/12 at 1280 px and wider; below, the rail goes under the content. */
 .ws-grid { display: grid; gap: var(--gap); grid-template-columns: minmax(0, 1fr); align-items: start; }
@@ -70,7 +56,6 @@
 }
 .ws-main:focus { outline: none; }
 .ws-tab { display: grid; gap: var(--gap); }
-.ws-two { display: grid; gap: var(--gap); grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 .ws-kv { padding: 4px 22px 14px; }
 .ws-kv .kv .v { max-width: 64%; }
 .ws-src { display: inline-flex; align-items: center; flex-wrap: wrap; justify-content: flex-end; gap: 4px 8px; }
@@ -118,9 +103,6 @@
 .rl-flag { justify-self: start; font-size: 11px; font-weight: 600; line-height: 18px; padding: 0 7px; border-radius: 4px; background: var(--orange-soft); color: var(--ink); }
 .rl .rec-card { box-shadow: var(--shadow-lift); }
 
-@media (max-width: 1100px) {
-  .wsh-who { max-width: none; }
-}
 @media (max-width: 760px) {
   .wsh { margin-top: -18px; }
   .wsh-l1 { flex-wrap: wrap; }
@@ -129,7 +111,7 @@
 }
 
 /* The sticky header already names the tender, its value and health: the tracker's own heading is not repeated. */
-.ws-tab .tt > .tt-head { display: none; }
+.ws-flow .tt > .tt-head { display: none; }
 .ws-kv .thr { white-space: normal; flex-wrap: wrap; justify-content: flex-end; row-gap: 2px; }
 .ws-kv .thr-t { text-align: right; }
 .rl-act-b:empty { display: none; }

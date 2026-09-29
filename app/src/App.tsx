@@ -111,6 +111,7 @@ function GccScreen({ path }: { path: string }) {
 /** Paths the Indian preview also uses: the GCC screen replaces them in a GCC tenant. */
 const LEGACY_AT: Record<string, ReactNode> = {
   '/suppliers': <LegacyOnly><Guard page="suppliers"><Suppliers /></Guard></LegacyOnly>,
+  '/library': <LegacyOnly><Guard page="library"><Library /></Guard></LegacyOnly>,
 };
 
 /** One route per entry in `SCREENS`, so a new screen is added there and nowhere else. */
@@ -136,7 +137,6 @@ export function App() {
               <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
               <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
               <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
-              <Route path="library" element={<LegacyOnly><Guard page="library"><Library /></Guard></LegacyOnly>} />
               <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />
               <Route path="intake/:id" element={<LegacyOnly><Guard page="intake"><IntakeReview /></Guard></LegacyOnly>} />
               <Route path="boq" element={<LegacyOnly><Guard page="boq"><Boq /></Guard></LegacyOnly>} />

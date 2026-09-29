@@ -11,14 +11,16 @@ import type { Done } from '../s1/done';
 import { dataOf, dayMonth, dayMonthYear, profileOf } from '../s1/common';
 import { CREDENTIAL_STATE, KIND_LABEL, rowsText, type CredentialState, type Vault } from './vault';
 import { PROJECT_ROLE, facilityFor, inCcy, profileFor, teamsFor, type ProfileVM, type ProjectVM } from './index';
+import { bidSummaryFor, type BidSummaryVM } from './record';
 
 /**
  * Company profile › Overview (plan 027c): the company as a bidder, composed
  * from what the other tabs already read. The identity and registrations (the
  * vault), the key figures (accounts, project register, vault, facility, team
- * load), turnover by year, the project record, and where the eligibility
- * checks use the profile on the viewer's live tenders. No figure is new, and
- * nothing here writes.
+ * load), turnover by year, the project record, the bid record's last 12
+ * months (plan 032, `record.ts`), and where the eligibility checks use the
+ * profile on the viewer's live tenders. No figure is new, and nothing here
+ * writes.
  */
 
 /** The credential kinds that register the company to bid, in the order they read. */
@@ -99,6 +101,8 @@ export interface OverviewVM {
   figures: KeyFiguresVM;
   turnover: TurnoverBarVM[];
   record: RecordVM;
+  /** The bid record's last 12 months, from the same sets as Company › Bid record. */
+  bids: BidSummaryVM;
   usage: UsageVM;
 }
 
@@ -236,6 +240,7 @@ export function overviewFor(tenant: string, done: Done, viewer: Person, vault: V
       ...(f.auditDate ? { auditDate: f.auditDate } : {}), ...(f.netWorth ? { netWorth: f.netWorth } : {}), ...(f.currentRatio !== undefined ? { currentRatio: f.currentRatio } : {}),
     })),
     record: recordOf(tenant, p),
+    bids: bidSummaryFor(tenant, done, viewer),
     usage: usageFor(tenant, done, viewer),
   };
 }

@@ -342,7 +342,7 @@
 .sc .recharts-wrapper:focus:not(:focus-visible), .sc .recharts-surface:focus:not(:focus-visible) { outline: none; }
 
 /* Z6: the tender tracker */
-.tt { margin-bottom: var(--gap); animation: rowIn 220ms var(--ease-out) both; }
+.tt { margin-bottom: var(--gap); animation: rowIn 220ms var(--ease-out) both; container: tt / inline-size; }
 .tt-head { display: flex; align-items: center; gap: 10px; padding: 13px 14px 13px 18px; border-bottom: 1px solid var(--line-2); }
 .tt-title { flex: 1; min-width: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 7px; font-size: 14px; font-weight: 600; border-radius: 4px; }
 .tt-title .mono { font-size: 13px; font-weight: 500; color: var(--ink-2); }
@@ -389,7 +389,7 @@
 .k-gate > .tt-label { font-family: var(--font-mono); font-size: 11.5px; color: var(--violet); }
 .s-not-reached > .tt-label { color: var(--ink-4); font-weight: 500; }
 .tt-chip-row { display: flex; justify-content: center; max-width: 100%; }
-.tt-dec { font-size: 11px; font-weight: 600; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); white-space: nowrap; }
+.tt-dec { font-size: 11px; font-weight: 600; line-height: 17px; padding: 0 6px; border-radius: 4px; background: var(--surface-active); color: var(--ink-2); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .tt-dec.tone-green { background: var(--green-soft); color: var(--green); }
 .tt-dec.tone-red { background: var(--red-soft); color: var(--red); }
 .tt-dec.tone-orange { background: var(--orange-soft); color: var(--orange); }
@@ -399,12 +399,32 @@
 .tt-ok { color: var(--ink-3); }
 .tt-note { align-self: start; max-width: 100%; color: var(--ink-3); font-size: 11px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .tt-nodes > .after-stop { opacity: 0.4; }
+/*
+ * Plan 029: when the tracker card is at least 900 px wide (a 1280 px window with the sidebar open, or about 1000 px with it
+ * closed), the 12 nodes share the card's width end to end, with no scroll, and a node's side padding is 2 px so its date range
+ * (up to 84 px, "28 May – 28 May") fits one line in a card 1100 px wide. In a narrower card the range breaks after its dash,
+ * and every node's date row is two lines tall, so the rows still line up. Below 900 px a node would cut "Bid decision", so the
+ * nodes keep 88 px and the track scrolls (orchestrator review, 2026-09-29: keyed on the card, not the window).
+ */
+@container tt (min-width: 900px) {
+  .tt-nodes { grid-template-columns: repeat(12, minmax(0, 1fr)); min-width: 0; }
+  .tt-nodes > .tt-node { padding-left: 2px; padding-right: 2px; }
+}
+@container tt (max-width: 1099px) {
+  .tt-nodes > .tt-node { grid-template-rows: 26px 17px 19px 32px 22px auto; }
+  .tt-when { align-self: start; white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+}
 .tt-outcome { margin: 0 18px 14px; padding: 10px 12px; border-radius: var(--radius); background: var(--surface-sunken); border: 1px solid var(--line-2); font-size: 12.5px; color: var(--ink-2); }
 .tt-now { margin: 0 18px 16px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius); }
 .tt-now-h { font-size: 12.5px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
 .tt-kv { display: grid; grid-template-columns: 84px minmax(0, 1fr); gap: 6px 12px; font-size: 12.5px; }
 .tt-kv dt { color: var(--ink-3); }
 .tt-kv dd { color: var(--ink-2); line-height: 1.45; }
+/* The Now card's rows: With, Team, Status | Next, Blocker in two columns from 1280 px, one list below. Both share the 84 px label. */
+.tt-kvs { display: grid; gap: 6px 28px; align-items: start; }
+@media (min-width: 1280px) {
+  .tt-kvs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .tt-foot { display: flex; justify-content: flex-end; margin-top: 10px; }
 .tt-foot.pad { padding: 0 18px 16px; margin-top: 0; }
 .cell-clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; font-size: 12.5px; line-height: 1.3; }

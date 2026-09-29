@@ -9,6 +9,13 @@ import { requestsFor } from '@/domain/gcc/requests';
 import { dataOf } from '@/domain/gcc/s1/common';
 import { defaultRenewalDate, facilityFor, profileFor, renewRight, renewalToast, renewalWrite, vaultFor, vaultReader } from '@/domain/gcc/company';
 import { overviewFor, usageFor } from '@/domain/gcc/company/overview';
+import { bidRecordFor, bidSummaryFor, type BidRecordVM } from '@/domain/gcc/company/record';
+import { BID_RECORD_YEARS } from '@/data/gcc/company/bidRecord';
+import { gccData } from '@/data/gcc';
+import { flow } from '@/domain/gcc/flows';
+import { windowOf } from '@/domain/gcc/period';
+import { calibrationFor } from '@/domain/gcc/s3/win';
+import { money } from '@/domain/money';
 import { supplierMasterFor, supplierProfileFor } from '@/domain/gcc/suppliers/profile';
 import { liveS2Tenders, rfqsFor, sentBy } from '@/domain/gcc/s2';
 import { RESCREEN_DAYS } from '@/data/gcc/s2';
@@ -26,8 +33,10 @@ import { DataTable } from '@/components/ui/DataTable';
  * Plan 010: the credentials vault agrees with SCR-6 and the eligibility lines,
  * and the renewal write refuses what it should and re-checks everything it
  * should. Plan 027c: the Overview and the supplier sheet read the same values
- * as the tabs and rules behind them, and Suppliers has one sidebar entry. Runs on in-memory `done` maps, never on the live demo, so it changes
- * nothing; the Najd scenario rows pass whichever company is open.
+ * as the tabs and rules behind them, and Suppliers has one sidebar entry. Plan 032: the bid record's
+ * 12 months are the dashboards' (PF-3, OUT-3, PF-5, `submissionsIn`, OUT-4's calibration), its
+ * breakdowns add up, masking holds, and the annual seed is plausible. Runs on in-memory `done` maps,
+ * never on the live demo, so it changes nothing; the Najd scenario rows pass whichever company is open.
  */
 
 interface Check { name: string; ok: boolean; got: string }
@@ -174,6 +183,132 @@ function checks(): Check[] {
   const navBad = navRows.filter((r) => r.inCompany !== ['hot', 'exec', 'proc'].includes(r.role) || r.underStage);
   add('027c navFor: Suppliers for hot, exec, proc only; not under Stage 2', !navBad.length,
     navBad.length ? navBad.map((r) => `${r.role} company=${r.inCompany} stage=${r.underStage}`).join(', ') : `Suppliers for ${[...new Set(navRows.filter((r) => r.inCompany).map((r) => r.role))].join(', ')}; ${najdPeople.length} people checked`);
+
+
+  // ---- Plan 032: Company profile › Bid record, every tenant, as the Head of Tendering at seed.
+  const recs = GCC.map((t) => {
+    const hotT = vaultReader(t);
+    const ctx = kpiCtxOf({ tenant: t, viewer: hotT, viewAs: false, done: {} }, '12m', 'portfolio.hot');
+    return { t, hot: hotT, ctx, r: bidRecordFor(t, {}, hotT), ccy: profileOf(t).currency as Parameters<typeof money>[1] };
+  });
+  const each = (f: (x: (typeof recs)[number]) => [boolean, string]) => { const rs = recs.map((x) => ({ t: x.t, v: f(x) })); return [rs.every((x) => x.v[0]), rs.map((x) => `${x.t} ${x.v[1]}`).join(' · ')] as const; };
+  const sum = (rows: { bids: number; won: number; lost: number }[]) => rows.reduce((a, r) => ({ bids: a.bids + r.bids, won: a.won + r.won, lost: a.lost + r.lost }), { bids: 0, won: 0, lost: 0 });
+
+  // 17. Won, lost and value won are Win / loss (PF-3) at 12 months for the Head of Tendering, as the home dashboard reads it.
+  add('032 Win / loss = PF-3 at 12 months', ...each(({ ctx, r, ccy }) => {
+    const pf3 = kpi('PF-3')!.compute(ctx);
+    const t = r.totals;
+    return [pf3.display === `${t.won} won · ${t.lost} lost` && pf3.n === t.n && (!t.won || !!pf3.sub?.includes(money(t.valueWon.amount, ccy))), `${pf3.display} / ${t.won}·${t.lost}`];
+  }));
+
+  // 18. Value won is OUT-3 at 12 months.
+  add('032 Value won = OUT-3 at 12 months', ...each(({ ctx, r, ccy }) => {
+    const out3 = kpi('OUT-3')!.compute(ctx);
+    return [out3.display === money(r.totals.valueWon.amount, ccy), `${out3.display}`];
+  }));
+
+  // 19. Bids submitted is `submissionsIn` at 12 months, as the portfolio reads it.
+  add('032 Bids submitted = submissionsIn at 12 months', ...each(({ t, hot: h, r }) => {
+    const n = queriesFor({ tenant: t, viewer: h, done: {} }).submissionsIn(windowOf('12m', t)).length;
+    return [n === r.totals.submitted && r.bidIds.length >= n, `${r.totals.submitted}/${n}`];
+  }));
+
+  // 20. Each breakdown adds up to the totals: bids to submitted, won and lost to the results.
+  add('032 Sector, client type, country and size each sum to the totals', ...each(({ r }) => {
+    const t = r.totals;
+    const bad = (['bySector', 'byClientType', 'byCountry', 'byBand'] as const).filter((k) => { const x = sum(r[k].rows); return x.bids !== t.submitted || x.won !== t.won || x.lost !== t.lost; });
+    return [!bad.length, bad.length ? `off: ${bad.join(', ')}` : `${t.submitted} bids, ${t.won} won, ${t.lost} lost`];
+  }));
+
+  // 21. Loss reasons add up to the losses.
+  add('032 Loss reasons sum to lost', ...each(({ r }) => {
+    const n = r.losses.rows.reduce((a, x) => a + x.count, 0);
+    return [n === r.totals.lost && r.losses.total === r.totals.lost, `${n}/${r.totals.lost}`];
+  }));
+
+  // 22. Declines are the DG1 discards and DG2 no-bids among the gate events in the window, and their reasons add up.
+  add('032 Declines = DG1 discards + DG2 no-bids at 12 months', ...each(({ t, hot: h, r }) => {
+    const g = queriesFor({ tenant: t, viewer: h, done: {} }).gateEventsIn(windowOf('12m', t));
+    const d1 = g.filter((x) => x.g.gate === 'DG1' && x.g.decision === 'discard').length;
+    const d2 = g.filter((x) => x.g.gate === 'DG2' && x.g.decision === 'no-bid').length;
+    const rows = (x: typeof r.declines.dg1) => x.rows.reduce((a, y) => a + y.count, 0);
+    return [r.declines.dg1.total === d1 && r.declines.dg2.total === d2 && rows(r.declines.dg1) === d1 && rows(r.declines.dg2) === d2, `${d1} + ${d2}`];
+  }));
+
+  // 23. Captured → pursued → submitted → won are the decision funnel's (PF-5) parts at 12 months.
+  add('032 Funnel = PF-5 at 12 months', ...each(({ ctx, r }) => {
+    const f = flow('PF-5')!.compute(ctx);
+    const part = (step: string, key: string) => f.steps.find((x) => x.key === step)?.parts.find((p) => p.key === key)?.count ?? 0;
+    const want = [part('captured', 'notices'), part('dg1', 'pursue'), part('submitted', 'on-time') + part('submitted', 'late'), part('results', 'won')];
+    const got = r.funnel.steps.map((x) => x.count);
+    return [want.join() === got.join() && got[2] === r.totals.submitted && got[3] === r.totals.won, got.join(' → ')];
+  }));
+
+  // 24. Forecast accuracy is `calibrationFor` over the outcomes OUT-4 reads (the tenant history's 12 months).
+  add('032 Forecast accuracy = calibrationFor(history outcomes)', ...each(({ t, r }) => {
+    const c = calibrationFor(gccData(t).history.outcomes);
+    return [!r.forecast.masked && r.forecast.calibration?.text === c.text, `n = ${c.n}, ${r.forecast.within} of ${r.forecast.judged} bands`];
+  }));
+
+  // 25. The annual seed: four years before the 12 months, each complete, in the company's sectors.
+  add('032 Seed: 4 years, won + lost + withdrawn = submitted, sectors the company’s', ...each(({ t }) => {
+    const ys = BID_RECORD_YEARS[t as keyof typeof BID_RECORD_YEARS];
+    const sectors = profileOf(t).sectors;
+    const bad = ys.filter((y) => {
+      const b = Object.entries(y.bySector);
+      return y.won + y.lost + y.withdrawn !== y.submitted || b.reduce((a, [, v]) => a + v.submitted, 0) !== y.submitted
+        || b.reduce((a, [, v]) => a + v.won, 0) !== y.won || !b.every(([k]) => sectors.includes(k));
+    });
+    const last = ys[ys.length - 1];
+    return [ys.length === 4 && !bad.length && last.to === addDays(windowOf('12m', t).from.slice(0, 10), -1), `${ys.length} years to ${last.to}${bad.length ? `, off: ${bad.map((y) => y.from).join(', ')}` : ''}`];
+  }));
+
+  // 26. Each seeded year's value won is 40–160% of the turnover of the financial year it mostly covers (the earliest on record before FY2022).
+  add('032 Seed: value won 40–160% of that year’s turnover', ...each(({ t }) => {
+    const fin = [...dataOf(t).company.financials].sort((a, b) => a.fy - b.fy);
+    const pcts = BID_RECORD_YEARS[t as keyof typeof BID_RECORD_YEARS].map((y) => {
+      const f = fin.find((x) => x.fy === Number(y.from.slice(0, 4))) ?? fin[0];
+      return Math.round((y.valueWon.amount / convert(f.turnover.amount, f.turnover.ccy, y.valueWon.ccy)) * 100);
+    });
+    return [pcts.every((p) => p >= 40 && p <= 160), pcts.map((p) => `${p}%`).join('/')];
+  }));
+
+  // 27. The five-year series: the four seeded years, then the derived 12 months equal to the totals.
+  add('032 Five-year series: 4 seeded + the derived 12 months', ...each(({ r }) => {
+    const y = r.years;
+    const last = y[y.length - 1];
+    return [y.length === 5 && y.slice(0, 4).every((x) => !x.derived) && last.derived && last.won === r.totals.won && last.lost === r.totals.lost && last.submitted === r.totals.submitted,
+      y.map((x) => `${x.won}/${x.won + x.lost}`).join(' ')];
+  }));
+
+  // 28. A sector narrows the 12 months and the table; the five years stay the company's.
+  add('032 Sector filter narrows the tab, not the five years', ...each(({ t, hot: h, r }) => {
+    const s = r.sectors[0]?.value;
+    const f: BidRecordVM = bidRecordFor(t, {}, h, { sector: s });
+    const ok = f.sector === s && f.bySector.rows.every((x) => x.key === s) && f.totals.submitted === r.sectors[0].n
+      && f.rows.every((x) => x.sector === s) && JSON.stringify(f.years) === JSON.stringify(r.years);
+    return [ok, `${s}: ${f.totals.submitted} bids, ${f.rows.length} rows`];
+  }));
+
+  // 29. Masking in Najd: the Tender Coordinator sees no gap to the winner and no predicted win; the Head of Tendering sees both; Finance reads only what is shared.
+  const coord = personById('najd.coord')!;
+  const rc = bidRecordFor('najd', {}, coord);
+  const rh = recs[0].r;
+  const lostRows = (x: BidRecordVM) => x.rows.filter((y) => y.status === 'lost');
+  const resultRows = (x: BidRecordVM) => x.rows.filter((y) => y.status === 'won' || y.status === 'lost');
+  const coordOk = lostRows(rc).every((y) => y.gap === 'masked') && resultRows(rc).every((y) => y.predicted === 'masked') && rc.forecast.masked && rc.losses.rows.every((y) => y.gap === 'masked');
+  const hotOk = !rh.rows.some((y) => y.gap === 'masked' || y.predicted === 'masked') && !rh.forecast.masked;
+  const rf = bidRecordFor('najd', {}, fin);
+  add('032 Masking: gap and predicted win (Najd)', coordOk && hotOk && rf.partial && rf.totals.submitted <= rh.totals.submitted,
+    `coord ${lostRows(rc).length} gaps, ${resultRows(rc).length} predictions masked · HoT none masked · Finance ${rf.totals.submitted} bids shared${rf.partial ? ', partial' : ''}`);
+
+  // 30. The Overview's card reads the same 12 months as the tab.
+  add('032 Overview bid card = the tab’s totals', ...each(({ t, hot: h, r }) => {
+    const b = bidSummaryFor(t, {}, h);
+    const x = r.totals;
+    return [b.submitted === x.submitted && b.won === x.won && b.lost === x.lost && b.valueWon.amount === x.valueWon.amount && b.declined === r.declines.total && b.largestWin?.id === x.largestWin?.id,
+      `${b.submitted} · ${b.won}/${b.lost} · ${b.declined} declined`];
+  }));
 
   return out;
 }

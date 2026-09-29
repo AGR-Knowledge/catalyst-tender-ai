@@ -9,6 +9,7 @@ import { dataPort } from '@/domain/gcc/port';
 import { queriesFor, tenderCtx } from '@/domain/gcc/lifecycle.port';
 import { workspaceHeader, workspaceRail } from '@/domain/gcc/workspace';
 import { Card } from '@/components/ui/primitives';
+import { TenderTracker } from '@/components/dashboard/TenderTracker';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { Masked } from '@/components/tender/Masked';
 import { SourceHost } from '@/components/tender/SourceHost';
@@ -21,8 +22,9 @@ import './workspace.css';
 
 /**
  * `/tenders/:id`, the Tender Workspace (spec §4.1, ui-direction §5 C2):
- * everything about one bid. A sticky header and tabs; the tab's content on
- * the left (8/12) and the rail on the right (4/12), under the content below
+ * everything about one bid. A sticky header and tabs; on Overview, the
+ * tracker across the full width (plan 029); then the tab's content on the
+ * left (8/12) and the rail on the right (4/12), under the content below
  * 1280 px. Every "Open tender" in the demo lands here. Data comes only
  * through the port and the bound lifecycle queries, always with `done`, so
  * actions taken in the demo show here too.
@@ -114,6 +116,14 @@ export default function Workspace() {
           vm={header} onBack={back}
           tabs={active && <Tabs tabs={items} active={active.id} onChange={openTab} label={`${row.id} sections`} prefix={PREFIX} />}
         />
+        {/* Plan 029: on Overview the tracker is the tender's one flow, across the whole content width above the main column and the rail. */}
+        {active?.id === 'overview' && (
+          <section className="ws-flow" aria-label="Lifecycle of this tender">
+            {tracker
+              ? <TenderTracker vm={tracker} focusOnOpen={false} />
+              : <Card><EmptyState title="No tracker for this tender yet." compact /></Card>}
+          </section>
+        )}
         <div className="ws-grid">
           <div className="ws-main" {...(active ? tabPanelProps(PREFIX, active.id) : {})}>
             {!active || !Panel ? <Card><EmptyState title="Nothing to show on this tender yet." /></Card>

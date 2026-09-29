@@ -8,27 +8,13 @@ import { DEMO_TODAY, calendarDaysBetween, countdownText, dateText, workingDaysBe
 import { latestAddendumBadge } from '@/domain/gcc/s1/addenda';
 import { authorityCalendar, countryCodeOf } from '@/domain/gcc/s1/common';
 import { queriesFor, type DemoDone } from '@/domain/gcc/lifecycle.port';
-import type { Health, MoneyVM, TenderRowVM, TrackerNodeVM, TrackerVM } from '../viewmodels';
+import type { Health, MoneyVM, TenderRowVM, TrackerVM } from '../viewmodels';
 
 /**
  * The Tender Workspace header (spec §4.1): what the tender is, where it
  * stands and what is due, in one glance. Read-only derivations of the port's
  * row and tracker, the register tender (007a) and the lifecycle.
  */
-
-export interface TrackStepVM {
-  key: string;
-  /** "S1", "DG1". */
-  short: string;
-  /** "Intake", "DG1". */
-  label: string;
-  gate: boolean;
-  status: TrackerNodeVM['status'];
-  /** Later stages than the demo covers (after DG2) are muted (spec §4.1). */
-  muted: boolean;
-  /** For the tooltip: "S2 Sourcing: current, since 3 Mar". */
-  title: string;
-}
 
 export interface WorkspaceHeaderVM {
   id: string;
@@ -45,7 +31,6 @@ export interface WorkspaceHeaderVM {
   /** Open / PQ / Limited / Two-envelope; null without a register record. */
   procurement: string | null;
   stage: string;
-  track: TrackStepVM[];
   due: null | {
     date: string; time?: string;
     /** The authority's time zone label. */
@@ -76,23 +61,6 @@ const flagOf = (cc: string) => String.fromCodePoint(...[...cc.toUpperCase()].map
 
 /** "Sun 10 May": the year only outside the demo year. */
 const shortDay = (iso: string) => (iso.startsWith(DEMO_TODAY.slice(0, 4)) ? dateText(iso.slice(0, 10)).replace(/ \d{4}$/, '') : dateText(iso.slice(0, 10)));
-
-const STATUS_WORD: Record<TrackerNodeVM['status'], string> = { done: 'done', current: 'current', 'not-reached': 'not reached', stopped: 'stopped here' };
-
-/** The tracker's nodes, compact: S1 · DG1 · S2 · S3 · DG2 · S4 … S9 · DG3, in the tracker's order. */
-function trackOf(tracker: TrackerVM | null): TrackStepVM[] {
-  if (!tracker) return [];
-  const dg2 = tracker.nodes.findIndex((n) => n.key === 'DG2');
-  return tracker.nodes.map((n, i) => {
-    const since = n.from ? `, ${n.status === 'current' ? 'since' : 'from'} ${shortDay(n.from)}` : '';
-    const who = n.decision ? `: ${n.decision.label} by ${n.decision.byName}` : '';
-    return {
-      key: n.key, short: n.kind === 'gate' ? n.label : n.key, label: n.label, gate: n.kind === 'gate', status: n.status,
-      muted: i > dg2 && n.status === 'not-reached',
-      title: `${n.kind === 'gate' ? n.label : `${n.key} ${n.label}`}: ${STATUS_WORD[n.status]}${who}${since}`,
-    };
-  });
-}
 
 /** The authority's calendar and time zone: the register's rule, else the lifecycle's country, else the tenant's. */
 function calendarOf(tenant: string, row: TenderRowVM): { cc: CountryCode; tz: string } {
@@ -140,7 +108,6 @@ export function workspaceHeader(ctx: { tenant: string; viewer: Person; done: Dem
     valueNote: row.valueBasis === 'estimate' ? 'Estimate' : row.valueBasis === 'not-stated' || !row.value ? 'Value not stated' : null,
     procurement: reg ? PROCUREMENT[reg.procurement] ?? null : null,
     stage: row.live ? `${stageLabel(row.stage)} · ${stepLabel(row.stage, row.step)}` : stageLabel(row.stage),
-    track: trackOf(tracker),
     due,
     dueNote,
     closed: !row.live,

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import { Link } from 'react-router-dom';
 import { Lock } from 'lucide-react';
 import { spanText, teamsFor } from '@/domain/gcc/company';
@@ -18,11 +18,12 @@ export function Teams({ s1 }: { s1: S1 }) {
 
   return (
     <>
-      <div className="co-teams">
+      {/* One team fills the row; two or more share width and height, a long one scrolling inside (plan 032). */}
+      <div className="eq-row co-teams" style={{ '--eq-cols': Math.max(1, Math.min(vm.teams.length, 3)) } as CSSProperties}>
         {vm.teams.map((t) => (
           <Card key={t.id}>
             <CardHead title={t.name} meta={<span className="tk-sub">{t.sector}</span>} />
-            <div className="s1-pad">
+            <div className="s1-pad eq-scroll">
               <p className="s1-muted">
                 <span className="num">{t.people}</span> people: {plural(t.engineers, 'engineer')}, {plural(t.estimators, 'estimator')} and {plural(t.planners, 'planner')}, <span className="num">{t.capacityHours}</span> hours a week between them.
               </p>

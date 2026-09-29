@@ -18,6 +18,7 @@ import { dataOf, dayMonth, profileOf } from '../s1/common';
 
 export * from './vault';
 export * from './renewal';
+export * from './record';
 
 const COUNTRY_NAME: Record<string, string> = {
   SA: 'Saudi Arabia', AE: 'United Arab Emirates', QA: 'Qatar', OM: 'Oman', KW: 'Kuwait', BH: 'Bahrain', JO: 'Jordan', LB: 'Lebanon', EG: 'Egypt',

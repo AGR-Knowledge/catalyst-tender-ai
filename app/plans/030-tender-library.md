@@ -90,51 +90,51 @@ File names look like a real contractor's files, e.g. `SRRWD-2026-128 Letter of i
 ## Steps
 
 ### Phase 1 — The viewer and the facsimile (do this first: plan 031 waits for `FileViewer`)
-- [ ] 1.1 `domain/gcc/library/types.ts`: `LibraryFileVM` (id, name, title, type tag, lang, scanned, source `{ channel, label }`, receivedAt, by, pages or rows, tags, masked, `view: { kind: 'url'; src } | { kind: 'html'; html(): string } | { kind: 'csv'; src } | { kind: 'added'; … }`, optional `link` to a screen) and `LibraryFolderVM` (id, name, path, files, folders, masked).
-- [ ] 1.2 `facsimile.ts`: `facsimileHtml(spec)` returns one self-contained HTML document with inline CSS: an A4 page (or pages) on a grey ground, a serif body (Times New Roman, as the hero booklet uses), a letterhead band with the issuer's name, a reference and date line, an optional addressee, body sections (heading, paragraphs, key-value rows, a table), a footer, and the diagonal watermark "Synthetic document for demonstration". It has a `scanned` look and `dir="rtl"` for Arabic, using system Arabic fonts (no network), and no script.
-  - [ ] 1.2.1 Acceptance: the HTML contains no `<script>`; it renders in `<iframe sandbox="">`; the text is selectable; the watermark shows on every page.
-- [ ] 1.3 `csv.ts`: a BOQ CSV as an HTML table (header row, numbers right-aligned, no prices: the CSVs have none).
-- [ ] 1.4 `components/tender/FileViewer.tsx` and `file-viewer.css`, as in Design, reusing the drawer motion tokens (`tokens.css`) and the scrim. Acceptance:
-  - [ ] 1.4.1 The hero's booklet opens at page 1 in the iframe with no thumbnail pane; a facsimile opens in a sandboxed iframe; a BOQ opens as a table.
-  - [ ] 1.4.2 Previous / Next step through the list the viewer was opened from; the header updates; Esc and Close return focus to the row; Tab stays inside the panel.
-  - [ ] 1.4.3 Light and dark: the panel follows the theme; the facsimile page stays white paper (a document), on the theme's sunken ground.
-- [ ] 1.5 A `KitPreview` section shows the viewer with a facsimile and the hero's booklet.
+- [x] 1.1 `domain/gcc/library/types.ts`: `LibraryFileVM` (id, name, title, type tag, lang, scanned, source `{ channel, label }`, receivedAt, by, pages or rows, tags, masked, `view: { kind: 'url'; src } | { kind: 'html'; html(): string } | { kind: 'csv'; src } | { kind: 'added'; … }`, optional `link` to a screen) and `LibraryFolderVM` (id, name, path, files, folders, masked).
+- [x] 1.2 `facsimile.ts`: `facsimileHtml(spec)` returns one self-contained HTML document with inline CSS: an A4 page (or pages) on a grey ground, a serif body (Times New Roman, as the hero booklet uses), a letterhead band with the issuer's name, a reference and date line, an optional addressee, body sections (heading, paragraphs, key-value rows, a table), a footer, and the diagonal watermark "Synthetic document for demonstration". It has a `scanned` look and `dir="rtl"` for Arabic, using system Arabic fonts (no network), and no script.
+  - [x] 1.2.1 Acceptance: the HTML contains no `<script>`; it renders in `<iframe sandbox="">`; the text is selectable; the watermark shows on every page.
+- [x] 1.3 `csv.ts`: a BOQ CSV as an HTML table (header row, numbers right-aligned, no prices: the CSVs have none).
+- [x] 1.4 `components/tender/FileViewer.tsx` and `file-viewer.css`, as in Design, reusing the drawer motion tokens (`tokens.css`) and the scrim. Acceptance:
+  - [x] 1.4.1 The hero's booklet opens at page 1 in the iframe with no thumbnail pane; a facsimile opens in a sandboxed iframe; a BOQ opens as a table.
+  - [x] 1.4.2 Previous / Next step through the list the viewer was opened from; the header updates; Esc and Close return focus to the row; Tab stays inside the panel.
+  - [x] 1.4.3 Light and dark: the panel follows the theme; the facsimile page stays white paper (a document), on the theme's sunken ground.
+- [x] 1.5 A `KitPreview` section shows the viewer with a facsimile and the hero's booklet.
 
 ### Phase 2 — The library model
-- [ ] 2.1 `libraryFor({ tenant, viewer, done }, tenderId): { folders, files: LibraryFileVM[], count }`, reading only existing functions: `documentFor`, the register row (`gccData(tenant).register`), `dataOf(tenant).intakeToday` and `sources`, `uploadsOf`, `addendaFor`, the Stage 1 queries, `eligibilityFor` and the vault, `s2TenderOf` / `rfqsFor` and replies, `packVersionsFor`, `dg2RecordFor`, the DG1 and DG3 records, and the lifecycle (`queriesFor(...).one(id)`) for gates, submission and result.
-  - [ ] 2.1.1 **01 Tender documents** for every tender. The notice facsimile states: issuer, title, reference, procurement type, country and city, key dates (`keyDates`), document fee and how to obtain the booklet where the data has one. A scanned-drop source ("Scanned drop · Letter", e.g. T-2026-128) is a scanned letter of invitation. An email source is an email facsimile (From, To, Subject, Received, attachment line).
-  - [ ] 2.1.2 A lifecycle-only tender (history, Stages 4–9) gets its notice from the lifecycle's title, sector, issuer if present, and value basis. Where a field is missing, the facsimile leaves the line out; it never shows "undefined".
-  - [ ] 2.1.3 Folders 02–07 per the Design table, only from data that exists. A folder with no file is absent (05 excepted).
-  - [ ] 2.1.4 `names.ts`: file names by rule, unique within a folder (a second file of the same name gets " (2)").
-  - [ ] 2.1.5 Masking per Design, through `can(viewer, cap, ctx)`.
-- [ ] 2.2 `uploads.ts`: read and write the `lib-file:` keys, with versions; the in-memory object URL map.
-- [ ] 2.3 Agreement: the library's addenda equal `addendaFor(...)`; its RFQ and quote files equal the Sourcing tab's RFQs and replies for the same `done`; its DG files appear only for gates the tracker shows as reached.
+- [x] 2.1 `libraryFor({ tenant, viewer, done }, tenderId): { folders, files: LibraryFileVM[], count }`, reading only existing functions: `documentFor`, the register row (`gccData(tenant).register`), `dataOf(tenant).intakeToday` and `sources`, `uploadsOf`, `addendaFor`, the Stage 1 queries, `eligibilityFor` and the vault, `s2TenderOf` / `rfqsFor` and replies, `packVersionsFor`, `dg2RecordFor`, the DG1 and DG3 records, and the lifecycle (`queriesFor(...).one(id)`) for gates, submission and result.
+  - [x] 2.1.1 **01 Tender documents** for every tender. The notice facsimile states: issuer, title, reference, procurement type, country and city, key dates (`keyDates`), document fee and how to obtain the booklet where the data has one. A scanned-drop source ("Scanned drop · Letter", e.g. T-2026-128) is a scanned letter of invitation. An email source is an email facsimile (From, To, Subject, Received, attachment line).
+  - [x] 2.1.2 A lifecycle-only tender (history, Stages 4–9) gets its notice from the lifecycle's title, sector, issuer if present, and value basis. Where a field is missing, the facsimile leaves the line out; it never shows "undefined".
+  - [x] 2.1.3 Folders 02–07 per the Design table, only from data that exists. A folder with no file is absent (05 excepted).
+  - [x] 2.1.4 `names.ts`: file names by rule, unique within a folder (a second file of the same name gets " (2)").
+  - [x] 2.1.5 Masking per Design, through `can(viewer, cap, ctx)`.
+- [x] 2.2 `uploads.ts`: read and write the `lib-file:` keys, with versions; the in-memory object URL map.
+- [x] 2.3 Agreement: the library's addenda equal `addendaFor(...)`; its RFQ and quote files equal the Sourcing tab's RFQs and replies for the same `done`; its DG files appear only for gates the tracker shows as reached.
 
 ### Phase 3 — The Library tab
-- [ ] 3.1 `LibraryBrowser.tsx`: toolbar (search, counts, Add file), folder tree with counts (expand and collapse; the path in the URL as `?folder=`), and the file list in the Design's row anatomy. Tree items are buttons with `aria-expanded`; the list is a table with a caption, or AG Grid if a folder can hold more than five rows (architecture decision 8).
-  - [ ] 3.1.1 Clicking a row, or its View button, opens the `FileViewer`; Enter on a focused row does the same.
-  - [ ] 3.1.2 Search filters across the tender's folders and shows each match's folder path.
-- [ ] 3.2 `documents.tab.tsx`: label **Library**, `shows: () => true`; the badge stays (the latest addendum). Render `LibraryBrowser`, then the Intake steps card and the addendum cards as today. The booklet row carries Read in English (Arabic) and the OCR tag.
-- [ ] 3.3 Acceptance, as the Head of Tendering in Najd:
-  - [ ] 3.3.1 T-2026-128: 01 holds the scanned letter of invitation from the scanned drop, with its received time. View shows the scanned facsimile on the right.
-  - [ ] 3.3.2 Hero T-2026-118: the booklet PDF, the BOQ, the addenda sub-folder (count = the tab's "Add. n" badge), received copies, correspondence, company evidence.
-  - [ ] 3.3.3 T-2026-097 (Stage 3): 04 has one sub-folder per package with RFQs and quotes; 03 › DG2 has the pack versions.
-  - [ ] 3.3.4 A Stage 8 or 9 tender from the home dashboard: 05 Our proposal holds its proposal files, and 07 the result letter.
+- [x] 3.1 `LibraryBrowser.tsx`: toolbar (search, counts, Add file), folder tree with counts (expand and collapse; the path in the URL as `?folder=`), and the file list in the Design's row anatomy. Tree items are buttons with `aria-expanded`; the list is a table with a caption, or AG Grid if a folder can hold more than five rows (architecture decision 8).
+  - [x] 3.1.1 Clicking a row, or its View button, opens the `FileViewer`; Enter on a focused row does the same.
+  - [x] 3.1.2 Search filters across the tender's folders and shows each match's folder path.
+- [x] 3.2 `documents.tab.tsx`: label **Library**, `shows: () => true`; the badge stays (the latest addendum). Render `LibraryBrowser`, then the Intake steps card and the addendum cards as today. The booklet row carries Read in English (Arabic) and the OCR tag.
+- [x] 3.3 Acceptance, as the Head of Tendering in Najd:
+  - [x] 3.3.1 T-2026-128: 01 holds the scanned letter of invitation from the scanned drop, with its received time. View shows the scanned facsimile on the right.
+  - [x] 3.3.2 Hero T-2026-118: the booklet PDF, the BOQ, the addenda sub-folder (count = the tab's "Add. n" badge), received copies, correspondence, company evidence.
+  - [x] 3.3.3 T-2026-097 (Stage 3): 04 has one sub-folder per package with RFQs and quotes; 03 › DG2 has the pack versions.
+  - [x] 3.3.4 A Stage 8 or 9 tender from the home dashboard: 05 Our proposal holds its proposal files, and 07 the result letter.
 
 ### Phase 4 — Adding a file
-- [ ] 4.1 `AddFileModal.tsx`: file picker, folder select, Add; `mark()` write and toast; focus returns to Add file.
-- [ ] 4.2 The added file appears in its folder at once, tagged "Added by {name}", and shows in the viewer (session) or as the details card (after reload).
-- [ ] 4.3 Acceptance: add `Technical proposal draft.pdf` to 05 › Technical on the hero; reload: still listed; Settings → Reset demo: gone.
+- [x] 4.1 `AddFileModal.tsx`: file picker, folder select, Add; `mark()` write and toast; focus returns to Add file.
+- [x] 4.2 The added file appears in its folder at once, tagged "Added by {name}", and shows in the viewer (session) or as the details card (after reload).
+- [x] 4.3 Acceptance: add `Technical proposal draft.pdf` to 05 › Technical on the hero; reload: still listed; Settings → Reset demo: gone.
 
 ### Phase 5 — The Tender library page
-- [ ] 5.1 `Library.tsx` at `/library`: tender list on the left (search, stage filter, counts), the selected tender's `LibraryBrowser` on the right, and the cross-tender file search. The selection and search live in the URL.
-  - [ ] 5.1.1 The tender list reads `port.rows(tenant, { kind: 'all' }, person, 'all', done)`. It computes file counts cheaply (folder counts only) and builds the full library only for the selected tender.
-  - [ ] 5.1.2 Each tender header has "Open tender" (to `/tenders/:id?tab=documents`).
-- [ ] 5.2 The nav entry, the sidebar icon, the `screens.ts` entry and the `LEGACY_AT` move in `App.tsx`. Acceptance: in a GCC tenant `/library` shows the Tender library; in the Indian tenant (`gen-in`) `/library` still shows the legacy Artefacts library.
-- [ ] 5.3 Where the two panes sit side by side, they follow the wave 10 rule: the tender list and the library share the row's height and scroll inside (use `.eq-row` or the same pattern for a list and a browser).
+- [x] 5.1 `Library.tsx` at `/library`: tender list on the left (search, stage filter, counts), the selected tender's `LibraryBrowser` on the right, and the cross-tender file search. The selection and search live in the URL.
+  - [x] 5.1.1 The tender list reads `port.rows(tenant, { kind: 'all' }, person, 'all', done)`. It computes file counts cheaply (folder counts only) and builds the full library only for the selected tender.
+  - [x] 5.1.2 Each tender header has "Open tender" (to `/tenders/:id?tab=documents`).
+- [x] 5.2 The nav entry, the sidebar icon, the `screens.ts` entry and the `LEGACY_AT` move in `App.tsx`. Acceptance: in a GCC tenant `/library` shows the Tender library; in the Indian tenant (`gen-in`) `/library` still shows the legacy Artefacts library.
+- [x] 5.3 Where the two panes sit side by side, they follow the wave 10 rule: the tender list and the library share the row's height and scroll inside (use `.eq-row` or the same pattern for a list and a browser).
 
 ### Phase 6 — Checks
-- [ ] 6.1 `dev-checks/56-library.tsx`, about 12 rows per tenant:
+- [x] 6.1 `dev-checks/56-library.tsx`, about 12 rows per tenant:
   - every register tender has at least one file in 01;
   - the hero's addenda count equals `addendaFor`;
   - T-2026-061 and T-2026-042 have their held PDF and BOQ;
@@ -145,31 +145,111 @@ File names look like a real contractor's files, e.g. `SRRWD-2026-128 Letter of i
   - every facsimile contains the watermark and no `<script>`;
   - an upload write reads back, and a second write is v2;
   - no folder is empty except 05.
-- [ ] 6.2 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
-- [ ] 6.3 Browser (your own tab; reset the demo in that tab only), at 1280 and 1440, light and dark, no console errors:
-  - [ ] 6.3.1 Najd as the Head of Tendering, the Tender Coordinator (quotes masked), the Procurement Lead and a committee member (see the quote files with `see.quotes.summary` masking);
-  - [ ] 6.3.2 Corniche (T-2026-061), Batinah (T-2026-042, the Arabic booklet with Read in English);
-  - [ ] 6.3.3 `/library` in Najd and Qurain; `/library` in the Indian tenant still shows the legacy page.
-- [ ] 6.4 Reset demo clears added files and returns the library to its seed state.
+- [x] 6.2 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
+- [x] 6.3 Browser (your own tab; reset the demo in that tab only), at 1280 and 1440, light and dark, no console errors:
+  - [x] 6.3.1 Najd as the Head of Tendering, the Tender Coordinator (quotes masked), the Procurement Lead and a committee member (see the quote files with `see.quotes.summary` masking);
+  - [x] 6.3.2 Corniche (T-2026-061), Batinah (T-2026-042, the Arabic booklet with Read in English);
+  - [x] 6.3.3 `/library` in Najd and Qurain; `/library` in the Indian tenant still shows the legacy page.
+- [x] 6.4 Reset demo clears added files and returns the library to its seed state.
 
 ## Data and derivation
 - No new facts. Everything is derived in `domain/gcc/library/**` from existing data and domain functions.
 - New demo state: `lib-file:{tenderId}:{folderId}:{name}` keys in `store.done`, written through `mark()`, persisted in `ctai.demo.v2`, cleared by Reset demo.
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants
-- [ ] Every tender's Library tab shows at least its notice with name, source, received and by, and View opens it in an iframe on the right
-- [ ] Held PDFs open in the browser's viewer; every other file opens as a watermarked facsimile built from data
-- [ ] Sub-folders appear where a folder holds a group (addenda, packages, gates, proposal parts)
-- [ ] Add file persists over a reload and Reset demo clears it
-- [ ] `/library` lists every visible tender's library, with a cross-tender search; the Indian preview's `/library` is unchanged
-- [ ] Masking of quotes, commercial figures and positions is correct for the Tender Coordinator, a committee member and the Procurement Lead
-- [ ] No hard-coded numbers in pages; no role checks outside `access.ts`
+- [x] typecheck and build pass; `/dev/checks` passes in all five tenants
+- [x] Every tender's Library tab shows at least its notice with name, source, received and by, and View opens it in an iframe on the right
+- [x] Held PDFs open in the browser's viewer; every other file opens as a watermarked facsimile built from data
+- [x] Sub-folders appear where a folder holds a group (addenda, packages, gates, proposal parts)
+- [x] Add file persists over a reload and Reset demo clears it
+- [x] `/library` lists every visible tender's library, with a cross-tender search; the Indian preview's `/library` is unchanged
+- [x] Masking of quotes, commercial figures and positions is correct for the Tender Coordinator, a committee member and the Procurement Lead
+- [x] No hard-coded numbers in pages; no role checks outside `access.ts`
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-29.)
+- **Changed files:**
+  - New:
+    - `components/tender/FileViewer.tsx` and `file-viewer.css`: the API 031 imports, plus an optional `extra(file)` slot and an exported `byOf`;
+    - `domain/gcc/library/`: `types`, `facsimile`, `csv`, `names`, `folders`, `uploads`, `context`, `documents` (01, 02), `decision` (03), `sourcing` (04), `proposal` (05, 06, 07) and `index` (`libraryFor`);
+    - `pages/gcc/library/`: `LibraryBrowser`, `Library` (`/library`), `AddFileModal`, `bookletExtra` (Read in English for the tab and the page) and `library.css`;
+    - `pages/gcc/dev-checks/56-library.tsx`.
+  - Changed:
+    - `workspace/tabs/documents.tab.tsx`;
+    - `workspace/tabs/index.ts`: the `documents` row only;
+    - `data/access.ts`: one `NAV_GCC` entry and one line in the self-check comment;
+    - `layout/Sidebar.tsx`: the `Folders` icon;
+    - `screens.ts`: the `/library` entry, after Calendar;
+    - `App.tsx`: the legacy `library` route moved into `LEGACY_AT`;
+    - `dev/KitPreview.tsx`: the File viewer section, now fed by `libraryFor`;
+    - this plan and its README row.
+- **Verification:**
+  - typecheck and build pass. Twice they stopped on 031's unused variables (`profiles/generate.ts`, `profile/PerformanceTab.tsx`). I left those files alone and re-ran after 031 fixed them.
+  - `/dev/checks`: 56-library passes 12 of 12 in all five tenants, and no panel fails in any tenant.
+  - Browser checks ran in my own Playwright context (Chrome), at 1280 and 1440, light and dark, with no console errors.
+  - **Najd, Head of Tendering:**
+    - The hero's Library tab shows 26 files in 4 folders. The booklet opens at page 1, Esc returns focus to its row, `?folder=` survives, and search works.
+    - T-2026-128 shows the scanned letter of invitation (09:20, scanned drop).
+    - T-2026-104 shows 11 package folders and 60 files, and its quote opens.
+    - T-2026-097 shows the "Add. 2" badge, Addendum 02 in 01 › Addenda, and DG2 pack v1.
+    - T-2025-016, opened from the home dashboard (Table, 12 months, All, then the tracker's Open tender), shows 05 Technical, Commercial and Forms, and 07 Letter of award.
+  - **Masking, in Najd:**
+
+    | Persona | Folder 04 | Quote prices | Commercial figures |
+    | --- | --- | --- | --- |
+    | Tender Coordinator | count only | n/a | masked |
+    | Committee member (CFO) | count only | n/a | shown |
+    | Procurement Lead | shown | shown | masked |
+    | CEO and Bid Manager | shown | levelled total only; supplier prices masked | shown |
+
+    208 or 209 tenders on `/library`, depending on `see.restricted`.
+  - **Batinah T-2026-042:** Read in English sits in the booklet's row and the viewer header. Its sheet opens above the viewer, and Esc closes only the sheet.
+  - **Corniche T-2026-061:** the notice, the ITT PDF and the BOQ (40 rows).
+  - **Add file**, `Technical proposal draft.pdf` to 05 › Technical on the hero:
+    - the toast shows and focus returns to Add file;
+    - in the session the file opens in the iframe (blob); after a reload it is still listed and opens as the details card;
+    - adding the same name again gives "Add version 2" and one row tagged v2;
+    - an audit entry is written;
+    - Settings → Reset this company removes the file and leaves no `lib-file:` keys.
+  - **`/library`:**
+    - Najd lists 209 tenders and 1,120 files; Qurain 177 and 1,027.
+    - Selection, the stage filter, and cross-tender search ("addendum", "rhein") all work, as do Open its folder and Open tender (to the Library tab).
+    - The Indian preview's `/library` still shows the Artefacts library.
+- **Deviations from plan:**
+  1. **Data gaps:**
+     - T-2026-097 has no Stage 2 record, so it has no folder 04. I checked 04 on T-2026-104 instead; 097's 03 › DG2 holds pack v1.
+     - At seed the hero has no addendum and no received copy, so both sub-folders are absent.
+     - The badge shows the latest addendum's number, which is not a count; the Addenda folder equals `addendaFor` on every tender.
+  2. **Masking for committee members:** a committee member without `sourcing.view` or `levelling.view` sees folder 04 as a count only. I verified the `see.quotes.summary` masking as the CEO (seat `ceo`) and the assigned Bid Manager.
+  3. **The award letter's value** needs `see.margin`. The plan doesn't list it, but it is our bid price, which the commercial proposal masks.
+  4. **Additions, all from existing data:**
+     - in 02, query drafts (tagged "Draft") and a submission receipt;
+     - in 03 › DG3, a DG3 approval pack;
+     - in 04, declines as email files.
+  5. **Row anatomy:**
+     - "By" sits under Source, and only when neither the source nor a tag already names the person.
+     - Pages or rows are on the name's tag line.
+     - Four columns fit beside the workspace rail.
+     - An added file's source reads "Added to the library", with the tag "Added by {name}".
+  6. **The folder tree:**
+     - It is 204 px, not ≈ 220.
+     - It gives way to the breadcrumb and folder rows under 1100 px, and wherever the library itself is narrower than 700 px (850 px when a row carries Read in English).
+  7. **The viewer:**
+     - Its z-index is set when it opens (base 51), so it sits above an open sheet or drawer, and a sheet opened from it sits above it.
+     - A CSV gets Download rather than Open in new tab.
+     - An Arabic notice is right-to-left only where the data has an Arabic title; otherwise it is English, with a note pointing to the Arabic original.
+  8. **Folder 05:** its sub-folders always show. Add file is in the toolbar only, defaulting to the open folder, rather than repeated on each folder header.
+  9. **`/library` counts:**
+     - The list's counts come from each tender's library, memoised on the demo state, not from a separate "cheap" counter that could disagree with it.
+     - Building all 209 Najd libraries takes about 90 ms; facsimiles are built only on View.
+  10. **`/library` layout:**
+      - The tender list is 260–320 px wide and the library takes the rest. It follows the wave 10 pattern (same height, each scrolling inside) but the widths are not equal.
+      - Additions: Open its folder in the viewer for a search match, and Read in English there too.
+  11. **Dev checks:** the rows are generalised to every tender, because tender ids are per company (Najd's T-2026-042 is not Batinah's). KitPreview now uses `libraryFor` instead of a fixture.
+- **Blockers / questions:** none.
+- **Follow-ups noticed (not done):**
+  - The `.doc*` rules in `s1/s1.css` are now unused (out of scope).
+  - `domain/gcc/library/documents.ts` imports `uploadsOf` from `pages/gcc/s1/vm/uploads`, a domain module importing from pages. That helper belongs in the domain.
+  - The "Received" column and header line say "Received" for our own files too (proposal, packs). "Date" or "Made" would read better.
+  - The added-file details card shows the MIME type; a plain word ("PDF") would read better.
+  - The build's chunk-size warning was already there before this plan.

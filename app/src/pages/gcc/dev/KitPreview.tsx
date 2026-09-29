@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState, type CSSProperties } from 'react';
+import { lazy, Suspense, useMemo, useState, type CSSProperties } from 'react';
 import { useTenant } from '@/domain/tenancy';
 import { usePeriod, PERIODS, windowOf, previousOf } from '@/domain/gcc/period';
 import { convert } from '@/domain/money';
@@ -42,6 +42,9 @@ import { Tabs, tabPanelProps } from '@/components/tender/Tabs';
 import { MembersPanel } from '@/components/tender/MembersPanel';
 import { membersFor } from '@/pages/gcc/dg2/members';
 import { personById } from '@/data/people';
+import { FileViewer } from '@/components/tender/FileViewer';
+import { libraryFor } from '@/domain/gcc/library';
+import type { LibraryFileVM } from '@/domain/gcc/library/types';
 
 const StageChart = lazy(() => import('@/components/dashboard/chart/StageChart'));
 
@@ -310,7 +313,41 @@ function KitPart2() {
       </Card>
 
       <MembersKit />
+      <FileViewerKit />
     </SourceHost>
+  );
+}
+
+/**
+ * The viewer's kit, from the libraries themselves (Najd, on the seed): the hero's notice facsimile, booklet (held
+ * PDF) and BOQ (CSV as a table), T-2026-128's scanned letter, and a commercial proposal as the Tender Coordinator
+ * sees it (figures masked). Ids carry the tender, so they stay unique across tenders.
+ */
+function kitFiles(): LibraryFileVM[] {
+  const hot = personById('najd.hot');
+  const coord = personById('najd.coord');
+  const from = (viewer: typeof hot, id: string, pick: (f: LibraryFileVM) => boolean) => (viewer
+    ? (libraryFor({ tenant: 'najd', viewer, done: {} }, id)?.files ?? []).filter(pick).map((f) => ({ ...f, id: `${id}:${f.id}`, path: [id, ...f.path] }))
+    : []);
+  return [
+    ...from(hot, HERO_ID, (f) => f.folderId === '01'),
+    ...from(hot, 'T-2026-128', (f) => !!f.scanned),
+    ...from(coord, 'T-2026-079', (f) => !!f.masked).slice(0, 1),
+  ];
+}
+
+/** Plan 030: the file viewer with a facsimile (plain, scanned and masked), a held PDF and a BOQ, from `kitFiles`. */
+function FileViewerKit() {
+  const [at, setAt] = useState<number | null>(null);
+  const files = useMemo(kitFiles, []);
+  return (
+    <Card>
+      <CardHead title="File viewer" meta="← → move · Esc closes · focus returns to the row" />
+      <div style={{ ...pad, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {files.map((f, i) => <button key={f.id} type="button" className="btn btn-sm" data-file-row={f.id} onClick={() => setAt(i)}>{f.name}</button>)}
+      </div>
+      <FileViewer file={at === null ? null : files[at] ?? null} files={files} onIndex={setAt} onClose={() => setAt(null)} />
+    </Card>
   );
 }
 

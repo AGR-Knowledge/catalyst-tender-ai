@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import { money } from '@/domain/money';
@@ -18,10 +18,12 @@ import { Strip } from '../s1/parts/Strip';
 
 /**
  * Company profile › Overview (plan 027c): who the company is as a bidder. The
- * identity card with its registrations, six key figures, turnover by year, the
- * project record, and where the eligibility checks read this profile on the
- * viewer's live tenders. Every figure comes from `overviewFor`, which composes
- * what the other tabs read; each tile opens the tab behind it.
+ * identity card with its registrations, six key figures, then two rows of
+ * cards that share width and height (plan 032): the project record beside the
+ * bid record's last 12 months, and turnover by year beside where the
+ * eligibility checks read this profile on the viewer's live tenders. Every
+ * figure comes from `overviewFor`, which composes what the other tabs read;
+ * each tile opens the tab behind it.
  */
 
 const HERE = '/company';
@@ -153,6 +155,7 @@ function TurnoverCard({ vm, onTab }: { vm: OverviewVM; onTab(id: string): void }
   return (
     <Card className="co-turn">
       <CardHead title="Turnover by year" meta={<button type="button" className="btn btn-sm btn-ghost" onClick={() => onTab('financials')}>Financials<ArrowRight size={12} aria-hidden /></button>} />
+      <div className="eq-scroll">
       <ul className="co-bars" aria-label="Turnover by financial year">
         {vm.turnover.map((t) => {
           const draft = !t.audited;
@@ -177,6 +180,7 @@ function TurnoverCard({ vm, onTab }: { vm: OverviewVM; onTab(id: string): void }
           . Other years state turnover only.
         </p>
       )}
+      </div>
     </Card>
   );
 }
@@ -206,6 +210,7 @@ function RecordCard({ vm, onTab }: { vm: OverviewVM; onTab(id: string): void }) 
       <CardHead title="Project record" meta={<span className="num">{plural(r.total, 'project')}</span>} />
       {r.total ? (
         <>
+          <div className="eq-scroll">
           <div className="co-rec-lists">
             <BarList title="By country" rows={r.byCountry} />
             <BarList title="By role" rows={r.byRole} />
@@ -220,11 +225,49 @@ function RecordCard({ vm, onTab }: { vm: OverviewVM; onTab(id: string): void }) 
               </li>
             ))}
           </ul>
+          </div>
           <div className="co-rec-foot">
             <button type="button" className="btn btn-sm" onClick={() => onTab('projects')}>See all {plural(r.total, 'project')}<ArrowRight size={12} aria-hidden /></button>
           </div>
         </>
-      ) : <EmptyState title="No projects on record." body="Experience lines on a tender are checked against the similar-projects register." compact />}
+      ) : <div className="eq-scroll"><EmptyState title="No projects on record." body="Experience lines on a tender are checked against the similar-projects register." compact /></div>}
+    </Card>
+  );
+}
+
+/** The bid record's last 12 months (plan 032): six figures and the largest win, then the tab. */
+function BidCard({ vm, onTab }: { vm: OverviewVM; onTab(id: string): void }) {
+  const b = vm.bids;
+  const rate = b.winRatePct === null ? 'No results' : b.small ? `${b.winRatePct}% (n = ${b.n})` : `${b.winRatePct}%`;
+  const figure = (v: ReactNode, k: string) => <li><span className="co-bs-v num">{v}</span><span className="co-bs-k">{k}</span></li>;
+  return (
+    <Card className="co-bids">
+      <CardHead title="Bid record" meta={<span className="tk-sub">Last 12 months</span>} />
+      <div className="eq-scroll">
+        {b.submitted || b.n || b.declined ? (
+          <>
+            <ul className="co-bs" aria-label="Bid record, last 12 months">
+              {figure(b.submitted, 'Bids submitted')}
+              {figure(b.won, 'Won')}
+              {figure(b.lost, 'Lost')}
+              {figure(rate, 'Win rate')}
+              {figure(<Money value={b.valueWon} />, 'Value won')}
+              {figure(b.declined, 'Chose not to bid')}
+            </ul>
+            {b.largestWin && (
+              <div className="co-bs-win">
+                <span className="co-bs-k">Largest win</span>
+                <Link to={`/tenders/${encodeURIComponent(b.largestWin.id)}`}>{b.largestWin.title}</Link>
+                <span className="co-bs-m"><span className="mono">{b.largestWin.id}</span> · <Money value={b.largestWin.value} /></span>
+              </div>
+            )}
+            {b.partial && <p className="co-bs-note">Counts only the tenders shared with you.</p>}
+          </>
+        ) : <EmptyState title="No bid submitted or decided in the last 12 months." body="Bids, results and the decisions not to bid read here once there are any." compact />}
+      </div>
+      <div className="co-rec-foot">
+        <button type="button" className="btn btn-sm" onClick={() => onTab('record')}>Bid record<ArrowRight size={12} aria-hidden /></button>
+      </div>
     </Card>
   );
 }
@@ -234,6 +277,7 @@ function UsageCard({ vm }: { vm: OverviewVM }) {
   return (
     <Card className="co-use">
       <CardHead title="Where this profile is used" meta={<span className="tk-sub">Live tenders you can open</span>} />
+      <div className="eq-scroll">
       <p className="s1-lede">The Intake &amp; Extraction agent checks each tender’s requirements against this profile: the credentials, the project record and the accounts. It recommends; the Bid Manager decides at DG1.</p>
       {u.tenders ? (
         <>
@@ -256,6 +300,7 @@ function UsageCard({ vm }: { vm: OverviewVM }) {
           ) : <p className="s1-muted co-pad-x co-pad-b">Every line is met on each of them.</p>}
         </>
       ) : <EmptyState title="No live tender you can open has an eligibility check yet." body="Once a tender’s requirements are read at intake, it is checked against this profile." compact />}
+      </div>
     </Card>
   );
 }
@@ -268,11 +313,14 @@ export function Overview({ s1, vault, onTab }: { s1: S1; vault: Vault; onTab(id:
     <>
       <IdentityCard vm={vm} />
       <Strip tiles={tiles} />
-      <div className="co-ov-cols">
-        <TurnoverCard vm={vm} onTab={onTab} />
+      <div className="eq-row">
         <RecordCard vm={vm} onTab={onTab} />
+        <BidCard vm={vm} onTab={onTab} />
       </div>
-      <UsageCard vm={vm} />
+      <div className="eq-row">
+        <TurnoverCard vm={vm} onTab={onTab} />
+        <UsageCard vm={vm} />
+      </div>
     </>
   );
 }

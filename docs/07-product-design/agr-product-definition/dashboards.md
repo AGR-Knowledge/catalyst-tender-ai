@@ -414,6 +414,8 @@ T-2026-109 · Tabuk water transmission pipeline, Phase 1 · SAR 260.0 M · [On t
 - **Next**: the next steps and the submission date with working days;
 - **Blocker**: the open blocker, or "None".
 
+From a 1280 px window the rows sit in two columns (With, Team, Status | Next, Blocker). The 12 nodes share the tracker's width with no sideways scroll whenever the tracker is at least 900 px wide; a narrower tracker scrolls rather than cut a label (wave 10).
+
 **Masking** applies as everywhere. For example, a Procurement Lead sees "Margin: masked for your role" in a Stage 5 status line.
 
 **A simplification, stated in the ⓘ:** planning, pricing and drafting overlap in real bids. The tracker shows a tender in the stage where its critical work is now; the stage log keeps each stage's own dates.

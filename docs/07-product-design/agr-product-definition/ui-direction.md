@@ -149,7 +149,7 @@ The filter pattern (checkbox popovers, chips, live count) comes from the Workben
 
 ### C. Tender views
 - **C1, the sheet** (quick triage, 720px, from lists). It holds: header stats (fit, value, fields to check, due); "What was read | Document" as a segmented control; flag banners; key fields with page links; eligibility roll-up; recommendation card; actions. With a primary "Open workspace".
-- **C2, the Tender Workspace** (`/tenders/:id`, full page). A sticky header (spec §4.1) and tabs, with a two-column layout inside the tabs: main content (8/12) and a right rail (4/12). The rail holds the recommendation card, next actions for my role, key dates and open blockers. The rail collapses under the content below 1280px.
+- **C2, the Tender Workspace** (`/tenders/:id`, full page). A sticky header (spec §4.1) and tabs, with a two-column layout inside the tabs: main content (8/12) and a right rail (4/12). The rail holds the recommendation card, next actions for my role, key dates and open blockers. The rail collapses under the content below 1280px. On Overview only, the tender tracker sits between the header and the two columns, at the full width, so the whole flow is visible (wave 10); the header carries no stage track. Cards side by side share one width and height (`.eq-row`), and a long card scrolls inside.
 
 ### D. Gate screen (DG1, DG2)
 ```

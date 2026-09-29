@@ -146,7 +146,7 @@ Platform Console  /platform      ← separate shell, Catalyst only
 - authority, with country flag and city;
 - value in tenant currency, with the original currency beside it when different;
 - procurement type (Open / Limited / PQ / Two-envelope);
-- a **stage track** S1 · DG1 · S2 · S3 · DG2 (later stages muted);
+- the current stage in words in the crumb ("1 · Intake · Screened"). The header carries no stage track: the full flow is the tender tracker on the Overview tab, at the page's full width above the main column and the rail, all 12 nodes visible end to end (wave 10, 2026-09-29: never show a flow twice);
 - a due countdown in the authority's local time zone;
 - the owner (Bid Manager);
 - badges: document language (EN / AR / EN+AR), sensitivity (Standard / Restricted lane), "Addendum 2 applied".
@@ -156,7 +156,7 @@ Platform Console  /platform      ← separate shell, Catalyst only
 | Tab | Content | Stage |
 | --- | --- | --- |
 | Overview | The agent's summary, the recommendation card, next actions for *my* role, key dates, open blockers, the latest activity | all |
-| Documents | The document pack (ITT, BOQ, drawings list, addenda, clarifications, pre-bid minutes), each with type, language, pages, OCR flag, version and received-via; addenda diff | S1 |
+| Library | Every file of the tender in folders (tender documents with addenda and received copies, correspondence, bid decision packs, suppliers and quotes, our proposal, company evidence, result), each with name, source, date received, sender, type, language, pages and OCR flag; View opens it in a panel on the right (the PDF, the BOQ as a table, or a watermarked facsimile built from the data); Add file with versions; addenda diff. The company-wide `/library` page brings every tender's library together (wave 10) | all |
 | Requirements | Extracted fields by group (§6.4), each with value, confidence, page link, source snippet (bilingual for Arabic), and validation state | S1 |
 | Eligibility & fit | The PQ checklist against the company credential vault (§6.5), the fit-score breakdown (§6.6), what would change the result | S1 |
 | Key dates | Typed dates on a mini calendar with the GCC holiday and weekend overlay; reminders; conflicts | S1+ |

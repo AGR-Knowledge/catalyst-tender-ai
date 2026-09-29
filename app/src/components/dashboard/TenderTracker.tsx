@@ -29,8 +29,12 @@ const WORD: Record<'stage' | 'gate', Record<Look, string>> = {
   gate: { done: 'passed', current: 'open', 'not-reached': 'not reached', stopped: 'stopped here', hold: 'on hold' },
 };
 
-/** "28 Feb" from an ISO date or date-time. */
-const day = (iso?: string) => (iso ? dateText(iso.slice(0, 10)).replace(/^\w+ /, '').replace(/ \d{4}$/, '') : '');
+/**
+ * "28 Feb" from an ISO date or date-time. A date never breaks inside (no-break
+ * space), so where the track is narrow a range breaks only after its dash
+ * (plan 029): "16 Nov –" over "18 Nov".
+ */
+const day = (iso?: string) => (iso ? dateText(iso.slice(0, 10)).replace(/^\w+ /, '').replace(/ \d{4}$/, '').replace(' ', '\u00a0') : '');
 const at = (iso: string) => `${day(iso)}${iso.length > 10 ? ` ${iso.slice(11, 16)}` : ''}`;
 
 /** The node's five rows as text: chip, when, who and the who's suffix. */
@@ -43,7 +47,7 @@ function rows(n: TrackerNodeVM) {
   }
   const reached = n.status !== 'not-reached';
   const chip = reached && n.days !== undefined ? (n.status === 'current' ? `${n.days} d so far` : `${n.days} d`) : '';
-  const when = n.from ? (n.to ? `${day(n.from)} – ${day(n.to)}` : `since ${day(n.from)}`) : '';
+  const when = n.from ? (n.to ? `${day(n.from)}\u00a0– ${day(n.to)}` : `since ${day(n.from)}`) : '';
   return { chip, tone: undefined, when, who: n.ownerInitials ?? '', initials: n.ownerInitials ?? '', late: null };
 }
 
@@ -106,7 +110,8 @@ export function TenderTracker({ vm, onClose, onOpen, focusOnOpen = true }: {
     return () => document.removeEventListener('keydown', k);
   }, [onClose]);
 
-  // Where the track is wider than its card (the workspace Overview), open it with the current or stopped node in the middle, not at Intake.
+  // Where the track is wider than its card (below a 1100 px window), open it with the current or stopped node in the middle, not at
+  // Intake. From 1100 px the 12 nodes fit the card (plan 029), so there is nothing to scroll and nothing moves.
   const track = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const t = track.current;
@@ -146,13 +151,18 @@ export function TenderTracker({ vm, onClose, onOpen, focusOnOpen = true }: {
       {now && (
         <div className="tt-now">
           <div className="tt-now-h">Now: {now.stageLabel} · {now.stepLabel}</div>
-          <dl className="tt-kv">
-            <dt>With</dt><dd>{now.withName ? `${now.withName}${now.withRole ? `, ${now.withRole}` : ''}` : 'Nobody yet'}</dd>
-            <dt>Team</dt><dd>{now.team ?? 'No team yet'}</dd>
-            <dt>Status</dt><dd>{now.status}</dd>
-            <dt>Next</dt><dd>{now.next}</dd>
-            <dt>Blocker</dt><dd className={now.blocker ? 't-red' : ''}>{now.blocker ?? 'None'}</dd>
-          </dl>
+          {/* Who and where it stands, then what comes next: two columns from 1280 px, one below (plan 029). */}
+          <div className="tt-kvs">
+            <dl className="tt-kv">
+              <dt>With</dt><dd>{now.withName ? `${now.withName}${now.withRole ? `, ${now.withRole}` : ''}` : 'Nobody yet'}</dd>
+              <dt>Team</dt><dd>{now.team ?? 'No team yet'}</dd>
+              <dt>Status</dt><dd>{now.status}</dd>
+            </dl>
+            <dl className="tt-kv">
+              <dt>Next</dt><dd>{now.next}</dd>
+              <dt>Blocker</dt><dd className={now.blocker ? 't-red' : ''}>{now.blocker ?? 'None'}</dd>
+            </dl>
+          </div>
           {onOpen && (
             <div className="tt-foot"><button type="button" className="btn btn-sm btn-primary" onClick={() => onOpen(vm.tenderId)}>Open tender</button></div>
           )}

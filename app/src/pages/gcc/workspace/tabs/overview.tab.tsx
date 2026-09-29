@@ -6,7 +6,6 @@ import { documentFor } from '@/domain/gcc/documents';
 import { prevailsOf, prevailsTitle } from '@/domain/gcc/arabic';
 import type { TenderRowVM } from '@/domain/gcc/viewmodels';
 import { Card, CardHead, KV } from '@/components/ui/primitives';
-import { TenderTracker } from '@/components/dashboard/TenderTracker';
 import { column } from '@/components/dashboard/columns';
 import { WinCell } from '@/components/dashboard/columns/base.cols';
 import { EmptyState } from '@/components/tender/EmptyState';
@@ -20,12 +19,14 @@ import { StatusPill } from '@/components/tender/StatusPill';
 import type { WorkspaceCtx, WorkspaceTabDef } from './types';
 
 /**
- * Overview (order 10, always shown): the tracker, where the tender stands
- * (the step facts, each through its table column's renderer, so money,
- * percentages and dates read exactly as in the tables), the tender's
- * particulars, and the latest activity. When the tender document says the
- * Arabic text prevails, or an Arabic document doesn't say which language
- * does, the particulars raise it with its page (plan 012, ui-direction §8).
+ * Overview (order 10, always shown): where the tender stands (the step
+ * facts, each through its table column's renderer, so money, percentages
+ * and dates read exactly as in the tables), the tender's particulars, and
+ * the latest activity. The flow sits above the panel: the workspace draws
+ * the tracker across the full width, over this panel and the rail (plan
+ * 029). When the tender document says the Arabic text prevails, or an
+ * Arabic document doesn't say which language does, the particulars raise it
+ * with its page (plan 012, ui-direction §8).
  */
 
 /** Words for the parts of a fact key; a unit at the end goes in brackets. */
@@ -61,7 +62,7 @@ function factValue(row: TenderRowVM, k: string): ReactNode {
 }
 
 function Overview({ ctx }: { ctx: WorkspaceCtx }) {
-  const { row, tracker, tenant } = ctx;
+  const { row, tenant } = ctx;
   // A fact with no value that isn't masked doesn't apply to this step (a fee once documents are downloaded): left out.
   const facts = Object.keys(row.facts).filter((k) => !k.endsWith('.masked') && (row.facts[k] !== null || row.facts[`${k}.masked`]));
   const model = isGccTenantKey(tenant) ? gccData(tenant).fit : null;
@@ -77,14 +78,11 @@ function Overview({ ctx }: { ctx: WorkspaceCtx }) {
 
   return (
     <div className="ws-tab">
-      {tracker
-        ? <TenderTracker vm={tracker} focusOnOpen={false} />
-        : <Card><EmptyState title="No tracker for this tender yet." compact /></Card>}
-
-      <div className="ws-two">
+      {/* Side by side at one width and one height (the wave 10 rule); the longer card scrolls inside, under its head. */}
+      <div className="eq-row ws-pair">
         <Card>
           <CardHead title="Where it stands" meta={row.live ? stepLabel(row.stage, row.step) : <StatusPill health={row.health} />} />
-          <div className="ws-kv">
+          <div className="ws-kv eq-scroll">
             {facts.length === 0 && <KV k="Step facts" v="None recorded for this step." />}
             {facts.map((k) => <KV key={k} k={column(k)?.header ?? factLabel(k)} v={factValue(row, k)} />)}
           </div>
@@ -92,7 +90,7 @@ function Overview({ ctx }: { ctx: WorkspaceCtx }) {
 
         <Card>
           <CardHead title="Tender" />
-          <div className="ws-kv">
+          <div className="ws-kv eq-scroll">
             <KV k="Sector" v={row.sector} />
             <KV k="Team" v={row.teamName ?? 'No team yet'} />
             <KV k="Source" v={
