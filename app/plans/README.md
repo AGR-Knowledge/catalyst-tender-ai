@@ -48,6 +48,8 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 030 | [Tender library and the file viewer](030-tender-library.md): every tender's files in folders (notice, booklet, addenda, correspondence, DG packs, RFQs and quotes, our proposal, evidence, result) with source and time; View in an iframe on the right; Add file; a company-wide Tender library page | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
 | 031 | [Supplier profile in depth](031-supplier-profile.md): `/suppliers/:id` with company facts, current financials and health, projects with us, quarterly performance and evaluation, compliance and certificates, contacts and documents | 10 | wave 9b; 030 Phase 1 for step 4.6 | DONE (2026-09-29, reviewed) |
 | 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
+| 033 | [Booklets and file dates](033-booklets-and-file-dates.md): every pursued tender has its booklet in the Library (the real PDF, or a watermarked extract built from its data); each file's date says Received, Sent or Made; the supplier profile's crumb; header tooltips on grids | 10b | wave 10 | READY |
+| 034 | [A bid history that reads true](034-history-that-reads-true.md): our place and the gap to the winner on most losses; value won in proportion to company size (Batinah, Corniche); forecasts that calibrate outside Najd; the Saham duplicate; seats within the licence | 10b | wave 10 | READY |
 
 **Wave 10 review of 031 (orchestrator, 2026-09-29): accepted, committed after 029, 030 and 032.**
 - Typecheck and build pass. `/dev/checks`: Najd 946 and Batinah 526, with no failure (68 passes 14 of 14). The executor ran all five tenants.
@@ -365,6 +367,30 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 10b (orchestrator, 2026-09-29):** 033 and 034 in parallel, two sessions, from the wave 10 review's open items (the user asked for the follow-up plan).
+  - **033** owns:
+    - `domain/gcc/library/**`, `pages/gcc/library/**` and the header line of `components/tender/FileViewer.tsx`;
+    - one module in `components/dashboard/grid/agGrid.ts`;
+    - `BackBar` in `pages/gcc/suppliers/SupplierProfile.tsx` and two `headerTooltip`s in `pages/gcc/suppliers/Suppliers.tsx`;
+    - `dev-checks/56-library.tsx`.
+  - **034** owns:
+    - `data/gcc/lifecycle/placing.ts` (new), `fold.ts`, `generate.ts` and `pools.ts`;
+    - the `OUTCOMES` tuples and `BA-O03`'s title in `data/gcc/tenants/*.ts`;
+    - Batinah's target in `data/gcc/portfolio.ts` and the GCC `seats` in `data/tenants.ts`;
+    - `dev-checks/69-history.tsx` (new), and the pins it must move in other checks (listed in its report);
+    - `gcc-demo-data.md` §5.
+  - No file is shared. 034's data reaches 033's screens only by derivation.
+  - **Decisions (orchestrator, 2026-09-29):**
+    - **Booklets:** a tender we pursued without a held PDF gets a watermarked "Tender booklet (extract)" built from its data: cover, contents, instructions, requirements, scope. A discarded tender keeps only its notice. No generated BOQ.
+    - **File dates:** each file's date is Received, Sent or Made; the column is "Date".
+    - **Places and gaps:** derived for losses that don't state them, on a stream seeded by the tender id, never the generator's.
+      - Public clients publish about 80% of the time, private clients about 30%.
+      - Price losses rank 2nd–4th with a gap of 0.8–12%; pq losses have neither.
+      - Authored figures (T-2025-270) are kept.
+    - **Value won:** 0.9–1.3× FY2025 turnover in every company. Batinah and Corniche lower their won values within their bands, and losses keep theirs. Batinah's order-intake target is OMR 50 M.
+    - **Calibration:** Corniche, Batinah and Qurain (and Dafna once it reaches 20 decided bids) within ±10 points per judged band. Najd's over-confident < 30% band stays, as gcc-demo-data §5.1 intends.
+    - **Stream rule:** the generator's stream is untouched, so no generated id, title or date moves.
+    - **Not in 10b:** spreading Najd's Sunday submission dates. It moves many pinned dates, countdowns and effort windows, and needs its own plan.
 - **Wave 10 (orchestrator, 2026-09-29):** 029, 030, 031 and 032 in parallel, four sessions, from the user's review of the tender page, Suppliers and Company (2026-09-29). The eight feedback points are grouped by the files they touch: 029 (the header chain, the full-width tracker, equal cards: points 1–4), 030 (tender documents and the library: points 5 and 7), 031 (suppliers: point 6), 032 (company: point 8).
   - **Contract written by the orchestrator before the wave** (checked in the browser: two cards 351 px wide at the same height, the long one scrolling at 440 px): `.eq-row` and `.eq-scroll` in `styles/components.css`. Cards side by side share one width and one height; the row is as tall as its tallest card up to `--eq-h` (440 px); a long card scrolls inside while its head stays; `--eq-cols` sets the columns; under 1100 px they stack. **Nobody edits that block in wave 10**; every plan uses it for the user's rule "wherever two or more tiles sit in one row, the same width; short looks a little empty, long scrolls".
   - **029** owns `pages/gcc/workspace/{Workspace,WorkspaceHeader}.tsx`, `workspace.css`, `tabs/*.tab.tsx` except `documents.tab.tsx`, `track` in `domain/gcc/workspace/header.ts`, `components/dashboard/TenderTracker.tsx` and the `.tt*` block of `dashboard.css`, the row rules of components the workspace tabs render (targeted edits in `s1.css`, `s2.css`, `s3.css`, `dg2.css`), and `dev-checks/55-workspace.tsx`.
