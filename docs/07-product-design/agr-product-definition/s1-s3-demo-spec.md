@@ -697,3 +697,19 @@ Checked item by item in plan 016c (2026-09-27); what was checked is in that plan
 - [x] Arabic documents show the English value with the Arabic source for every field: Requirements, Key dates, the intake queue, the DG1 pack's dates and the Overview's prevailing-language clause (orchestrator, 2026-09-27, after 016c finding 30).
 - [ ] Demo scope mode hides Stage 4–9 surfaces completely, with no placeholders.
   - *Superseded by dashboards.md DB-10 (plan 016c, 2026-09-27).* The rule now: in a GCC tenant, Stages 4–9 have real tenders, owners, dates and step status, and a stage dashboard each, but no working screens. No placeholder (`ComingNext`) is reachable from the sidebar, search or a link. GCC tenants are always in Stage 1–3 scope, so Settings shows no Demo scope toggle for them; the toggle shows only for the Indian preview (`gen-in`, gcc-demo-data §3).
+
+## 20. Stage 9: debriefs and the archive (wave 11)
+
+Every bid that ends (won, lost, cancelled by the employer, withdrawn, No-Bid at DG2, rejected at DG3) gets a debrief. The Project Director records why it ended and what we learned. The Head of Tendering accepts it into the archive or sends it back. DG1 discards are not bids and have none. The words (endings, reasons, factors, lesson areas, statuses) are in `app/src/data/gcc/debriefs/vocab.ts`. The rules are plan 035's.
+
+### 20.1 The Debrief tab
+*(Plan 036 writes this.)*
+
+### 20.2 Recording and signing off
+*(Plan 036 writes this.)*
+
+### 20.3 What follows an accepted debrief
+*(Plan 036 writes this.)*
+
+### 20.4 The Debriefs archive and the Bid record
+*(Plan 037 writes this.)*

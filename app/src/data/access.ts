@@ -173,6 +173,8 @@ export type Capability =
   | 'pack.issue' | 'pack.note' | 'input.request' | 'input.respond' | 'dg2.position' | 'dg2.decide' | 'dg2.secretary' | 'reopen.approve'
   // Stage 7 / DG3
   | 'dg3.view' | 'dg3.issue' | 'dg3.decide'
+  // Stage 9 debriefs (wave 11): the Project Director records, the Head of Tendering accepts
+  | 'debrief.view' | 'debrief.record' | 'debrief.accept'
   // company, admin, platform
   | 'credential.manage' | 'credential.renew' | 'facility.edit'
   | 'admin.users' | 'admin.gates' | 'admin.sources' | 'admin.fit' | 'admin.targets' | 'admin.branding' | 'view.as'
@@ -219,6 +221,8 @@ export const GRANTS: Record<RoleKey, Grants> = {
       'dg1.delegate', 'reopen.request', 'input.request', 'dg2.secretary', 'credential.manage', ...ADMIN, 'view.as'], 'tenant'),
     // The final approvals (dashboards.md §9): DG2 after the committee's positions, DG3 on Compliance's pack.
     ...all(['dg2.decide', 'dg3.decide', 'reopen.approve'], 'tenant'),
+    // Debriefs (wave 11): reads them all and accepts or sends back; never records one (the Project Director does).
+    ...all(['debrief.view', 'debrief.accept'], 'tenant'),
     ...all(['see.margin', 'see.quotes', 'see.positions', 'see.pii', 'see.restricted'], 'tenant'),
   },
   coord: {
@@ -229,7 +233,7 @@ export const GRANTS: Record<RoleKey, Grants> = {
     ...all(['tender.view', 'radar.view', 'queue.view', 'screening.view', 'dg1.view', 'sourcing.view', 'levelling.view', 'pack.view', 'dg2.view', 'dg3.view', 'company.view', 'stage.view'], 'tenant'),
     'portfolio.view': 'assigned',
     ...all(['dg1.decide', 'query.approve', 'package.comment', 'pack.issue', 'pack.note', 'input.request', 'reopen.request',
-      'see.margin', 'see.quotes.summary', 'see.positions'], 'assigned'),
+      'see.margin', 'see.quotes.summary', 'see.positions', 'debrief.view'], 'assigned'),
   },
   proc: {
     ...all(['tender.view', 'sourcing.view', 'levelling.view', 'supplier.view', 'company.view', 'stage.view'], 'tenant'),
@@ -240,10 +244,11 @@ export const GRANTS: Record<RoleKey, Grants> = {
     ...all(ALL_VIEWS.filter((c) => c !== 'admin.view'), 'tenant'),
     ...all(['portfolio.view', 'stage.view'], 'tenant'),
     'dg2.position': 'seat',
+    'debrief.view': 'tenant',
     ...all(['see.margin', 'see.quotes.summary', 'see.positions', 'see.restricted'], 'tenant'),
   },
   member: {
-    ...all(['tender.view', 'pack.view', 'dg2.view', 'company.view', 'stage.view'], 'tenant'),
+    ...all(['tender.view', 'pack.view', 'dg2.view', 'company.view', 'stage.view', 'debrief.view'], 'tenant'),
     'dg2.position': 'seat',
     // Tenant-configurable later (catalogue §C.5); default yes for committee members.
     ...all(['see.margin', 'see.positions', 'see.quotes.summary'], 'tenant'),
@@ -258,7 +263,8 @@ export const GRANTS: Record<RoleKey, Grants> = {
   },
   plan: STAGE_OWNER,
   comp: { ...STAGE_OWNER, ...all(['dg3.view', 'dg3.issue'], 'tenant') },
-  dir: STAGE_OWNER,
+  // Owns Stage 9, so records every bid's debrief (wave 11, user decision 2026-09-30).
+  dir: { ...STAGE_OWNER, ...all(['debrief.view', 'debrief.record'], 'tenant') },
   // The Proposal Manager owns Stage 6 (R11). The Indian preview's `prop` persona keeps using `canSee`.
   prop: { 'tender.view': 'tenant', 'pack.view': 'invited', 'stage.view': 'tenant', 'input.respond': 'own' },
   // Finance and HR open Company to reach the credentials they own (R11).
@@ -291,6 +297,7 @@ const CAP_TEXT: Record<Capability, string> = {
   'dg2.position': 'Recording a DG2 position', 'dg2.decide': 'Recording the DG2 decision', 'dg2.secretary': 'Acting as committee secretary',
   'reopen.approve': 'Approving a re-open',
   'dg3.view': 'DG3 approvals', 'dg3.issue': 'Issuing the DG3 pack', 'dg3.decide': 'Approving DG3',
+  'debrief.view': 'Debriefs', 'debrief.record': 'Recording the debrief', 'debrief.accept': 'Accepting a debrief',
   'credential.manage': 'Managing credentials', 'credential.renew': 'Renewing credentials', 'facility.edit': 'Editing bank facilities',
   'admin.users': 'Managing users and roles', 'admin.gates': 'Setting committees and gates', 'admin.sources': 'Managing sources',
   'admin.fit': 'Changing the fit model', 'admin.targets': 'Setting targets and SLAs', 'admin.branding': 'Changing the branding', 'view.as': 'View as',

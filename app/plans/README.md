@@ -50,6 +50,9 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
 | 033 | [Booklets and file dates](033-booklets-and-file-dates.md): every pursued tender has its booklet in the Library (the real PDF, or a watermarked extract built from its data); each file's date says Received, Sent or Made; the supplier profile's crumb; header tooltips on grids | 10b | wave 10 | DONE (2026-09-29, reviewed) |
 | 034 | [A bid history that reads true](034-history-that-reads-true.md): our place and the gap to the winner on most losses; value won in proportion to company size (Batinah, Corniche); forecasts that calibrate outside Najd; the Saham duplicate; seats within the licence | 10b | wave 10 | DONE (2026-09-29, executor and orchestrator, reviewed) |
+| 035 | [Debrief records and rules](035-debrief-records.md): every ended bid gets a debrief (won, lost, cancelled, withdrawn, No-Bid, rejected); the Project Director records it, the Head of Tendering accepts it or sends it back; a generated 12-month history; the applier (Lessons captured, a corrected loss reason); Needs your action; DBR-1 to DBR-6. No screens | 11 | the wave 11 contract | READY |
+| 036 | [The Debrief tab and sign-off](036-debrief-tab.md): a Debrief tab on every ended tender: what we know, the six-section form, the record, Accept or Send back, "Fill in an example"; the Debrief record in Library › 07 Result; runbook Script G | 11 | the wave 11 contract; 035 to verify | READY |
+| 037 | [The Debriefs archive and the Bid record](037-debrief-archive.md): `/debriefs` for the KPI team: why we win and lose, what decided it, who beats us, why bids stopped, lessons by area, every debrief with a CSV; Bid record's "Why we lost" reads the debriefs | 11 | the wave 11 contract; 035 to verify | READY |
 
 **Wave 10b review of 033 and 034 (orchestrator, 2026-09-29): both accepted.**
 - 034's executor stopped before its report, with the data and dev check 69 in place. The orchestrator measured what was left, finished it (the docs lines, the checks, the report) and reviewed both plans together.
@@ -391,6 +394,51 @@ Plan 001 was verified with a click audit:
   - **Rule extension (orchestrator, 2026-09-26):** the Stage 1 rules could not express 022's and 023's eligibility lines or a fixed bond amount. **022 alone** extends `domain/gcc/s1/eligibility.ts` and `domain/gcc/s1/bond.ts`, adding optional fields to `PqRequirement`, `SimilarProject`, `KeyPerson` and `BondTerms`. The extensions are data-driven and generic enough for 023. With a field absent, a tender reads exactly as before. `EligibilityLine`, `EligibilityResult`, `LineState` and `LineAction` don't change. **023 reuses** those fields and doesn't edit those files; if it needs more, it asks.
   - Shared one-line edits (`App.tsx`, `screens.ts`, `Header.tsx`, index files): re-read right before editing, add lines, move nothing.
   - **Wave 5 after wave 4:** 012 (Arabic intake, on 007b and 023), 018 (DG3), 010 (Company and Administration), 014 (presenter controls). Then 016 (script QA).
+- **Wave 11 (orchestrator, 2026-09-30):** 035, 036 and 037 in parallel, three sessions, from the user's request of 2026-09-30. When a bid ends, the tender's Project Director records a debrief: why we won, lost or stopped, and what we learned. The records form an archive the KPI team can analyse.
+  - **User decisions (2026-09-30):**
+    - every ending gets a debrief: won, lost, cancelled by the employer, withdrawn, No-Bid at DG2 and rejected at DG3. DG1 discards don't, since they were never bids;
+    - the Project Director records it, and the Head of Tendering accepts it or sends it back;
+    - there is a new archive page, and Bid record's "Why we lost" also reads the debriefs;
+    - there is no new role: the Head of Tendering and the CEO read the archive, with committee members and, for their own tenders, Bid Managers.
+  - **Contract written by the orchestrator before the wave** (typecheck passes):
+    - `data/gcc/debriefs/vocab.ts`: every word, the ending, status and reason types, and `LOSS_LABEL`. 035 owns it from here and may only add to it;
+    - `domain/gcc/debriefs/types.ts`: the input, record, view models and archive. 035 may add optional fields only;
+    - `domain/gcc/debriefs/keys.ts`: `debrief:`, `debrief-back:`, `debrief-ok:`;
+    - `domain/gcc/debriefs/index.ts`, with **stubbed** `endingOf`, `debriefFor`, `draftFor`, `validateDebrief`, the three writers and `archiveFor`. 035 fills the bodies; 036 and 037 import only from it;
+    - `data/access.ts`: `debrief.view` (hot, exec, member, dir tenant; bid assigned), `debrief.record` (dir) and `debrief.accept` (hot), with their `CAP_TEXT`;
+    - s1-s3-demo-spec §20, a skeleton: 036 fills §20.1–20.3 and 037 fills §20.4.
+  - **035** owns:
+    - `data/gcc/debriefs/**` and `domain/gcc/debriefs/**`;
+    - `demo/60-debrief.apply.ts`;
+    - `actions/debrief.actions.ts` (new), plus the removal of `lessons.record` and `debrief.hold` from `stages.actions.ts`;
+    - the Stage 9 list in `stages.dash.ts`, and the `portfolio.hot` and `portfolio.exec` lists in `portfolio.dash.ts`;
+    - `kpi/debrief.kpi.ts` (new), `stage9.kpi.ts`, the `s9.lossReason` column in `stages.cols.tsx`, and appended lines in `data/gcc/targets.ts`;
+    - `dev-checks/74-debriefs.tsx` (new), and the pins its changes move in 50 and 60 (listed in its report);
+    - docs: the roles-and-access matrix row, catalogue §A.5, ui-direction §7.3, dashboards.md §10.12.
+  - **036** owns:
+    - `workspace/tabs/debrief.tab.tsx` (new; id `debrief`, order 95) and its `RESERVED_TABS` row;
+    - `pages/gcc/workspace/debrief/**` (new);
+    - the Debrief record file in `domain/gcc/library/proposal.ts` (and where `LibCtx` is built, if needed);
+    - one `KitPreview` section;
+    - `dev-checks/79-debrief-tab.tsx` (new);
+    - docs: spec §20.1–20.3 and runbook Script G.
+  - **037** owns:
+    - `pages/gcc/debriefs/**` (new) and the `/debriefs` entry of `screens.ts`;
+    - one `NAV_GCC` item (and its self-check comment line) in `data/access.ts`, and one `GCC_ICON` in `Sidebar.tsx`;
+    - `CsvExportModule` in `components/dashboard/grid/agGrid.ts`;
+    - `domain/gcc/company/record.ts`, `pages/gcc/company/Record.tsx` and `record/{Cards,RecordGrid}.tsx`;
+    - `dev-checks/81-debrief-archive.tsx` (new);
+    - docs: spec §20.4, the catalogue's Debriefs screen entry, dashboards.md §8.1.
+  - **No file is shared.** 036 and 037 build against the stubs and verify once 035 has ticked its Phase 3 (036) or Phase 4 (037).
+  - **Decisions (orchestrator, 2026-09-30):**
+    - an accepted debrief is what "Lessons captured" means. It adds the lessons event, and a live lost tender closes as T-2025-255 does in the seed; a win closes once its handover is held;
+    - a corrected loss reason, or a place the employer told us, is written into the result on acceptance, so every screen follows;
+    - the debrief and the archive leave out the gap to the winner and the predicted win %, which the Bid record keeps. The Project Director doesn't hold `see.margin`;
+    - no money in any lesson;
+    - `debrief.record` replaces Stage 9's `lessons.record` and `debrief.hold`, so one tender doesn't show twice;
+    - the six new rival names (Qatar, Kuwait) are web-checked before adoption;
+    - out of scope: a live "Record the result" on Stage 8 (e.g. T-2026-079, overdue). Results stay in the seed.
+  - The shared-checkout rules of wave 1 apply: don't commit, don't `npm install`, edit only your own row of the index, and use your own browser tab.
 - **Wave 10b (orchestrator, 2026-09-29):** 033 and 034 in parallel, two sessions, from the wave 10 review's open items (the user asked for the follow-up plan).
   - **033** owns:
     - `domain/gcc/library/**`, `pages/gcc/library/**` and the header line of `components/tender/FileViewer.tsx`;
