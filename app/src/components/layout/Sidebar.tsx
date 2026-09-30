@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
-  Bot, Briefcase, Building2, CalendarDays, FileUp, Calculator, ChevronRight, Columns3, Factory, FileText, Folders, HardHat, Inbox, Landmark, LayoutGrid,
+  Bot, Briefcase, Building2, CalendarDays, ClipboardList, FileUp, Calculator, ChevronRight, Columns3, Factory, FileText, Folders, HardHat, Inbox, Landmark, LayoutGrid,
   Library, PackageSearch, PanelLeftClose, PanelLeftOpen, Send, Settings as SettingsIcon, ShieldCheck, SlidersHorizontal, Table2, Workflow, X,
 } from 'lucide-react';
 import type { RoleKey, Tone } from '@/data/types';
@@ -91,7 +91,7 @@ function badge(key: string, l: Live): Badge {
 
 /** Icons for the GCC entries that aren't stages; stages show their number in a circle. */
 const GCC_ICON: Record<string, ReactNode> = {
-  dashboard: <LayoutGrid {...I} />, calendar: <CalendarDays {...I} />, library: <Folders {...I} />, requests: <Inbox {...I} />,
+  dashboard: <LayoutGrid {...I} />, calendar: <CalendarDays {...I} />, library: <Folders {...I} />, debriefs: <ClipboardList {...I} />, requests: <Inbox {...I} />,
   company: <Building2 {...I} />, suppliers: <Factory {...I} />, admin: <SlidersHorizontal {...I} />, settings: <SettingsIcon {...I} />,
 };
 

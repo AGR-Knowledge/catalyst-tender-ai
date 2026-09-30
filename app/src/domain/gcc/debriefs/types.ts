@@ -118,6 +118,8 @@ export interface DebriefVM {
   rivals: VocabItem[];
   /** "Fill in an example" (a demo control), where `data/gcc/debriefs/examples.ts` has one. */
   example?: DebriefInput;
+  /** The demo clock the view model was read at (plan 035): `draftFor` pre-sets the employer's debrief as held or booked from it. */
+  now?: string;
 }
 
 export interface DebriefWriteResult {

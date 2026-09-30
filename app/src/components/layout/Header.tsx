@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Bell, ChevronDown, ChevronRight, Eye, Menu, Moon, RotateCcw, Sun } from 'lucide-react';
 import { WALK_ORDER, roleOf } from '@/data/roles';
 import { PERSON_GROUPS, peopleOf, roleLine, switcherOf, type Person } from '@/data/people';
@@ -21,6 +21,7 @@ import { UploadGcc } from '@/pages/gcc/s1/UploadGcc';
 import { TenantSwitch } from './TenantSwitch';
 import { DemoMenu } from './DemoMenu';
 import { screenHead } from '@/pages/gcc/screens';
+import { signOut } from '@/state/auth';
 
 function usePageHead() {
   const { state } = useDemo();
@@ -73,6 +74,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
   const live = useLive();
   const { goRole, goSection, goPage } = useGo();
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const head = usePageHead();
   const role = roleOf(state.role);
   const tenant = useTenant();
@@ -104,6 +106,12 @@ export function Header({ onMenu }: { onMenu: () => void }) {
     setProfile(false);
     setViewList(false);
     startViewAs(p.id);
+  };
+  // Sign out (plan 038) clears the sign-in only: the demo state stays for the next sign-in.
+  const leave = () => {
+    setProfile(false);
+    signOut();
+    navigate('/login', { replace: true, state: { signedOut: true } });
   };
 
   return (
@@ -209,7 +217,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
               <div className="pop-foot">
                 <span style={{ flex: 1 }}>In production each user signs in to their own view.</span>
                 <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); profileRef.current?.querySelector<HTMLElement>('.profile-btn')?.focus(); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
-                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={() => { setProfile(false); toast('Session ended. Sign in again to resume', 'ink3'); }}>Sign out</button>
+                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={leave}>Sign out</button>
               </div>
             </div>
           )}
@@ -245,7 +253,7 @@ export function Header({ onMenu }: { onMenu: () => void }) {
               <div className="pop-foot">
                 <span style={{ flex: 1 }}>In production each user signs in to their own view.</span>
                 <button type="button" className="btn-link" style={{ color: 'var(--ink-3)', display: 'inline-flex', gap: 5, alignItems: 'center' }} onClick={() => { setProfile(false); profileRef.current?.querySelector<HTMLElement>('.profile-btn')?.focus(); openModal({ type: 'reset' }); }}><RotateCcw size={12} />Reset demo</button>
-                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={() => { setProfile(false); toast('Session ended. Sign in again to resume', 'ink3'); }}>Sign out</button>
+                <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={leave}>Sign out</button>
               </div>
             </div>
           )}

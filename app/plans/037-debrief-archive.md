@@ -1,6 +1,6 @@
 # 037 — The Debriefs archive and the Bid record
 
-Status: READY · Depends on: the wave 11 contract (below); 035 for real data (build against the stubs, verify once 035's Phase 4 is ticked) · Can run in parallel with: 035, 036
+Status: DONE (2026-09-30, reviewed) · Depends on: the wave 11 contract (below); 035 for real data (build against the stubs, verify once 035's Phase 4 is ticked) · Can run in parallel with: 035, 036
 
 ## Goal
 A company-wide **Debriefs** page lets the Head of Tendering, the CEO and the committee look across every bid that ended. For a chosen period, sector and ending, it shows:
@@ -167,33 +167,33 @@ Tender │ Employer │ Sector │ Ending │ Ended │ Main reason │ What els
 ## Steps
 
 ### Phase 1 — The route and the sidebar
-- [ ] 1.1 The `/debriefs` entry in `screens.ts` (`built: true`, `cap: 'debrief.view'`, `page`, the head line), the `NAV_GCC` item, and the icon. Acceptance:
+- [x] 1.1 The `/debriefs` entry in `screens.ts` (`built: true`, `cap: 'debrief.view'`, `page`, the head line), the `NAV_GCC` item, and the icon. Acceptance:
   - the Head of Tendering, CEO, a committee member, the Project Director and a Bid Manager see "Debriefs" under Tender library;
   - the Tender Coordinator, Procurement, Finance and HR don't.
   - A direct URL for them shows "This page isn't part of your role".
 
 ### Phase 2 — The page
-- [ ] 2.1 Head: title, one-line rule, period chips (`?period=`, 12 months by default), sector and ending chips, and "How to read this" ⓘ (the colours, the window, that the reasons count accepted debriefs, that the tiles ignore the chips).
-- [ ] 2.2 Tiles: DBR-1 to DBR-6 through `registryTile`, with `kpiCtxOf` at the page's period; their drills filter the table.
-- [ ] 2.3 The three `.eq-row` rows as the Design has them, with `.eq-scroll` bodies and the fixed row anatomy.
-  - [ ] 2.3.1 Charts in Recharts: the stated colours, a legend and a screen-reader table.
-  - [ ] 2.3.2 Every count sets the table's filter chip and scrolls to it.
-- [ ] 2.4 The table (the `RecordGrid` pattern: fixed height, 10 rows, then it scrolls) with the Design's columns; a row opens the Debrief tab.
-- [ ] 2.5 Download CSV (`CsvExportModule`), with the rows as filtered, text only, masked cells "Masked", and the file name without personal data.
-- [ ] 2.6 Acceptance in Najd as Faisal Al-Harbi (Head of Tendering), at 12 months:
+- [x] 2.1 Head: title, one-line rule, period chips (`?period=`, 12 months by default), sector and ending chips, and "How to read this" ⓘ (the colours, the window, that the reasons count accepted debriefs, that the tiles ignore the chips).
+- [x] 2.2 Tiles: DBR-1 to DBR-6 through `registryTile`, with `kpiCtxOf` at the page's period; their drills filter the table.
+- [x] 2.3 The three `.eq-row` rows as the Design has them, with `.eq-scroll` bodies and the fixed row anatomy.
+  - [x] 2.3.1 Charts in Recharts: the stated colours, a legend and a screen-reader table.
+  - [x] 2.3.2 Every count sets the table's filter chip and scrolls to it.
+- [x] 2.4 The table (the `RecordGrid` pattern: fixed height, 10 rows, then it scrolls) with the Design's columns; a row opens the Debrief tab.
+- [x] 2.5 Download CSV (`CsvExportModule`), with the rows as filtered, text only, masked cells "Masked", and the file name without personal data.
+- [x] 2.6 Acceptance in Najd as Faisal Al-Harbi (Head of Tendering), at 12 months:
   - the tiles add up (Endings = won + lost + stopped in DBR-1's detail);
   - "Why we lose" counts sum to the accepted lost debriefs;
   - a click on the top rival lists its losses;
   - the CSV opens in a spreadsheet with the same rows.
 
 ### Phase 3 — Bid record
-- [ ] 3.1 The "Top factor" line on every "Why we lost" row (`<Masked />` without `debrief.view`); the card foot with the count and the link.
-- [ ] 3.2 The Debrief status column in the results table.
-- [ ] 3.3 `LOSS_LABEL` imported from the vocabulary, with `record.ts` re-exporting it.
-- [ ] 3.4 Acceptance: the Bid record's 12-month losses equal the archive's lost count at 12 months; the Tender Coordinator sees the masked line; Finance sees what it saw before, plus masked lines.
+- [x] 3.1 The "Top factor" line on every "Why we lost" row (`<Masked />` without `debrief.view`); the card foot with the count and the link.
+- [x] 3.2 The Debrief status column in the results table.
+- [x] 3.3 `LOSS_LABEL` imported from the vocabulary, with `record.ts` re-exporting it.
+- [x] 3.4 Acceptance: the Bid record's 12-month losses equal the archive's lost count at 12 months; the Tender Coordinator sees the masked line; Finance sees what it saw before, plus masked lines.
 
 ### Phase 4 — Checks, the live round trip and docs
-- [ ] 4.1 `dev-checks/81-debrief-archive.tsx`, about 8 rows across the five tenants:
+- [x] 4.1 `dev-checks/81-debrief-archive.tsx`, about 8 rows across the five tenants:
   1. the archive's won and lost counts at 12 months equal the Bid record's won and lost at 12 months (PF-3) for the Head of Tendering. Stopped differs by design: the Bid record's declines include DG1 discards, which aren't bids;
   2. `rows.length` = DBR-1 at the same period;
   3. every breakdown sums to its total;
@@ -202,31 +202,114 @@ Tender │ Employer │ Sector │ Ending │ Ended │ Main reason │ What els
   6. a Bid Manager's rows are only their assigned tenders;
   7. the Tender Coordinator can't open `/debriefs` (`can`);
   8. the sidebar entry sits after Tender library.
-- [ ] 4.2 The live round trip, once 035 and 036 have landed (your own tab):
+- [x] 4.2 The live round trip, once 035 and 036 have landed (your own tab):
   - accept T-2025-270's debrief as in plan 036 step 3.3;
   - `/debriefs` counts it (DBR-2 up by one; its rival's count up by one if named);
   - the Bid record's line agrees;
   - Reset returns them.
-- [ ] 4.3 Browser at 1440 and 1280, light and dark, keyboard (chips, table, CSV button), no console errors. Najd, then Corniche (AED, UAE rivals) and Qurain (KWD, the new Kuwaiti rivals).
-- [ ] 4.4 Docs: spec §20.4, the catalogue screen entry, dashboards.md §8.1.
-- [ ] 4.5 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
+- [x] 4.3 Browser at 1440 and 1280, light and dark, keyboard (chips, table, CSV button), no console errors. Najd, then Corniche (AED, UAE rivals) and Qurain (KWD, the new Kuwaiti rivals).
+- [x] 4.4 Docs: spec §20.4, the catalogue screen entry, dashboards.md §8.1.
+- [x] 4.5 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
 
 ## Data and derivation
 - **No new facts, no new `done` keys.** Everything comes from `archiveFor` and the DBR tiles (plan 035).
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants
-- [ ] `/debriefs` shows the six tiles, the six cards and the list, for 30 days, 90 days and 12 months, narrowed by sector and ending
-- [ ] Every count filters the list; a row opens the tender's Debrief tab; the CSV downloads the filtered rows
-- [ ] Bid record's "Why we lost" shows a top factor on every row and links to Debriefs; the results table shows each tender's debrief status
-- [ ] The same tender reads the same in the archive, the Bid record, Stage 9 and the Debrief tab
-- [ ] Access and masking correct for the Head of Tendering, CEO, committee, Project Director, Bid Manager, Tender Coordinator
-- [ ] Reset returns the seed; no hard-coded numbers in pages; no role checks outside `access.ts`
+- [x] typecheck and build pass; `/dev/checks` passes in all five tenants
+- [x] `/debriefs` shows the six tiles, the six cards and the list, for 30 days, 90 days and 12 months, narrowed by sector and ending
+- [x] Every count filters the list; a row opens the tender's Debrief tab; the CSV downloads the filtered rows
+- [x] Bid record's "Why we lost" shows a top factor on every row and links to Debriefs; the results table shows each tender's debrief status
+- [x] The same tender reads the same in the archive, the Bid record, Stage 9 and the Debrief tab
+- [x] Access and masking correct for the Head of Tendering, CEO, committee, Project Director, Bid Manager, Tender Coordinator
+- [x] Reset returns the seed; no hard-coded numbers in pages; no role checks outside `access.ts`
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-30.)
+
+- **Changed files:**
+  - New:
+    - `app/src/pages/gcc/debriefs/Debriefs.tsx` (the page: period, sector and ending chips, "How to read this", DBR-1 to DBR-6, three `.eq-row` rows, the table with Download CSV);
+    - `pages/gcc/debriefs/parts/Cards.tsx` (Why we win, Why we lose, Who beat us, Why bids stopped, Lessons by area);
+    - `pages/gcc/debriefs/parts/FactorChart.tsx` (What decided it, Recharts, with a legend and a screen-reader table);
+    - `pages/gcc/debriefs/parts/columns.tsx` (one list of columns for the grid and the CSV);
+    - `pages/gcc/debriefs/debriefs.css`;
+    - `pages/gcc/dev-checks/81-debrief-archive.tsx` (8 rows).
+  - Changed:
+    - `pages/gcc/screens.ts`: the `/debriefs` entry;
+    - `data/access.ts`: one `NAV_GCC` item after `library`, and one self-check comment line;
+    - `components/layout/Sidebar.tsx`: the `debriefs` icon (`ClipboardList`) and its import;
+    - `components/dashboard/grid/agGrid.ts`: `CsvExportModule` with its comment;
+    - `domain/gcc/company/record.ts`:
+      - `LOSS_LABEL` and `LOSS_ORDER` come from the vocabulary, and `LOSS_LABEL` is re-exported;
+      - `LossRowVM.topFactor`, `LossesVM.debriefs`, `RecordRowVM.debrief` and `maskedBy.debrief`, all read from `archiveFor(…, { period: '12m', sector })`;
+    - `pages/gcc/company/Record.tsx`: the Debrief column after Result, and `LossCard`'s new props;
+    - `pages/gcc/company/record/Cards.tsx`: the Top factor line on every loss row, and the card foot;
+    - `pages/gcc/company/record/RecordGrid.tsx`: optional `idOf` and `onReady`;
+    - `pages/gcc/company/company.css`: two rules;
+    - docs: `s1-s3-demo-spec.md` §20.4; `kpi-and-screen-catalogue.md` §D (a Debriefs row and a paragraph); `dashboards.md` §8.3 (the sidebar tree and a rule);
+    - this plan's row in `app/plans/README.md`.
+  - `dev-checks/66-company.tsx` is unchanged: no pin moved.
+- **Verification:**
+  - `npm --prefix app run typecheck` and `build` pass. The only build warning is the old circular-chunk one on `domain/gcc/s1`.
+  - `/dev/checks`: every checking panel (33) passes in all five companies, and 81 passes 8 of 8 in each.
+  - Browser: headless Chromium, driven by scratch scripts outside the repo (Playwright from the local npx cache, nothing installed), on my own dev server (port 5177) with a fresh demo state per run.
+    - **Access:**
+      - the Head of Tendering, CEO, committee member (CFO), Project Director and Bid Manager see Debriefs straight after Tender library;
+      - the Tender Coordinator, Procurement, Finance and HR don't, and the direct URL reads "This page isn't part of your role".
+    - **Najd, 12 months, Faisal Al-Harbi:**
+      - the tiles add up: Endings 57 = 9 won + 24 lost + 24 stopped;
+      - Debriefs accepted is 46 of 57, and the CSV has 46 Accepted, 2 Submitted (= Awaiting sign-off) and 5 Overdue (= Debriefs overdue);
+      - Why we lose counts 21 accepted lost debriefs, the same as "Who beats us · 6 of 21 losses";
+      - Hijr Al-Watan (beat us 6 times) lists 6 debriefs, and the CSV downloads those 6 rows. The file opens as 57 × 15 when unfiltered (Python `csv`), with no HTML and dates as `YYYY-MM-DD`;
+      - every tile's drill filters the table, at 30 days and 12 months;
+      - a row opens `/tenders/{TID}?tab=debrief`.
+    - **Keyboard:**
+      - the arrow keys move the period (`?period=90d`, then back to the bare URL);
+      - Enter on a chip or a count moves focus to the chip's clear button; Shift+Tab reaches Download CSV;
+      - Up and Down step through the factor chart, and Enter lists a factor;
+      - Enter on a grid cell opens the tender.
+    - **Bid record:**
+      - every Why we lost row has its Top factor line;
+      - the foot reads "From 21 accepted debriefs · Open Debriefs →";
+      - the Debrief column reads T-2025-270 Due, T-2025-262 Due, T-2025-255 Accepted and T-2025-438 Submitted;
+      - the Tender Coordinator sees every Top factor and every Debrief cell as "Masked for your role", with no link.
+    - **The live round trip (4.2):**
+      - the Project Director submits T-2025-270 with "Fill in an example": Awaiting sign-off goes from 2 to 3;
+      - Faisal accepts it:
+        - Debriefs accepted goes from 46 to 47 of 57;
+        - Al-Masar goes from "beat us 5 times" to 6;
+        - Why we lose Price goes from 11 to 12, with its top factor from Price level (9) to (10);
+        - the Bid record's Price line reads Price level (10), its foot reads 22, and T-2025-270's Debrief cell reads Accepted.
+      - Settings › Reset this company returns every one of these to the seed.
+    - **Layouts:**
+      - 1440 and 1280, light and dark, in Najd, Corniche (UAE rivals) and Qurain (the new Kuwaiti rivals), with Dafna and Batinah read as text;
+      - no sideways page scroll, and the six cards share one size (547 × 440 at 1440, 467 × 440 at 1280);
+      - no console errors (only React Router's future-flag warnings, which were already there).
+    - **The same tender across screens:** T-2025-270 reads Due in the archive, the Bid record and its Debrief tab ("Due by Thu 19 Mar"), and is on Stage 9.
+- **Deviations from plan:**
+  1. The sidebar is dashboards.md **§8.3**; §8.1 is the short-names table. I edited §8.3 and added Tender library to its tree, where it was missing.
+  2. `company.css` gains two rules (the Top factor line and the foot); the plan lists the page files but not their stylesheet.
+  3. `RecordGrid` gains optional `idOf` and `onReady`, so the Debriefs table reuses it and reaches `exportDataAsCsv`. The Bid record's use is unchanged.
+  4. **The Bid record's foot for a viewer without `debrief.view`** reads "Top factors come from accepted debriefs · Masked for your role", not a count. `archiveFor` holds nothing for such a viewer, so the count would read 0.
+     - A Bid Manager who doesn't own every loss reads "… on your tenders". In the seed, Najd's one Bid Manager owns all of them.
+  5. **Colours:** the archive's bars take the colour of the ending they count: Why we win green; Why we lose and Who beat us grey; the stopped kinds hatched. Blue is for counts across endings (lessons, the stopped-earlier answers).
+     - Each card's head carries its key, and "How to read this" states all four.
+     - The Bid record keeps its own blue bars.
+  6. The stopped key reads "Neither won nor lost", not "stopped before a result": a tender cancelled after opening has a result.
+  7. The table head shows no row count, because Download CSV · {n} rows already says it (never twice on one screen).
+  8. **Tile drills** list the company's debriefs for the period whatever the chips. With a chip set, the table chip says "whole company".
+     - Below 12 months, a tile's list reads from the 12-month rows, since Awaiting sign-off is a state.
+     - The chip drops the KPIs' "From tile:" prefix, because it already says From "…".
+  9. **Factor chart keyboard:** Recharts steps a vertical chart with Left and Right, reversed, so Up and Down are mapped onto them. Enter lists the factor's wins and losses together; a bar click lists one series.
+  10. **CSV columns:**
+      - Tender exports as "T-… · title", one column as shown;
+      - Recorded by exports the name and Accepted the date. The second line in those cells (the submission date, the acceptor) is for display only.
+  11. **Masking:** 035 scopes rows rather than masking cells, so no seeded cell exports "Masked". The path exists, for a value `'masked'`.
+  12. Why we lose always shows "(n = …)" after our place, as the Design writes it. The Bid record keeps its own rule (n only when fewer than the count).
+- **Blockers / questions:** none.
+- **Follow-ups noticed (not done):**
+  - 035's tiles cut two lines at 1440: DBR-1's detail ("6 won · 16 lost · 19 stop…") and DBR-6's ref ("Sectors · Buildings MEP, Fi…"), in Corniche and Qurain.
+  - Qurain's Lessons by area shows two identical Bid decision lessons (T-2025-249 and T-2025-231). 035's templates repeat.
+  - `ArchiveRow.title` is the full title, while the Bid record lists the short title for the same tender.
+  - Clearing the table's chip leaves focus on the page, as on the Bid record.
+  - Finance has no tenders in the Bid record (only invited ones), so its masked lines can't be shown with the seed. The Tender Coordinator shows them.

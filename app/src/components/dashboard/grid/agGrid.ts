@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import {
-  CellStyleModule, ClientSideRowModelModule, ColumnApiModule, ColumnAutoSizeModule, DateFilterModule, ExternalFilterModule,
+  CellStyleModule, ClientSideRowModelModule, ColumnApiModule, ColumnAutoSizeModule, CsvExportModule, DateFilterModule, ExternalFilterModule,
   ModuleRegistry, NumberFilterModule, RowApiModule, RowSelectionModule, RowStyleModule, ScrollApiModule,
   TooltipModule, ValidationModule, type Module,
 } from 'ag-grid-community';
@@ -24,6 +24,7 @@ export const GRID_MODULES: Module[] = [
   RowApiModule,               // getRowNode (selection sync)
   ScrollApiModule,            // ensureNodeVisible (a drill that selects a row)
   TooltipModule,              // headerTooltip (the supplier master's Load and On time)
+  CsvExportModule,            // exportDataAsCsv (Debriefs › Download CSV, plan 037); Community, not Excel export
 ];
 
 let done = false;

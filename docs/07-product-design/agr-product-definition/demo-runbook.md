@@ -13,14 +13,15 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 
 ## Before the meeting
 
-1. Open the app in a window of **1440 × 900 or larger**, in the **light** theme (Settings › Theme).
-2. **Reset all:** Demo › Reset demo… › Reset all companies.
-3. **Prospect branding (optional).** Set it *after* the full reset, because Reset demo clears it.
+1. **Sign in** on the deployed link with the demo email and password. The password is shared privately and never written in the repo. Reset demo doesn't sign you out. Sign out is in the persona menu.
+2. Open the app in a window of **1440 × 900 or larger**, in the **light** theme (Settings › Theme).
+3. **Reset all:** Demo › Reset demo… › Reset all companies.
+4. **Prospect branding (optional).** Set it *after* the full reset, because Reset demo clears it.
    - As the Head of Tendering, open Administration › Branding.
    - Pick an accent colour and, if you like, a name to show in the company switcher. Save branding.
    - Presets keep the branding. To undo it, use Restore defaults, or Reset demo.
-4. Start in **Najd**, as **Faisal Al-Harbi, Head of Tendering**, on the Dashboard.
-5. Keep to in-app navigation during View as (script F): a browser reload ends View as.
+5. Start in **Najd**, as **Faisal Al-Harbi, Head of Tendering**, on the Dashboard.
+6. Keep to in-app navigation during View as (script F): a browser reload ends View as.
 
 ---
 
@@ -173,6 +174,27 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 2. **Imran Sheikh.** DG1 decisions › T-2026-042 › Pursue.
 3. Open T-2026-042's workspace › Demo › Advance T-2026-042 to Stage 3.
 
+## Script G. Learning from the result (about 5 min)
+
+**Proves:** a result becomes written, signed-off learning, with both names kept, instead of living in e-mails and memory (product-foundation pain 5).
+**Company:** Najd, no preset needed. Start from a Reset of Najd if the company has demo activity.
+
+1. **Mohammed Al-Ghamdi (Project Director).** Stage 9 › Needs your action › Record the debrief on **T-2025-270** (or open the tender › Debrief).
+   - What we know: lost on price, ranked 2 of 6, the employer's debrief booked Thu 12 Mar, and the regret letter in the Library.
+   - The main reason is already Price, from the result. Click **Fill in an example** (Demo); it fills the form and never submits.
+   - Submit for sign-off. The confirm step shows what the record will say. Confirm: the status reads Submitted, and the toast names Faisal Al-Harbi.
+   - *Say:* "The reasons stop living in e-mails. Six short sections, pre-set from what we already know."
+2. **Faisal Al-Harbi (Head of Tendering).** Home › Needs your action › Show all › Review the debrief on T-2025-270, or the tender's Debrief tab, which reads "To accept". Send back…, with a note of a sentence, e.g. "Say which supplier quote came late and what it changed in our price." Confirm stays disabled, saying why, until the note is there.
+3. **Mohammed Al-Ghamdi.** The note sits above the form, filled with his last answers. Change one lesson, then Submit again for sign-off (round 2).
+4. **Faisal Al-Harbi.** Accept into the archive.
+   - The status reads Accepted, and the record shows both names and times.
+   - Overview: Where it stands reads Lessons captured: Yes, and T-2025-270 is closed as lost. The tracker ends at Results, as on any closed loss.
+   - Library › 07 Result holds the Debrief record; Decisions & audit shows the four steps.
+   - *Say:* "The Head of Tendering signs off; both names are kept. Every accepted debrief feeds the archive the KPI team reads."
+5. **Optional:** T-2025-438 (cancelled after opening) arrives submitted: accept it from its Debrief tab. Then Debriefs in the sidebar.
+
+**Recovery:** Demo › Reset demo… › Reset this company returns T-2025-270 to Due and T-2025-438 to Submitted.
+
 ---
 
 ## Combining scripts
@@ -182,6 +204,7 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 - **Starting a script mid-meeting:** use its preset. For a clean slate in one company, use Demo › Reset demo… › Reset this company; other companies keep their actions.
 - **If a persona can't open a preset's screen,** the preset switches to the Head of Tendering and the toast says so.
 - **Stage 3 entry and Qurain's DG3** fit after E, in their own companies.
+- **Script G** fits after F and DG3 in Najd. After script C, a No-Bid has a debrief too: in C's last step record **No-Bid** on T-2026-097 instead of Bid. Its Debrief tab opens due, with the DG2 reasons read-only and "Should we have stopped earlier?", and Fill in an example works there.
 
 ## Known limits (don't click, or say it first)
 
@@ -197,3 +220,5 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 - View as ends on a browser reload.
 - Switching company while on another company's tender shows "No … here". Open the hero instead, which exists in all five companies.
 - T-2026-119's questions deadline falls inside the expected Eid closure. The screen flags it; it's a talking point, not a mistake.
+- Fill in an example exists only on Najd's T-2025-270, T-2025-262 and T-2026-097 (after a No-Bid), and Corniche's T-2025-120. On other tenders the form starts from what the result already says.
+- Results stay in the seed: there is no live "Record the result" on Stage 8, so a debrief is recorded only for a tender that has already ended.

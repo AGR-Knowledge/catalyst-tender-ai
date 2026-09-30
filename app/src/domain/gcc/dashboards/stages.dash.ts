@@ -95,7 +95,7 @@ const SPECS: Record<StageN, StageSpec> = {
   },
   9: {
     tiles: ['OUT-1', 'OUT-3', 'RES-1', 'RES-2', 'OUT-6', 'RES-3'],
-    actions: ['handover.start', 'debrief.hold', 'lessons.record', 'result.chase'],
+    actions: ['handover.start', 'debrief.record', 'result.chase'],
     columns: ['tid', 'tender', 's9.result', 'value', 's9.rank', 's9.gap', 's9.lossReason', 's9.predicted', 's9.lessons', 'owner'],
     sort: 'newest',
     metrics: ['steps.count', 'steps.value'],

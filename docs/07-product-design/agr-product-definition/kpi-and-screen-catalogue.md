@@ -136,6 +136,17 @@ These read closed bids in the seed history. Stages 4–9 are hidden, but a real 
 | OUT-6 | Why we lose | Pareto of loss reasons recorded on outcomes (price, technical score, PQ, local content, competitor) | Bid history | information | Outcomes table | HoT, Exec, Sector Head | Feeds pricing and positioning |
 | OUT-7 | Reversals | Decisions re-opened (DG1 or DG2), with trigger (competitor withdrew, JV offer, employer signal) | Decision records | information | Decisions log | HoT | Discovery responses say reversals are common. Measuring them improves the recommendation |
 
+**Debriefs** (plan 035, `domain/gcc/kpi/debrief.kpi.ts`, all with `debrief.view`). Every bid that ends (won, lost, cancelled by the employer, withdrawn, No-Bid at DG2, rejected at DG3) has a debrief: the Project Director records it and the Head of Tendering accepts it or sends it back. It is due 14 days after the ending. RES-3 Lessons captured counts the accepted debriefs of results.
+
+| ID | Tile label | Formula | Source | Target / tone | Drill-down | Seen by | Why |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| DBR-1 | Endings | Bids ended in the period: won · lost · stopped. DG1 discards and lapsed holds are not endings | Results, gate decisions, closes | information | Tenders table (the endings) | HoT, Exec, Committee, PD, BidMgr (own) | Each one owes a debrief |
+| DBR-2 | Debriefs accepted | Endings in the period with an accepted debrief ÷ endings in the period; under 5 shows "4 of 5" | Debriefs | 100% green; 80% or more orange; else red | The endings without one | as DBR-1 | Whether every bid leaves its lessons behind |
+| DBR-3 | Awaiting sign-off | Debriefs submitted and not yet accepted or sent back, company-wide now; the oldest's wait | Debriefs | orange after 2 working days | The waiting debriefs | as DBR-1 | The Head of Tendering's queue |
+| DBR-4 | Debriefs overdue | Endings in the period past their due date with no debrief submitted; the oldest's ending date | Debriefs | 0 green; any orange | The overdue debriefs | as DBR-1 | Lessons fade within weeks |
+| DBR-5 | Why we win | The main win reason most often given in the accepted debriefs of the period's wins (a tie shows both), with the next two | Debriefs | information | The wins debriefed | as DBR-1 | What to repeat |
+| DBR-6 | Who beats us | The rival most often named as the winner in the accepted debriefs of the period's losses: "n of m losses", and the sectors | Debriefs | information | Those losses | as DBR-1 | Where to position against whom |
+
 ### A.6 Capacity
 
 | ID | Tile label | Formula | Source | Target / tone | Drill-down | Seen by | Why |
@@ -427,6 +438,7 @@ The page header strip shows these KPIs. "Rights" uses the roles doc levels: V vi
 | DG2 committee | D | DEC-1, quorum, SLA | Record position; declare conflict; record decision (chair) | Members (position), Exec (decision), HoT (secretary), BidMgr (present) |
 | Pipeline | board / list | count and value by stage; CAP-2 | Open workspace; filter | All (scoped) |
 | Calendar | calendar | CAP-3; holidays overlay | Open date; export ICS (demo toast) | All (scoped) |
+| Debriefs (sidebar: after Tender library) | B | DBR-1 to DBR-6 | Period 30 days · 90 days · 12 months; sector and ending chips; select any count to list its debriefs; open a tender's Debrief tab; Download CSV | HoT (V, accepts on the tender), Exec (V), Committee (V), Project Director (V, records on the tender), BidMgr (V own) |
 | Company profile › Overview | F | turnover · net worth · similar projects · credentials held · facility headroom · bid-team load | Open the tab behind each tile; open a registration, a project or a tender's eligibility | Every role with `company.view` (V) |
 | Company profile › Credentials | B | SCR-6; expiring in 90 days; expired | Upload renewal; assign owner | HoT (A), credential owners (E own), BidMgr / Coord (V) |
 | Company profile › Projects | B | none | Search; filter by country and role; open a project's sheet (what it counts for, where it is evidence) | HoT (A), others (V) |
@@ -450,6 +462,15 @@ The page header strip shows these KPIs. "Rights" uses the roles doc levels: V vi
 - where this profile is used: the viewer's live tenders with an eligibility check, how many meet every line, how many have a gap, and the first three gaps by name.
 
 Old links still land: `?tab=profile` opens Overview and `?tab=facility` opens Financials.
+
+**Debriefs** (plan 037, user request 2026-09-30): the archive of every bid that ended, for the people who learn from it: the Head of Tendering, the CEO, committee members, the Project Director and, for their own tenders, Bid Managers. No new role reads it. It answers five questions for the chosen period, sector and ending:
+- **why we win and why we lose**, by the main reason of each accepted debrief; each loss reason with our median place and its top factor;
+- **what else decided it**: the factors cited, in wins against losses;
+- **who beats us**: the rival named as the winner, how often, in which sectors, and our median place;
+- **why bids stopped**: cancelled, withdrawn, No-Bid at DG2 or rejected at DG3, with the reasons, and whether we should have stopped earlier;
+- **what we keep learning**: lessons by area, with the latest two.
+
+Every count lists its debriefs in the table below, which downloads as a CSV for the KPI team. The reasons count accepted debriefs only. Company › Bid record's "Why we lost" reads the same debriefs (a top factor on each reason, and a Debrief status column). Spec §20.4 has the screen.
 
 ---
 

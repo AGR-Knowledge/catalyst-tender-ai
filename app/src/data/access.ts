@@ -471,6 +471,8 @@ export const NAV_GCC: GccNavGroup[] = [
     { key: 'calendar', label: 'Calendar', path: '/calendar', cap: 'tender.view' },
     // Every file of every tender the person can open (plan 030); the same capability as Calendar.
     { key: 'library', label: 'Tender library', path: '/library', cap: 'tender.view' },
+    // Every bid that ended, why, and what we learned (plan 037): the readers of the debriefs.
+    { key: 'debriefs', label: 'Debriefs', path: '/debriefs', cap: 'debrief.view' },
     // Only for people who owe inputs; the sidebar hides it where My requests is already the home.
     { key: 'requests', label: 'My requests', path: '/requests', cap: 'input.respond' },
   ] },
@@ -525,6 +527,7 @@ export const NAV_GCC: GccNavGroup[] = [
  * | supplier, platform   | no       | no          | none                                                                         | no              | no        | no             |
  *
  * Tender library (plan 030) follows Calendar for every role: the same `tender.view`, so the same "yes" column.
+ * Debriefs (plan 037) follows Tender library for hot, exec, member and dir (company-wide) and bid (its own tenders), with `debrief.view`; nobody else.
  * Suppliers sits in the Company section, not under Stage 2, so one page has one entry (user decision, 2026-09-28).
  * The supplier gets the Supplier Portal (plan 008) and the operator the Platform Console (plan 011), each in its own shell.
  */

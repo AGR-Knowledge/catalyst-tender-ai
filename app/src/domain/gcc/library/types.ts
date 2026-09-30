@@ -73,8 +73,8 @@ export interface LibraryFileVM {
   extent?: { n: number; unit: 'page' | 'row' };
   /** Further tags on the row: "Duplicate of …", "v2", "Added by …". */
   tags: string[];
-  /** Listed, but its figures are masked in the facsimile: who can see them. */
-  masked?: { by: string } | null;
+  /** Listed, but its figures are masked in the facsimile: who can see them, and the label when it isn't figures ("Content masked"). */
+  masked?: { by: string; label?: string } | null;
   view: FileViewVM;
   /** A screen that holds the live record, e.g. Company › Credentials. */
   link?: { to: string; label: string };

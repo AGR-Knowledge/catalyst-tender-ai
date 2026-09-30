@@ -50,9 +50,10 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 032 | [Company profile: the bid record](032-company-bid-record.md): a Bid record tab (won, lost and declined by sector, client, country and size; why we lost; five years), a summary on Overview, equal rows on every Company tab | 10 | wave 9b; the wave 10 contract | DONE (2026-09-29, reviewed) |
 | 033 | [Booklets and file dates](033-booklets-and-file-dates.md): every pursued tender has its booklet in the Library (the real PDF, or a watermarked extract built from its data); each file's date says Received, Sent or Made; the supplier profile's crumb; header tooltips on grids | 10b | wave 10 | DONE (2026-09-29, reviewed) |
 | 034 | [A bid history that reads true](034-history-that-reads-true.md): our place and the gap to the winner on most losses; value won in proportion to company size (Batinah, Corniche); forecasts that calibrate outside Najd; the Saham duplicate; seats within the licence | 10b | wave 10 | DONE (2026-09-29, executor and orchestrator, reviewed) |
-| 035 | [Debrief records and rules](035-debrief-records.md): every ended bid gets a debrief (won, lost, cancelled, withdrawn, No-Bid, rejected); the Project Director records it, the Head of Tendering accepts it or sends it back; a generated 12-month history; the applier (Lessons captured, a corrected loss reason); Needs your action; DBR-1 to DBR-6. No screens | 11 | the wave 11 contract | READY |
-| 036 | [The Debrief tab and sign-off](036-debrief-tab.md): a Debrief tab on every ended tender: what we know, the six-section form, the record, Accept or Send back, "Fill in an example"; the Debrief record in Library › 07 Result; runbook Script G | 11 | the wave 11 contract; 035 to verify | READY |
-| 037 | [The Debriefs archive and the Bid record](037-debrief-archive.md): `/debriefs` for the KPI team: why we win and lose, what decided it, who beats us, why bids stopped, lessons by area, every debrief with a CSV; Bid record's "Why we lost" reads the debriefs | 11 | the wave 11 contract; 035 to verify | READY |
+| 035 | [Debrief records and rules](035-debrief-records.md): every ended bid gets a debrief (won, lost, cancelled, withdrawn, No-Bid, rejected); the Project Director records it, the Head of Tendering accepts it or sends it back; a generated 12-month history; the applier (Lessons captured, a corrected loss reason); Needs your action; DBR-1 to DBR-6. No screens | 11 | the wave 11 contract | DONE (2026-09-30, reviewed) |
+| 036 | [The Debrief tab and sign-off](036-debrief-tab.md): a Debrief tab on every ended tender: what we know, the six-section form, the record, Accept or Send back, "Fill in an example"; the Debrief record in Library › 07 Result; runbook Script G | 11 | the wave 11 contract; 035 to verify | DONE (2026-09-30, reviewed) |
+| 037 | [The Debriefs archive and the Bid record](037-debrief-archive.md): `/debriefs` for the KPI team: why we win and lose, what decided it, who beats us, why bids stopped, lessons by area, every debrief with a CSV; Bid record's "Why we lost" reads the debriefs | 11 | the wave 11 contract; 035 to verify | DONE (2026-09-30, reviewed) |
+| 038 | [The sign-in page](038-sign-in-gate.md): the deployed demo opens on a Sign in page for one fixed email and password (the repo holds only the hash); Sign out really signs out; on the dev server the gate applies only in a tab that opened `/login` | 11 | none | DONE (2026-09-30, reviewed) |
 
 **Wave 10b review of 033 and 034 (orchestrator, 2026-09-29): both accepted.**
 - 034's executor stopped before its report, with the data and dev check 69 in place. The orchestrator measured what was left, finished it (the docs lines, the checks, the report) and reviewed both plans together.
@@ -429,6 +430,12 @@ Plan 001 was verified with a click audit:
     - `domain/gcc/company/record.ts`, `pages/gcc/company/Record.tsx` and `record/{Cards,RecordGrid}.tsx`;
     - `dev-checks/81-debrief-archive.tsx` (new);
     - docs: spec §20.4, the catalogue's Debriefs screen entry, dashboards.md §8.1.
+  - **038** (added 2026-09-30, the user's request for a sign-in page) owns:
+    - `data/login.ts`, `state/auth.ts`, `pages/login/**` and `scripts/login-hash.mjs` (all new);
+    - the `/login` route and the `RequireLogin` wrapper in `App.tsx`;
+    - the two Sign out buttons in `Header.tsx`, and one in `PlatformShell.tsx`'s persona menu;
+    - the `login:hash` script in `package.json`, an `app-preview` entry in `.claude/launch.json`, and a section of `app/README.md`.
+    It builds with placeholder credentials. The orchestrator puts in the real email and the hash before the commit, and the password never goes into a tracked file. On the dev server the gate applies only in a tab that has opened `/login`, so the other sessions are never locked out.
   - **No file is shared.** 036 and 037 build against the stubs and verify once 035 has ticked its Phase 3 (036) or Phase 4 (037).
   - **Decisions (orchestrator, 2026-09-30):**
     - an accepted debrief is what "Lessons captured" means. It adds the lessons event, and a live lost tender closes as T-2025-255 does in the seed; a win closes once its handover is held;
@@ -438,6 +445,15 @@ Plan 001 was verified with a click audit:
     - `debrief.record` replaces Stage 9's `lessons.record` and `debrief.hold`, so one tender doesn't show twice;
     - the six new rival names (Qatar, Kuwait) are web-checked before adoption;
     - out of scope: a live "Record the result" on Stage 8 (e.g. T-2026-079, overdue). Results stay in the seed.
+  - **Review (orchestrator, 2026-09-30): all four accepted.** Typecheck and build pass; `/dev/checks` passes in every tenant (Najd 993, Corniche 584, Dafna 565, Batinah 573, Qurain 588). Clicked through in Najd: the Project Director submits T-2025-270 and the Head of Tendering accepts it; the tender closes as lost with Lessons captured, the Debrief record joins Library › 07 Result, the archive reads 47 of 57, and Reset returns 46 of 57. Also checked: the Tender Coordinator is refused the page and sees the tab masked; Corniche and Qurain's archives; the production build's sign-in with the real details (a wrong password, a deep link, mixed-case email, Sign out). Fixes made in review:
+    - `data/login.ts` holds the real email (`demo@catalystsolutions.sg`) and the password's hash; the password is in no tracked file and not in the bundle;
+    - the Stage 9 Lessons column reads `hasLessons(l)`, so a lessons event after demo day no longer shows "Captured" (Dafna and Qurain T-2025-120);
+    - DBR-1, DBR-4 and DBR-6 fit at 1440: Endings' stopped count moves to the foot when "won · lost · stopped" is too long, Debriefs overdue shortens to "Ended …", and Who beats us shows its sectors, the most common "+n", or a count;
+    - Lessons by area quotes the latest two different sentences (Qurain repeated one);
+    - the archive lists the short title, as the Bid record does;
+    - a masked Debrief record reads "Content masked", not "Figures masked" (`masked.label` in `library/types.ts`);
+    - Script G joins the spec's §17 table; the runbook's checklist starts with signing in.
+  - **Open after review:** the tracker still says "technical score" in its sentence while the Stage 9 column says "Technical" (the wording, not the data); a won tender shows twice on the Project Director's Stage 9 (Handover and Debrief, two different actions); signing out in one tab reaches another open tab only on its next navigation; a live "Record the result" on Stage 8.
   - The shared-checkout rules of wave 1 apply: don't commit, don't `npm install`, edit only your own row of the index, and use your own browser tab.
 - **Wave 10b (orchestrator, 2026-09-29):** 033 and 034 in parallel, two sessions, from the wave 10 review's open items (the user asked for the follow-up plan).
   - **033** owns:

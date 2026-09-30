@@ -26,6 +26,7 @@ export interface ScreenInfo {
 export const SCREENS: Record<string, ScreenInfo> = {
   '/calendar': { name: 'Calendar', line: 'Every deadline, site visit, gate, quote and renewal across your tenders, in the authority’s time zone.', plan: '027b', built: true, cap: 'tender.view', page: () => import('./calendar/Calendar') },
   '/library': { name: 'Tender library', line: 'Every file of every tender you can open: what arrived, what was sent and what was made, in folders.', plan: '030', built: true, cap: 'tender.view', page: () => import('./library/Library') },
+  '/debriefs': { name: 'Debriefs', line: 'Every bid that ended, why, and what we learned. Recorded by the Project Director, accepted by the Head of Tendering.', plan: '037', built: true, cap: 'debrief.view', page: () => import('./debriefs/Debriefs') },
   '/radar': { name: 'Tender radar', line: 'Every notice captured from your portals, mailboxes and scanned post, with the health of each source.', plan: '007', built: true, cap: 'radar.view', page: () => import('./s1/Radar') },
   '/intake-queue': { name: 'Intake queue', line: 'Values the Intake Agent read with low confidence, for a person to check before DG1.', plan: '007', built: true, cap: 'queue.view', page: () => import('./s1/IntakeQueue') },
   '/screening': { name: 'Screening', line: 'Eligibility against the credentials vault, and the fit score, for each tender.', plan: '007', built: true, cap: 'screening.view', page: () => import('./s1/Screening') },

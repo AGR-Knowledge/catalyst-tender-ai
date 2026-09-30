@@ -459,6 +459,8 @@ The full name appears as the stage dashboard's sub-title and in the ⓘ of the s
 ```
 Dashboard                  ← the person's home (§10)
 Calendar
+Tender library             ← every tender's files (plan 030; tender.view)
+Debriefs                   ← every bid that ended, why, and what we learned (plan 037; debrief.view)
 My requests                ← only for people who owe inputs
 STAGES                     ← section label
 1 Intake            ▸      ← the header opens the stage dashboard; ▸ expands its screens
@@ -488,6 +490,7 @@ Settings
 - **Expansion** is remembered per viewer (`ctai.nav.open`, try/catch). The group holding the current route is always open.
 - **Gate chips** DG1, DG2 and DG3 sit beside their entries: outline normally, orange when something waits on the viewer, red when an SLA is breached. Badges are derived, never typed.
 - **Bottom group.** Administration and Settings are pinned to the bottom of the rail, with a divider. The collapsed rail keeps them at the bottom too.
+- **Debriefs** (plan 037, 2026-09-30) sits in the top group, after Tender library, for everyone with `debrief.view`: the Head of Tendering, the CEO, committee members and the Project Director company-wide, and Bid Managers for their own tenders. It is the archive the KPI team reads (spec §20.4). The Tender Coordinator, Procurement, the other stage owners, Finance and HR don't see it.
 - **Company section.** Two entries under the label "Company": **Company profile** (`company.view`) and **Suppliers** (`supplier.view`: the Head of Tendering, the CEO and the Procurement Lead). Suppliers is no longer a Stage 2 screen, so one page has one entry; on `/suppliers` the Suppliers entry is highlighted and Stage 2 stays folded unless opened. **User decision, 2026-09-28** (plan 027c): "The company profile and procurement/supplier pages … should be present separately in the menubar."
 
 **The Pipeline page is dropped.** The Head of Tendering's dashboard table is the all-tenders register.
@@ -588,6 +591,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   - DG1 escalations (breached SLA, or no Bid Manager assigned);
   - renewals for credentials at risk;
   - late inputs on packs due within 24 h;
+  - debriefs to sign off (plan 035): "Review the debrief", after the late inputs, the longest waiting first; it opens the tender's Debrief tab;
   - gates without an owner (configuration).
 - **Table:**
   - scope: all tenders; Status filter defaults to Live;
@@ -609,7 +613,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   5. DEC-6 Facility headroom
   6. DEC-5 Capacity if won
 - **Flow strip:** PF-5.
-- **Needs your action:** DG2 positions to record (the CEO is a member). Other items show as "Waiting on …" and can't be actioned.
+- **Needs your action:** DG2 positions to record (the CEO is a member). Other items, debrief sign-offs among them (plan 035), show as "Waiting on …" and can't be actioned.
 - **Table and graph:** as §10.1; the graph click opens stage dashboards read only.
 
 ### 10.3 Bid Manager: Portfolio (my tenders)
@@ -798,7 +802,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   5. OUT-6 Why we lose (flow)
   6. RES-3 Lessons captured (flow)
 - **Flow strip:** Result received (won · lost) → Handover or debrief → Lessons captured → Closed.
-- **Needs your action:** handovers to start · debriefs to hold · lessons to record.
+- **Needs your action** (plan 035): handovers to start · **Record the debrief**, one row per debrief due, overdue or sent back that ended in the last 30 days or is still live at Stage 9 (lost: the place and the employer's debrief booking, or "Ask the employer for a debrief"; opens the tender's Debrief tab) · results overdue. The old "debriefs to hold" and "lessons to record" rows are this one row, so a tender shows once.
 - **Table:**
   - columns: `tid` · `tender` · **Result** · `value` · **Our rank** (2 of 6) · **Gap to winner** (%) · **Loss reason** · **Predicted at DG2** · **Lessons** · `owner`;
   - default sort: Newest (result date).

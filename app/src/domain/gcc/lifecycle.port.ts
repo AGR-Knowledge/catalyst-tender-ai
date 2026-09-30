@@ -9,6 +9,7 @@ import { NOW, hoursBetween } from '@/data/gcc/lifecycle/chain';
 import type { GateKind, GateRecord, Lifecycle, StageEntry } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { DEMO_MINUTES_END } from '@/domain/gcc/period';
+import { hasLessons } from '@/domain/gcc/debriefs/endings';
 import { convert, money } from '@/domain/money';
 import { validationsOf } from '@/domain/gcc/s1/validation';
 import { fitScoresFor } from '@/domain/gcc/s1/eligibility';
@@ -183,7 +184,7 @@ function factsOf(tenant: string, l: Lifecycle, viewer: Person, done: DemoDone): 
     const r = l.result;
     Object.assign(out, {
       result: r.result, rankPlace: r.rank?.[0] ?? null, rankOf: r.rank?.[1] ?? null, gapToWinnerPct: r.gapToWinnerPct ?? null,
-      lossReason: r.lossReason ?? null, predictedWin: r.predictedWin ?? null, lessons: l.events.some((e) => e.kind === 'lessons'),
+      lossReason: r.lossReason ?? null, predictedWin: r.predictedWin ?? null, lessons: hasLessons(l),
     });
     if (!positions) mask(['predictedWin']);
   }

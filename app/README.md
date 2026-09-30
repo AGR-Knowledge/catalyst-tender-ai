@@ -31,6 +31,14 @@ Replacing the mock layer with an API later means swapping `src/data` for fetches
 - The walk-through bar at the foot of each dashboard hands the tender role to role.
 - **Settings → Reset demo** (or the profile menu) re-opens every gate before a new presentation.
 
+## Signing in
+
+- The deployed demo opens on a Sign in page that accepts one email and password, which we send to the people we invite. It keeps casual visitors out; it is not security.
+- The repo holds only the password's SHA-256 hash, in `src/data/login.ts`, never the password itself.
+- To change the password, run `npm --prefix app run login:hash`, type the new password, paste the output into `LOGIN_PASSWORD_SHA256` and commit. Everyone is then signed out.
+- On the dev server, the gate applies only in a browser tab that has opened `/login`. Production builds (`npm run build`, `vite preview`, Vercel) are always gated.
+- Reset demo doesn't sign you out, and Sign out keeps the demo state.
+
 ## Tender upload and extraction
 
 "Upload tender" (header, Tender Coordinator and Bid Manager) accepts PDFs by drag and drop or file picker.

@@ -8,6 +8,7 @@ import type { RenewedValue } from '@/domain/gcc/s1/eligibility';
 import type { FacCell, FacSection, FacsimileSpec } from './facsimile';
 import { docDate, fileOf, nameOf, type LibCtx } from './context';
 import { facsimileFile } from './documents';
+import { debriefFiles } from './debrief';
 import { fileName, safe } from './names';
 import type { LibraryFileVM } from './types';
 
@@ -18,7 +19,8 @@ import type { LibraryFileVM } from './types';
  *   is submitted, then as submitted. Prices and the bond (it states the price
  *   through its rate) need `see.margin`.
  * - 06: the vault credentials and audited accounts the eligibility check used.
- * - 07: the award or regret letter, or the notice of cancellation.
+ * - 07: the award or regret letter, or the notice of cancellation; and, once
+ *   the Head of Tendering accepts it, the Debrief record (plan 036, `debrief.ts`).
  */
 
 const reached = (c: LibCtx, stage: number) => c.l.log.some((e) => e.stage >= stage);
@@ -161,6 +163,10 @@ export function evidenceFiles(c: LibCtx): LibraryFileVM[] {
 // ---------------------------------------------------------------------------
 
 export function resultFiles(c: LibCtx): LibraryFileVM[] {
+  return [...letterFiles(c), ...debriefFiles(c)];
+}
+
+function letterFiles(c: LibCtx): LibraryFileVM[] {
   const { l } = c;
   const r = l.result;
   if (!r || r.result === 'withdrawn') return [];

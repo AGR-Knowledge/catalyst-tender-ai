@@ -10,7 +10,8 @@
     "typecheck": "tsc -b",
     "hero-itt": "node scripts/hero-itt/build.mjs && node scripts/hero-itt/verify.mjs",
     "demo-itt:cbhh": "node scripts/demo-itt/cbhh-011/build.mjs && node scripts/demo-itt/cbhh-011/verify.mjs",
-    "demo-itt:ilra": "node scripts/demo-itt/ilra-042/build.mjs && node scripts/demo-itt/ilra-042/verify.mjs"
+    "demo-itt:ilra": "node scripts/demo-itt/ilra-042/build.mjs && node scripts/demo-itt/ilra-042/verify.mjs",
+    "login:hash": "node scripts/login-hash.mjs"
   },
   "dependencies": {
     "@fontsource/ibm-plex-mono": "^5.1.0",

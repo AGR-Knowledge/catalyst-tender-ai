@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
+import { Link } from 'react-router-dom';
 import { Info } from 'lucide-react';
 import type { BreakdownRowVM, BreakdownVM, DeclineGateVM, DeclinesVM, FunnelVM, LossesVM } from '@/domain/gcc/company/record';
 import { plural } from '@/domain/gcc/s1/common';
-import { Card, CardHead } from '@/components/ui/primitives';
+import { Card, CardFoot, CardHead } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { Masked } from '@/components/tender/Masked';
 import { usePop } from '@/components/tender/Tip';
@@ -90,8 +91,18 @@ export function FunnelCard({ vm, onPick }: { vm: FunnelVM; onPick: OnPick }) {
   );
 }
 
-/** Why we lost: the loss reasons, and our place and the gap to the winner where the employer published them. */
-export function LossCard({ vm, maskedBy, onPick }: { vm: LossesVM; maskedBy: string; onPick: OnPick }) {
+/** "Top factor · Supplier quotes (4)": the factor the accepted debriefs cite most for this reason (plan 037). */
+function TopFactor({ f, maskedBy }: { f: LossesVM['rows'][number]['topFactor']; maskedBy: string }) {
+  if (f === 'masked') return <>Top factor <Masked by={maskedBy} /></>;
+  return f ? <>Top factor · {f.label} (<span className="num">{f.count}</span>)</> : <>No debriefs yet</>;
+}
+
+/**
+ * Why we lost: the loss reasons, our place and the gap to the winner where the employer published them, and the
+ * top factor from the debriefs. The foot links to the Debriefs archive for those who may open it (`debriefsTo`).
+ */
+export function LossCard({ vm, maskedBy, debriefMaskedBy, debriefsTo, onPick }: { vm: LossesVM; maskedBy: string; debriefMaskedBy: string; debriefsTo: string; onPick: OnPick }) {
+  const d = vm.debriefs;
   return (
     <Card className="co-bd-card">
       <CardHead title="Why we lost" meta={<span className="tk-sub">{plural(vm.total, 'loss', 'losses')}</span>} />
@@ -115,6 +126,7 @@ export function LossCard({ vm, maskedBy, onPick }: { vm: LossesVM; maskedBy: str
                   {r.gap === 'masked' ? <>gap to winner <Masked by={maskedBy} /></>
                     : r.gap ? <>gap to winner <span className="num">{r.gap.medianPct}%</span>{r.gap.n < r.count && <> (n = {r.gap.n})</>}</> : 'gap not published'}
                 </span>
+                <span className="co-ls-x co-ls-f"><TopFactor f={r.topFactor} maskedBy={debriefMaskedBy} /></span>
               </li>
             ))}
           </ul>
@@ -126,6 +138,17 @@ export function LossCard({ vm, maskedBy, onPick }: { vm: LossesVM; maskedBy: str
           </p>
         )}
       </div>
+      {vm.total > 0 && (
+        <CardFoot>
+          {/* Without `debrief.view` the archive holds nothing for the viewer, so the count is masked rather than read as none. */}
+          <span className="co-ls-foot">
+            {!d.canOpen ? <>Top factors come from accepted debriefs · <Masked by={debriefMaskedBy} /></>
+              : d.accepted ? <>From <span className="num">{d.accepted}</span> accepted {d.accepted === 1 ? 'debrief' : 'debriefs'}{d.complete ? '' : ' on your tenders'}</>
+                : d.complete ? 'No accepted debriefs yet' : 'No accepted debriefs on your tenders yet'}
+            {d.canOpen && <> · <Link className="co-rt-link" to={debriefsTo}>Open Debriefs →</Link></>}
+          </span>
+        </CardFoot>
+      )}
     </Card>
   );
 }

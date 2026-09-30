@@ -21,6 +21,7 @@ export type { WorkspaceCtx, WorkspaceTabDef } from './types';
  * | `sourcing`     | Sourcing           | 70    | 008b  |
  * | `inputs`       | Inputs             | 80    | 009b  |
  * | `bid-decision` | Bid / No-Bid       | 90    | 009b  |
+ * | `debrief`      | Debrief            | 95    | 036   |
  * | `audit`        | Decisions & audit  | 100   | 019   |
  */
 export const RESERVED_TABS: { id: string; label: string; order: number; plan: string }[] = [
@@ -33,6 +34,7 @@ export const RESERVED_TABS: { id: string; label: string; order: number; plan: st
   { id: 'sourcing', label: 'Sourcing', order: 70, plan: '008b' },
   { id: 'inputs', label: 'Inputs', order: 80, plan: '009b' },
   { id: 'bid-decision', label: 'Bid / No-Bid', order: 90, plan: '009b' },
+  { id: 'debrief', label: 'Debrief', order: 95, plan: '036' },
   { id: 'audit', label: 'Decisions & audit', order: 100, plan: '019' },
 ];
 

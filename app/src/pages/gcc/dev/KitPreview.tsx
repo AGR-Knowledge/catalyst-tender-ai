@@ -45,6 +45,10 @@ import { personById } from '@/data/people';
 import { FileViewer } from '@/components/tender/FileViewer';
 import { libraryFor } from '@/domain/gcc/library';
 import type { LibraryFileVM } from '@/domain/gcc/library/types';
+import { DEMO_NOW } from '@/domain/gcc/clock';
+import { DebriefView } from '@/pages/gcc/workspace/debrief/DebriefPanel';
+import { DEBRIEF_FIXTURES } from '@/pages/gcc/workspace/debrief/fixtures';
+import type { DebriefWriters } from '@/pages/gcc/workspace/debrief/format';
 
 const StageChart = lazy(() => import('@/components/dashboard/chart/StageChart'));
 
@@ -314,6 +318,7 @@ function KitPart2() {
 
       <MembersKit />
       <FileViewerKit />
+      <DebriefKit />
     </SourceHost>
   );
 }
@@ -362,6 +367,33 @@ function MembersKit() {
       <div style={{ ...pad, display: 'grid', gap: 'var(--gap)', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', alignItems: 'start' }}>
         {vm && <MembersPanel rows={vm.rows} headline={vm.headline} quorum={vm.quorum} majority={vm.majority} onRecord={() => console.info('[kit] record my position')} recordCheck={{ ok: true }} />}
         {hidden && <MembersPanel rows={hidden.rows} masked={hidden.masked} />}
+      </div>
+    </Card>
+  );
+}
+
+/** Plan 036: the Debrief tab on fixtures (a lost tender due and sent back, a win accepted, a No-Bid submitted), with writers that write nothing. */
+const KIT_WRITERS: DebriefWriters = {
+  submit: () => ({ error: 'Kit preview: nothing is recorded here' }),
+  accept: () => ({ error: 'Kit preview: nothing is recorded here' }),
+  back: () => ({ error: 'Kit preview: nothing is recorded here' }),
+};
+
+function DebriefKit() {
+  const [at, setAt] = useState(DEBRIEF_FIXTURES[0].id);
+  const fx = DEBRIEF_FIXTURES.find((f) => f.id === at) ?? DEBRIEF_FIXTURES[0];
+  const viewer = personById(`najd.${fx.as}`);
+  if (!viewer) return null;
+  const yes = { ok: true };
+  const no = { ok: false, reason: 'Not this role' };
+  const access = fx.as === 'dir'
+    ? { record: yes, holdsRecord: true, accept: no, holdsAccept: false }
+    : { record: no, holdsRecord: false, accept: yes, holdsAccept: true };
+  return (
+    <Card>
+      <CardHead title="Debrief tab" meta={<span style={row}>{DEBRIEF_FIXTURES.map((f) => <button key={f.id} type="button" className={`btn btn-sm ${f.id === at ? 'btn-primary' : ''}`} aria-pressed={f.id === at} onClick={() => setAt(f.id)}>{f.label}</button>)}</span>} />
+      <div style={{ ...pad, background: 'var(--surface-sunken)' }}>
+        <DebriefView key={fx.id} vm={fx.vm} dctx={{ tenant: 'najd', viewer, done: {}, now: DEMO_NOW }} access={access} writers={KIT_WRITERS} />
       </div>
     </Card>
   );

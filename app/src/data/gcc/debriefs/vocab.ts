@@ -151,3 +151,31 @@ export const RIVAL_FIXED: VocabItem[] = [
 ];
 
 export const labelOf = (list: VocabItem[], id: string | null | undefined): string => list.find((x) => x.id === id)?.label ?? (id ?? '');
+
+// ---------------------------------------------------------------------------
+// Additions (plan 035)
+
+/** A loss reason inside a sentence: "Lost on price", "Lost on the technical score" (the close note and the action rows). */
+export const LOSS_IN_SENTENCE: Record<LossReason, string> = {
+  price: 'price', technical: 'the technical score', 'local-content': 'local content', pq: 'prequalification', other: 'other grounds',
+};
+
+/** A win reason in a tile's one-line detail ("Price 3 · Track record 2"): the list's words are too long for it. */
+export const WIN_SHORT: Record<string, string> = {
+  price: 'Price', technical: 'Technical', 'local-content': 'Local content', 'track-record': 'Track record', programme: 'Programme',
+  alternative: 'Alternative', partner: 'Partner', other: 'Other',
+};
+
+/** Who stopped a withdrawn bid: the employer (it reads as cancelled) or us. */
+export type StoppedBy = 'employer' | 'us';
+
+/** A lesson that names a price is refused: the Bid record holds the figures. */
+export const NO_MONEY_TEXT = 'Keep prices out of lessons: Bid record holds them';
+
+/**
+ * Gate reason codes the seed uses that the gate screens' own lists (plan
+ * 009a's `NO_BID_REASONS`, plan 018's `DG3_REJECT_REASONS`) don't name.
+ */
+export const SEED_GATE_REASONS: Record<string, string> = {
+  'contract-risk': 'Contract risk', 'price-competition': 'Price competitiveness',
+};

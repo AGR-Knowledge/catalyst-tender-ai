@@ -513,7 +513,8 @@ Column key: HoT = Head of Tendering (T1) · IT = optional IT Administrator (T2; 
 | **Stage 9 delivery and learning** | | | | | | | | | | | |
 | Delivery projects, deviations | V | — | V | — | — | — | — | V | — | — | **E** |
 | Approve corrective actions | V | — | — | — | — | — | — | — | — | — | **D** |
-| Record award or loss outcome, debrief | E | — | V | E own | — | — | — | — | — | — | — |
+| Record award or loss outcome | E | — | V | E own | — | — | — | — | — | — | — |
+| Record the debrief (plan 035; committee members V) | **A** (accept or send back) | — | V | V own | — | — | — | — | — | — | **E** |
 | Accept learning-loop model refinements | **D** | — | V | — | — | — | — | — | — | — | V |
 | **Governance and administration** | | | | | | | | | | | |
 | Agent console (tenant) | V | V | V | — | — | — | — | — | — | — | — |

@@ -1,8 +1,9 @@
-import type { Lifecycle, Result } from '@/data/gcc/lifecycle';
+import { LOSS_LABEL } from '@/data/gcc/debriefs/vocab';
 import { HANDOVER_DAYS, MIN_N, RATE_BANDS } from '@/data/gcc/targets';
 import { TENANT_TARGETS } from '@/data/gcc/portfolio';
 import { isGccTenantKey } from '@/data/gcc';
 import { DEMO_TODAY } from '@/domain/calendar';
+import { hasLessons } from '../debriefs/endings';
 import type { PeriodWindow } from '../period';
 import type { KpiCtx, KpiDef } from './types';
 import { daysBetween, dayText, idsDrill, isSmall, liveIn, pctOf, plural, qOf, rateTone, tileLabel } from './stages';
@@ -13,10 +14,6 @@ import { daysBetween, dayText, idsDrill, isSmall, liveIn, pctOf, plural, qOf, ra
  * show their counts first, with a neutral tone (dashboards.md §2).
  */
 
-const LOSS: Record<NonNullable<Result['lossReason']>, string> = {
-  price: 'Price', technical: 'Technical', 'local-content': 'Local content', pq: 'Prequalification', other: 'Other',
-};
-
 /** The first wording that fits a tile's one-line detail at 1440 px (plan 027a: about 24 characters), else the last. */
 const fit = (...options: string[]) => options.find((x) => x.length <= 24) ?? options[options.length - 1];
 
@@ -26,7 +23,8 @@ const dm = (iso: string) => dayText(iso).replace(/^\w{3} /, '');
 /** The reference line's period anchor, as on Live pipeline: "Since 7 Feb", "Since 9 Mar" (no year), "Since 00:00" for Today. */
 const sinceKey = (w: PeriodWindow) => `Since ${w.key === 'today' ? w.startText : dm(w.from).replace(/ \d{4}$/, '')}`;
 
-export const hasLessons = (l: Lifecycle) => l.events.some((e) => e.kind === 'lessons' && e.at <= DEMO_TODAY + 'T23:59');
+/** Lessons recorded by demo day: one predicate, shared with the debriefs' seed (plan 035), so Accepted and Lessons captured agree. */
+export { hasLessons };
 
 /** Submitted bids past the employer's expected award date with no result. */
 export const overdue = (ctx: KpiCtx) => qOf(ctx).live()
@@ -105,7 +103,7 @@ export const KPIS: KpiDef[] = [
       const lost = qOf(ctx).resultsIn(ctx.window, ['lost']);
       if (!lost.length) return { display: 'No losses in this period', detail: 'No loss reasons recorded', ref: { k: sinceKey(ctx.window), v: 'None' } };
       const counts = new Map<string, number>();
-      for (const { r } of lost) { const k = LOSS[r.lossReason ?? 'other']; counts.set(k, (counts.get(k) ?? 0) + 1); }
+      for (const { r } of lost) { const k = LOSS_LABEL[r.lossReason ?? 'other']; counts.set(k, (counts.get(k) ?? 0) + 1); }
       const sorted = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
       const top = sorted.filter(([, n]) => n === sorted[0][1]).map(([k]) => k);
       const sub = sorted.slice(0, 3).map(([k, n]) => `${k} ${n}`).join(' · ');
@@ -117,8 +115,8 @@ export const KPIS: KpiDef[] = [
     id: 'RES-3', label: 'Lessons captured', kind: 'flow',
     info: {
       means: 'Whether we learn from every result, won or lost',
-      counted: 'Results received in the period with a debrief or lessons record ÷ results received in the period.',
-      target: '100% green; 80% or more orange', source: 'Results and lessons records',
+      counted: 'Results received in the period with an accepted debrief ÷ results received in the period. A debrief the Head of Tendering accepts is what captures the lessons.',
+      target: '100% green; 80% or more orange', source: 'Results and debriefs',
     },
     compute(ctx) {
       const list = qOf(ctx).resultsIn(ctx.window);

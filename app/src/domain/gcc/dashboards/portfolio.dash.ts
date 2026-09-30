@@ -41,14 +41,14 @@ export const DASHBOARDS: DashboardSpec[] = [
     key: 'portfolio.hot', ...base,
     tiles: ['PF-1', 'PF-2', 'PF-3', 'PF-4', 'SCR-6', 'CAP-1'],
     actions: ['dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge',
-      'breakglass.review'],
+      'debrief.accept', 'breakglass.review'],
     table: { ...table, scope: () => ({ kind: 'all' }) },
   },
   {
     key: 'portfolio.exec', ...base,
     tiles: ['PF-1', 'PF-3', 'OUT-3', 'DEC-4', 'DEC-6', 'DEC-5'],
     // The CEO records a DG2 position; the Head of Tendering's items show as "Waiting on …", read only.
-    actions: ['dg2.position', 'dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge'],
+    actions: ['dg2.position', 'dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge', 'debrief.accept'],
     table: { ...table, scope: () => ({ kind: 'all' }) },
   },
   {

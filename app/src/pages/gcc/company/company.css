@@ -199,6 +199,9 @@
 .co-bd-more { margin: 4px 22px 14px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
 .co-ls-x { padding: 0 10px 8px; margin-top: -3px; font-size: 12px; color: var(--ink-3); }
 .co-ls-x .masked { vertical-align: -1px; }
+/* The top factor from the debriefs (plan 037), the second line under every loss reason; the foot names how many debriefs and links to them. */
+.co-ls-x.co-ls-f { margin-top: -6px; }
+.co-ls-foot { font-size: 12px; color: var(--ink-3); }
 .co-dc-h { display: flex; align-items: baseline; gap: 6px; margin: 14px 22px 0; }
 .co-dc-h .num { color: var(--ink-3); font-weight: 500; }
 .co-dc-none { padding: 6px 22px 4px; }

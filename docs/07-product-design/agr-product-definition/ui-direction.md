@@ -256,6 +256,7 @@ A single-column, phone-friendly page with the tenant's branding. It is the only 
 - **Eligibility:** Pass · At risk · Interpretation · Fail · Not stated.
 - **Contributor requests:** Requested · In progress · Submitted · Late · Declined, {reason}.
 - **Committee positions:** Support · Support with conditions · Oppose · Abstain · Not yet recorded · Conflict declared.
+- **Debrief** (plan 035): Due {date} · Overdue · Submitted {date} · Sent back · Accepted {date}. Due and Submitted are grey, Overdue and Sent back orange, Accepted green.
 
 ### 7.4 Provenance
 Every extracted or derived number carries a `SourceChip`. The chip is quiet (mono, `--ink-3`) until hovered or focused. On gate screens and packs, "Show all sources" makes them prominent for audit walk-throughs.

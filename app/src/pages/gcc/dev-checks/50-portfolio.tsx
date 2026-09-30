@@ -43,7 +43,8 @@ const NAJD_30D: Record<string, string> = {
   'HoT · SCR-6': '2 · Zakat 30 Apr · before T-2026-118 opens 10 May',
   'HoT · CAP-1': '78% · 96% with T-2026-118',
   'HoT · actions 1–5': 'DG3 approval T-2025-305 | DG2 approval T-2026-097 | Booklet purchase T-2026-122 | Renewal T-2026-118 | Late input T-2026-101',
-  'HoT · actions, Show all': '7: + Renewal T-2026-118 | DG1 due T-2026-117',
+  // Plan 035: the Head of Tendering's debrief sign-offs (T-2025-438 featured, T-2026-099 generated) join on the portfolio scale.
+  'HoT · actions, Show all': '9: + Debrief sign-off T-2025-438 | Renewal T-2026-118 | Debrief sign-off T-2026-099 | DG1 due T-2026-117',
   'HoT · DG3 row': 'Ready for your approval: evidence complete · 30 h left of 48 h',
   'HoT · DG2 row': '2 of 5 positions · quorum needs 3 · pack stale (Addendum 2, 09:12) · 4 h 10 m left of 24 h',
   'HoT · booklet row': 'SAR 3,000 via Etimad · purchase closes Tue 10 Mar · requested by Aisha Al-Qahtani',

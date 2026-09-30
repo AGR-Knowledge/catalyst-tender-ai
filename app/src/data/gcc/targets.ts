@@ -38,6 +38,7 @@ export const RATE_BANDS: Record<string, RateBand> = {
   'CMP-6': { green: 100, orange: 90 },  // DG3 on time
   'SUB-3': { green: 100, orange: 90 },  // packages ready
   'RES-3': { green: 100, orange: 80 },  // lessons captured
+  'DBR-2': { green: 100, orange: 80 },  // debriefs accepted (plan 035), as RES-3
 };
 
 /** PRC-4 estimated share, in percent: at or under `green` is green, at or under `orange` is orange. */
@@ -59,3 +60,9 @@ export const BOND_VALIDITY_DAYS_KSA = 90;
 export function bandTone(pct: number, band: RateBand): 'green' | 'orange' | 'red' {
   return pct >= band.green ? 'green' : pct >= band.orange ? 'orange' : 'red';
 }
+
+/** Debriefs (plan 035): due this many calendar days after the ending, the rule Stage 9's lessons row used. */
+export const DEBRIEF_DUE_DAYS = 14;
+
+/** DBR-3: a debrief waiting for sign-off longer than this many working days is orange. */
+export const DBR3_WAIT_DAYS = 2;

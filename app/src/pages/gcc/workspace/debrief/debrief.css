@@ -1,0 +1,105 @@
+/* ───────── The Debrief tab (plan 036) ───────── */
+/* One column: the head, What we know, then the form or the record. No side stripes; status is a word in a pill. */
+
+.dbt { align-content: start; }
+/* A callout between cards lines up with them; inside a card, its padding sets the inset. */
+.dbt > .callout, .dbf-pad > .callout { margin: 0; }
+
+/* The head: what ended and when, the status, the rule. */
+.dbh { display: grid; gap: 4px; }
+.dbh-l1 { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; }
+.dbh-t { margin: 0; font-size: 17px; font-weight: 600; letter-spacing: -0.25px; line-height: 1.3; color: var(--ink); }
+.dbh-rule { margin: 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+
+/* What we know: three columns of label over value. */
+.dbw { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 20px; margin: 0; padding: 14px 22px 16px; }
+.dbw-i { display: grid; gap: 2px; min-width: 0; align-content: start; }
+.dbw-i.wide { grid-column: 1 / -1; }
+.dbw-k { font-size: 11.5px; font-weight: 500; color: var(--ink-3); }
+.dbw-v { margin: 0; font-size: 13px; line-height: 1.45; color: var(--ink); overflow-wrap: anywhere; }
+@media (max-width: 1099px) { .dbw { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* The form: numbered sections, each a fieldset, divided by a hairline. */
+.dbf-ex { display: inline-flex; align-items: center; gap: 6px; }
+.dbf-pad { padding: 12px 22px 0; }
+.dbf-why { margin: 12px 22px 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+.dbf-body { border: 0; margin: 0; padding: 0; min-width: 0; }
+.dbf-sec { padding: 14px 22px; min-width: 0; }
+.dbf-sec + .dbf-sec { border-top: 1px solid var(--line-2); }
+.dbf-fs { border: 0; margin: 0; padding: 0; min-width: 0; }
+.dbf-lg { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; padding: 0; margin: 0 0 10px; font-size: 13.5px; font-weight: 600; color: var(--ink); }
+.dbf-n {
+  display: inline-grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%;
+  background: var(--surface-active); color: var(--ink-2); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums;
+}
+.dbf-sub { font-size: 12px; font-weight: 400; color: var(--ink-3); }
+.dbf-in { display: grid; gap: 10px; min-width: 0; }
+.dbf-row { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: flex-start; }
+.dbf-row > .dbf-field { flex: 1 1 240px; }
+.dbf-field { display: grid; gap: 4px; min-width: 0; }
+.dbf-l { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+.dbf-hint { margin: 0; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.dbf-field select, .dbf-field input, .dbf-field textarea, .dbf-lesson select, .dbf-lesson textarea {
+  font: inherit; font-size: 13px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line-strong); border-radius: var(--radius-sm); padding: 6px 9px; min-width: 0;
+}
+.dbf-field select, .dbf-field input, .dbf-lesson select { height: 32px; padding-top: 0; padding-bottom: 0; }
+.dbf-field textarea, .dbf-lesson textarea { width: 100%; resize: vertical; line-height: 1.45; }
+.dbf-field select { width: 100%; max-width: 360px; }
+.dbf-when input { width: 220px; }
+.dbf-place { display: inline-flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--ink-3); }
+.dbf-place input { width: 64px; text-align: center; font-variant-numeric: tabular-nums; }
+.dbf-body select:focus-visible, .dbf-body input:focus-visible, .dbf-body textarea:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.dbf-body:disabled { opacity: 0.75; }
+
+/* Radio chips: the reason picker's chips over native radios, with a round box. */
+.rcp-code.dbf-r { position: relative; }
+.rcp-code.dbf-r .rcp-box { border-radius: 50%; }
+.rcp-code.dbf-r.on .rcp-box { box-shadow: inset 0 0 0 3px var(--surface); }
+.rcp-code.dbf-r:has(.dbf-ri:focus-visible) { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.rcp-code.dbf-r:has(.dbf-ri:disabled) { cursor: not-allowed; }
+.dbf-ri { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: inherit; }
+.rcp-code:disabled { cursor: not-allowed; opacity: 0.5; }
+/* The gate's reasons, read-only. */
+.dbf-fixed { list-style: none; margin: 0; padding: 0; }
+.dbf-fixed .rcp-code { cursor: default; border-color: var(--line-2); background: var(--surface-sunken); color: var(--ink); }
+.dbf-fixed .rcp-code:hover { background: var(--surface-sunken); }
+
+/* Lessons: area and sentence on one row, remove at the end. */
+.dbf-lessons { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.dbf-lesson { display: grid; grid-template-columns: minmax(150px, 190px) minmax(0, 1fr) 34px; gap: 8px; align-items: start; }
+.dbf-lesson select { width: 100%; }
+.dbf-rm { width: 32px; height: 32px; }
+.dbf-add { justify-self: start; }
+@media (max-width: 900px) { .dbf-lesson { grid-template-columns: minmax(0, 1fr) 34px; } .dbf-lesson textarea { grid-column: 1; } }
+
+.dbf-err {
+  margin: 0; padding: 8px 12px 8px 26px; border-radius: var(--radius-sm); display: grid; gap: 3px;
+  background: color-mix(in srgb, var(--red) 8%, transparent); color: var(--red); font-size: 12.5px; line-height: 1.45;
+}
+.dbf-err:focus { outline: 2px solid var(--focus-ring); outline-offset: 1px; }
+.dbf-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; padding: 14px 22px 16px; border-top: 1px solid var(--line-2); margin-top: 12px; }
+
+/* "The record will say", in the confirm step. */
+.dbf-says { padding: 10px 12px; border: 1px solid var(--line-2); border-radius: var(--radius-sm); background: var(--surface-2); }
+.dbf-says ol { margin: 0; padding-left: 20px; display: grid; gap: 4px; font-size: 13px; line-height: 1.45; color: var(--ink-2); }
+.dbf-says b { font-weight: 600; color: var(--ink); }
+
+/* The record: the same sections, read-only. */
+.dbr-by { margin: 0; padding: 12px 22px 0; font-size: 12.5px; color: var(--ink-3); line-height: 1.45; }
+.dbr-list { margin: 0; padding: 4px 22px 8px; }
+.dbr-row { display: grid; grid-template-columns: minmax(170px, 210px) minmax(0, 1fr); gap: 4px 16px; padding: 10px 0; }
+.dbr-row + .dbr-row { border-top: 1px solid var(--line-3); }
+.dbr-row dt { display: flex; align-items: flex-start; gap: 8px; font-size: 12.5px; font-weight: 600; color: var(--ink-2); }
+.dbr-row dd { margin: 0; font-size: 13px; line-height: 1.5; color: var(--ink); min-width: 0; }
+.dbr-row dd p { margin: 0; }
+.dbr-row dd ul { margin: 0; padding-left: 18px; display: grid; gap: 3px; }
+.dbr-note { margin: 0; padding: 0 22px 14px; font-size: 12.5px; color: var(--ink-3); }
+.dbr-wait { margin: 0; padding: 12px 22px 16px; font-size: 13px; color: var(--ink-2); border-top: 1px solid var(--line-2); }
+.dbr-wait.solo { border-top: 0; padding: 16px 22px; }
+@media (max-width: 900px) { .dbr-row { grid-template-columns: minmax(0, 1fr); } }
+
+/* The sign-off: a sunken band at the foot of the record. */
+.dbs { display: grid; gap: 8px; padding: 14px 22px 16px; border-top: 1px solid var(--line-2); background: var(--surface-sunken); border-radius: 0 0 var(--radius) var(--radius); }
+.dbs-acts { display: flex; flex-wrap: wrap; gap: 8px; }
+.dbs-why { margin: 0; font-size: 12.5px; color: var(--ink-3); }

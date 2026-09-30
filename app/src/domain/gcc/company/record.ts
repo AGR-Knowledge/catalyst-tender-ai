@@ -7,6 +7,7 @@ import type { GateRecord, Lifecycle, Result } from '@/data/gcc/lifecycle';
 import { MIN_N } from '@/data/gcc/targets';
 import { stageLabel } from '@/data/gcc/stages';
 import { BID_RECORD_YEARS, type BidYearSeed } from '@/data/gcc/company/bidRecord';
+import { LOSS_LABEL, LOSS_REASONS } from '@/data/gcc/debriefs/vocab';
 import { rangeText } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
 import { DEMO_NOW } from '../clock';
@@ -18,6 +19,7 @@ import { calibrationFor, type Calibration } from '../s3/win';
 import { reasonLabel } from '../dg2/decision';
 import type { MoneyVM } from '../viewmodels';
 import { tenantCcy } from '../s1/common';
+import { DEBRIEF_STATUSES, archiveFor, endingOf, labelOf, type ArchiveRow, type ArchiveVM, type DebriefStatus } from '../debriefs';
 
 /**
  * Company profile › Bid record (plan 032): the company's record as a bidder.
@@ -34,6 +36,11 @@ import { tenantCcy } from '../s1/common';
  * `see.margin`; the predicted win % needs `see.margin` and, as the tender
  * table masks it, `see.positions`. A figure over several tenders is masked
  * unless the viewer may see it on every one of them.
+ *
+ * The debriefs (plan 037): "Why we lost" names each reason's top factor, and
+ * each ended tender its debrief's status, both from the archive at 12 months
+ * (`archiveFor`), so the two pages read the same accepted debriefs. They need
+ * `debrief.view` on the tenders behind them.
  */
 
 /** The period every tender-level section reads: the dashboards' "12 months". */
@@ -56,11 +63,13 @@ export const RECORD_STATUS: Record<RecordStatus, { label: string; tone: Tone; ic
   live: { label: 'In progress', tone: 'ink', icon: '→' },
 };
 
-/** Loss reasons in the words of Stage 9's "Why we lose" (OUT-6); a loss with none recorded counts as Other, as there. */
-const LOSS_ORDER: NonNullable<Result['lossReason']>[] = ['price', 'technical', 'local-content', 'pq', 'other'];
-export const LOSS_LABEL: Record<NonNullable<Result['lossReason']>, string> = {
-  price: 'Price', technical: 'Technical', 'local-content': 'Local content', pq: 'Prequalification', other: 'Other',
-};
+/**
+ * Loss reasons in the words of Stage 9's "Why we lose" (OUT-6), from the debrief vocabulary, so every screen says
+ * them alike; a loss with none recorded counts as Other, as there. `LOSS_LABEL` stays exported from here for
+ * the files that import it from this module.
+ */
+const LOSS_ORDER: NonNullable<Result['lossReason']>[] = LOSS_REASONS.map((r) => r.id);
+export { LOSS_LABEL };
 
 /** Reason codes the history carries that the DG1 and DG2 pickers don't list. */
 const HISTORY_REASON: Record<string, string> = {
@@ -134,6 +143,8 @@ export interface LossRowVM {
   place: { median: number; of: number; n: number } | null;
   /** The median gap to the winner (%), over the losses that record it; masked without `see.margin` on every one of them. */
   gap: { medianPct: number; n: number } | null | 'masked';
+  /** The factor cited most in this reason's accepted debriefs (the archive's); null with none yet; masked without `debrief.view` on every one of them. */
+  topFactor: { label: string; count: number } | null | 'masked';
   ids: string[];
 }
 
@@ -143,6 +154,11 @@ export interface LossesVM {
   /** Losses that record our place, and the gap to the winner. */
   placeRecorded: number;
   gapRecorded: number | 'masked';
+  /**
+   * The debriefs behind the top factors: the accepted lost debriefs in the window the viewer may read, whether they
+   * may open the archive, and whether they may read the debrief of every loss (a Bid Manager reads their own only).
+   */
+  debriefs: { accepted: number; canOpen: boolean; complete: boolean };
 }
 
 export interface DeclineRowVM { code: string; label: string; count: number; pct: number; ids: string[] }
@@ -220,6 +236,8 @@ export interface RecordRowVM {
   predicted?: number | null | 'masked';
   /** Where the row comes from: a bid (submitted or with a result), a decline, or a pursuit not yet submitted. */
   kind: 'bid' | 'declined' | 'pursued';
+  /** An ended bid's debrief status, as the archive reads it; masked without `debrief.view` on the tender. Absent until the bid has ended. */
+  debrief?: { status: DebriefStatus; label: string; tone: Tone; text: string } | 'masked';
 }
 
 export interface BidRecordVM {
@@ -247,7 +265,7 @@ export interface BidRecordVM {
   /** The rows the table opens on: the bids (submitted or with a result in the window). */
   bidIds: string[];
   /** Who may see what is masked. */
-  maskedBy: { gap: string; predicted: string };
+  maskedBy: { gap: string; predicted: string; debrief: string };
 }
 
 /* ------------------------------------------------------------ arithmetic */
@@ -415,9 +433,10 @@ function breakdownOf(
   return rows.map((r) => ({ ...r, pct: Math.round((r.bids / top) * 100) }));
 }
 
-function lossesOf(tenant: string, viewer: Person, res: Sets['res']): LossesVM {
+function lossesOf(tenant: string, viewer: Person, res: Sets['res'], arch: ArchiveVM): LossesVM {
   const lost = res.filter((x) => x.r.result === 'lost');
   const marginOn = (l: Lifecycle) => can(viewer, 'see.margin', tenderCtx(tenant, l)).ok;
+  const debriefOn = (l: Lifecycle) => can(viewer, 'debrief.view', tenderCtx(tenant, l)).ok;
   const rows = LOSS_ORDER.flatMap((key) => {
     const xs = lost.filter((x) => (x.r.lossReason ?? 'other') === key);
     if (!xs.length) return [];
@@ -428,6 +447,7 @@ function lossesOf(tenant: string, viewer: Person, res: Sets['res']): LossesVM {
       // Whole places: two losses 7th of 7 and 4th of 4 read "6 of 6", never "5.5 of 5.5" (orchestrator review, plan 034).
       place: ranked.length ? { median: Math.round(median(ranked.map((x) => x.r.rank![0]))), of: Math.round(median(ranked.map((x) => x.r.rank![1]))), n: ranked.length } : null,
       gap: !xs.every((x) => marginOn(x.l)) ? 'masked' : gaps.length ? { medianPct: Math.round(median(gaps.map((x) => x.r.gapToWinnerPct!)) * 10) / 10, n: gaps.length } : null,
+      topFactor: !xs.every((x) => debriefOn(x.l)) ? 'masked' : arch.lossReasons.find((a) => a.id === key)?.topFactor ?? null,
       ids: uniq(xs.map((x) => x.l.tenderId)),
     };
     return [row];
@@ -438,6 +458,7 @@ function lossesOf(tenant: string, viewer: Person, res: Sets['res']): LossesVM {
     rows: rows.map((r) => ({ ...r, pct: Math.round((r.count / top) * 100) })),
     placeRecorded: lost.filter((x) => x.r.rank).length,
     gapRecorded: lost.every((x) => marginOn(x.l)) ? lost.filter((x) => x.r.gapToWinnerPct !== undefined).length : 'masked',
+    debriefs: { accepted: arch.lossReasons.reduce((n, a) => n + a.count, 0), canOpen: can(viewer, 'debrief.view').ok, complete: lost.every((x) => debriefOn(x.l)) },
   };
 }
 
@@ -543,7 +564,15 @@ function statusOf(l: Lifecycle): RecordStatus {
 /** The gate record that closed it: the last with that decision. */
 const lastGate = (l: Lifecycle, decision: GateRecord['decision']) => [...l.gates].reverse().find((g) => g.decision === decision);
 
-function rowOf(tenant: string, viewer: Person, home: Home, l: Lifecycle, kind: RecordRowVM['kind'], declinedAt: string | undefined): RecordRowVM {
+/** An ended bid's debrief, as the archive lists it; masked without `debrief.view` on the tender; absent until it has ended. */
+function debriefOf(viewer: Person, ctx: ReturnType<typeof tenderCtx>, l: Lifecycle, deb: Map<string, ArchiveRow>): RecordRowVM['debrief'] {
+  if (!endingOf(l)) return undefined;
+  if (!can(viewer, 'debrief.view', ctx).ok) return 'masked';
+  const d = deb.get(l.tenderId);
+  return d ? { status: d.status, label: labelOf(DEBRIEF_STATUSES, d.status), tone: d.statusTone, text: d.statusText } : undefined;
+}
+
+function rowOf(tenant: string, viewer: Person, home: Home, l: Lifecycle, kind: RecordRowVM['kind'], declinedAt: string | undefined, deb: Map<string, ArchiveRow>): RecordRowVM {
   const status = statusOf(l);
   const r = l.result;
   const ctx = tenderCtx(tenant, l);
@@ -564,6 +593,7 @@ function rowOf(tenant: string, viewer: Person, home: Home, l: Lifecycle, kind: R
     ...(status === 'lost' ? { gap: margin ? r?.gapToWinnerPct ?? null : 'masked' as const } : {}),
     ...(isResult ? { predicted: predictedOn(tenant, viewer, l) ? r?.predictedWin ?? null : 'masked' as const } : {}),
     reason, kind,
+    debrief: debriefOf(viewer, ctx, l, deb),
   };
 }
 
@@ -589,6 +619,9 @@ export function bidRecordFor(tenant: string, done: DemoDone, viewer: Person, fil
   const dg1 = declineGateOf(s.dg1);
   const dg2 = declineGateOf(s.dg2);
   const funnel = funnelOf(tenant, viewer, done, w, keep, sector);
+  // The debriefs of the same 12 months, narrowed by the same sector (plan 037).
+  const arch = archiveFor({ tenant, viewer, done, now: DEMO_NOW }, { period: '12m', ...(sector ? { sector } : {}) });
+  const deb = new Map(arch.rows.map((r) => [r.tenderId, r]));
 
   // The table: every tender a count on the tab opens, each once, newest decision first.
   const declinedAt = new Map<string, string>();
@@ -599,7 +632,7 @@ export function bidRecordFor(tenant: string, done: DemoDone, viewer: Person, fil
   const kindOf = (id: string): RecordRowVM['kind'] => (bidIds.includes(id) ? 'bid' : declinedAt.has(id) ? 'declined' : 'pursued');
   const rows = uniq([...bidIds, ...declinedAt.keys(), ...pursuedIds]).flatMap((id) => {
     const l = q.one(id);
-    return l && keep(l) ? [rowOf(tenant, viewer, home, l, kindOf(id), declinedAt.get(id))] : [];
+    return l && keep(l) ? [rowOf(tenant, viewer, home, l, kindOf(id), declinedAt.get(id), deb)] : [];
   }).sort((a, b) => (b.decided ?? b.submitted ?? '').localeCompare(a.decided ?? a.submitted ?? '') || a.id.localeCompare(b.id));
 
   const single = countries.length === 1 && totals.submitted ? countries[0] : null;
@@ -613,7 +646,7 @@ export function bidRecordFor(tenant: string, done: DemoDone, viewer: Person, fil
     byCountry: { rows: countries, more: 0, ...(single ? { note: `Every bid in the last 12 months was in ${single.label}.` } : {}) },
     byBand: { rows: breakdownOf(s, (l) => bandOf(bands, valueOf(home, l)), (k) => bands.find((b) => b.key === k)!.label, bands.map((b) => b.key)), more: 0 },
     topClients: { rows: clients.slice(0, 8), more: Math.max(0, clients.length - 8) },
-    losses: lossesOf(tenant, viewer, s.res),
+    losses: lossesOf(tenant, viewer, s.res, arch),
     declines: { total: dg1.total + dg2.total, ids: uniq([...dg1.ids, ...dg2.ids]), dg1, dg2 },
     funnel,
     forecast: forecastOf(tenant, viewer, s.res),
@@ -621,7 +654,7 @@ export function bidRecordFor(tenant: string, done: DemoDone, viewer: Person, fil
     years: [...(isGccTenantKey(tenant) ? BID_RECORD_YEARS[tenant] : []).map(seedYear), derivedYear(all, totalsOf(all))],
     rows,
     bidIds: bidIds.filter((id) => rows.some((r) => r.id === id)),
-    maskedBy: { gap: holdersOf('see.margin'), predicted: holdersOf('see.positions') },
+    maskedBy: { gap: holdersOf('see.margin'), predicted: holdersOf('see.positions'), debrief: holdersOf('debrief.view') },
   };
 }
 

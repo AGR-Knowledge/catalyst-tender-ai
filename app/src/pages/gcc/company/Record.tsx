@@ -162,6 +162,17 @@ function columnsOf(vm: BidRecordVM): ColDef<RecordRowVM>[] {
       cellRenderer: (p: ICellRendererParams<RecordRowVM>) => { if (!p.data) return null; const s = RECORD_STATUS[p.data.status]; return <StatusPill label={s.label} tone={s.tone} icon={s.icon} />; },
     },
     {
+      // The debrief's status, as Debriefs lists it (plan 037): a dash until the bid has ended.
+      colId: 'debrief', headerName: 'Debrief', width: 140, valueGetter: (p) => (!p.data?.debrief ? '' : p.data.debrief === 'masked' ? 'Masked' : p.data.debrief.label),
+      cellRenderer: (p: ICellRendererParams<RecordRowVM>) => {
+        const d = p.data?.debrief;
+        if (!p.data) return null;
+        if (!d) return <span className="tk-sub" aria-label="Not ended">–</span>;
+        if (d === 'masked') return masked(vm.maskedBy.debrief);
+        return <span title={d.text}><StatusPill label={d.label} tone={d.tone} /></span>;
+      },
+    },
+    {
       colId: 'place', headerName: 'Our place', width: 120, valueGetter: (p) => p.data?.place?.rank ?? 99,
       cellRenderer: (p: ICellRendererParams<RecordRowVM>) => {
         const r = p.data;
@@ -286,7 +297,10 @@ export function BidRecord({ s1 }: { s1: S1 }) {
       </div>
 
       <div className="eq-row">
-        <LossCard vm={vm.losses} maskedBy={vm.maskedBy.gap} onPick={choose} />
+        <LossCard
+          vm={vm.losses} maskedBy={vm.maskedBy.gap} debriefMaskedBy={vm.maskedBy.debrief} onPick={choose}
+          debriefsTo={`/debriefs?ending=lost${vm.sector ? `&sector=${encodeURIComponent(vm.sector)}` : ''}`}
+        />
         <DeclineCard vm={vm.declines} onPick={choose} />
       </div>
 

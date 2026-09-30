@@ -4,6 +4,7 @@ import type { Tone } from '@/data/types';
 import type { TenderRowVM } from '@/domain/gcc/viewmodels';
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { GATE_SLA_HOURS } from '@/data/gcc/targets';
+import { LOSS_LABEL } from '@/data/gcc/debriefs/vocab';
 import { personById } from '@/data/people';
 import { DEMO_TODAY, dateText } from '@/domain/calendar';
 import { addHours } from '@/domain/gcc/clock';
@@ -333,8 +334,7 @@ export const COLUMNS: ColumnDef[] = [
     value: (r) => str(r.facts.lossReason),
     cell: (r) => {
       const v = str(r.facts.lossReason);
-      const label: Record<string, string> = { price: 'Price', technical: 'Technical score', 'local-content': 'Local content', pq: 'Prequalification', other: 'Other' };
-      return v ? label[v] ?? v : sub(r.facts.result === 'won' ? 'Not applicable' : 'Not recorded');
+      return v ? (LOSS_LABEL as Record<string, string>)[v] ?? v : sub(r.facts.result === 'won' ? 'Not applicable' : 'Not recorded');
     },
   }),
   pctCol('s9.predicted', 'Predicted at DG2', 'predictedWin', undefined, 150),

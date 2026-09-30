@@ -9,6 +9,7 @@ import { useTheme } from '@/state/theme';
 import { useClickOutside } from '@/state/nav';
 import { useTenant } from '@/domain/tenancy';
 import { openBreakGlass } from '@/domain/platform/breakglass';
+import { signOut } from '@/state/auth';
 import { Toasts } from '@/components/overlays/Toasts';
 import './platform.css';
 
@@ -65,6 +66,12 @@ export default function PlatformShell() {
     navigate('/');
     window.scrollTo({ top: 0 });
     toast(`Now acting as ${p.name}, ${p.title.replace(/\.$/, '')}. Demo control`, 'ink3');
+  };
+  // Sign out (plan 038) clears the sign-in only: the demo state stays for the next sign-in.
+  const leave = () => {
+    setMenu(false);
+    signOut();
+    navigate('/login', { replace: true, state: { signedOut: true } });
   };
   const go = (id: string) => {
     setOn(id);
@@ -134,7 +141,10 @@ export default function PlatformShell() {
                       </div>
                     ))}
                   </div>
-                  <div className="pop-foot"><span style={{ flex: 1 }}>In production Catalyst operators sign in to the console only.</span></div>
+                  <div className="pop-foot">
+                    <span style={{ flex: 1 }}>In production Catalyst operators sign in to the console only.</span>
+                    <button type="button" className="btn-link" style={{ color: 'var(--ink-3)' }} onClick={leave}>Sign out</button>
+                  </div>
                 </div>
               )}
             </span>

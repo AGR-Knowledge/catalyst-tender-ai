@@ -3,7 +3,7 @@ import { can } from '@/data/access';
 import { firstWithRole, personById, type Person } from '@/data/people';
 import { gccData, isGccTenantKey } from '@/data/gcc';
 import { AHEAD_DAYS, HANDOVER_DAYS, NEAR_WD } from '@/data/gcc/targets';
-import { DEMO_TODAY, addDays } from '@/domain/calendar';
+import { DEMO_TODAY } from '@/domain/calendar';
 import { money } from '@/domain/money';
 import { slaState } from '../clock';
 import { tenderCtx } from '../lifecycle.port';
@@ -19,7 +19,7 @@ import { belowMargin, financePending, pricesDue } from '../kpi/stage5.kpi';
 import { belowPass, s6Of } from '../kpi/stage6.kpi';
 import { dg3Waiting, near, s7Of } from '../kpi/stage7.kpi';
 import { bondIssues, dueWithin } from '../kpi/stage8.kpi';
-import { handovers, hasLessons, overdue } from '../kpi/stage9.kpi';
+import { handovers, overdue } from '../kpi/stage9.kpi';
 import type { ActionSource } from './types';
 
 /**
@@ -29,7 +29,8 @@ import type { ActionSource } from './types';
  * waits on when the viewer isn't that person, so the Head of Tendering sees
  * "Waiting in {stage}" with names; the owner sees the rows as their own.
  * Portfolio sources (DG1, DG2, DG3, booklet approval, renewals, nudges,
- * submissions) are plan 015's and are reused by id in `stages.dash.ts`.
+ * submissions) are plan 015's and are reused by id in `stages.dash.ts`; the
+ * debrief rows are plan 035's (`debrief.actions.ts`).
  */
 
 type Row = Omit<ActionVM, 'source'>;
@@ -388,43 +389,6 @@ const handoverStart: ActionSource = {
   }),
 };
 
-/** Lost in the last 30 days: ask for a debrief, or prepare the one booked. */
-const debriefHold: ActionSource = {
-  id: 'debrief.hold', cap: 'tender.view',
-  rows: (ctx) => liveIn(ctx, 9)
-    .filter((l) => l.result?.result === 'lost' && l.result.at >= addDays(DEMO_TODAY, -30))
-    .flatMap((l) => {
-      const at = l.facts?.stage === 9 ? l.facts.debriefAt : undefined;
-      if (at && at <= ctx.now) return [];
-      const r = l.result!;
-      const why = [r.lossReason && `lost on ${r.lossReason === 'local-content' ? 'local content' : r.lossReason === 'pq' ? 'prequalification' : r.lossReason}`,
-        r.rank && `ranked ${r.rank[0]} of ${r.rank[1]}`, r.gapToWinnerPct !== undefined && `${r.gapToWinnerPct}% above the winner`].filter(Boolean).join(', ');
-      return [row('debrief.hold', {
-        id: `debrief.hold:${l.tenderId}`, type: 'Debrief', ...tender(l),
-        what: at ? `Debrief with the employer booked ${dayTimeText(at)}: prepare the questions (${why})` : `Ask the employer for a debrief (${why})`,
-        ...(at ? { due: { kind: 'date' as const, date: at.slice(0, 10), time: at.slice(11, 16) } } : { due: { kind: 'text' as const, text: `Result ${dayText(r.at)}` } }),
-        waitingOn: owner(ctx, 9),
-        primary: openTender(l.tenderId),
-        urgency: urgency(false, at ? minsTo(ctx, at) : 0),
-      })];
-    }),
-};
-
-/** Results older than 14 days with no lessons recorded. */
-const lessonsRecord: ActionSource = {
-  id: 'lessons.record', cap: 'tender.view',
-  rows: (ctx) => liveIn(ctx, 9)
-    .filter((l) => l.result && (l.result.result === 'won' || l.result.result === 'lost') && daysBetween(l.result.at, ctx.now) > 14 && !hasLessons(l))
-    .map((l) => row('lessons.record', {
-      id: `lessons.record:${l.tenderId}`, type: 'Lessons', ...tender(l),
-      what: `${l.result!.result === 'won' ? 'Won' : 'Lost'} ${dayText(l.result!.at)}: record the lessons while the team remembers them`,
-      due: { kind: 'text', text: `${plural(daysBetween(l.result!.at, ctx.now), 'day')} since the result` },
-      waitingOn: owner(ctx, 9),
-      primary: openTender(l.tenderId),
-      urgency: urgency(false, minsTo(ctx, addDays(l.result!.at.slice(0, 10), 14))),
-    })),
-};
-
 const resultChase: ActionSource = {
   id: 'result.chase', cap: 'tender.view',
   rows: (ctx) => overdue(ctx).map(({ l, by }) => row('result.chase', {
@@ -443,5 +407,5 @@ export const ACTION_SOURCES: ActionSource[] = [
   baselineDue, programmeOverrun, priceDue, marginBelow, financePendingRows, sectionsLate, scoreBelow, reviewDue,
   gapsOpen, redlinesOpen, dg3Issue,
   signaturesPending, bondIssue,
-  handoverStart, debriefHold, lessonsRecord, resultChase,
+  handoverStart, resultChase,
 ];

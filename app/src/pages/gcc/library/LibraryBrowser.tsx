@@ -68,7 +68,7 @@ function NameCell({ f }: { f: LibraryFileVM }) {
           {f.scanned && <span className="fv-tag">{f.ocrText ? `Scanned (OCR ${f.ocrText})` : 'Scanned (OCR)'}</span>}
           <span className="lib-ext num">{extentOf(f)}</span>
           {f.tags.map((t) => <span key={t} className="fv-tag fv-tag-plain">{t}</span>)}
-          {f.masked && <span className="lib-mk">Figures masked</span>}
+          {f.masked && <span className="lib-mk">{f.masked.label ?? 'Figures masked'}</span>}
         </span>
       </div>
     </div>

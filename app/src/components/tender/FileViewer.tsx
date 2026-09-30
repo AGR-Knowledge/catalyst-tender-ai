@@ -228,7 +228,7 @@ export function FileViewer({ file, files, onIndex, onClose, extra }: {
               {f.scanned && <span className="fv-tag">{f.ocrText ? `Scanned (OCR ${f.ocrText})` : 'Scanned (OCR)'}</span>}
               {f.extent && <span className="fv-tag fv-tag-plain">{f.extent.n} {f.extent.unit}{f.extent.n === 1 ? '' : 's'}</span>}
               {f.tags.map((t) => <span key={t} className="fv-tag fv-tag-plain">{t}</span>)}
-              {f.masked && <Masked by={f.masked.by} text="Figures masked for your role" />}
+              {f.masked && <Masked by={f.masked.by} text={`${f.masked.label ?? 'Figures masked'} for your role`} />}
             </div>
           </div>
           <div className="fv-tools">

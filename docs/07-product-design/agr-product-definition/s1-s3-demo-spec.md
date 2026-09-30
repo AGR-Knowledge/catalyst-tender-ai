@@ -674,6 +674,7 @@ Each script is 8–12 minutes, and they can be combined. The tested click path f
 | **D. Same tender, five companies** | A–E | Switch tenants and open the hero tender → Compare tenants lens | M-7 |
 | **E. Arabic in, English out** | D (Batinah) | The Tender Coordinator uploads T-2026-042, the scanned Arabic tender → OCR → bilingual fields, as the Bid Manager → "Arabic prevails" flag | M-8 |
 | **F. Who can see what** | A, Platform | Head of Tendering "View as"; margin masked for Procurement; Platform Console break-glass | M-9 |
+| **G. Learning from the result** | A | The Project Director records the debrief of T-2025-270 → the Head of Tendering sends it back with a note → re-submitted → accepted → Lessons captured, the Debrief record in Library › 07 Result, the Debriefs archive (§20) | Pain 5 (product-foundation) |
 
 ---
 
@@ -703,13 +704,87 @@ Checked item by item in plan 016c (2026-09-27); what was checked is in that plan
 Every bid that ends (won, lost, cancelled by the employer, withdrawn, No-Bid at DG2, rejected at DG3) gets a debrief. The Project Director records why it ended and what we learned. The Head of Tendering accepts it into the archive or sends it back. DG1 discards are not bids and have none. The words (endings, reasons, factors, lesson areas, statuses) are in `app/src/data/gcc/debriefs/vocab.ts`. The rules are plan 035's.
 
 ### 20.1 The Debrief tab
-*(Plan 036 writes this.)*
+
+**Debrief** is a Tender Workspace tab (plan 036), between Bid / No-Bid and Decisions & audit. It shows on every tender that ended as a bid, and never on a live tender or a DG1 discard.
+
+- **Who:**
+  - the Project Director records the debrief (`debrief.record`), and the Head of Tendering accepts it or sends it back (`debrief.accept`);
+  - the CEO and committee members read it; so does a Bid Manager, on the tenders assigned to them (`debrief.view`);
+  - anyone else, e.g. the Tender Coordinator or Procurement, sees the tab masked, with who can read it.
+- **The badge** asks only what is the viewer's to do: "Due", "Overdue" or "Sent back" for the Project Director; "To accept" for the Head of Tendering while a debrief waits for them.
+- **The head:** "Debrief · Lost on Thu 5 Mar", with the status as a word in a pill: Due by {date} · Overdue since {date} · Submitted {date, time} · Sent back {date, time} · Accepted {date, time}. Under it, the rule: "Recorded by the Project Director, accepted by the Head of Tendering. Both are kept, with the names and the time."
+- **What we know**, read-only, from the result and the gate records:
+  - our place ("2 of 6", or "Not published") and the value;
+  - lost: the loss reason in the result;
+  - the employer's debrief meeting, until the Project Director records it (the record then says it);
+  - No-Bid or rejected: who decided at the gate, and when; withdrawn or cancelled: why it closed;
+  - the letter, linked to Library › 07 Result.
+- **Below it:** the form for the Project Director while the debrief is due, overdue or sent back; for everyone else, "Waiting for {name} (Project Director) to record it" until it is submitted, then the record.
 
 ### 20.2 Recording and signing off
-*(Plan 036 writes this.)*
+
+**The form** has at most six short sections, only those that apply to the ending, numbered in order:
+
+| Section | Applies to | What the Project Director gives |
+| --- | --- | --- |
+| The main reason | all | One reason from the ending's list. Lost: pre-set from the result; a different pick asks "Why is it different from the result?", and both are kept. No-Bid and rejected: the gate's reasons, read-only |
+| What else decided it | all | Up to three factors, with a counter |
+| The competition | won, lost | Lost: who won (required). Won: our closest rival (optional). Our place and the number of bidders only when the result doesn't publish them |
+| The employer's debrief | won, lost, cancelled | Held · Booked · Not offered · We did not ask; when; for Held, what the employer told us. Pre-set from the meeting date on record |
+| Lessons | all | One to three, each an area and a sentence: "What to repeat" for a win, "What to do differently" otherwise. No money in a lesson |
+| Next time | all | Would we bid for this employer again? Stopped endings also: should we have stopped earlier, and what would have let us bid (optional) |
+
+- **Submit for sign-off:**
+  1. the rules speak in sentences after the first attempt, as a list that takes focus;
+  2. a confirm step shows what happens and "The record will say", section by section. Nothing is written before Confirm;
+  3. the record is written with the Project Director's name and the time. The toast names the Head of Tendering, and focus moves to the record's heading.
+- **"Fill in an example"** (Demo) fills the form with a Project Director's example where the demo has one. It never submits.
+- **The record:** the same sections, read-only, with "Recorded by {name} (Project Director), {time} · Round {n}" and, once accepted, "Accepted by {name} (Head of Tendering), {time}". The words are the ones the archive (§20.4) and the Debrief record file use.
+- **Sign-off**, for the Head of Tendering while the debrief is submitted:
+  - **Accept into the archive**, after a confirm step with its effects;
+  - **Send back…**, with a required note ("What should the Project Director add or change?"). Confirm stays disabled, saying why, until the note is there.
+  - A debrief is a record, not a gate: the words are "accept" and "send back", never "approve".
+- **Sent back:** the Project Director's form opens again, filled with the last submission, under "Sent back by {name}, {time}: "{note}"". "Submit again for sign-off" starts the next round. Everyone else reads the last submission, the note, and who it waits for.
+- **View as:** the form and the sign-off show read-only, with the reason.
 
 ### 20.3 What follows an accepted debrief
-*(Plan 036 writes this.)*
+
+- It joins the archive (§20.4), and the Debriefs tiles on the dashboards count it.
+- Stage 9 counts it as **Lessons captured**: the tender's Overview (Where it stands), the Stage 9 table and RES-3. A lost tender closes as lost, as T-2025-255 does in the seed. A won tender closes once its handover is held; until then Stage 9 still asks for the handover.
+- A loss reason the Project Director corrected, or a place the employer told us, is written into the result, so every screen that reads the result follows: the tracker line, the Stage 9 table, the loss-reason tile and the Bid record. The result's own reason stays in the record.
+- Library › 07 Result gains a **Debrief record**: Made at the acceptance, by the Project Director, tagged "Debrief", with the sections and the sign-off. Without `debrief.view` it is listed with its content masked.
+- Every step is an entry in the tender's Decisions & audit: submitted, re-submitted, sent back, accepted.
+- Settings › Reset demo returns every debrief to its seed status.
 
 ### 20.4 The Debriefs archive and the Bid record
-*(Plan 037 writes this.)*
+
+**Debriefs** (`/debriefs`, plan 037) is the company's archive of every bid that ended: why we win and why we lose, what else decided it, who beats us, why bids stopped, and what we keep learning. It is the data layer the KPI team analyses.
+
+- **Who:** the Head of Tendering, the CEO, committee members and the Project Director, company-wide; a Bid Manager, for the tenders assigned to them (`debrief.view`). It sits in the sidebar's top group, after Tender library. Anyone else reaching the URL reads "This page isn't part of your role".
+- **Filters:**
+  - the period (30 days · 90 days · 12 months, 12 months by default, kept in `?period=`) sets the window for the whole page. It is the page's own, never the dashboards' stored period. A bid belongs to the period in which it ended;
+  - the sector and ending chips (All · Won · Lost · Stopped; `?sector=`, `?ending=`) narrow the cards and the list;
+  - the tiles read the period only. "How to read this" says so.
+- **Tiles:** DBR-1 Endings, DBR-2 Debriefs accepted, DBR-3 Awaiting sign-off, DBR-4 Debriefs overdue, DBR-5 Why we win, DBR-6 Who beats us (catalogue §A.5). A tile's drill lists its debriefs, company-wide for the period.
+- **Cards,** two by two at one width and height:
+  - *Why we win* and *Why we lose:* the main reason of each accepted debrief, with its count, share and bar. Every loss row also reads our median place ("Our place 2 of 6 (n = 9)", or "Place not published") and its top factor ("Top factor · Supplier quotes (4)");
+  - *What decided it:* each factor, in wins and in losses (a Recharts chart with a legend and a screen-reader table);
+  - *Who beat us:* each rival named as the winner, how often, in which sectors, and our median place;
+  - *Why bids stopped:* cancelled by the employer, withdrawn, No-Bid at DG2 and rejected at DG3, each with its reasons, then "Should we have stopped earlier?";
+  - *Lessons by area:* the count of lessons, and the latest two, with the tender, the Project Director and the date.
+- **Counting:** the reasons, factors, rivals, answers and lessons count accepted debriefs only. The list holds every ending, with its debrief's status. The debrief and the archive leave out the gap to the winner and the predicted win %; the Bid record keeps them.
+- **Colours** (fixed, said in each card's key and in "How to read this"; never the company's accent): won green, lost grey, stopped hatched, and blue for a count across endings.
+- **Every count is a filter.** A bar, a row, a rival, a reason, a lesson area or a tile lists its debriefs in the table, under a removable chip (From "…" ×). The table scrolls into view and focus moves to the chip's clear button.
+- **Every debrief:** Tender · Employer · Sector · Ending · Ended · Main reason · What else · Winner / closest rival · Our place · Lessons · Bid again · Status · Recorded by · Accepted. Status is a word in a pill (Accepted green, Submitted, Sent back orange, Due, Overdue orange). Ten rows show, then the table scrolls. A row opens the tender's Debrief tab (§20.1).
+- **Download CSV · {n} rows** saves the rows as listed (`debriefs-{company}-{period}.csv`):
+  - the table's columns, as text;
+  - dates as `YYYY-MM-DD`;
+  - one more column, "Lessons (text)", with every lesson as "Area: text", joined by " | ";
+  - "Masked" where the viewer's role can't read a value.
+- **Empty states:** "No bids ended in this period"; "No accepted debriefs yet" when bids ended but none of their debriefs is accepted.
+
+**Company › Bid record** reads the same archive at 12 months, narrowed by its own sector chip:
+- every "Why we lost" row gains a second line, "Top factor · {factor} ({n})", or "No debriefs yet". It reads Masked for a viewer without `debrief.view` on those tenders (the Tender Coordinator, Finance), so every row keeps the same lines;
+- the card's foot reads "From {n} accepted debriefs · Open Debriefs →". The link shows only to those who can open Debriefs;
+- the results table gains a **Debrief** column: the ended bid's status pill as Debriefs lists it, a dash for a tender that hasn't ended, and Masked without `debrief.view`;
+- the Bid record's 12-month won and lost are the archive's won and lost at 12 months, the same tenders (dev check 81). Stopped differs by design: the Bid record's declines include DG1 discards, which were never bids.

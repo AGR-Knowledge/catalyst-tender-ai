@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 import { lazy, Suspense, useEffect, useRef, type ReactNode } from 'react';
-import { BrowserRouter, Navigate, Route, Routes, useParams } from 'react-router-dom';
+import { BrowserRouter, Navigate, Outlet, Route, Routes, useLocation, useParams } from 'react-router-dom';
 import { DemoProvider, useDemo } from '@/state/store';
 import { ThemeProvider } from '@/state/theme';
 import { isRoleKey } from '@/data/roles';
@@ -22,6 +22,8 @@ import { SCREENS } from '@/pages/gcc/screens';
 import { LEGACY_TENANT, TENANTS } from '@/data/tenants';
 import { useWorld } from '@/domain/tenancy';
 import { can } from '@/data/access';
+import { isSignedIn } from '@/state/auth';
+import { Login } from '@/pages/login/Login';
 
 /*
  * GCC dashboards, the tender summary and the dev pages load on demand, so AG
@@ -123,44 +125,56 @@ const screenRoutes = () => Object.keys(SCREENS).map((path) => {
   return <Route key={path} path={path.slice(1)} element={legacy ? <ByWorld legacy={legacy} gcc={gcc} /> : <GccOnly>{gcc}</GccOnly>} />;
 });
 
+/** Every route but `/login` opens only once signed in (plan 038); the way back is kept in `next`. */
+function RequireLogin() {
+  const { pathname, search, hash } = useLocation();
+  if (isSignedIn()) return <Outlet />;
+  const back = pathname + search + hash;
+  return <Navigate replace to={back === '/' ? '/login' : `/login?next=${encodeURIComponent(back)}`} />;
+}
+
 export function App() {
   return (
     <ThemeProvider>
       <DemoProvider>
         <BrowserRouter>
           <Routes>
-            {/* The Supplier Portal preview has its own light shell (plan 008b). */}
-            <Route path="supplier-portal" element={<GccOnly>{lazyEl(<SupplierPortal />)}</GccOnly>} />
-            <Route element={<AppShell />}>
-              <Route index element={<Home />} />
-              <Route path="dashboard" element={<Home />} />
-              <Route path="dashboard/:role" element={<LegacyDashboardRoute />} />
-              <Route path="pipeline" element={<LegacyOnly><Pipeline /></LegacyOnly>} />
-              <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
-              <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
-              <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
-              <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />
-              <Route path="intake/:id" element={<LegacyOnly><Guard page="intake"><IntakeReview /></Guard></LegacyOnly>} />
-              <Route path="boq" element={<LegacyOnly><Guard page="boq"><Boq /></Guard></LegacyOnly>} />
-              <Route path="settings" element={<Settings />} />
+            {/* The sign-in page (plan 038): outside the gate, loaded eagerly so it paints with no loading flash. */}
+            <Route path="login" element={<Login />} />
+            <Route element={<RequireLogin />}>
+              {/* The Supplier Portal preview has its own light shell (plan 008b). */}
+              <Route path="supplier-portal" element={<GccOnly>{lazyEl(<SupplierPortal />)}</GccOnly>} />
+              <Route element={<AppShell />}>
+                <Route index element={<Home />} />
+                <Route path="dashboard" element={<Home />} />
+                <Route path="dashboard/:role" element={<LegacyDashboardRoute />} />
+                <Route path="pipeline" element={<LegacyOnly><Pipeline /></LegacyOnly>} />
+                <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
+                <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
+                <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
+                <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />
+                <Route path="intake/:id" element={<LegacyOnly><Guard page="intake"><IntakeReview /></Guard></LegacyOnly>} />
+                <Route path="boq" element={<LegacyOnly><Guard page="boq"><Boq /></Guard></LegacyOnly>} />
+                <Route path="settings" element={<Settings />} />
 
-              {/* GCC (dashboards.md §8) */}
-              <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
-              <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
-              <Route path="tenders/:id" element={<GccOnly>{lazyEl(<Workspace />)}</GccOnly>} />
-              <Route path="suppliers/:id" element={<GccOnly><GuardCap cap="supplier.view">{lazyEl(<SupplierProfile />)}</GuardCap></GccOnly>} />
-              <Route path="demo/compare" element={<GccOnly>{lazyEl(<Compare />)}</GccOnly>} />
-              {screenRoutes()}
-              {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
-              {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}
+                {/* GCC (dashboards.md §8) */}
+                <Route path="stages/:n" element={<GccOnly>{lazyEl(<StageRoute />)}</GccOnly>} />
+                <Route path="requests" element={<GccOnly>{lazyEl(<DashboardRoute dashboardKey="requests" />)}</GccOnly>} />
+                <Route path="tenders/:id" element={<GccOnly>{lazyEl(<Workspace />)}</GccOnly>} />
+                <Route path="suppliers/:id" element={<GccOnly><GuardCap cap="supplier.view">{lazyEl(<SupplierProfile />)}</GuardCap></GccOnly>} />
+                <Route path="demo/compare" element={<GccOnly>{lazyEl(<Compare />)}</GccOnly>} />
+                {screenRoutes()}
+                {GccPending && <Route path="dev/checks" element={<GccOnly>{lazyEl(<GccPending />)}</GccOnly>} />}
+                {KitPreview && <Route path="dev/kit" element={<GccOnly>{lazyEl(<KitPreview />)}</GccOnly>} />}
 
-              <Route path="*" element={<NotFound />} />
-            </Route>
+                <Route path="*" element={<NotFound />} />
+              </Route>
 
-            {/* Catalyst Platform Console (plan 011): a separate shell, for Catalyst operators only */}
-            <Route path="platform" element={lazyEl(<PlatformShell />)}>
-              <Route index element={lazyEl(<PlatformConsole />)} />
-              <Route path="*" element={<Navigate to="/platform" replace />} />
+              {/* Catalyst Platform Console (plan 011): a separate shell, for Catalyst operators only */}
+              <Route path="platform" element={lazyEl(<PlatformShell />)}>
+                <Route index element={lazyEl(<PlatformConsole />)} />
+                <Route path="*" element={<Navigate to="/platform" replace />} />
+              </Route>
             </Route>
           </Routes>
         </BrowserRouter>

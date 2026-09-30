@@ -1,6 +1,6 @@
 # 035 — Debrief records and rules
 
-Status: READY · Depends on: wave 10b (committed `2ebb1ce`) and the wave 11 contract (below) · Can run in parallel with: 036, 037
+Status: DONE (2026-09-30, reviewed) · Depends on: wave 10b (committed `2ebb1ce`) and the wave 11 contract (below) · Can run in parallel with: 036, 037
 
 ## Goal
 Every bid that ends has a debrief record: why it was won, lost or stopped, and what we learned. Each one is recorded by the Project Director and accepted, or sent back, by the Head of Tendering. The 12-month history already holds these records on demo day, so the archive has data. An accepted debrief moves Stage 9 on ("Lessons captured"), and every screen reads the same reasons. This plan builds the data and rules and no screens. Plans 036 (the workspace tab) and 037 (the archive) render them.
@@ -248,41 +248,41 @@ It runs on `debrief-ok:{TID}` for the round of the latest `debrief:{TID}` only. 
 ## Steps
 
 ### Phase 1 — Endings
-- [ ] 1.1 `data/gcc/debriefs/stops.ts`: collect every `closedNote` of a withdrawn lifecycle in the five tenants (print them from `LIFECYCLES` in a scratch script, not in the repo). Classify each. Acceptance: no note is missing.
-- [ ] 1.2 `endingOf(l)` and the ended time, as the Design's table has them.
-- [ ] 1.3 Due date and status (`DEBRIEF_DUE_DAYS` and `DBR3_WAIT_DAYS` appended to `data/gcc/targets.ts`).
+- [x] 1.1 `data/gcc/debriefs/stops.ts`: collect every `closedNote` of a withdrawn lifecycle in the five tenants (print them from `LIFECYCLES` in a scratch script, not in the repo). Classify each. Acceptance: no note is missing.
+- [x] 1.2 `endingOf(l)` and the ended time, as the Design's table has them.
+- [x] 1.3 Due date and status (`DEBRIEF_DUE_DAYS` and `DBR3_WAIT_DAYS` appended to `data/gcc/targets.ts`).
 
 ### Phase 2 — Rivals and the seed
-- [ ] 2.1 `rivals.ts`, with the six new names web-checked.
-- [ ] 2.2 The generator: statuses and times as the Design has them, then content from the facts and templates.
-  - [ ] 2.2.1 Won and lost: accepted ⇔ `hasLessons`. Use one predicate; if you move `hasLessons` somewhere neutral, keep `stage9.kpi.ts` exporting it.
-  - [ ] 2.2.2 Stopped endings: about 80% covered; no time after `DEMO_NOW`.
-  - [ ] 2.2.3 The templates, with no money in any of them.
-- [ ] 2.3 `featured.ts` (T-2025-255 accepted, T-2025-438 submitted, one win per tenant) and `examples.ts` (the four examples).
-- [ ] 2.4 Acceptance: the demo-day statuses in the Design's table hold. Read 30 generated debriefs.
+- [x] 2.1 `rivals.ts`, with the six new names web-checked.
+- [x] 2.2 The generator: statuses and times as the Design has them, then content from the facts and templates.
+  - [x] 2.2.1 Won and lost: accepted ⇔ `hasLessons`. Use one predicate; if you move `hasLessons` somewhere neutral, keep `stage9.kpi.ts` exporting it.
+  - [x] 2.2.2 Stopped endings: about 80% covered; no time after `DEMO_NOW`.
+  - [x] 2.2.3 The templates, with no money in any of them.
+- [x] 2.3 `featured.ts` (T-2025-255 accepted, T-2025-438 submitted, one win per tenant) and `examples.ts` (the four examples).
+- [x] 2.4 Acceptance: the demo-day statuses in the Design's table hold. Read 30 generated debriefs.
 
 ### Phase 3 — Records, form and writers
-- [ ] 3.1 The records: the seed merged with the demo keys, and the viewer's scope through `queriesFor` and `can(viewer, 'debrief.view', tenderCtx)`.
-- [ ] 3.2 `debriefFor` (the full `DebriefVM`: facts, choices, sections, rivals, example), `draftFor` and `validateDebrief`.
-- [ ] 3.3 The three writers, with `can()`, statuses, audit and effects.
-- [ ] 3.4 `archiveFor`: the window from `windowOf(period, tenant)`; filters; rows with masking; breakdowns over accepted debriefs; totals over all endings; medians rounded to whole places, as `record.ts` does.
-- [ ] 3.5 Acceptance (in the dev check, in memory): submit → send back → re-submit → accept on T-2025-270 gives rounds 1 and 2, the right statuses, and four audit entries.
+- [x] 3.1 The records: the seed merged with the demo keys, and the viewer's scope through `queriesFor` and `can(viewer, 'debrief.view', tenderCtx)`.
+- [x] 3.2 `debriefFor` (the full `DebriefVM`: facts, choices, sections, rivals, example), `draftFor` and `validateDebrief`.
+- [x] 3.3 The three writers, with `can()`, statuses, audit and effects.
+- [x] 3.4 `archiveFor`: the window from `windowOf(period, tenant)`; filters; rows with masking; breakdowns over accepted debriefs; totals over all endings; medians rounded to whole places, as `record.ts` does.
+- [x] 3.5 Acceptance (in the dev check, in memory): submit → send back → re-submit → accept on T-2025-270 gives rounds 1 and 2, the right statuses, and four audit entries.
 
 ### Phase 4 — The applier, actions and KPIs
-- [ ] 4.1 `60-debrief.apply.ts`, as the Design has it. Acceptance, after accepting T-2025-270 in memory:
+- [x] 4.1 `60-debrief.apply.ts`, as the Design has it. Acceptance, after accepting T-2025-270 in memory:
   - the lifecycle has a lessons event and the step `lessons-captured`;
   - it is closed as lost;
   - RES-3 counts it;
   - `debrief.record` drops it.
-- [ ] 4.2 `debrief.actions.ts`; remove the two old sources; the three dashboard lists.
-- [ ] 4.3 `debrief.kpi.ts` (DBR-1 to DBR-6), the DBR-2 band, RES-3's ⓘ, and `LOSS_LABEL` in `stage9.kpi.ts` and `stages.cols.tsx`.
-- [ ] 4.4 Acceptance in the browser (your own tab), Najd:
+- [x] 4.2 `debrief.actions.ts`; remove the two old sources; the three dashboard lists.
+- [x] 4.3 `debrief.kpi.ts` (DBR-1 to DBR-6), the DBR-2 band, RES-3's ⓘ, and `LOSS_LABEL` in `stage9.kpi.ts` and `stages.cols.tsx`.
+- [x] 4.4 Acceptance in the browser (your own tab), Najd:
   - as the Project Director (Mohammed Al-Ghamdi), the Stage 9 dashboard's Needs your action lists "Record the debrief" for T-2025-270 and T-2025-262, and neither old row;
   - as the Head of Tendering (Faisal Al-Harbi), the home lists "Review the debrief" for T-2025-438;
   - the rows open `/tenders/…?tab=debrief`. The tab arrives with 036, so until then the tender opens on Overview.
 
 ### Phase 5 — Checks and docs
-- [ ] 5.1 `dev-checks/74-debriefs.tsx`, about 15 rows across the five tenants:
+- [x] 5.1 `dev-checks/74-debriefs.tsx`, about 15 rows across the five tenants:
   1. every bid ended in the 12 months has exactly one ending, and DG1 discards and lapsed holds have none;
   2. every withdrawn note is classified;
   3. won and lost debriefs are accepted ⇔ `hasLessons`;
@@ -298,10 +298,10 @@ It runs on `debrief-ok:{TID}` for the round of the latest `debrief:{TID}` only. 
   13. a DG2 No-Bid on T-2026-097, in memory with the DG2 writer, gives a `due` debrief with `no-bid` and the gate's reasons;
   14. the archive's totals: endings = won + lost + stopped, and every breakdown sums to its total;
   15. access: `dir` records but can't accept, `hot` accepts but can't record, `coord` has no `debrief.view`, and `bid` reads only assigned tenders.
-- [ ] 5.2 Move the pins your changes moved, in 60 and 50 (and any other), and list them.
-- [ ] 5.3 The four docs edits.
-- [ ] 5.4 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
-- [ ] 5.5 Reset demo returns the seed readings (T-2025-270 due again).
+- [x] 5.2 Move the pins your changes moved, in 60 and 50 (and any other), and list them.
+- [x] 5.3 The four docs edits.
+- [x] 5.4 typecheck and build pass; `/dev/checks` has no failing row in any tenant.
+- [x] 5.5 Reset demo returns the seed readings (T-2025-270 due again).
 
 ## Data and derivation
 - **New facts:** `data/gcc/debriefs/**` (stops, rivals, featured, examples; the generator derives the rest from the lifecycles).
@@ -309,17 +309,88 @@ It runs on `debrief-ok:{TID}` for the round of the latest `debrief:{TID}` only. 
 - **New `done` keys:** `debrief:{TID}`, `debrief-back:{TID}`, `debrief-ok:{TID}`, all tenant-scoped, so Settings › Reset demo clears them.
 
 ## Acceptance checks
-- [ ] typecheck and build pass; `/dev/checks` passes in all five tenants
-- [ ] Every ended bid has a debrief record with a status; the demo-day statuses hold
-- [ ] The Project Director's Stage 9 and the Head of Tendering's home list the right rows, and the old Stage 9 debrief and lessons rows are gone
-- [ ] An accepted debrief (in memory) moves RES-3, the Stage 9 step, the close, and a corrected loss reason on every reader
-- [ ] Access: record and accept are separate people; a Bid Manager sees only their own
-- [ ] No money in any lesson; new rival names web-checked; no hard-coded numbers in pages; no role checks outside `access.ts`
+- [x] typecheck and build pass; `/dev/checks` passes in all five tenants
+- [x] Every ended bid has a debrief record with a status; the demo-day statuses hold
+- [x] The Project Director's Stage 9 and the Head of Tendering's home list the right rows, and the old Stage 9 debrief and lessons rows are gone
+- [x] An accepted debrief (in memory) moves RES-3, the Stage 9 step, the close, and a corrected loss reason on every reader
+- [x] Access: record and accept are separate people; a Bid Manager sees only their own
+- [x] No money in any lesson; new rival names web-checked; no hard-coded numbers in pages; no role checks outside `access.ts`
 
 ## Execution report
-(Filled in by the executor.)
-- Changed files:
-- Verification:
-- Deviations from plan:
-- Blockers / questions:
-- Follow-ups noticed (not done):
+(Filled in by the executor, 2026-09-30.)
+- **Changed files:**
+  - New data: `data/gcc/debriefs/{stops,rivals,templates,generate,featured,examples,index}.ts`. `templates.ts` holds the lesson, "what the employer said" and "would let us bid" templates the generator fills.
+  - New domain: `domain/gcc/debriefs/{endings,records,vm,form,writers,archive,text}.ts`, `domain/gcc/demo/60-debrief.apply.ts`, `domain/gcc/actions/debrief.actions.ts`, `domain/gcc/kpi/debrief.kpi.ts`.
+  - New dev check: `pages/gcc/dev-checks/74-debriefs.tsx` (15 rows, all five tenants, in memory).
+  - Changed:
+    - `domain/gcc/debriefs/index.ts`: stubs filled; every signature and export kept;
+    - `domain/gcc/debriefs/types.ts`: one optional field, `DebriefVM.now`;
+    - `data/gcc/debriefs/vocab.ts`: additions only (`LOSS_IN_SENTENCE`, `WIN_SHORT`, `StoppedBy`, `NO_MONEY_TEXT`, `SEED_GATE_REASONS`);
+    - `data/gcc/targets.ts`: `RATE_BANDS['DBR-2']`, `DEBRIEF_DUE_DAYS`, `DBR3_WAIT_DAYS`;
+    - `domain/gcc/kpi/stage9.kpi.ts`: `hasLessons` moved to `debriefs/endings.ts` and re-exported; `LOSS_LABEL`; RES-3's ⓘ;
+    - `domain/gcc/actions/stages.actions.ts`: `debrief.hold` and `lessons.record` removed, with their imports;
+    - `domain/gcc/dashboards/stages.dash.ts` (Stage 9 actions) and `portfolio.dash.ts` (`debrief.accept` on `portfolio.hot` and `portfolio.exec`);
+    - `components/dashboard/columns/stages.cols.tsx` (`s9.lossReason` reads `LOSS_LABEL`);
+    - `pages/gcc/dev-checks/50-portfolio.tsx` (one pin).
+  - Docs: `roles-and-access.md` (matrix row split), `kpi-and-screen-catalogue.md` §A.5 (DBR-1 to DBR-6), `ui-direction.md` §7.3 (Debrief statuses), `dashboards.md` §10.1, §10.2 and §10.12 (action lists).
+- **Verification:**
+  - `npm run typecheck` and `npm run build` pass. The chunk-size warning was there before.
+  - `/dev/checks` in headless Chrome (my own server on :5194): no failing row in any panel in Najd, Corniche, Dafna, Batinah or Qurain. Check 74 passes all 15 rows in each. The only console output is the React Router future-flag warnings, which were there before.
+  - Check 74 readings:
+    - records per tenant: Najd 57, Corniche 41, Dafna 31, Batinah 46, Qurain 56;
+    - 51 withdrawn bids, all classified;
+    - 115 won or lost debriefs accepted, each with its lessons event;
+    - 201 seeded submissions, all in order;
+    - coverage: Najd 81%, Corniche 88%, Dafna 87%, Batinah 89%, Qurain 88%;
+    - round trip: submitted r1 → sent-back r1 → submitted r2 → accepted r2, four audit entries;
+    - acceptance of T-2025-270: Stage 9 · lessons-captured, closed lost, "Lost on price; lessons captured", RES-3 1 of 3 → 2 of 3, row gone;
+    - a Technical main reason: OUT-6 "Price 1 · Technical 1" → "Technical 2", tracker "Lost · technical score · ranked 2 of 6 · Thu 5 Mar", facts keep Price;
+    - a live No-Bid on T-2026-097: a due No-Bid debrief with "Capacity conflict".
+  - Browser, Najd:
+    - Project Director (Mohammed Al-Ghamdi), Stage 9: "Record the debrief" for T-2025-262, T-2026-058, T-2026-106 and T-2025-270 (the last under Show all). T-2025-270 reads "Lost Thu 5 Mar on price, ranked 2 of 6: record why. Debrief with the employer booked Thu 12 Mar, 11:00". No Lessons or old debrief row.
+    - Head of Tendering (Faisal Al-Harbi), home, Show all: "Review the debrief" for T-2025-438 ("Cancelled by the employer Thu 12 Feb: recorded by Mohammed Al-Ghamdi, Thu 5 Mar, 11:40 · Waiting 3 days") and T-2026-099.
+    - The CEO sees both as "Waiting on Faisal Al-Harbi". The Head of Tendering's Stage 9 shows the Record rows as "Waiting on Mohammed Al-Ghamdi".
+    - Both buttons open `/tenders/{TID}?tab=debrief`. 036's tab is already in the tree, so the workspace opens.
+  - Browser, Corniche: the Project Director's Stage 9 lists T-2025-120, "Lost Wed 4 Mar on local content … booked Wed 11 Mar, 10:00".
+  - Reset:
+    - an accepted T-2025-270 was written into `ctai.demo.v2` (the keys `mark()` writes) and the page reloaded: Stage 9 went from 6 to 5 items and RES-3 from 1 of 3 to 2 of 3; the tracker reads "Lost · price · ranked 2 of 6 · Thu 5 Mar";
+    - Settings › Reset › Reset this company then left no Najd keys: Stage 9 was back to 6 items and RES-3 to 1 of 3.
+- **Moved pins:**
+  - `50-portfolio.tsx`, 'HoT · actions, Show all':
+    - before: `7: + Renewal T-2026-118 | DG1 due T-2026-117`;
+    - after: `9: + Debrief sign-off T-2025-438 | Renewal T-2026-118 | Debrief sign-off T-2026-099 | DG1 due T-2026-117`.
+  - 'HoT · actions 1–5' did not move.
+  - `60-stages.tsx`: nothing moved (RES-3 stays "1 of 3"; Stage 9 actions have no pin).
+- **Featured wins (one per tenant, accepted):** Najd T-2025-290 (track record), Corniche T-2025-308 (technical), Dafna T-2025-276 (price), Batinah T-2025-265 (alternative), Qurain T-2025-241 (programme). Also featured: Najd T-2025-255 (accepted) and T-2025-438 (submitted).
+- **Rival search (2026-09-30):**
+  - Dafna: Thumama Pellstone Contracting W.L.L., Karstel Civil Engineering W.L.L., Mesaieed Trevannon Infrastructure W.L.L.
+  - Qurain: Failaka Ostrel Contracting Co., Jahra Brennock Projects Co., Kelvane Gulf Engineering Co.
+  - Each was web-searched; no real firm found.
+  - Dropped because a real company uses the name: Orvanta, Marlex, Corvell, Dunmore, Varden. Also dropped: "Wafra", a well-known Kuwaiti brand.
+  - The note is kept in `rivals.ts`. Dev check 74 row 6 confirms no rival shares a supplier's or tenant's name.
+- **Deviations from plan:**
+  1. **Stopped coverage.** It is the top 85% of stopped endings, ranked by each tender's own stream (featured ones excluded), not a random 80%. A random 80% left Corniche at 78% and Najd at 77%. Every tenant now lands at 81–89%.
+  2. **`Rival` has a `short` name** ("Pellstone"). Sentences and the DBR-6 tile use it; the full name stays in `name`.
+  3. **The domain split** is `endings`, `records`, `vm`, `form`, `writers`, `archive` and `text`, plus `templates.ts` in data (the plan left the split to me).
+  4. **The applier** (`60-debrief.apply.ts`):
+     - It also imports the seed (`@/data/gcc/debriefs`, a data module), so accepting a seeded submission such as T-2025-438 or T-2026-099 finds its round and main reason. It still never imports `debriefs/index.ts`.
+     - A won or lost tender that closed before the acceptance (an old overdue one) gets the lessons event and the result corrections only. Its close and its last step stay, since a log entry after the close would break the chain. Live Stage 9 tenders close as the Design says.
+  5. **Action rows:**
+     - `debrief.accept` rows use the type "Debrief sign-off" (the plan named none), with due text "Waiting n days", orange after `DBR3_WAIT_DAYS` working days, as DBR-3.
+     - A lost `debrief.record` row whose employer debrief was already held reads "Debrief with the employer held {date}".
+  6. **Tiles:**
+     - DBR-1's reference is "Since 9 Mar · n sectors", since a reference needs a value and the count would repeat the tile.
+     - DBR-3 is neutral when nothing waits (the plan gives only orange).
+     - DBR-5's reference reads "7 of 9 wins" while some wins are not yet accepted.
+     - DBR-6 shows the short name on the tile and the full name in the sub-line.
+  7. **`roles-and-access.md`:** the matrix has no Committee column, so "committee members V" is in the row label.
+  8. **`dashboards.md` §10.12** now also lists "results overdue" (`result.chase`), which was already in the build but missing from the doc.
+  9. **Dev check 74, rows 13 and 15:**
+     - Row 13 first records positions to quorum with `positionWrite`, since T-2026-097 has 2 of 5.
+     - Row 15: every bid in every tenant is managed by the tenant's one Bid Manager, so a count cannot show the scope. The row shows Omar reads only tenders assigned to him, and that `can()` refuses him a tender with another Bid Manager.
+- **Blockers / questions:** none.
+- **Follow-ups noticed (not done):**
+  1. `domain/gcc/lifecycle.port.ts:186` sets the Stage 9 column's `lessons` flag from any lessons event, with no date bound. Dafna and Qurain T-2025-120 have lessons events on 11 and 10 Mar (after demo day), so their Lessons column reads "Captured" while RES-3 and the debrief say not yet. This disagreed with RES-3 before this plan. The one-line fix is `lessons: hasLessons(l)`, but the file is outside this plan.
+  2. `lifecycle.port.ts` keeps its own loss wording for the tracker ("technical score"), while the Stage 9 column and OUT-6 now read `LOSS_LABEL` ("Technical"). It could read `LOSS_IN_SENTENCE`.
+  3. On the Project Director's Stage 9, a won tender shows twice (Handover and Debrief). They are two different actions, but the orchestrator may prefer one row.
+  4. The seed's close notes say both "The employer …" and "The client …" (for example "The client postponed the tender indefinitely"). The Record row quotes them as they are.
