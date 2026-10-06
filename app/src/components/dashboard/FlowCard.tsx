@@ -88,18 +88,6 @@ function Column({ s, first, onDrill }: { s: FlowStepVM; first: boolean; onDrill(
   );
 }
 
-/**
- * The decision funnel's columns share the width by how much their longest row
- * says (plan 039), so "104 approved · 72 rejected · 9 pending" fits beside
- * "42 won" at 1280. The stage strips keep equal columns.
- */
-function widths(flow: FlowZoneVM): CSSProperties {
-  if (flow.id !== 'PF-5') return {};
-  const len = (s: FlowStepVM) => Math.max(s.parts.slice(1).map(partText).join(' · ').length, (s.note ?? '').length, `${s.label} ${s.sub ?? ''}`.length);
-  const ws = flow.steps.map((s) => Math.min(2, Math.max(1, len(s) / 22)));
-  return { gridTemplateColumns: ws.map((w) => `minmax(118px, ${w.toFixed(2)}fr)`).join(' ') };
-}
-
 export function FlowCard({ flow, onDrill }: { flow: FlowZoneVM; onDrill(d: DrillVM): void }) {
   const id = useId();
   const used = new Set(flow.steps.flatMap((s) => s.parts.map((p) => p.outcome)));
@@ -125,7 +113,7 @@ export function FlowCard({ flow, onDrill }: { flow: FlowZoneVM; onDrill(d: Drill
       ) : (
         <div className="fc-scroll">
           {/* Six or more columns (the funnel, Stage 2) set rows 4 and 5 a half-point smaller, so they still fit at 1280. */}
-          <ol className={`fc-cols ${flow.steps.length >= 6 ? 'dense' : ''}`} style={{ '--fc-n': flow.steps.length, ...widths(flow) } as CSSProperties}>
+          <ol className={`fc-cols ${flow.steps.length >= 6 ? 'dense' : ''} ${flow.id === 'PF-5' ? 'funnel' : ''}`} style={{ '--fc-n': flow.steps.length } as CSSProperties}>
             {flow.steps.map((s, i) => <Column key={s.key} s={s} first={i === 0} onDrill={onDrill} />)}
           </ol>
         </div>

@@ -100,7 +100,7 @@ function checks(tenant: GccTenantKey): Check[] {
 
 /* ------------------------------------------------------------- plan 040 */
 
-const HOT_ORDER = ['PF-0', 'PF-3', 'PF-2', 'PF-7', 'PF-4', 'SCR-6'];
+const HOT_ORDER = ['PF-1', 'PF-3', 'PF-2', 'PF-7', 'PF-4', 'SCR-6'];
 
 function hotVM(tenant: GccTenantKey, viewer: Person, period: PeriodKey): DashboardVM | null {
   const spec = dashboardSpec('portfolio.hot');
@@ -126,9 +126,9 @@ function hotChecks(tenant: GccTenantKey): Check[] {
   add('Tiles in order: Live pipeline, Win & Loss, Average ticket size, Tenders accepted, Decisions on time, Documentation gaps',
     order.join() === HOT_ORDER.join(), vm.tiles.map((t) => t.label).join(' · '));
 
-  const active = q.activeNotices().count;
-  const pf0 = tile('PF-0');
-  add('Live pipeline = active notices now', !!pf0 && (active ? pf0.display.startsWith(active.toLocaleString('en-GB')) : pf0.display === 'No active tenders'), `${pf0?.display} · ${pf0?.detail} / activeNotices ${active}`);
+  // User review 2026-10-06: Live pipeline is the pursued pipeline again (Stages 2–8, value and count).
+  const pf1 = tile('PF-1');
+  add('Live pipeline = pursued tenders now (Stages 2–8), with their value', !!pf1 && pf1.label === 'Live pipeline' && /^\d+ live tenders?$/.test(pf1.detail ?? ''), `${pf1?.label}: ${pf1?.display} · ${pf1?.detail}`);
 
   const cap = q.capturesIn(w30);
   const pf7 = tile('PF-7');

@@ -139,6 +139,9 @@
 .fc-cols.dense .fc-col { padding: 0 7px; }
 .fc-cols.dense .fc-other, .fc-cols.dense .fc-other .fc-n { font-size: 11.5px; }
 .fc-cols.dense .fc-note { font-size: 11px; }
+/* The decision funnel (user review 2026-10-06): six equal columns; the other-parts row may take two lines in every column, so DG1's three parts never cut off. */
+.fc-cols.funnel .fc-col { grid-template-rows: 16px 25px 6px 30px 15px; }
+.fc-cols.funnel .fc-r4 { flex-wrap: wrap; align-content: flex-start; line-height: 15px; white-space: normal; }
 /* The bar splits the column's own outcomes: green went on, grey stopped, orange still waiting. Its words are in the rows. */
 .fc-bar { display: flex; gap: 2px; height: 6px; border-radius: 3px; background: var(--track); overflow: hidden; }
 .fc-seg { flex: 0 1 0; min-width: 0; }

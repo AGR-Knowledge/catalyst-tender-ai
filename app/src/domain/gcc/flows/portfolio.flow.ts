@@ -32,8 +32,8 @@ function part(ctx: KpiCtx, step: string, key: string, label: string, ids: string
   return { key, count: ids.length, label, drill, ...(outcome ? { outcome } : {}) };
 }
 
-/** "8 approved of 12 decided": the note under every column, in counts. */
-const ofNote = (count: number, what: string, total: number, noun: string) => (total ? `${n(count)} ${what} of ${n(total)} ${noun}` : 'None in this period');
+/** "8 of 12 approved": the note under every column, in counts, short enough to fit six equal columns at 1280 (user review 2026-10-06). */
+const ofNote = (count: number, what: string, total: number) => (total ? `${n(count)} of ${n(total)} ${what}` : 'None in this period');
 
 const DECISION_FUNNEL: FlowDef = {
   id: 'PF-5',
@@ -55,7 +55,7 @@ const DECISION_FUNNEL: FlowDef = {
       const radar: DrillVM | null = can(ctx.viewer, 'radar.view').ok ? { kind: 'route', to: '/radar', label: 'Open the tender radar' } : null;
       const total = c.captured + c.linked;
       steps.push({
-        key: 'captured', label: 'Captured', sub: 'Total in', note: ofNote(c.linked, 're-issued', total, 'in'),
+        key: 'captured', label: 'Captured', sub: 'Total in', note: ofNote(c.linked, 're-issued', total),
         parts: [
           { key: 'in', count: total, label: 'in', drill: null },
           { key: 'notices', count: c.captured, label: 'new', outcome: 'on', drill: c.captured ? radar : null },
@@ -63,7 +63,7 @@ const DECISION_FUNNEL: FlowDef = {
         ],
       });
       steps.push({
-        key: 'screening', label: 'AI screening', sub: 'Initial screening', note: ofNote(c.passed, 'passed', total, 'screened'),
+        key: 'screening', label: 'AI screening', sub: 'First pass', note: ofNote(c.passed, 'passed', total),
         parts: [
           { key: 'passed', count: c.passed, label: 'passed', outcome: 'on', drill: c.passed ? radar : null },
           { key: 'out', count: Math.max(0, total - c.passed), label: 'screened out', outcome: 'stopped', drill: null },
@@ -74,7 +74,7 @@ const DECISION_FUNNEL: FlowDef = {
       const all = at(g);
       const on = at(g, parts[0][0]);
       return {
-        key: g.toLowerCase(), label: g, sub, note: ofNote(on.length, 'approved', all.length, 'decided'),
+        key: g.toLowerCase(), label: g, sub, note: ofNote(on.length, 'approved', all.length),
         parts: [part(ctx, g, 'decided', 'decided', all), ...parts.map(([d, label, o]) => part(ctx, g, d, label, at(g, d), o))],
       };
     };
@@ -90,7 +90,7 @@ const DECISION_FUNNEL: FlowDef = {
     const won = by('won');
     const lost = by('lost');
     steps.push({
-      key: 'won', label: 'Won', sub: 'Final shortlist', note: ofNote(won.length, 'won', subs.length, 'submitted'),
+      key: 'won', label: 'Won', sub: 'Final shortlist', note: ofNote(won.length, 'won', subs.length),
       parts: [
         part(ctx, 'Won', 'won', 'won', won, 'on'),
         part(ctx, 'Won', 'lost', 'lost', lost, 'stopped'),

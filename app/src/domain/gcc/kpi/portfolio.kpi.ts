@@ -116,10 +116,10 @@ function portalsOf(tenant: string, bySource: Record<string, number>): { name: st
   }).sort((a, b) => b.n - a.n);
 }
 
-/** Plan 040: tenders open for bids now, from the portals and mailboxes. The Head of Tendering's first tile. */
+/** Plan 040: tenders open for bids now, from the portals and mailboxes. On no dashboard since the user's review (2026-10-06): Live pipeline is PF-1 again. */
 const PF0: KpiDef = {
   id: 'PF-0',
-  label: 'Live pipeline',
+  label: 'Active tenders',
   kind: 'state',
   info: {
     means: 'The tenders on the market that are still open for bids today: the pool we can choose from.',
@@ -144,7 +144,7 @@ const PF0: KpiDef = {
 
 const PF1: KpiDef = {
   id: 'PF-1',
-  label: 'Pursued pipeline',
+  label: 'Live pipeline',
   kind: 'state',
   periodAware: true,
   info: {
@@ -166,7 +166,7 @@ const PF1: KpiDef = {
       ...(ctx.scope.kind === 'assigned' ? { label: 'My live bids' } : {}),
     };
   },
-  drill: (ctx) => ({ kind: 'table', label: `From tile: ${ctx.scope.kind === 'assigned' ? 'My live bids' : 'Pursued pipeline'} · now`, stages: PIPELINE, status: 'live' }),
+  drill: (ctx) => ({ kind: 'table', label: `From tile: ${ctx.scope.kind === 'assigned' ? 'My live bids' : 'Live pipeline'} · now`, stages: PIPELINE, status: 'live' }),
 };
 
 const submitted = (ctx: KpiCtx) => Q(ctx).submissionsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));

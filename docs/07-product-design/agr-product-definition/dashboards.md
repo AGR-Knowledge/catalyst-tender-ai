@@ -580,15 +580,15 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
 
 ### 10.1 Head of Tendering: Portfolio (all tenders)
 - **Home of:** `hot`. The same dashboard serves the CEO (§10.2) with different tiles.
-- **Question:** *"How many tenders are open to us, are we winning, what do we bid, how many pass screening, are gates decided on time, and which company documents have gaps?"*
+- **Question:** *"What are we pursuing and what is it worth, are we winning, what do we bid, how many pass screening, are gates decided on time, and which company documents have gaps?"*
 - **Tiles** (one row at 1440, left to right; plan 040, user decisions 2026-10-06):
-  1. PF-0 Live pipeline (state): "{n} active tenders", new notices still open for bids now; detail "from {N} portals" (distinct portal and client-portal sources among them); reference "Largest · {portal} {n}". Click → Tender radar (when the viewer may open it).
+  1. PF-1 Live pipeline (state): the tenders we are pursuing, now in Stages 2–8, and their value in the company currency; detail "{n} live tenders"; reference "Since {date} · {in} in, {out} out". Click → the table on those tenders. (User review 2026-10-06: back to the pursued pipeline; the "176 active tenders from N portals" tile, PF-0, is on no dashboard.)
   2. PF-3 Win & Loss (flow): "{won} won · {lost} lost"; detail "{rate}% win rate"; reference "Target · {tenant target}%" ("… from 5 results" under five results); status "Below target" only under target. Najd, 90 days: 14 won · 11 lost, 56%, target 45%.
   3. PF-2 Average ticket size (flow).
   4. PF-7 Tenders accepted (flow): notices that passed the AI first screening in the period; detail "of {captured + re-issued} captured"; reference "Rate · {passed ÷ captured}%". Najd, 30 days: 18 of 194, 9%. Click → Tender radar.
   5. PF-4 Decisions on time (flow): "{on time} of {all} on time"; detail "{k} late" or "None late"; reference "Latest late · {TID}". Tone bands unchanged (100% green, ≥ 90% orange). Click → list panel "Late gate decisions · {period}": one row per late decision, newest first (gate, tender, who decided and role, when the gate opened, when it was decided, the limit, how late); each row opens the tender; the link under it shows all decisions in the table, late first.
   6. SCR-6 Documentation gaps (state): documents in the credentials vault that have expired, or expire before a live bid needs them; detail the first two ("Zakat 30 Apr · GOSI 7 May"); reference "Renew by · {date}"; status "Expired" / "Renew soon"; owner chip. Click → list panel "Company documents": every vault document, gaps first (document and issuer, number, expiry, status Valid · Expiring before a bid · Expired, live bids affected, owner, renewal requested); a row opens the credential; the link under it opens Company › Credentials.
-  - PF-1 is renamed **Pursued pipeline** and stays on the CEO's dashboard (§10.2); the Bid Manager's reads "My live bids" (§10.3). CAP-1 Bid-team load leaves this dashboard.
+  - PF-1 reads "Live pipeline" here and on the CEO's dashboard (§10.2), and "My live bids" on the Bid Manager's (§10.3). CAP-1 Bid-team load leaves this dashboard.
 - **Flow strip, PF-5 Decision funnel** (plan 039): Captured (new · previous) → AI screening (passed · screened out) → DG1 (approved · rejected · pending) → DG2 (approved · rejected) → DG3 (approved · rejected) → Won (won · lost · pending), read as one batch narrowing; see §1 Z3.
 - **Needs your action:**
   - DG3 approvals;
