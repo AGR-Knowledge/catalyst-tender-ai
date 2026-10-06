@@ -316,7 +316,7 @@ export const FIXTURE_TRACKERS: Record<string, TrackerVM> = {
       s9: { status: 'current', from: '2026-02-24', ownerInitials: 'MG', note: 'Handover or debrief' },
     }),
     now: {
-      stageLabel: stageLabel(9), stepLabel: stepLabel(9, 'handover-or-debrief'), withName: 'Mohammed Al-Ghamdi', withRole: 'Project Director',
+      stageLabel: stageLabel(9), stepLabel: stepLabel(9, 'handover-or-debrief'), withName: 'Mazen Al-Ghufaili', withRole: 'Project Director',
       team: 'Water team: Omar Siddiqui (Bid Manager)', status: 'Won Tue 24 Feb · 1st of 5', next: 'Handover kick-off Sun 15 Mar', blocker: null,
     },
     outcome: `Won · ${money(142 * M, 'SAR')} · handover Sun 15 Mar`,

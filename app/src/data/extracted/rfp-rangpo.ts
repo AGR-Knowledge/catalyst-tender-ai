@@ -294,7 +294,7 @@ export const RFP_RANGPO: ExtractedTender = {
     },
     {
       label: 'Physical submission address',
-      value: 'Mr. Sandeep Gupta, General Manager (Technical), NHIDCL, 3rd Floor, PTI Building, 4, Parliament Street, New Delhi-110001',
+      value: 'General Manager (Technical), NHIDCL, 3rd Floor, PTI Building, 4, Parliament Street, New Delhi-110001',
       page: 26,
       confidence: 'high',
     },
@@ -326,7 +326,7 @@ export const RFP_RANGPO: ExtractedTender = {
 
   contacts: [
     {
-      name: 'Mr. Sandeep Gupta',
+      name: 'General Manager (Technical)',
       role: 'General Manager (Technical)',
       org: 'National Highways and Infrastructure Development Corporation Limited',
       email: 'gmtechnhidcl@gmail.com',

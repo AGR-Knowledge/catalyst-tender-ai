@@ -10,7 +10,7 @@ const MIN_N_TEXT = WORDS[MIN_N] ?? String(MIN_N);
 /**
  * The ⓘ beside every KPI label (dashboards.md §3). It opens on hover, on
  * keyboard focus and on tap; Esc closes it. The text comes from the registry,
- * never from the page.
+ * never from the page: four plain parts (plan 040) and the period.
  */
 export function InfoTip({ info }: { info: InfoVM }) {
   const pop = usePop<HTMLButtonElement>({ width: 320 });
@@ -23,13 +23,13 @@ export function InfoTip({ info }: { info: InfoVM }) {
         <div className="info-pop">
           <div className="ip-t">{info.label}</div>
           <dl>
-            <dt>What it means</dt><dd>{info.means}</dd>
-            <dt>How it’s counted</dt><dd>{info.counted}</dd>
+            <dt>What it shows</dt><dd>{info.means}</dd>
+            <dt>How we count it</dt><dd>{info.counted}</dd>
             {info.period && <><dt>Period</dt><dd>{info.period}</dd></>}
-            <dt>Target</dt><dd>{info.target ?? 'None (information)'}</dd>
+            <dt>Target</dt><dd>{info.target ?? 'No target'}</dd>
             <dt>Source</dt><dd>{info.source}</dd>
           </dl>
-          {info.smallSample && <div className="ip-note">Small sample: fewer than {MIN_N_TEXT} results, so the counts are shown first and the tone stays neutral.</div>}
+          {info.smallSample && <div className="ip-note">Fewer than {MIN_N_TEXT} results so far, so we show the counts and don’t judge the rate yet.</div>}
         </div>,
       )}
     </>

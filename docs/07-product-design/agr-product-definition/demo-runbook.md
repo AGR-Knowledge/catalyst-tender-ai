@@ -70,14 +70,14 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
    - Tamarisk (P-03): VAT removed;
    - Nordklar (P-03): EUR converted;
    - Rhein Aqua (P-02): ex-works freight and customs duty, plus an exclusion allowance;
-   - Hanseong (P-02): USD, CIF, and short validity;
+   - Bongnim (P-02): USD, CIF, and short validity;
    - Salwa (P-04): a declared deviation and lead time.
 
    Confirm some adjustments. *Notice:* the agent proposes and the buyer decides, and both are kept.
 4. Best fit.
    - On P-05 (fully levelled), Choose another, give the reason, then approve the balanced mix.
    - Do both in one sitting: the override is a draft until the mix is approved.
-5. **Ahmed Saleh (Supplier).**
+5. **Amjad Salameh (Supplier).**
    - The Supplier Portal preview shows only the RFQs Najd sent his firm.
    - Return with "Back to Najd…".
 6. **Omar Siddiqui (Bid Manager).** Quote levelling.
@@ -152,11 +152,11 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 2. It moves to Stage 8 and counts on the Stage 8 dashboard. The home funnel's DG3 count rises.
 
 **Qurain, send back and re-issue:**
-1. Switch company to Qurain, as **Bader Al-Mutawa (Head of Tendering)**.
+1. Switch company to Qurain, as **Basel Al-Mudhaf (Head of Tendering)**.
    - DG3 approvals › T-2025-428: the initial guarantee is short of the required validity.
    - Send back to Compliance, with a note.
 2. **Nour El-Din (Compliance).** My requests › Open DG3 › Re-issue. The guarantee is extended and round 2 starts.
-3. **Bader Al-Mutawa.** Approve submission.
+3. **Basel Al-Mudhaf.** Approve submission.
 
 ## Stage 3 entry (about 4 min per company)
 
@@ -179,13 +179,13 @@ The runbook describes; the app decides. Scores, counts and amounts are named by 
 **Proves:** a result becomes written, signed-off learning, with both names kept, instead of living in e-mails and memory (product-foundation pain 5).
 **Company:** Najd, no preset needed. Start from a Reset of Najd if the company has demo activity.
 
-1. **Mohammed Al-Ghamdi (Project Director).** Stage 9 › Needs your action › Record the debrief on **T-2025-270** (or open the tender › Debrief).
+1. **Mazen Al-Ghufaili (Project Director).** Stage 9 › Needs your action › Record the debrief on **T-2025-270** (or open the tender › Debrief).
    - What we know: lost on price, ranked 2 of 6, the employer's debrief booked Thu 12 Mar, and the regret letter in the Library.
    - The main reason is already Price, from the result. Click **Fill in an example** (Demo); it fills the form and never submits.
    - Submit for sign-off. The confirm step shows what the record will say. Confirm: the status reads Submitted, and the toast names Faisal Al-Harbi.
    - *Say:* "The reasons stop living in e-mails. Six short sections, pre-set from what we already know."
 2. **Faisal Al-Harbi (Head of Tendering).** Home › Needs your action › Show all › Review the debrief on T-2025-270, or the tender's Debrief tab, which reads "To accept". Send back…, with a note of a sentence, e.g. "Say which supplier quote came late and what it changed in our price." Confirm stays disabled, saying why, until the note is there.
-3. **Mohammed Al-Ghamdi.** The note sits above the form, filled with his last answers. Change one lesson, then Submit again for sign-off (round 2).
+3. **Mazen Al-Ghufaili.** The note sits above the form, filled with his last answers. Change one lesson, then Submit again for sign-off (round 2).
 4. **Faisal Al-Harbi.** Accept into the archive.
    - The status reads Accepted, and the record shows both names and times.
    - Overview: Where it stands reads Lessons captured: Yes, and T-2025-270 is closed as lost. The tracker ends at Results, as on any closed loss.

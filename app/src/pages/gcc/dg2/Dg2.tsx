@@ -2,10 +2,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import { gccData, isGccTenantKey } from '@/data/gcc';
-import { personById, type Seat } from '@/data/people';
+import { personById, SEAT_LABEL, type Seat } from '@/data/people';
 import { useDemo } from '@/state/store';
 import { useTenantKey } from '@/domain/tenancy';
 import { freshnessFor, packVersionsFor, stampText } from '@/domain/gcc/s3';
+import { contactSubject } from '@/domain/gcc/contact';
 import { BID_EFFECTS, decisionState, dg2RecordFor, LETTER_EFFECT, NO_BID_EFFECTS, roundOf } from '@/domain/gcc/dg2';
 import { Card, CardHead } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
@@ -228,6 +229,7 @@ function GateBody({ tenant, tenderId, title, access, ds, viewAs, onRecord }: {
             rows={members.rows} headline={members.headline} quorum={members.quorum} majority={members.majority} masked={members.masked}
             onRecord={person.seat ? (seat) => onRecord(seat as Seat, false) : undefined} recordCheck={recordCheck}
             onRecordFor={secCheck ? (seat) => onRecord(seat as Seat, true) : undefined} secretaryCheck={secCheck}
+            contactSubject={(r) => contactSubject(tenderId, 'DG2', `your position (${SEAT_LABEL[r.seat as Seat] ?? r.seatLabel})`)}
           />
           {record && record.conflicts.length > 0 && <p className="dg2-p">Conflicts declared: {record.conflicts.map((c) => `${c.name} (${stampText(c.at)})`).join('; ')}.</p>}
 

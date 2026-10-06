@@ -15,9 +15,9 @@ const OK = (at: string): ['clear', string, 'clear', string] => ['clear', at, 'cl
 
 const ROWS: SupplierTuple[] = [
   ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['pumps'], [], 12, 'approved', OK('2026-02-03'), [86, 1, 3, 1], 'high', [74, 6.5], false, 'batinah.supplier'],
-  ['sohar-asphalt', 'Sohar Asphalt Mixing LLC', 'OM', 'Sohar', ['asphalt'], [CARD], 52, 'approved', OK('2025-11-10'), [89, 1, 12, 4], 'medium', [92, 3.0], true],
-  ['nizwa-quarry', 'Nizwa Quarry and Asphalt LLC', 'OM', 'Nizwa', ['asphalt', 'earthworks'], [CARD], 49, 'approved', OK('2025-12-04'), [86, 2, 10, 3], 'high', [85, 4.0], true],
-  ['barka-precast', 'Barka Precast Concrete LLC', 'OM', 'Barka', ['precast', 'barriers'], [CARD], 47, 'approved', OK('2026-01-15'), [88, 1, 8, 3], 'medium', [89, 3.5], true],
+  ['sohar-asphalt', 'Saham Asphalt Mixing LLC', 'OM', 'Sohar', ['asphalt'], [CARD], 52, 'approved', OK('2025-11-10'), [89, 1, 12, 4], 'medium', [92, 3.0], true],
+  ['nizwa-quarry', 'Izki Quarry and Asphalt LLC', 'OM', 'Nizwa', ['asphalt', 'earthworks'], [CARD], 49, 'approved', OK('2025-12-04'), [86, 2, 10, 3], 'high', [85, 4.0], true],
+  ['barka-precast', 'Suwaiq Precast Concrete LLC', 'OM', 'Barka', ['precast', 'barriers'], [CARD], 47, 'approved', OK('2026-01-15'), [88, 1, 8, 3], 'medium', [89, 3.5], true],
   ['sur-precast', 'Sur Precast Industries LLC', 'OM', 'Sur', ['precast', 'barriers'], [], 44, 'approved', OK('2025-10-20'), [84, 2, 7, 2], 'low', [83, 4.5], true],
   ['alpen-bearings', 'Alpen Bridge Bearings GmbH', 'AT', 'Innsbruck', ['bearings'], [CARD], 3, 'approved', OK('2025-11-28'), [95, 0, 5, 2], 'low', [90, 4.0], false],
   ['karst-bearings', 'Karst Bridge Bearings d.o.o.', 'SI', 'Ljubljana', ['bearings'], [], 2, 'approved', OK('2026-01-08'), [89, 1, 3, 1], 'medium', [79, 5.5], false],

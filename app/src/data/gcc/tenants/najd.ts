@@ -4,7 +4,7 @@ import { TIHAMA } from '../partners';
 import { dg1Records, dg2Records, fit, outcomes, type Dg1Tuple, type Dg2Tuple, type OutcomeTuple } from '../build';
 
 /**
- * Najd Arcline Contracting Co. (tenant A, primary): a Riyadh water and
+ * Najd Arvelle Contracting Co. (tenant A, primary): a Riyadh water and
  * wastewater EPC contractor (gcc-demo-data §2.2, §5.1). The seed is tuned so
  * the KPIs in gcc-demo-data §5.3 derive to their target readings on Sun 8 Mar
  * 2026 at 10:00 AST. Issuers are fictional except the Water Authority of
@@ -793,7 +793,7 @@ const PROJECTS: TenantData['projects'] = [
 
 const RAFID: TenantData['partners'][number] = {
   id: 'rafid',
-  name: 'Rafid Process Engineering',
+  name: 'Thawban Process Engineering',
   country: 'SA',
   note: 'Process design partner for treatment plants. Design subconsultant, not a JV member.',
   credentials: [
@@ -801,7 +801,7 @@ const RAFID: TenantData['partners'][number] = {
     { id: 'rafid-sce', kind: 'engineers-council', label: 'Saudi Council of Engineers registration', country: 'SA', issuer: 'Saudi Council of Engineers', validTo: '2026-12-31', ownerId: 'partner.rafid' },
   ],
   projects: [
-    { id: 'rafid-p1', title: 'Riyadh East STP expansion: process design', client: 'Najd Arcline Contracting Co.', country: 'SA', capacityM3d: 150_000, tertiary: true,
+    { id: 'rafid-p1', title: 'Riyadh East STP expansion: process design', client: 'Najd Arvelle Contracting Co.', country: 'SA', capacityM3d: 150_000, tertiary: true,
       value: SAR(18_000_000), completed: '2019-06-30', role: 'subcontractor', scope: 'Process design and commissioning support' },
   ],
   financials: [
@@ -833,13 +833,13 @@ export const NAJD: TenantSeed = {
   key: 'najd',
   company: {
     hq: 'Riyadh; offices in Dammam and Jeddah',
-    employees: 4_800,
+    employees: 18_500,
     fyEnd: '12-31',
     financials: [
-      { fy: 2022, turnover: SAR(1_320_000_000), audited: true },
-      { fy: 2023, turnover: SAR(1_390_000_000), audited: true },
-      { fy: 2024, turnover: SAR(1_520_000_000), audited: true, netWorth: SAR(610_000_000), currentRatio: 1.34 },
-      { fy: 2025, turnover: SAR(1_660_000_000), audited: false, auditDate: '2026-04-15' },
+      { fy: 2022, turnover: SAR(8_750_000_000), audited: true },
+      { fy: 2023, turnover: SAR(9_200_000_000), audited: true },
+      { fy: 2024, turnover: SAR(10_050_000_000), audited: true, netWorth: SAR(4_030_000_000), currentRatio: 1.34 },
+      { fy: 2025, turnover: SAR(11_000_000_000), audited: false, auditDate: '2026-04-15' },
     ],
   },
   fit: {
@@ -856,14 +856,20 @@ export const NAJD: TenantSeed = {
   partners: [RAFID, TIHAMA],
   teams: TEAMS,
   facility: {
-    // The limit carries T-2025-298's issued bid bond, so headroom stays SAR 96.0 M (plan 020 B11).
-    limit: SAR(602_300_000),
-    utilised: SAR(410_000_000),
+    // Sized to an SAR 11 bn contractor (review of plan 039, 2026-10-06): headroom SAR 640.0 M, 16% of the limit as before.
+    // The limit carries T-2025-298's issued bid bond (plan 020 B11).
+    limit: SAR(4_000_000_000),
+    utilised: SAR(3_239_520_000),
     committed: [
       { label: 'Bid bond: Qassim water networks (submitted 19 Feb)', tenderId: 'T-2026-079', kind: 'bid bond', amount: SAR(8_400_000) },
       { label: 'Bid bond: Dammam water network (submitted 15 Feb)', tenderId: 'T-2025-284', kind: 'bid bond', amount: SAR(6_200_000) },
       { label: 'Bid bond: Riyadh sewage network extension (submitted 3 Mar)', tenderId: 'T-2025-291', kind: 'bid bond', amount: SAR(9_400_000) },
       { label: 'Bid bond: Makkah water distribution network (issued; submission 12 Mar)', tenderId: 'T-2025-298', kind: 'bid bond', amount: SAR(2_300_000) },
+      // Review of plan 039: four bids submitted in February and awaiting their results.
+      { label: 'Bid bond: Bisha industrial area roads (submitted 10 Feb)', tenderId: 'T-2025-426', kind: 'bid bond', amount: SAR(6_380_000) },
+      { label: 'Bid bond: Rabigh bridges and culverts (submitted 10 Feb)', tenderId: 'T-2025-435', kind: 'bid bond', amount: SAR(6_260_000) },
+      { label: 'Bid bond: Sakaka odour control upgrade (submitted 12 Feb)', tenderId: 'T-2025-446', kind: 'bid bond', amount: SAR(4_760_000) },
+      { label: 'Bid bond: Al-Qunfudhah house connections (submitted 18 Feb)', tenderId: 'T-2025-436', kind: 'bid bond', amount: SAR(6_780_000) },
       { label: 'Performance bond reserved: Al-Kharj water transmission main (awarded 3 Feb, awaiting signature)', kind: 'performance', amount: SAR(70_000_000) },
     ],
     asOf: '2026-03-05',

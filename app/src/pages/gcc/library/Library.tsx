@@ -12,6 +12,7 @@ import { Card, CardHead } from '@/components/ui/primitives';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { FileViewer } from '@/components/tender/FileViewer';
 import { SourceHost } from '@/components/tender/SourceHost';
+import { TenderLabel } from '@/components/tender/TenderLabel';
 import { FileGrid, LibraryBrowser, fileMatches } from './LibraryBrowser';
 import { useBookletExtra } from './bookletExtra';
 import './library.css';
@@ -136,7 +137,7 @@ export default function Library() {
                     return (
                       <li key={r.id}>
                         <button type="button" className={`tl-item ${on ? 'sel' : ''}`} aria-current={on ? 'true' : undefined} onClick={() => select(r.id)}>
-                          <span className="tl-id">{r.id}</span>
+                          <span className="tl-id">{r.id}<TenderLabel tenderId={r.id} plain className="tl-labels" /></span>
                           <span className="tl-n num">{plural(libs.get(r.id)?.count ?? 0, 'file')}</span>
                           <span className="tl-t">{r.shortTitle}</span>
                           <span className="tl-s">{stageLabel(r.stage)}{r.live ? '' : ' · Closed'}</span>
@@ -167,7 +168,7 @@ export default function Library() {
               </>
             ) : sel && lib ? (
               <>
-                <CardHead title={<><span className="mono tl-hid">{sel.id}</span> {sel.shortTitle}</>} meta={`${stageLabel(sel.stage)}${sel.live ? '' : ' · Closed'}`}>
+                <CardHead title={<><span className="mono tl-hid">{sel.id}</span><TenderLabel tenderId={sel.id} className="tl-labels" /> {sel.shortTitle}</>} meta={`${stageLabel(sel.stage)}${sel.live ? '' : ' · Closed'}`}>
                   <button type="button" className="btn btn-sm" onClick={() => navigate(`/tenders/${sel.id}?tab=documents`)}>Open tender</button>
                 </CardHead>
                 <LibraryBrowser key={sel.id} lib={lib} fill rowExtra={rowExtra} readOnly={readOnly} />

@@ -1,0 +1,22 @@
+/* Plan 040: the list panel a tile opens (ListPanel.tsx). The drawer's frame, wider for a table; the tender table's text rows. */
+.lp-wrap .drawer { width: min(1120px, calc(100vw - 72px)); }
+.lp { padding: 6px 24px 4px; }
+.lp-head, .lp-row { display: grid; grid-template-columns: var(--lp-cols); column-gap: 14px; align-items: center; }
+.lp-head { padding: 8px 10px; border-bottom: 1px solid var(--line-2); font-size: 11.5px; font-weight: 500; color: var(--ink-4); }
+.lp-head > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-list { list-style: none; margin: 0; padding: 0; }
+.lp-li { border-bottom: 1px solid var(--line-2); }
+.lp-row { width: 100%; min-height: 52px; padding: 7px 10px; text-align: left; font: inherit; color: inherit; background: none; border: 0; border-radius: var(--radius-sm); }
+.lp-row.click { cursor: pointer; transition: background-color var(--dur-fast) ease; }
+.lp-row.click:hover { background: var(--surface-hover); }
+.lp-row.click:focus-visible { outline-offset: -2px; }
+.lp-cell { min-width: 0; }
+/* In the panel a main line may take two lines rather than cut a document or tender name short. */
+.lp .lp-cell .tk-main { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.lp-cell .status-pill { white-space: nowrap; }
+.lp-empty { margin: 18px 0; font-size: 13px; color: var(--ink-3); }
+@media (max-width: 900px) {
+  .lp-wrap .drawer { width: 100%; }
+  .lp { padding-left: 18px; padding-right: 18px; overflow-x: auto; }
+  .lp-head, .lp-list { min-width: 820px; }
+}

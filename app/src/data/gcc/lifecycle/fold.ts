@@ -274,9 +274,24 @@ function dg1Draft(fi: FoldInput, d: Dg1Record): Draft {
   return { ...common, close: { at, as: 'withdrawn', note: 'Withdrawn in sourcing: no compliant quotes for the main packages', stage: 2, step: 'levelling' } };
 }
 
+/**
+ * Plan 039: plan 004's DG1 records the wave 12 numbers leave no room for in
+ * the last 90 days (Najd: 12 discards in 90 days, not 27). Each moves 13 weeks
+ * earlier, into the rest of the 12 months; one that lands in a year before its
+ * tender id's gets a new id. The ones kept give the 90-day discard reasons of
+ * RESULT_SPLITS.
+ */
+export const MOVED_13_WEEKS: Partial<Record<GccTenantKey, string[]>> = {
+  najd: [
+    'T-2025-396', 'T-2025-399', 'T-2025-407', 'T-2025-415', 'T-2025-421', 'T-2025-429', 'T-2025-433', 'T-2025-441', 'T-2025-452', 'T-2025-456',
+    'T-2026-038', 'T-2026-053', 'T-2026-060', 'T-2026-063', 'T-2026-074', 'T-2026-083', 'T-2026-092',
+  ],
+};
+
 /** The drafts for every plan 004 record not already carried by a hand-authored lifecycle. */
 export function foldHistory(fi: FoldInput): Draft[] {
   const h = fi.seed.historySeed;
+  const moved = new Set(MOVED_13_WEEKS[fi.tenant] ?? []);
   const dg2Open = h.dg2.filter((d) => !fi.fixedIds.has(d.tenderId));
   const byTitle = new Map(dg2Open.filter((d) => d.decision === 'bid').map((d) => [d.title, d]));
   const linked = new Set<string>();
@@ -288,6 +303,14 @@ export function foldHistory(fi: FoldInput): Draft[] {
     drafts.push(outcomeDraft(fi, o, link));
   }
   for (const d of dg2Open) if (!linked.has(d.tenderId)) drafts.push(dg2Draft(fi, d));
-  for (const d of h.dg1) if (!fi.fixedIds.has(d.tenderId)) drafts.push(dg1Draft(fi, d));
+  for (const d of h.dg1) {
+    if (fi.fixedIds.has(d.tenderId)) continue;
+    if (!moved.has(d.tenderId)) { drafts.push(dg1Draft(fi, d)); continue; }
+    const at = `${snapBack(addDays(d.at.slice(0, 10), -91), fi.cc)}T${d.at.slice(11, 16)}`;
+    const draft = dg1Draft(fi, { ...d, at });
+    draft.from = `DG1 ${d.tenderId}, moved 13 weeks earlier`;
+    if (at.slice(0, 4) < d.tenderId.slice(2, 6)) draft.id = null;
+    drafts.push(draft);
+  }
   return drafts;
 }

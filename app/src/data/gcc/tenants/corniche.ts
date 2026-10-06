@@ -4,7 +4,7 @@ import { CBHH_CONFLICTS, CBHH_DOC_KEY, CBHH_KEY_DATES, CBHH_REQUIREMENTS } from 
 import { dg1Records, dg2Records, fit, outcomes, type Dg1Tuple, type Dg2Tuple, type OutcomeTuple } from '../build';
 
 /**
- * Corniche Lattice MEP LLC (tenant B): a Dubai MEP contractor with no Saudi
+ * Corniche Lumvale MEP LLC (tenant B): a Dubai MEP contractor with no Saudi
  * registrations, watching Etimad because it plans to enter KSA in 2026
  * (gcc-demo-data §2.3, §5.2). On the hero tender a decent weighted score is
  * overridden by the PQ-fail cap.
@@ -147,7 +147,7 @@ const REGISTER: GccTender[] = [
     intake: { capturedAt: '2026-03-08T09:10', loggedAt: '2026-03-08T09:18', disposition: 'low-fit' },
   },
   {
-    id: 'T-2026-044', title: 'Dubai district cooling plant, 30,000 TR', shortTitle: 'Dubai district cooling, 30,000 TR', issuer: 'Emirates Cooling Utilities Company', issuerIsReal: false,
+    id: 'T-2026-044', title: 'Dubai district cooling plant, 30,000 TR', shortTitle: 'Dubai district cooling, 30,000 TR', issuer: 'Chillmont Cooling Utilities Company', issuerIsReal: false,
     country: 'United Arab Emirates', city: 'Dubai', sector: 'District cooling', sourceId: 'dubai-portal', sourceDetail: 'Dubai government e-procurement portal', procurement: 'open',
     value: { amount: 260_000_000, ccy: 'AED', basis: 'estimate', band: [230_000_000, 290_000_000] },
     stage: 'S2', stageNote: 'Stage 2: RFQs out', bidManagerId: 'corniche.bid', invited: [],
@@ -194,14 +194,14 @@ export const CORNICHE: TenantSeed = {
   key: 'corniche',
   company: {
     hq: 'Dubai; branch in Abu Dhabi',
-    employees: 2_600,
+    employees: 9_800,
     fyEnd: '12-31',
     financials: [
-      { fy: 2022, turnover: AED(1_020_000_000), audited: true },
-      { fy: 2023, turnover: AED(1_100_000_000), audited: true },
-      { fy: 2024, turnover: AED(1_180_000_000), audited: true, netWorth: AED(380_000_000), currentRatio: 1.29 },
+      { fy: 2022, turnover: AED(4_200_000_000), audited: true },
+      { fy: 2023, turnover: AED(4_550_000_000), audited: true },
+      { fy: 2024, turnover: AED(4_870_000_000), audited: true, netWorth: AED(1_570_000_000), currentRatio: 1.29 },
       // Audited after the hero opens on 10 May, so PQ-11 reads the FY2022–FY2024 accounts only.
-      { fy: 2025, turnover: AED(1_240_000_000), audited: false, auditDate: '2026-05-19' },
+      { fy: 2025, turnover: AED(5_120_000_000), audited: false, auditDate: '2026-05-19' },
     ],
   },
   fit: {
@@ -221,7 +221,7 @@ export const CORNICHE: TenantSeed = {
       value: AED(95_000_000), completed: '2023-02-28', role: 'subcontractor', scope: 'MEP for process buildings and the control room' },
     { id: 'corniche-p3', title: 'Abu Dhabi specialist hospital MEP', client: 'Crescent Bay Health Holding', country: 'AE', value: AED(240_000_000),
       completed: '2022-10-31', role: 'prime', scope: 'Full MEP including medical gases', fields: ['healthcare MEP'] },
-    { id: 'corniche-p4', title: 'Dubai district cooling plant, 25,000 TR', client: 'Emirates Cooling Utilities Company', country: 'AE', value: AED(210_000_000),
+    { id: 'corniche-p4', title: 'Dubai district cooling plant, 25,000 TR', client: 'Chillmont Cooling Utilities Company', country: 'AE', value: AED(210_000_000),
       completed: '2024-06-30', role: 'prime', scope: 'Plant, thermal storage and distribution' },
     // Plan 022: the second healthcare project T-2026-061's Q-07 asks for (two of AED 100 M or more in 7 years).
     { id: 'corniche-p5', title: 'Dubai rehabilitation hospital MEP', client: 'Quellmar Health Developments', country: 'AE', value: AED(158_000_000),

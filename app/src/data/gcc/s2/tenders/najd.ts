@@ -165,7 +165,7 @@ const R104: RfqRow[] = [
   { pkg: 'P-03', sup: 'sahara-clearwater', sentAt: `${SENT}14:40`, ...EXT_P03, openedAt: '2026-03-01T11:20', acknowledgedAt: '2026-03-02T10:00' },
   { pkg: 'P-03', sup: 'tamarisk', sentAt: `${SENT}14:40`, ...EXT_P03_10, openedAt: '2026-02-26T15:30', acknowledgedAt: '2026-03-01T09:00' },
 
-  // P-04 Sludge: Castellan to level; Gulf Process overdue since 08:00 today; Salwa extended to 10 Mar
+  // P-04 Sludge: Valbrembo to level; Gulf Process overdue since 08:00 today; Salwa extended to 10 Mar
   { pkg: 'P-04', sup: 'castellan', sentAt: `${SENT}14:55`, ...EXT_P04, openedAt: '2026-02-26T15:20', acknowledgedAt: '2026-02-27T10:30',
     quote: { receivedAt: '2026-03-05T14:20', amount: 1_795_000, ccy: 'EUR', validityDays: 120, leadTimeWeeks: 22, paymentAdvancePct: 30, page: 2 } },
   { pkg: 'P-04', sup: 'gulf-process', sentAt: `${SENT}14:55`, ...EXT_P04, openedAt: '2026-02-26T16:32', acknowledgedAt: '2026-03-01T09:12' },
@@ -180,7 +180,7 @@ const R104: RfqRow[] = [
   { pkg: 'P-05', sup: 'odrana', sentAt: `${SENT}15:05`, replyBy: DUE_5, openedAt: '2026-02-27T09:40', acknowledgedAt: '2026-03-02T11:00',
     quote: { receivedAt: '2026-03-05T19:30', amount: 3_420_000, ccy: 'AED', validityDays: 120, leadTimeWeeks: 16, page: 2, seededDecisions: { currency: 'confirmed' } } },
 
-  // P-06 Substation: Hijaz to level; Levant overdue since Thu 5 Mar 17:00, escalated Sun 8 Mar 08:00; Weser declined
+  // P-06 Substation: Hada to level; Levant overdue since Thu 5 Mar 17:00, escalated Sun 8 Mar 08:00; Weser declined
   { pkg: 'P-06', sup: 'hijaz-power', sentAt: `${SENT}15:15`, replyBy: DUE_5, openedAt: '2026-02-26T15:40', acknowledgedAt: '2026-02-26T16:20',
     quote: { receivedAt: '2026-03-03T15:00', amount: 13_110_000, ccy: 'SAR', vatInclusive: true, validityDays: 120, leadTimeWeeks: 36, page: 6 } },
   { pkg: 'P-06', sup: 'levant-switchgear', sentAt: `${SENT}15:15`, replyBy: DUE_5, openedAt: '2026-02-27T12:30' },
@@ -194,7 +194,7 @@ const R104: RfqRow[] = [
   { pkg: 'P-07', sup: 'hafar-cable', sentAt: `${SENT}15:25`, replyBy: DUE_5, openedAt: '2026-02-26T15:55', acknowledgedAt: '2026-03-01T09:30',
     quote: { receivedAt: '2026-03-08T08:10', amount: 7_790_000, ccy: 'SAR', vatInclusive: true, validityDays: 120, leadTimeWeeks: 14, page: 4, seededDecisions: { vat: 'confirmed' } } },
 
-  // P-08 ICA and SCADA: one compliant quote (Qimma), one decline, one non-compliant: accepted gap
+  // P-08 ICA and SCADA: one compliant quote (Dhurwa), one decline, one non-compliant: accepted gap
   { pkg: 'P-08', sup: 'qimma', sentAt: `${SENT}15:30`, replyBy: DUE_5, openedAt: '2026-02-26T15:45', acknowledgedAt: '2026-02-26T16:15',
     quote: { receivedAt: '2026-03-04T10:00', amount: 5_880_000, ccy: 'SAR', validityDays: 120, leadTimeWeeks: 30, page: 3 } },
   { pkg: 'P-08', sup: 'asir-telemetry', sentAt: `${SENT}15:30`, replyBy: DUE_5, openedAt: '2026-02-27T10:10', declined: { at: '2026-03-01T12:00', reason: 'No capacity until Q3' } },

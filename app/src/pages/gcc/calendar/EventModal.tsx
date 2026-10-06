@@ -44,6 +44,7 @@ function Body({ tenant, d }: { tenant: string; d: CalendarDetailVM }) {
   const others = d.otherDates.length > 1;
   return (
     <div className="modal-body gcal-md">
+      {d.lead && <p className="gcal-md-lead">{d.lead}</p>}
       <section>
         <h4>When</h4>
         <p className="gcal-md-when"><span className="num">{when.text}</span><span className="cd">{when.countdown}</span></p>

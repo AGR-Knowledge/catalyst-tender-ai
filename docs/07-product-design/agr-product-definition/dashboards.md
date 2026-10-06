@@ -25,7 +25,7 @@ KPI IDs refer to the dictionary in [kpi-and-screen-catalogue.md](kpi-and-screen-
 | # | Decision |
 | --- | --- |
 | DB-1 | **One layout for every dashboard.** The zones, their order and their behaviour are identical for every role. Only the content differs: the tiles, the flow, the actions, the table's columns and the graph's axis |
-| DB-2 | **Period filter:** Today · 7 days · 30 days · 90 days · 12 months. The default is 30 days. It drives the KPI tiles, the flow strip and the graph. It does not filter "Needs your action", which is always now, or the table, which has its own filters |
+| DB-2 | **Period filter:** All · 30 days · 90 days · 12 months (plan 039, 2026-10-06; Today and 7 days went). The default is 30 days. It drives the KPI tiles, the flow strip and the graph. It does not filter "Needs your action", which is always now, or the table, which has its own filters |
 | DB-3 | **Every KPI label has an ⓘ.** Hover or keyboard focus shows what the KPI means, how it's counted, the period, the target and the source. The icon is the information icon, because an eye usually means show or hide |
 | DB-4 | **Sidebar:** Dashboard at the top, then Calendar. Then the stages the person can open, numbered 1–9 with short names, each with its working screens. Then Company. **Administration and Settings sit at the bottom.** The Head of Tendering sees all nine stages |
 | DB-5 | **The main view toggles between Table and Graph.** Only one shows at a time. The choice is remembered per viewer |
@@ -47,15 +47,15 @@ The same page, top to bottom, at 1440 px:
 ```
 ┌ Sidebar ─────┐┌─────────────────────────────────────────────────────────────────────────┐
 │ Dashboard    ││ Z1  Dashboard · Head of Tendering        [Today|7 days|30 days|90 d|12 m] │
-│ Calendar     ││     Faisal Al-Harbi · Najd Arcline · As of Sun 8 Mar 2026, 10:00 AST      │
+│ Calendar     ││     Faisal Al-Harbi · Najd Arvelle · As of Sun 8 Mar 2026, 10:00 AST      │
 │ STAGES       ││ Z2  ┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐┌tile ⓘ┐   six KPI tiles     │
 │ 1 Intake   ▸ ││     └──────┘└──────┘└──────┘└──────┘└──────┘└──────┘                     │
-│ 2 Sourcing ▸ ││ Z3  ┌ Decision funnel ⓘ ─────────── ▬ Went on ▬ Stopped ▬ Waiting ──────┐ │
-│ 3 Bid dec. ▸ ││     │ Captured   › DG1      › DG2      › DG3      › Submit.  › Results  │ │
-│ 4 Planning   ││     │ 176 new    4 pursued  4 bid      4 approv.  3 on time  1 won      │ │
-│ …            ││     │ ▇▇▇▇▇▇▇▇░░ ▇▇▇░░░░░░▪ ▇▇▇▇▇▇▇░░░ ▇▇▇▇▇▇▇▇▇▇ ▇▇▇▇▇▇▇▇▇▇ ▇▇▇░░░░░░░ │ │
-│ 9 Results    ││     │ 18 linked  7 disc. …  1 no-bid   0 reject.  0 late     2 lost     │ │
-│ Company      ││     │ 91% new …  33% purs.… 80% bid …  4 of 4 …   3 of 3 …   1 of 3 …   │ │
+│ 2 Sourcing ▸ ││ Z3  ┌ Decision funnel ⓘ ──── ▬ Approved ▬ Rejected ▬ Pending ▬ Previous ┐ │
+│ 3 Bid dec. ▸ ││     │ Captured   › AI scr.  › DG1      › DG2      › DG3      › Won      │ │
+│ 4 Planning   ││     │ 194 in     18 passed  12 decid.  8 decided  7 decided  3 won      │ │
+│ …            ││     │ ▇▇▇▇▇▇▇▇▒▒ ▇░░░░░░░░░ ▇▇▇▇▇▇░░▪▪ ▇▇▇▇▇▇▇▇░░ ▇▇▇▇▇▇▇▇▇▇ ▇▇▇▇░░░░▪▪ │ │
+│ 9 Results    ││     │ 176 new …  176 out    8 appr. …  7 appr. …  7 appr. …  3 lost …   │ │
+│ Company      ││     │ 18 re-iss… 18 passed… 8 appr. o… 7 appr. o… 7 appr. o… 3 won of 7 │ │
 │ ──────────── ││     └───────────────────────────────────────────────────────────────────┘ │
 │ Admin        ││ Z5  ┌ Table | Graph (8/12) ───────────────────┐ Z4 ┌ Needs your ────────┐ │
 │ Settings     ││     │ Table: 10 rows, the rest scroll inside  │    │ action (4/12)      │ │
@@ -81,19 +81,26 @@ The same page, top to bottom, at 1440 px:
 
 ### Z3 · Flow strip: the funnel card
 - **User decision, 2026-09-28: the funnel is its own card; every column has the same five rows (step, number, split bar, other outcomes, rate). It replaces the thin line of 2026-09-26.** It sits at full width under the tiles, about 140 px tall at 1440 with its header.
-- **The header:** the flow's label and its ⓘ, and at the right a key of the outcome colours that occur in this flow: **Went on** (green), **Stopped** (grey), **Waiting** (orange).
+- **The header:** the flow's label and its ⓘ, and at the right a key of the outcome colours that occur in this flow. The decision funnel (PF-5) reads **Approved** (green), **Rejected** (grey), **Pending** (orange) and **Previous** (pale blue, re-issued notices); the stage strips read **Went on**, **Stopped**, **Waiting** (plan 039, user decision 2026-10-06: Approved / Rejected / Pending in the funnel only; the DG1 screen keeps Pursue / Discard / Hold).
 - **One column per step,** equal widths, separated by a hairline and a small chevron. The five rows sit on one grid, so the numbers, bars and notes line up across columns:
   1. the step and what it is or decides, in two or three words ("DG1 · Pursue or discard"; a gate's label is violet mono);
   2. the part that went on, the column's main number ("15 pursued");
   3. **a bar split by the column's own outcomes**: green went on, grey stopped, orange still waiting. A non-zero segment is at least 4% wide, so a single "held" stays visible; a column of zeros shows the empty track. The bar only draws the counts: its words are in rows 2 and 4, and screen readers skip it;
   4. the other outcomes, zeros included, so every column reads the same ("29 discarded · 2 held", "0 late");
   5. the rate: "33% pursued of 46 decided". Under five, the counts only ("2 pursued of 3 decided"), the tiles' small-sample rule; with nothing, "None in this period".
-- **It is not a tapered funnel.** The counts are decisions in the period, not one group of tenders followed through, so each bar splits its own column only.
-- **The Head of Tendering's decision funnel** (PF-5): Captured (new · linked) → DG1 (pursued · discarded · held) → DG2 (bid · no-bid) → DG3 (approved · rejected) → Submitted (on time · late) → Results (won · lost). "Linked" counts duplicates and addenda linked to a tender already on the register. The Bid Manager's starts at DG1.
-- **Every non-zero number is a link.** It switches the main view to the Table, filtered to exactly those tenders (including closed ones). "520 new" opens the tender radar; "linked" has no list. A zero is plain text.
-- The card has its own ⓘ. It says the counts are decisions made in the period, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up.
+- **It is not a tapered bar.** Each bar splits its own column only. The decision funnel's numbers are still read as one batch narrowing (plan 039): the targets are set so each gate decides about what the one before approved.
+- **The Head of Tendering's decision funnel** (PF-5, plan 039, user decision 2026-10-06): six columns read left to right as tenders narrowing step by step. Najd at 30 days reads **194 → 18 → 12 → 8 → 7 → 3**:
+  1. **Captured** · Total in: "194 in"; 176 new · 18 previous; note "18 re-issued of 194 in". "Previous" counts re-issued notices of a tender seen before (and today's addenda or duplicates linked to one).
+  2. **AI screening** · Initial screening: "18 passed"; 176 screened out; note "18 passed of 194 screened".
+  3. **DG1** · First-level screening: "12 decided"; 8 approved · 3 rejected · 1 pending; note "8 approved of 12 decided".
+  4. **DG2** · Bid or no-bid: "8 decided"; 7 approved · 1 rejected.
+  5. **DG3** · Final approval: "7 decided"; 7 approved · 0 rejected.
+  6. **Won** · Final shortlist: "3 won"; 3 lost · 1 pending (bids submitted in the period still to hear about); note "3 won of 7 submitted".
+  The Submitted and Results columns are gone; Won replaces them. The notes are counts, never percentages. The Bid Manager's funnel starts at DG1.
+- **Every non-zero number on a gate column, and won and lost, is a link.** It switches the main view to the Table, filtered to exactly those tenders (including closed ones). "176 new" and "18 passed" open the tender radar; "in", "previous", "screened out" and Won's "pending" are volumes without a list. A zero is plain text.
+- The card has its own ⓘ, in plain English: what the card shows, that it reads left to right as tenders narrowing step by step, and what each colour means.
 - **Stage dashboards use one rule:** a **step column** takes the tenders that entered the step in the period and splits them by where each is now: **moved on** (a later step or stage), **still here**, or **stopped** (closed in this step). Its main number is "moved on", as in every other column, and the note says of how many: "50% moved on of 12 entered". A stage that ends in a gate shows the gate's decisions; the others end with "Left {stage}" (moved on · stopped, "80% moved on of 10 left"). All of it is derived from the stage log (§12.1), so every stage's card is honest and needs no extra data.
-  - **Stage 1:** Captured (new · linked) → Logged → Screened → Awaiting DG1 → DG1. The separate Linked column of §10.4 folds into Captured (plan 027d, 2026-09-28).
+  - **Stage 1:** Captured (new · previous) → Logged → Screened → Awaiting DG1 → DG1. The separate Linked column of §10.4 folds into Captured (plan 027d, 2026-09-28); plan 039 renamed "linked" to "previous".
   - **Stage 9:** Result received (won · lost) → Handover or debrief → Lessons captured → Closed. A result closed after its handover or debrief is done, so it counts as moved on.
   - **My requests:** Requested → Submitted → Accepted, one number each on a neutral bar, with a note saying what it counts ("Asked of you in the period").
 - **No row wraps** at 1440 or 1280: a row that doesn't fit ends in an ellipsis, with its full text on hover.
@@ -128,17 +135,16 @@ It opens **below the main view** when a table row is selected (§7). Clicking th
 
 ## 2. The period filter
 
-**Options:** Today · 7 days · 30 days · 90 days · 12 months. The default is **30 days**.
+**Options:** All · 30 days · 90 days · 12 months. The default is **30 days**. (User decision 2026-10-06, plan 039: Today and 7 days are no longer offered; a stored or linked `today` or `7d` falls back to 30 days. Code and dev checks may still read those windows.)
 
-**Windows.** Each is the last N calendar days, including today, ending at the demo clock (Sun 8 Mar 2026, 10:00 tenant time). With the demo date they are:
+**Windows.** Each is the last N calendar days, including today, ending at the demo clock (Sun 8 Mar 2026, 10:00 tenant time). All is the whole history: 730 days, from Sat 9 Mar 2024. With the demo date they are:
 
 | Option | Window | Previous period (for comparison) |
 | --- | --- | --- |
-| Today | Sun 8 Mar 00:00 – 10:00 | Sat 7 Mar, same hours |
-| 7 days | Mon 2 Mar – Sun 8 Mar | 23 Feb – 1 Mar |
+| All | Sat 9 Mar 2024 – Sun 8 Mar 2026 | None ("No earlier period"): an empty window before the history |
 | 30 days | Sat 7 Feb – Sun 8 Mar | 8 Jan – 6 Feb |
 | 90 days | Tue 9 Dec 2025 – Sun 8 Mar | 10 Sep – 8 Dec 2025 |
-| 12 months | 9 Mar 2025 – 8 Mar 2026 | 9 Mar 2024 – 8 Mar 2025 (only where history exists; otherwise "No comparison") |
+| 12 months | 9 Mar 2025 – 8 Mar 2026 | 9 Mar 2024 – 8 Mar 2025 |
 
 **Two kinds of KPI** (every registry entry declares its `kind`):
 - **Flow KPIs** count events inside the window: decisions, submissions, results, captures. The sub-line may compare with the previous period in words ("previous 30 days: 2"). Arrows are optional and always neutral in colour.
@@ -574,15 +580,16 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
 
 ### 10.1 Head of Tendering: Portfolio (all tenders)
 - **Home of:** `hot`. The same dashboard serves the CEO (§10.2) with different tiles.
-- **Question:** *"What is in our pipeline and what is it worth, what did we decide, are we winning, and what needs me?"*
-- **Tiles:**
-  1. PF-1 Live pipeline (state)
-  2. PF-2 Average ticket size (flow)
-  3. PF-3 Win / loss (flow)
-  4. PF-4 Decisions on time (flow)
-  5. SCR-6 Credentials at risk (state)
-  6. CAP-1 Bid-team load (state)
-- **Flow strip, PF-5 Decision funnel:** Captured → DG1 (pursued · discarded · held) → DG2 (bid · no-bid) → DG3 (approved · rejected) → Submitted → Results (won · lost).
+- **Question:** *"How many tenders are open to us, are we winning, what do we bid, how many pass screening, are gates decided on time, and which company documents have gaps?"*
+- **Tiles** (one row at 1440, left to right; plan 040, user decisions 2026-10-06):
+  1. PF-0 Live pipeline (state): "{n} active tenders", new notices still open for bids now; detail "from {N} portals" (distinct portal and client-portal sources among them); reference "Largest · {portal} {n}". Click → Tender radar (when the viewer may open it).
+  2. PF-3 Win & Loss (flow): "{won} won · {lost} lost"; detail "{rate}% win rate"; reference "Target · {tenant target}%" ("… from 5 results" under five results); status "Below target" only under target. Najd, 90 days: 14 won · 11 lost, 56%, target 45%.
+  3. PF-2 Average ticket size (flow).
+  4. PF-7 Tenders accepted (flow): notices that passed the AI first screening in the period; detail "of {captured + re-issued} captured"; reference "Rate · {passed ÷ captured}%". Najd, 30 days: 18 of 194, 9%. Click → Tender radar.
+  5. PF-4 Decisions on time (flow): "{on time} of {all} on time"; detail "{k} late" or "None late"; reference "Latest late · {TID}". Tone bands unchanged (100% green, ≥ 90% orange). Click → list panel "Late gate decisions · {period}": one row per late decision, newest first (gate, tender, who decided and role, when the gate opened, when it was decided, the limit, how late); each row opens the tender; the link under it shows all decisions in the table, late first.
+  6. SCR-6 Documentation gaps (state): documents in the credentials vault that have expired, or expire before a live bid needs them; detail the first two ("Zakat 30 Apr · GOSI 7 May"); reference "Renew by · {date}"; status "Expired" / "Renew soon"; owner chip. Click → list panel "Company documents": every vault document, gaps first (document and issuer, number, expiry, status Valid · Expiring before a bid · Expired, live bids affected, owner, renewal requested); a row opens the credential; the link under it opens Company › Credentials.
+  - PF-1 is renamed **Pursued pipeline** and stays on the CEO's dashboard (§10.2); the Bid Manager's reads "My live bids" (§10.3). CAP-1 Bid-team load leaves this dashboard.
+- **Flow strip, PF-5 Decision funnel** (plan 039): Captured (new · previous) → AI screening (passed · screened out) → DG1 (approved · rejected · pending) → DG2 (approved · rejected) → DG3 (approved · rejected) → Won (won · lost · pending), read as one batch narrowing; see §1 Z3.
 - **Needs your action:**
   - DG3 approvals;
   - DG2 approvals (with quorum state and pack freshness);
@@ -647,7 +654,7 @@ Each entry lists the following. Tiles are KPI IDs, and **all six obey §2 and §
   4. INT-4 Sources healthy (state)
   5. INT-3 Missed tenders (flow, over the reconciliations in the period)
   6. INT-10 Documents to buy (state)
-- **Flow card:** Captured (new · linked: duplicates and addenda) → Logged → Screened → Awaiting DG1 → DG1 (pursued · discarded · held). Linked folded into Captured on 2026-09-28 (§1).
+- **Flow card:** Captured (new · previous: re-issued notices, and today's duplicates and addenda) → Logged → Screened → Awaiting DG1 → DG1 (pursued · discarded · held). Linked folded into Captured on 2026-09-28 (§1) and became "previous" on 2026-10-06 (plan 039).
 - **Needs your action:**
   - validation items (blocking DG1 first);
   - booklet purchases (requested; waiting on the Head of Tendering);
@@ -939,7 +946,7 @@ OUT-1, OUT-3 and OUT-6 keep their catalogue definitions, now with the period app
 ## 12. Data the dashboards need (plan 017)
 
 ### 12.1 One lifecycle per tender
-For every tender, live or closed in the last 13 months, the tenant data holds a **lifecycle**:
+For every tender, live or closed in the 730 days of history (plan 039; 13 months before), the tenant data holds a **lifecycle**:
 - **stage log:** `{ stage, step, enteredAt, leftAt?, ownerId }[]`;
 - **gate records** for DG1, DG2 and DG3: decision, time, who, on time or not, reason codes, and for DG2 `againstMajority`;
 - **submission:** time, and on time or not;
@@ -948,7 +955,7 @@ For every tender, live or closed in the last 13 months, the tenant data holds a 
 
 **The lifecycle is the single source.** The history arrays of plan 004 are folded into it, so a decision is written once. Step facts for Stages 2 and 3 are **interim summaries**: plans 008 and 009 replace them with derivations from their detailed RFQ and pack records, and a dev check asserts the two agree.
 
-Captures are kept as daily counts per source (`intakeDaily`), because the funnel needs capture volumes for 12 months, not 2,000 individual notices.
+Captures are kept as daily counts per source (`intakeDaily`), because the funnel needs capture volumes for two years, not 4,000 individual notices. Each day also holds the re-issued notices (`linked`, the funnel's "previous"), the new notices that passed the AI screening (`passed`) and those still open for bids (`open`: every new notice of the last 30 days, so Najd's active notices now are 176).
 
 ### 12.2 Najd (tenant A): live register by stage (now)
 The Stage 1–3 rows exist already (gcc-demo-data §5.1). New rows are marked **new**. IDs from 2025 are tenders captured last year, as their submission dates require.
@@ -963,9 +970,9 @@ The Stage 1–3 rows exist already (gcc-demo-data §5.1). New rows are marked **
 | 6 | T-2026-088 Dammam stormwater tunnels · **new** T-2025-317 Taif water reservoirs | 420 · 96 | Review (11 / 18 locked; 1 late; score 76 vs 70; red team Tue 10 Mar) · Drafting (3 / 12; 2 late; 3 SME tasks overdue; score 68 vs 70 → PRP-3) | Rami Aziz |
 | 7 **new** | T-2025-305 Yanbu STP expansion | 150 | DG3 pack issued Sat 7 Mar 16:00 (100% evidenced; 0 gaps; 0 redlines open) | Faisal Al-Harbi (DG3) |
 | 8 | **new** T-2025-298 Makkah water distribution · **new** T-2025-291 Riyadh sewage network extension · **new** T-2025-284 Dammam water network · T-2026-079 Qassim water networks | 230 · 290 · 186 · 310 | Signatures (deadline Thu 12 Mar 10:00; 2 signatures pending; bond SAR 2.3 M valid to 10 Jun) · Awaiting result (submitted 3 Mar) · Awaiting result (15 Feb) · Awaiting result (Thu 19 Feb) | Omar Siddiqui |
-| 9 **new** | T-2025-262 Unaizah STP (won 24 Feb) · T-2025-270 Hail water transmission (lost 5 Mar: price, 2nd of 6, 6.8% above the winner) | 142 · 205 | Handover (kick-off Sun 15 Mar) · Debrief | Mohammed Al-Ghamdi |
+| 9 **new** | T-2025-262 Unaizah STP (won 24 Feb) · T-2025-270 Hail water transmission (lost 5 Mar: price, 2nd of 6, 6.8% above the winner) | 142 · 205 | Handover (kick-off Sun 15 Mar) · Debrief | Mazen Al-Ghufaili |
 
-Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9 2 = **29**. **PF-1 = 15 tenders, SAR 3.09 bn** (Stages 2–8).
+Live counts: S1 12 · S2 7 · S3 2 · S4 2 · S5 3 · S6 4 · S7 1 · S8 8 · S9 2 = **41**. **PF-1 = 27 tenders, SAR 6.83 bn** (Stages 2–8). Review of plan 039 (2026-10-06): what the last 30 days approved stays live, so T-2026-106 and 11 generated tenders (4 in Stage 2, 3 in Stages 5–6, 4 submitted and awaiting results) joined the 15 hand-authored ones.
 
 **Stage 2 runs long, by design.** Najd's Stage 2 durations run 29–77 days, because §12.3 fixes the 90-day DG1 total and the DG2 anchors. The "average days in stage" graph shows Stage 2 long; that is expected (accepted 2026-09-26).
 
@@ -973,28 +980,30 @@ Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9
 
 **Recently closed (inside 30 days):**
 - T-2025-255 Najran dam rehabilitation: lost 17 Feb (technical score); lessons captured 1 Mar; closed.
-- T-2026-106 Al-Kharj treated effluent line: pursued 9 Feb, withdrawn 1 Mar when the JV partner withdrew.
+- T-2026-106 Al-Kharj treated effluent line: pursued 9 Feb, now levelling quotes in Stage 2 (until 2026-10-06 it was withdrawn on 1 Mar).
 - T-2026-099 Hafr Al-Batin water network: DG2 No-Bid 1 Mar (capacity conflict).
 - T-2026-107 Jazan sewer house connections: DG1 Discard 23 Feb, 27 h after M1. **Late: the one late decision.**
 - T-2026-115 Jeddah desalination intake: DG1 Discard 2 Mar (out of scope).
 - T-2026-112: as §5.1.
 
 ### 12.3 Najd: flow targets by period (the generator must hit these exactly)
-| Flow | Today | 7 days | 30 days | 90 days | 12 months |
-| --- | --- | --- | --- | --- | --- |
-| Notices captured | 11 | 44 | 176 | 520 | 2,080 |
-| DG1 decided (pursue · discard · hold) | 0 | 3 (1 · 2 · 0) | 12 (4 · 7 · 1) | 46 (15 · 29 · 2) | 185 (60 · 116 · 9) |
-| DG1 on time | — | 3 / 3 | 11 / 12 | 44 / 46 | 178 / 185 |
-| DG2 decided (bid · no-bid) | 0 | 1 (1 · 0) | 5 (4 · 1) | 14 (11 · 3) | 54 (40 · 14) |
-| DG2 on time | — | 1 / 1 | 5 / 5 | 14 / 14 | 51 / 54 |
-| DG3 decided (approved · rejected) | 0 | 1 (1 · 0) | 4 (4 · 0) | 10 (9 · 1) | 39 (38 · 1) |
-| DG3 on time | — | 1 / 1 | 4 / 4 | 10 / 10 | 38 / 39 |
-| Bids submitted | 0 | 1 | 3 | 9 | 38 |
-| PF-2 Average ticket size | "No bids submitted" | SAR 290.0 M | **SAR 262.0 M** | SAR 241.0 M | SAR 214.0 M |
-| Results (won · lost) | 0 | 1 (0 · 1) | 3 (1 · 2) | 9 (2 · 7) | 33 (9 · 24) |
-| PF-4 Decisions on time | "No decisions yet today" | 5 / 5 (100%) | **20 / 21 (95%)** | 68 / 70 (97%) | 267 / 278 (96%) |
+Plan 039 (the user's table of 2026-10-06, with the orchestrator's 90-day and All columns). Each column's headline is in bold; the funnel reads it as one batch narrowing. Today and 7 days are no longer offered but stay as the hand-authored subsets.
 
-**Dated anchors that give these numbers:**
+| Flow | Today | 7 days | 30 days | 90 days | 12 months | All (730 days) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Captured: total in = new + previous | 12 = 11 + 1 | 48 = 44 + 4 | **194** = 176 + 18 | **572** = 520 + 52 | **2,080** = 1,890 + 190 | **4,070** = 3,700 + 370 |
+| AI screening: passed · screened out | 2 · 10 | 5 · 43 | **18** · 176 | **62** · 510 | **250** · 1,830 | **490** · 3,580 |
+| DG1: decided = approved · rejected · pending | 0 | 3 = 1 · 2 · 0 | **12** = 8 · 3 · 1 | **44** = 30 · 12 · 2 | **185** = 104 · 72 · 9 | **366** = 206 · 146 · 14 |
+| DG2: decided = approved (bid) · rejected (no-bid) | 0 | 1 = 1 · 0 | **8** = 7 · 1 | **30** = 28 · 2 | **104** = 96 · 8 | **206** = 190 · 16 |
+| DG3: decided = approved · rejected | 0 | 1 = 1 · 0 | **7** = 7 · 0 | **28** = 27 · 1 | **96** = 94 · 2 | **190** = 186 · 4 |
+| Won: won · lost · pending, of submitted | 0 | 0 · 1 · 0 of 1 | **3** · 3 · 1 of 7 | **14** · 11 · 2 of 27 | **42** · 44 · 8 of 94 | **82** · 88 · 16 of 186 |
+| Decisions on time (PF-4) | — | 5 / 5 | 25 / 27 | 95 / 102 | 362 / 385 (94%) | 716 / 762 (94%) |
+| Late by gate (DG1 · DG2 · DG3) | — | 0 · 0 · 0 | 1 · 1 · 0 | 3 · 2 · 2 | 11 · 6 · 6 | 22 · 12 · 12 |
+| PF-2 Average ticket size | "No bids submitted" | SAR 290.0 M | SAR 210–290 M (steered, not fixed) | same | same | same |
+
+Win target (PF-3): **45%** (plan 039; it was 25%).
+
+**Dated anchors that give these numbers** (plan 017; plan 039 keeps the hand-authored rows and lets the generator add closed tenders around them in every band but today and 7 days, so 30-day and 90-day drills now also show generated tenders, mostly closed: withdrawn in Stage 2 or 4, or cancelled after opening):
 - **DG1, 7 days:**
   - Pursue T-2026-109 on Wed 4 Mar 11:20;
   - Discard T-2026-112 on 3 Mar;
@@ -1011,7 +1020,8 @@ Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9
 - **Results, 30 days:**
   - won T-2025-262 (24 Feb, SAR 142 M);
   - lost T-2025-255 (17 Feb) and T-2025-270 (Thu 5 Mar).
-- **90-day and 12-month totals:** keep plan 004's 46 DG1 records and 33 outcomes (re-dated where needed to fit the windows above). The other history is generated around them.
+- **90-day and 12-month totals:** keep plan 004's records and 33 outcomes. Plan 039 moved 17 of the DG1 discard records 13 weeks earlier (into the rest of the 12 months; seven of them get a 2025 id), and T-2025-447 (Pursue against the recommendation, then No-Bid) likewise, so the 90 days hold 12 discards and 2 No-Bids. The other history is generated around them.
+- **12-month splits (plan 039, scaled to the new totals):** wins by sector water 33 · roads 9; losses price 24 · technical 9 · local content 5 · prequalification 2 · other 4; forecast bands > 70%: 13 of 16, 50–70%: 19 of 28, 30–50%: 10 of 22, < 30%: 0 of 20 (Najd's one over-confident band); DG2 against the majority 4, re-opened 2. Over 90 days: discards out of scope 5 · below value 2 · prequalification 2 · not enough time 2 · capacity 1; overrides 3 (2 for the client relationship).
 
 **Correction to gcc-demo-data §5.1** (applied there on 2026-09-26):
 - "DG2, last 12 months: 18 decisions" was too few for 38 submissions a year. It becomes **54 (40 bid, 14 no-bid), 51 on time**.
@@ -1032,12 +1042,20 @@ Live counts: S1 12 · S2 2 · S3 2 · S4 2 · S5 2 · S6 2 · S7 1 · S8 4 · S9
 ### 12.5 Other tenants: live counts and 12-month flows
 Titles and values are fictional; the generator fills the history.
 
-| Tenant | Live by stage (S1 · S2 · S3 · S4 · S5 · S6 · S7 · S8 · S9) | DG1 (pursue · discard · hold) | DG2 (bid · no-bid) | DG3 (approved · rejected) | Submitted | Results (won · lost) |
+Live by stage (S1 · S2 · S3 · S4 · S5 · S6 · S7 · S8 · S9): Corniche 3 · 1 · 1 · 1 · 1 · 1 · 1 · 2 · 1; Dafna and Batinah 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1; Qurain 3 · 2 · 1 · 1 · 1 · 1 · 1 · 3 · 1.
+
+**Flows (plan 039):** the same layout as Najd, scaled from Najd's 12-month and All columns by each tenant's 12-month DG1 total before plan 039 ÷ 185 (Corniche 120, Dafna 95, Batinah 130, Qurain 160), rounded, each column no larger than the one before it. On-time counts are not steered (about 4% of generated decisions late); forecasts are calibrated.
+
+| Tenant · window | Captured = new + previous | AI passed | DG1 = approved · rejected · pending | DG2 = approved · rejected | DG3 = approved · rejected | Won (won · lost · pending of submitted) |
 | --- | --- | --- | --- | --- | --- | --- |
-| Corniche (B) | 3 · 1 · 1 · 1 · 1 · 1 · 1 · 2 · 1 | 120 (38 · 78 · 4) | 34 (26 · 8) | 26 (25 · 1) | 25 | 22 (6 · 16) |
-| Dafna (C) | 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 95 (30 · 61 · 4) | 28 (21 · 7) | 21 (20 · 1) | 20 | 18 (5 · 13) |
-| Batinah (D) | 3 · 1 · 0 · 1 · 1 · 1 · 1 · 2 · 1 | 130 (40 · 85 · 5) | 36 (28 · 8) | 28 (27 · 1) | 27 | 25 (8 · 17) |
-| Qurain (E) | 3 · 2 · 1 · 1 · 1 · 1 · 1 · 3 · 1 | 160 (52 · 100 · 8) | 45 (35 · 10) | 35 (34 · 1) | 34 | 30 (8 · 22) |
+| Corniche · 12 months | 1,349 = 1,226 + 123 | 162 | 120 = 67 · 47 · 6 | 67 = 62 · 5 | 62 = 61 · 1 | 27 (27 · 29 · 5 of 61) |
+| Corniche · All | 2,640 = 2,400 + 240 | 318 | 237 = 134 · 95 · 8 | 134 = 123 · 11 | 123 = 121 · 2 | 53 (53 · 57 · 11 of 121) |
+| Dafna · 12 months | 1,069 = 971 + 98 | 128 | 95 = 53 · 37 · 5 | 53 = 49 · 4 | 49 = 48 · 1 | 22 (22 · 23 · 3 of 48) |
+| Dafna · All | 2,090 = 1,900 + 190 | 252 | 188 = 106 · 75 · 7 | 106 = 98 · 8 | 98 = 96 · 2 | 42 (42 · 45 · 9 of 96) |
+| Batinah · 12 months | 1,462 = 1,328 + 134 | 176 | 130 = 73 · 51 · 6 | 73 = 67 · 6 | 67 = 66 · 1 | 30 (30 · 31 · 5 of 66) |
+| Batinah · All | 2,860 = 2,600 + 260 | 344 | 257 = 145 · 103 · 9 | 145 = 134 · 11 | 134 = 131 · 3 | 58 (58 · 62 · 11 of 131) |
+| Qurain · 12 months | 1,799 = 1,635 + 164 | 216 | 160 = 90 · 62 · 8 | 90 = 83 · 7 | 83 = 81 · 2 | 36 (36 · 38 · 7 of 81) |
+| Qurain · All | 3,520 = 3,200 + 320 | 424 | 317 = 178 · 126 · 13 | 178 = 164 · 14 | 164 = 161 · 3 | 71 (71 · 76 · 14 of 161) |
 
 **Every tenant has, now:**
 - one DG3 approval waiting for its Head of Tendering (the Stage 7 tender);
@@ -1050,7 +1068,7 @@ This keeps every tenant's dashboard alive on every period.
 **Proposal Manager** (`prop`, group Contributors, owner of Stage 6):
 - Najd: Rami Aziz;
 - Corniche: Sophie Laurent;
-- Dafna: Ahmed Fathy;
+- Dafna: Ayman Fikry;
 - Batinah: Latifa Al-Maawali;
 - Qurain: Mona Al-Rifai.
 

@@ -149,7 +149,7 @@ export function App() {
                 <Route path="dashboard" element={<Home />} />
                 <Route path="dashboard/:role" element={<LegacyDashboardRoute />} />
                 <Route path="pipeline" element={<LegacyOnly><Pipeline /></LegacyOnly>} />
-                <Route path="workflow" element={<LegacyOnly><Workflow /></LegacyOnly>} />
+                <Route path="workflow" element={<Workflow />} />
                 <Route path="agents" element={<LegacyOnly><Guard page="agents"><Agents /></Guard></LegacyOnly>} />
                 <Route path="submission" element={<LegacyOnly><Guard page="submission"><Submission /></Guard></LegacyOnly>} />
                 <Route path="intake" element={<LegacyOnly><Guard page="intake"><IntakeList /></Guard></LegacyOnly>} />

@@ -57,7 +57,7 @@ export function ProcDashboard() {
                 : <button type="button" className="btn btn-sm btn-invert" disabled={!!chosen} onClick={() => mark('q-tx', `${q.supplier} selected for transformers. Locked to BOQ, reason recorded`, 'green', q.key)}>Select</button> },
             ]}
           />
-          <CardFoot>Crompton Greaves excludes freight, so ₹ 1.6 Cr is added for comparison. Your selection is logged with its reason.</CardFoot>
+          <CardFoot>Kanchan Gridtech excludes freight, so ₹ 1.6 Cr is added for comparison. Your selection is logged with its reason.</CardFoot>
         </Card>
         <Card>
           <CardHead title="Guardrails in force" />

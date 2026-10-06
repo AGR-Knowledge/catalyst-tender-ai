@@ -14,7 +14,10 @@ import type { Money } from '../types';
  * employer). Each year's value won sits within 40–160% of the turnover of the
  * financial year it mostly covers, and its sectors are the company's own
  * (dev check 66). Najd, Corniche, Batinah and Qurain grow steadily; Dafna has
- * one poor year (2023–24) before it recovers.
+ * one poor year (2023–24) before it recovers. The review of plan 039
+ * (2026-10-06) sized every company to its 730 days of lifecycles: the
+ * 2024–25 year repeats what those lifecycles hold for the same dates, and the
+ * three years before it lead up to it gently.
  */
 
 export interface BidYearSeed {
@@ -38,113 +41,118 @@ const year = (from: number, s: Omit<BidYearSeed, 'from' | 'to'>): BidYearSeed =>
 export const BID_RECORD_YEARS: Record<GccTenantKey, BidYearSeed[]> = {
   najd: [
     year(2021, {
-      submitted: 30, won: 6, lost: 22, withdrawn: 2,
-      valueSubmitted: { amount: 5_400 * M, ccy: 'SAR' }, valueWon: { amount: 980 * M, ccy: 'SAR' },
-      bySector: { 'Water and wastewater': { submitted: 20, won: 5 }, Roads: { submitted: 10, won: 1 } },
+      submitted: 84, won: 35, lost: 44, withdrawn: 5,
+      valueSubmitted: { amount: 19_200 * M, ccy: 'SAR' }, valueWon: { amount: 8_400 * M, ccy: 'SAR' },
+      bySector: { 'Water and wastewater': { submitted: 40, won: 18 }, 'Utility networks': { submitted: 22, won: 9 }, Roads: { submitted: 22, won: 8 } },
     }),
     year(2022, {
-      submitted: 33, won: 7, lost: 24, withdrawn: 2,
-      valueSubmitted: { amount: 6_100 * M, ccy: 'SAR' }, valueWon: { amount: 1_120 * M, ccy: 'SAR' },
-      bySector: { 'Water and wastewater': { submitted: 21, won: 5 }, Roads: { submitted: 10, won: 2 }, 'Utility networks': { submitted: 2, won: 0 } },
+      submitted: 87, won: 37, lost: 45, withdrawn: 5,
+      valueSubmitted: { amount: 20_500 * M, ccy: 'SAR' }, valueWon: { amount: 9_000 * M, ccy: 'SAR' },
+      bySector: { 'Water and wastewater': { submitted: 41, won: 19 }, 'Utility networks': { submitted: 23, won: 10 }, Roads: { submitted: 23, won: 8 } },
     }),
     year(2023, {
-      submitted: 35, won: 8, lost: 25, withdrawn: 2,
-      valueSubmitted: { amount: 6_900 * M, ccy: 'SAR' }, valueWon: { amount: 1_380 * M, ccy: 'SAR' },
-      bySector: { 'Water and wastewater': { submitted: 22, won: 6 }, Roads: { submitted: 11, won: 2 }, 'Utility networks': { submitted: 2, won: 0 } },
+      submitted: 90, won: 38, lost: 46, withdrawn: 6,
+      valueSubmitted: { amount: 22_100 * M, ccy: 'SAR' }, valueWon: { amount: 9_600 * M, ccy: 'SAR' },
+      bySector: { 'Water and wastewater': { submitted: 41, won: 19 }, 'Utility networks': { submitted: 25, won: 11 }, Roads: { submitted: 24, won: 8 } },
     }),
+    // 9 Mar 2024 – 8 Mar 2025 is inside the lifecycles: these are the counts the All period gives for the same dates (dev check 66).
     year(2024, {
-      submitted: 36, won: 8, lost: 26, withdrawn: 2,
-      valueSubmitted: { amount: 7_400 * M, ccy: 'SAR' }, valueWon: { amount: 1_460 * M, ccy: 'SAR' },
-      bySector: { 'Water and wastewater': { submitted: 22, won: 6 }, Roads: { submitted: 12, won: 2 }, 'Utility networks': { submitted: 2, won: 0 } },
+      submitted: 92, won: 40, lost: 44, withdrawn: 8,
+      valueSubmitted: { amount: 24_456 * M, ccy: 'SAR' }, valueWon: { amount: 11_186 * M, ccy: 'SAR' },
+      bySector: { 'Water and wastewater': { submitted: 40, won: 20 }, 'Utility networks': { submitted: 27, won: 12 }, Roads: { submitted: 25, won: 8 } },
     }),
   ],
   corniche: [
     year(2021, {
-      submitted: 20, won: 4, lost: 15, withdrawn: 1,
-      valueSubmitted: { amount: 4_200 * M, ccy: 'AED' }, valueWon: { amount: 720 * M, ccy: 'AED' },
-      bySector: { 'Buildings MEP': { submitted: 12, won: 3 }, 'District cooling': { submitted: 5, won: 1 }, 'Fit-out': { submitted: 3, won: 0 } },
+      submitted: 52, won: 21, lost: 27, withdrawn: 4,
+      valueSubmitted: { amount: 11_000 * M, ccy: 'AED' }, valueWon: { amount: 4_300 * M, ccy: 'AED' },
+      bySector: { 'Buildings MEP': { submitted: 27, won: 11 }, 'District cooling': { submitted: 15, won: 6 }, 'Fit-out': { submitted: 10, won: 4 } },
     }),
     year(2022, {
-      submitted: 22, won: 5, lost: 15, withdrawn: 2,
-      valueSubmitted: { amount: 4_800 * M, ccy: 'AED' }, valueWon: { amount: 950 * M, ccy: 'AED' },
-      bySector: { 'Buildings MEP': { submitted: 13, won: 4 }, 'District cooling': { submitted: 6, won: 1 }, 'Fit-out': { submitted: 3, won: 0 } },
+      submitted: 55, won: 23, lost: 28, withdrawn: 4,
+      valueSubmitted: { amount: 12_300 * M, ccy: 'AED' }, valueWon: { amount: 4_700 * M, ccy: 'AED' },
+      bySector: { 'Buildings MEP': { submitted: 28, won: 12 }, 'District cooling': { submitted: 16, won: 6 }, 'Fit-out': { submitted: 11, won: 5 } },
     }),
     year(2023, {
-      submitted: 23, won: 5, lost: 16, withdrawn: 2,
-      valueSubmitted: { amount: 5_600 * M, ccy: 'AED' }, valueWon: { amount: 1_100 * M, ccy: 'AED' },
-      bySector: { 'Buildings MEP': { submitted: 13, won: 4 }, 'District cooling': { submitted: 6, won: 1 }, 'Fit-out': { submitted: 4, won: 0 } },
+      submitted: 57, won: 24, lost: 28, withdrawn: 5,
+      valueSubmitted: { amount: 13_600 * M, ccy: 'AED' }, valueWon: { amount: 5_200 * M, ccy: 'AED' },
+      bySector: { 'Buildings MEP': { submitted: 29, won: 12 }, 'District cooling': { submitted: 16, won: 7 }, 'Fit-out': { submitted: 12, won: 5 } },
     }),
+    // 9 Mar 2024 – 8 Mar 2025 is inside the lifecycles: these are the counts the All period gives for the same dates (dev check 66).
     year(2024, {
-      submitted: 24, won: 6, lost: 16, withdrawn: 2,
-      valueSubmitted: { amount: 6_500 * M, ccy: 'AED' }, valueWon: { amount: 1_450 * M, ccy: 'AED' },
-      bySector: { 'Buildings MEP': { submitted: 13, won: 5 }, 'District cooling': { submitted: 7, won: 1 }, 'Fit-out': { submitted: 4, won: 0 } },
+      submitted: 60, won: 26, lost: 28, withdrawn: 6,
+      valueSubmitted: { amount: 15463.2 * M, ccy: 'AED' }, valueWon: { amount: 6617.5 * M, ccy: 'AED' },
+      bySector: { 'Buildings MEP': { submitted: 30, won: 13 }, 'Fit-out': { submitted: 19, won: 7 }, 'District cooling': { submitted: 11, won: 6 } },
     }),
   ],
   dafna: [
     year(2021, {
-      submitted: 17, won: 4, lost: 12, withdrawn: 1,
-      valueSubmitted: { amount: 3_000 * M, ccy: 'QAR' }, valueWon: { amount: 620 * M, ccy: 'QAR' },
-      bySector: { 'Civil works': { submitted: 8, won: 2 }, 'Utility networks': { submitted: 6, won: 1 }, 'Pump stations': { submitted: 3, won: 1 } },
+      submitted: 42, won: 17, lost: 22, withdrawn: 3,
+      valueSubmitted: { amount: 7_600 * M, ccy: 'QAR' }, valueWon: { amount: 3_000 * M, ccy: 'QAR' },
+      bySector: { 'Utility networks': { submitted: 18, won: 7 }, 'Civil works': { submitted: 14, won: 6 }, 'Pump stations': { submitted: 10, won: 4 } },
     }),
     year(2022, {
-      submitted: 18, won: 5, lost: 12, withdrawn: 1,
-      valueSubmitted: { amount: 3_200 * M, ccy: 'QAR' }, valueWon: { amount: 780 * M, ccy: 'QAR' },
-      bySector: { 'Civil works': { submitted: 8, won: 2 }, 'Utility networks': { submitted: 6, won: 2 }, 'Pump stations': { submitted: 4, won: 1 } },
+      submitted: 44, won: 18, lost: 23, withdrawn: 3,
+      valueSubmitted: { amount: 8_100 * M, ccy: 'QAR' }, valueWon: { amount: 3_300 * M, ccy: 'QAR' },
+      bySector: { 'Utility networks': { submitted: 19, won: 8 }, 'Civil works': { submitted: 14, won: 6 }, 'Pump stations': { submitted: 11, won: 4 } },
     }),
-    // The poor year: two wins from nineteen bids.
+    // The poor year: nine wins from forty-six bids.
     year(2023, {
-      submitted: 19, won: 2, lost: 15, withdrawn: 2,
-      valueSubmitted: { amount: 3_400 * M, ccy: 'QAR' }, valueWon: { amount: 360 * M, ccy: 'QAR' },
-      bySector: { 'Civil works': { submitted: 9, won: 1 }, 'Utility networks': { submitted: 6, won: 1 }, 'Pump stations': { submitted: 4, won: 0 } },
+      submitted: 46, won: 9, lost: 33, withdrawn: 4,
+      valueSubmitted: { amount: 8_700 * M, ccy: 'QAR' }, valueWon: { amount: 1_600 * M, ccy: 'QAR' },
+      bySector: { 'Utility networks': { submitted: 19, won: 4 }, 'Civil works': { submitted: 15, won: 3 }, 'Pump stations': { submitted: 12, won: 2 } },
     }),
+    // 9 Mar 2024 – 8 Mar 2025 is inside the lifecycles: these are the counts the All period gives for the same dates (dev check 66).
     year(2024, {
-      submitted: 19, won: 4, lost: 14, withdrawn: 1,
-      valueSubmitted: { amount: 3_600 * M, ccy: 'QAR' }, valueWon: { amount: 720 * M, ccy: 'QAR' },
-      bySector: { 'Civil works': { submitted: 8, won: 2 }, 'Utility networks': { submitted: 7, won: 1 }, 'Pump stations': { submitted: 4, won: 1 } },
+      submitted: 48, won: 20, lost: 22, withdrawn: 6,
+      valueSubmitted: { amount: 9301.9 * M, ccy: 'QAR' }, valueWon: { amount: 3762.7 * M, ccy: 'QAR' },
+      bySector: { 'Utility networks': { submitted: 26, won: 10 }, 'Pump stations': { submitted: 16, won: 7 }, 'Civil works': { submitted: 6, won: 3 } },
     }),
   ],
   batinah: [
     year(2021, {
-      submitted: 22, won: 6, lost: 15, withdrawn: 1,
-      valueSubmitted: { amount: 200 * M, ccy: 'OMR' }, valueWon: { amount: 48 * M, ccy: 'OMR' },
-      bySector: { Roads: { submitted: 15, won: 4 }, Bridges: { submitted: 4, won: 1 }, Earthworks: { submitted: 3, won: 1 } },
+      submitted: 56, won: 23, lost: 30, withdrawn: 3,
+      valueSubmitted: { amount: 850 * M, ccy: 'OMR' }, valueWon: { amount: 330 * M, ccy: 'OMR' },
+      bySector: { Roads: { submitted: 30, won: 12 }, Bridges: { submitted: 16, won: 6 }, Earthworks: { submitted: 10, won: 5 } },
     }),
     year(2022, {
-      submitted: 24, won: 7, lost: 16, withdrawn: 1,
-      valueSubmitted: { amount: 230 * M, ccy: 'OMR' }, valueWon: { amount: 54 * M, ccy: 'OMR' },
-      bySector: { Roads: { submitted: 16, won: 5 }, Bridges: { submitted: 5, won: 1 }, Earthworks: { submitted: 3, won: 1 } },
+      submitted: 59, won: 25, lost: 31, withdrawn: 3,
+      valueSubmitted: { amount: 920 * M, ccy: 'OMR' }, valueWon: { amount: 360 * M, ccy: 'OMR' },
+      bySector: { Roads: { submitted: 31, won: 13 }, Bridges: { submitted: 17, won: 7 }, Earthworks: { submitted: 11, won: 5 } },
     }),
     year(2023, {
-      submitted: 25, won: 7, lost: 17, withdrawn: 1,
-      valueSubmitted: { amount: 260 * M, ccy: 'OMR' }, valueWon: { amount: 58 * M, ccy: 'OMR' },
-      bySector: { Roads: { submitted: 16, won: 4 }, Bridges: { submitted: 5, won: 2 }, Earthworks: { submitted: 4, won: 1 } },
+      submitted: 62, won: 26, lost: 32, withdrawn: 4,
+      valueSubmitted: { amount: 1_010 * M, ccy: 'OMR' }, valueWon: { amount: 400 * M, ccy: 'OMR' },
+      bySector: { Roads: { submitted: 32, won: 13 }, Bridges: { submitted: 19, won: 7 }, Earthworks: { submitted: 11, won: 6 } },
     }),
+    // 9 Mar 2024 – 8 Mar 2025 is inside the lifecycles: these are the counts the All period gives for the same dates (dev check 66).
     year(2024, {
-      submitted: 26, won: 8, lost: 17, withdrawn: 1,
-      valueSubmitted: { amount: 300 * M, ccy: 'OMR' }, valueWon: { amount: 62 * M, ccy: 'OMR' },
-      bySector: { Roads: { submitted: 17, won: 5 }, Bridges: { submitted: 5, won: 2 }, Earthworks: { submitted: 4, won: 1 } },
+      submitted: 65, won: 28, lost: 31, withdrawn: 6,
+      valueSubmitted: { amount: 1119.7 * M, ccy: 'OMR' }, valueWon: { amount: 477.5 * M, ccy: 'OMR' },
+      bySector: { Roads: { submitted: 30, won: 12 }, Bridges: { submitted: 24, won: 8 }, Earthworks: { submitted: 11, won: 8 } },
     }),
   ],
   qurain: [
     year(2021, {
-      submitted: 28, won: 7, lost: 19, withdrawn: 2,
-      valueSubmitted: { amount: 600 * M, ccy: 'KWD' }, valueWon: { amount: 110 * M, ccy: 'KWD' },
-      bySector: { Water: { submitted: 14, won: 4 }, Infrastructure: { submitted: 7, won: 2 }, 'Oil and gas facilities': { submitted: 7, won: 1 } },
+      submitted: 70, won: 29, lost: 37, withdrawn: 4,
+      valueSubmitted: { amount: 1_600 * M, ccy: 'KWD' }, valueWon: { amount: 640 * M, ccy: 'KWD' },
+      bySector: { Water: { submitted: 34, won: 13 }, Infrastructure: { submitted: 18, won: 9 }, 'Oil and gas facilities': { submitted: 18, won: 7 } },
     }),
     year(2022, {
-      submitted: 30, won: 8, lost: 20, withdrawn: 2,
-      valueSubmitted: { amount: 650 * M, ccy: 'KWD' }, valueWon: { amount: 128 * M, ccy: 'KWD' },
-      bySector: { Water: { submitted: 15, won: 5 }, Infrastructure: { submitted: 7, won: 2 }, 'Oil and gas facilities': { submitted: 8, won: 1 } },
+      submitted: 73, won: 31, lost: 38, withdrawn: 4,
+      valueSubmitted: { amount: 1_750 * M, ccy: 'KWD' }, valueWon: { amount: 720 * M, ccy: 'KWD' },
+      bySector: { Water: { submitted: 35, won: 14 }, Infrastructure: { submitted: 19, won: 9 }, 'Oil and gas facilities': { submitted: 19, won: 8 } },
     }),
     year(2023, {
-      submitted: 31, won: 7, lost: 22, withdrawn: 2,
-      valueSubmitted: { amount: 700 * M, ccy: 'KWD' }, valueWon: { amount: 120 * M, ccy: 'KWD' },
-      bySector: { Water: { submitted: 15, won: 4 }, Infrastructure: { submitted: 8, won: 2 }, 'Oil and gas facilities': { submitted: 8, won: 1 } },
+      submitted: 76, won: 32, lost: 39, withdrawn: 5,
+      valueSubmitted: { amount: 1_950 * M, ccy: 'KWD' }, valueWon: { amount: 800 * M, ccy: 'KWD' },
+      bySector: { Water: { submitted: 36, won: 14 }, Infrastructure: { submitted: 20, won: 10 }, 'Oil and gas facilities': { submitted: 20, won: 8 } },
     }),
+    // 9 Mar 2024 – 8 Mar 2025 is inside the lifecycles: these are the counts the All period gives for the same dates (dev check 66).
     year(2024, {
-      submitted: 32, won: 8, lost: 22, withdrawn: 2,
-      valueSubmitted: { amount: 760 * M, ccy: 'KWD' }, valueWon: { amount: 140 * M, ccy: 'KWD' },
-      bySector: { Water: { submitted: 16, won: 5 }, Infrastructure: { submitted: 8, won: 2 }, 'Oil and gas facilities': { submitted: 8, won: 1 } },
+      submitted: 80, won: 35, lost: 38, withdrawn: 7,
+      valueSubmitted: { amount: 2180.6 * M, ccy: 'KWD' }, valueWon: { amount: 1072.3 * M, ccy: 'KWD' },
+      bySector: { Water: { submitted: 38, won: 13 }, 'Oil and gas facilities': { submitted: 23, won: 9 }, Infrastructure: { submitted: 19, won: 13 } },
     }),
   ],
 };

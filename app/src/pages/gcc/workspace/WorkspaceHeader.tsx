@@ -8,6 +8,7 @@ import { LangBadge } from '@/components/tender/LangBadge';
 import { whenLabel } from '@/components/tender/When';
 import { DemoTag } from '@/components/tender/DemoTag';
 import { HERO_ID } from '@/data/gcc/hero';
+import { TenderLabelPills, useTenderLabels } from '@/components/tender/TenderLabel';
 
 /**
  * The sticky header of the Tender Workspace (spec §4.1): one line of
@@ -19,6 +20,9 @@ import { HERO_ID } from '@/data/gcc/hero';
 
 export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; onBack(): void; tabs: ReactNode }) {
   const who = `${vm.issuer}${vm.place ? ` · ${vm.place}` : ''}${vm.procurement ? ` · ${vm.procurement}` : ''}`;
+  // Plan 042: OG and Previous beside the TID; a re-issue names its earlier tender under the title.
+  const labels = useTenderLabels(vm.id);
+  const prev = labels.previous;
   return (
     <header className="wsh">
       <div className="wsh-crumb">
@@ -32,6 +36,7 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
         <div className="wsh-id">
           {vm.flag && <span className="wsh-flag" role="img" aria-label={vm.place.split(', ').pop()}>{vm.flag}</span>}
           <span className="mono wsh-tid">{vm.id}</span>
+          <TenderLabelPills labels={labels} />
         </div>
         <h2 className="wsh-title" title={vm.fullTitle}>{vm.title}</h2>
         <div className="wsh-badges">
@@ -45,6 +50,14 @@ export function WorkspaceHeader({ vm, onBack, tabs }: { vm: WorkspaceHeaderVM; o
           {vm.valueNote && <span className="wsh-vnote">{vm.valueNote}</span>}
         </div>
       </div>
+
+      {prev && (
+        <p className="tlab-prevline" title={prev.canOpen ? prev.note : undefined}>
+          Re-issue of <span className="mono">{prev.previousId}</span>
+          {prev.endedHow && <> ({prev.endedHow}{prev.endedText ? `, ${prev.endedText}` : ''})</>}
+          {prev.canOpen && <> · <Link className="btn-link" to={`/tenders/${encodeURIComponent(prev.previousId)}`}>Open earlier tender</Link></>}
+        </p>
+      )}
 
       <div className="wsh-l2">
         <span className="wsh-who" title={who}>{who}</span>

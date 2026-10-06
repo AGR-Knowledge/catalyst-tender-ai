@@ -6,7 +6,7 @@ import { FX_PER_USD, type Ccy } from '../../fx';
 import type { SimilarProject } from '../../types';
 import { rngOf, type Rng } from '../../lifecycle/rng';
 import type { Supplier, Trade } from '../types';
-import { GCC_CODES, emailLocal, personName, phoneOf } from './names';
+import { GCC_CODES, emailLocal, fictionalName, personName, phoneOf } from './names';
 import type {
   Capability, CertificateSeed, CompanyFacts, CompletedSeed, ContactSeed, DocumentSeed, EvaluationSeed, FinancialYear,
   JobSeed, QuarterKey, QuarterSeed, ScreeningCycle, SupplierProfileSeed,
@@ -250,8 +250,8 @@ const HEALTH_BAND = {
   watch: { cr: [0.88, 1.06], nm: [-2.5, 2.5] },
 } as const;
 
-const ISO_BODIES = ['Veritrust Certification', 'Northstar Assurance Registrar', 'Qualitas Cert', 'Meridian Management Systems'];
-const INSURERS = ['Harbourline Assurance', 'Northgate Indemnity', 'Arcadia Mutual Insurance', 'Qasr Takaful', 'Saltmarsh General Insurance'];
+const ISO_BODIES = ['Veritrust Certification', 'Northstar Assurance Registrar', 'Qualitas Cert', 'Torvalen Management Systems'];
+const INSURERS = ['Harbourline Assurance', 'Northgate Indemnity', 'Arcadia Mutual Insurance', 'Qasr Takaful', 'Fenmoor General Insurance'];
 
 /** A valid-to date: mostly well ahead, some within 60 days, a few passed. */
 /** A yearly certificate's issue date: the latest anniversary of its expiry on or before the demo day, never after it. */
@@ -386,11 +386,13 @@ export function generateProfile(s: Supplier, tenant: string, o: ProfileOverride 
   const family = (n: string) => n.split(' ').slice(1).join(' ');
   const firstOf = (n: string) => n.split(' ')[0];
   const contacts: ContactSeed[] = (['md', 'tendering', 'qa', 'hse'] as const).map((role) => {
-    let name = personName(rc, s.country, role);
-    for (let i = 0; (used.has(name) || families.has(family(name)) || firsts.has(firstOf(name))) && i < 30; i++) name = personName(rc, s.country, role);
+    // Draw and de-duplicate on the drawn name; show its fictional swap (plan 043), so the stream is unchanged.
+    let drawn = personName(rc, s.country, role);
+    for (let i = 0; (used.has(fictionalName(drawn)) || families.has(family(drawn)) || firsts.has(firstOf(drawn))) && i < 30; i++) drawn = personName(rc, s.country, role);
+    const name = fictionalName(drawn);
     used.add(name);
-    families.add(family(name));
-    firsts.add(firstOf(name));
+    families.add(family(drawn));
+    firsts.add(firstOf(drawn));
     return { role, title: titles[role], name, email: `${emailLocal(name)}@${s.id}.example`, phone: phoneOf(rc, s.country) };
   });
 

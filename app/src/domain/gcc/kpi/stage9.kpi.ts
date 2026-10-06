@@ -41,15 +41,16 @@ export const KPIS: KpiDef[] = [
   {
     id: 'OUT-1', label: 'Hit rate', kind: 'flow',
     info: {
-      means: 'Won ÷ (won + lost), for the results received in the period. Always shown with the count',
-      counted: 'Results received in the period, won and lost. Withdrawn and cancelled tenders are left out.',
-      target: 'The company target hit rate, judged only with five results or more', source: 'Bid results',
+      means: 'The share of results we won in the period. Read it with the number of results behind it.',
+      counted: 'Bids won out of bids won and lost in the period; withdrawn and cancelled tenders are left out.',
+      target: `The company’s win target, from ${MIN_N} results`,
+      source: 'Bid results',
     },
     compute(ctx) {
       const list = qOf(ctx).resultsIn(ctx.window);
       const target = isGccTenantKey(ctx.tenant) ? TENANT_TARGETS[ctx.tenant].hitRatePct : null;
-      // Under five results the rate isn't judged yet; the line says when it will be, as on Win / loss (PF-3).
-      const early = target ? { ref: { k: 'Target', v: `${target}% from ${MIN_N} results` } } : {};
+      // Under five results the rate isn't judged yet; the line says when it will be, as on Win & Loss (PF-3).
+      const early = target ? { ref: { k: 'Target', v: `${target}% from ${MIN_N} results` }, infoTarget: `${target}% or more, judged from ${MIN_N} results` } : {};
       if (!list.length) return { display: 'No results in this period', detail: 'Nothing won or lost', ...early };
       const won = list.filter((x) => x.r.result === 'won').length;
       const lost = list.length - won;
@@ -58,8 +59,8 @@ export const KPIS: KpiDef[] = [
       return {
         display: `${pct}%`, sub: `${won} won · ${lost} lost (n = ${list.length})${target ? ` · target ${target}%` : ''}`, n: list.length,
         detail: `${won} won · ${lost} lost`,
-        // Orange here is already under the target hit rate, as on Win / loss (PF-3).
-        ...(target ? { ref: { k: 'Target', v: `${target}%` }, tone: pct >= target ? 'green' as const : 'orange' as const, ...(pct < target ? { status: 'Below target' } : {}) } : {}),
+        // Orange here is already under the target hit rate, as on Win & Loss (PF-3).
+        ...(target ? { ref: { k: 'Target', v: `${target}%` }, infoTarget: early.infoTarget, tone: pct >= target ? 'green' as const : 'orange' as const, ...(pct < target ? { status: 'Below target' } : {}) } : {}),
       };
     },
     drill: (ctx) => idsDrill(`From tile: Results · ${ctx.window.label}`, qOf(ctx).resultsIn(ctx.window).map((x) => x.l.tenderId)),
@@ -67,9 +68,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'RES-1', label: 'Results overdue', kind: 'state',
     info: {
-      means: 'Results we should have heard by now. Worth a call to the employer',
-      counted: "Submitted bids past the employer's expected award date, with no result yet.",
-      target: '0 green; any orange', source: 'Submissions and expected award dates',
+      means: 'Results we should have heard by now. Worth a call to the employer.',
+      counted: 'Submitted bids past the employer’s expected award date with no result yet.',
+      target: 'None',
+      source: 'Submissions and award dates',
     },
     compute(ctx) {
       const list = overdue(ctx);
@@ -80,9 +82,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'RES-2', label: 'Handovers pending', kind: 'state',
     info: {
-      means: "Wins that haven't reached the delivery team yet. What we promised in the bid must reach them",
-      counted: 'Won bids whose handover to delivery has not been held. The sub-line shows the days since award.',
-      target: `Orange after ${HANDOVER_DAYS} days`, source: 'Results and handover records',
+      means: 'Wins that have not reached the delivery team yet. What we promised in the bid must reach them.',
+      counted: 'Won bids whose handover to delivery has not been held; underneath, the days since the award.',
+      target: `Within ${HANDOVER_DAYS} days of the award`,
+      source: 'Results and handovers',
     },
     compute(ctx) {
       const list = handovers(ctx);
@@ -95,9 +98,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'OUT-6', label: 'Why we lose', kind: 'flow',
     info: {
-      means: 'The most common reason we lost, from the results in the period',
-      counted: 'Loss reasons recorded on the bids lost in the period. A tie shows both.',
-      target: 'None (information)', source: 'Bid results',
+      means: 'The most common reason we lost in the period.',
+      counted: 'The loss reason recorded on each bid lost in the period; a tie shows both.',
+      target: 'No target',
+      source: 'Bid results',
     },
     compute(ctx) {
       const lost = qOf(ctx).resultsIn(ctx.window, ['lost']);
@@ -114,9 +118,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'RES-3', label: 'Lessons captured', kind: 'flow',
     info: {
-      means: 'Whether we learn from every result, won or lost',
-      counted: 'Results received in the period with an accepted debrief ÷ results received in the period. A debrief the Head of Tendering accepts is what captures the lessons.',
-      target: '100% green; 80% or more orange', source: 'Results and debriefs',
+      means: 'Whether we learn from every result, won or lost.',
+      counted: 'Results received in the period that have a debrief the Head of Tendering accepted, out of all results received.',
+      target: 'Every result',
+      source: 'Results and debriefs',
     },
     compute(ctx) {
       const list = qOf(ctx).resultsIn(ctx.window);

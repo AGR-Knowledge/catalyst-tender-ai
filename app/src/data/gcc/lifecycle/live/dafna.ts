@@ -18,7 +18,7 @@ export const LIVE_DAFNA: Lifecycle[] = [
   K.story(HERO_ID, {
     now: { stage: 1, step: 'validating' },
     steps: intakeSteps('2026-03-08T07:20', '2026-03-08T08:10', '2026-03-08T08:26'),
-    // Eligibility from 007a (gcc-demo-data §4.7): alone, classification, STP, O&M and turnover fail; the JV with Tihama closes them.
+    // Eligibility from 007a (gcc-demo-data §4.7): alone, classification, STP, O&M and turnover fail; the JV with Qunfudhah closes them.
     facts: s1Derived('EN', { dg1Due: '2026-03-09T08:26' }),
   }),
   K.story('T-2026-033', {

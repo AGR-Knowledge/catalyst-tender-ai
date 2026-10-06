@@ -1,5 +1,5 @@
 import type { Lifecycle, S8Facts } from '@/data/gcc/lifecycle';
-import { AHEAD_DAYS, NEAR_WD, RATE_BANDS } from '@/data/gcc/targets';
+import { AHEAD_DAYS, BOND_VALIDITY_DAYS_KSA, NEAR_WD, RATE_BANDS } from '@/data/gcc/targets';
 import { DEMO_TODAY } from '@/domain/calendar';
 import { deadlineWd } from '../lifecycle';
 import type { KpiCtx, KpiDef } from './types';
@@ -43,9 +43,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-1', label: 'Submissions due', kind: 'state',
     info: {
-      means: 'The bids that must be submitted soon, with working days left',
-      counted: `Stage 8 bids not yet submitted whose deadline falls in the next ${AHEAD_DAYS.submissions} days. The sub-line shows the first, in local time.`,
-      target: `Orange within ${NEAR_WD} working days`, source: 'Submission deadlines and the country calendar',
+      means: 'Bids that must be submitted soon, with the working days left.',
+      counted: `Bids in Submission not yet sent whose deadline falls in the next ${AHEAD_DAYS.submissions} days, in the employer’s local time.`,
+      target: `No target; flagged inside ${NEAR_WD} working days`,
+      source: 'Deadlines and holiday calendars',
     },
     compute(ctx) {
       const list = dueWithin(ctx, AHEAD_DAYS.submissions);
@@ -62,9 +63,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-2', label: 'On-time submissions', kind: 'flow',
     info: {
-      means: 'Whether every bid made it in time. A late bid is not opened',
-      counted: 'Bids submitted before their deadline ÷ bids submitted in the period.',
-      target: '100% green; anything less red', source: 'Portal submission receipts',
+      means: 'Whether every bid arrived in time. A late bid is not opened.',
+      counted: 'Bids submitted in the period, and how many went in before their deadline.',
+      target: 'All on time',
+      source: 'Portal receipts',
     },
     compute(ctx) {
       const list = qOf(ctx).submissionsIn(ctx.window);
@@ -79,9 +81,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-3', label: 'Packages ready', kind: 'state',
     info: {
-      means: 'How complete the submission packages are for the next bids out',
-      counted: `For bids due within ${NEAR_WD} working days: documents assembled and checked ÷ documents required. The sub-line names the least ready.`,
-      target: '100% green; 90% or more orange; else red', source: 'Submission checklist',
+      means: 'How complete the submission packages are for the next bids going out.',
+      counted: `For bids due within ${NEAR_WD} working days: the documents assembled and checked, out of the documents required.`,
+      target: 'All ready',
+      source: 'Submission checklist',
     },
     compute(ctx) {
       const list = dueSoon(ctx);
@@ -98,9 +101,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-4', label: 'Signatures pending', kind: 'state',
     info: {
-      means: 'Documents that still need a signature and stamp before upload',
-      counted: `Forms awaiting an authorised signatory, on bids due within ${NEAR_WD} working days.`,
-      target: '0 green; any orange', source: 'Submission checklist',
+      means: 'Documents that still need a signature and stamp before upload.',
+      counted: `Forms waiting for an authorised signatory, on bids due within ${NEAR_WD} working days.`,
+      target: 'None',
+      source: 'Submission checklist',
     },
     compute(ctx) {
       const rows = dueSoon(ctx).filter((x) => x.f.signaturesPending > 0);
@@ -114,9 +118,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-5', label: 'Awaiting result', kind: 'state',
     info: {
-      means: 'Bids with the employer. Value that may still come in',
-      counted: 'Submitted bids with no result yet: how many and their value. The sub-line names the one submitted longest ago.',
-      target: 'None (information)', source: 'Submissions and results',
+      means: 'Bids with the employer: value that may still come in.',
+      counted: 'Submitted bids with no result yet, and their value; underneath, the one submitted longest ago.',
+      target: 'No target',
+      source: 'Submissions and results',
     },
     compute(ctx) {
       const list = awaitingResult(ctx);
@@ -131,9 +136,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SUB-6', label: 'Bid bonds', kind: 'state',
     info: {
-      means: 'Guarantees that are missing or too short. An invalid guarantee excludes the bid',
-      counted: `Bids due within ${AHEAD_DAYS.bonds} days whose initial guarantee is not issued, or whose validity ends before the date the tender requires (KSA: 90 days from opening).`,
-      target: '0 green; any red', source: 'Bank guarantees',
+      means: 'Bid guarantees that are missing or too short. An invalid guarantee excludes the bid.',
+      counted: `Bids due within ${AHEAD_DAYS.bonds} days whose guarantee is not issued, or ends before the date the tender requires (in Saudi Arabia, ${BOND_VALIDITY_DAYS_KSA} days from opening).`,
+      target: 'None',
+      source: 'Bank guarantees',
     },
     compute(ctx) {
       const list = bondIssues(ctx);

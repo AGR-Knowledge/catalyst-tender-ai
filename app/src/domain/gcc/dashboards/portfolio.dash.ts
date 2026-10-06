@@ -39,7 +39,8 @@ const table = {
 export const DASHBOARDS: DashboardSpec[] = [
   {
     key: 'portfolio.hot', ...base,
-    tiles: ['PF-1', 'PF-2', 'PF-3', 'PF-4', 'SCR-6', 'CAP-1'],
+    // Plan 040 (user, 2026-10-06): active tenders first; the pursued pipeline and the bid-team load left this row.
+    tiles: ['PF-0', 'PF-3', 'PF-2', 'PF-7', 'PF-4', 'SCR-6'],
     actions: ['dg3.approve', 'dg2.approve', 'booklet.approve', 'dg1.oversight', 'renewal.request', 'input.nudge',
       'debrief.accept', 'breakglass.review'],
     table: { ...table, scope: () => ({ kind: 'all' }) },

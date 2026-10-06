@@ -80,10 +80,41 @@ export interface TableFilterVM {
   select?: string;
 }
 
-/** Where a click goes: the table with a filter, or another screen. */
+/** Where a click goes: the table with a filter, another screen, or a list panel over the dashboard (plan 040). */
 export type DrillVM =
   | ({ kind: 'table' } & TableFilterVM)
-  | { kind: 'route'; to: string; label?: string };
+  | { kind: 'route'; to: string; label?: string }
+  | { kind: 'list'; label: string; panel: ListPanelVM };
+
+/**
+ * Plan 040: a list panel a tile opens over its dashboard ("Late gate
+ * decisions", "Company documents"). Built in the domain, rendered by
+ * `components/dashboard/ListPanel.tsx`; every cell is already text.
+ */
+export interface ListPanelVM {
+  kind: 'late-decisions' | 'documents';
+  /** "Late gate decisions · 30 days". */
+  title: string;
+  /** One plain line under the title: what the list holds. */
+  lede: string;
+  columns: ListColumnVM[];
+  rows: ListRowVM[];
+  /** What an empty list says. */
+  empty: string;
+  /** The link under the list: "Show all 27 decisions in the table", "Open Company › Credentials". */
+  foot?: { label: string; drill: Exclude<DrillVM, { kind: 'list' }> };
+}
+export interface ListColumnVM { key: string; label: string; width?: string }
+/** A cell: a main line, an optional second line, mono for ids and dates, and a status word in a pill. */
+export interface ListCellVM { text: string; sub?: string; mono?: boolean; pill?: { label: string; tone: Tone; icon?: string } }
+export interface ListRowVM {
+  id: string;
+  cells: Record<string, ListCellVM>;
+  /** Where clicking the row goes (the tender, the credential); none when the viewer may not open it. */
+  to?: string;
+  /** For the row's aria-label: "DG1 on T-2026-107, 3 h late". */
+  label: string;
+}
 
 /** The ⓘ popover (dashboards.md §3): what it means · how it's counted · period · target · source. */
 export interface InfoVM {
@@ -130,7 +161,8 @@ export interface TileRefVM { k: string; v: string }
 export interface FlowPartVM {
   key: string; count: number; label: string; tone?: Tone; drill: DrillVM | null;
   /** Wave 9 (plan 027a): went on to the next step, stopped, or still waiting. Colours the step's split bar. */
-  outcome?: 'on' | 'stopped' | 'held';
+  outcome?: 'on' | 'stopped' | 'held' | 'previous';
+  /* Wave 12 (plan 039): 'previous' = re-issued notices of a tender seen before, shown apart from new ones. */
 }
 /** One step of the strip: "DG1" with its parts, or "Captured" with one part. */
 export interface FlowStepVM {

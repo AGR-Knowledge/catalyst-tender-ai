@@ -248,24 +248,24 @@ export const QURAIN: TenantSeed = {
   key: 'qurain',
   company: {
     hq: 'Kuwait City; KSA subsidiary in Riyadh',
-    employees: 3_900,
+    employees: 15_500,
     fyEnd: '12-31',
     financials: [
-      { fy: 2022, turnover: KWD(135_000_000), audited: true },
-      { fy: 2023, turnover: KWD(142_000_000), audited: true },
-      { fy: 2024, turnover: KWD(149_000_000), audited: true, netWorth: KWD(58_000_000), currentRatio: 1.25 },
-      { fy: 2025, turnover: KWD(156_000_000), audited: false, auditDate: '2026-04-26' },
+      { fy: 2022, turnover: KWD(675_000_000), audited: true },
+      { fy: 2023, turnover: KWD(710_000_000), audited: true },
+      { fy: 2024, turnover: KWD(745_000_000), audited: true, netWorth: KWD(290_000_000), currentRatio: 1.25 },
+      { fy: 2025, turnover: KWD(780_000_000), audited: false, auditDate: '2026-04-26' },
     ],
     entities: [
       {
         id: ARABIA, name: 'Qurain Meridian Arabia Co.', country: 'SA',
         note: 'Wholly owned KSA subsidiary; bids in KSA in its own name, with its own registrations and accounts',
         financials: [
-          { fy: 2022, turnover: SAR(1_280_000_000), audited: true },
-          { fy: 2023, turnover: SAR(1_350_000_000), audited: true },
-          { fy: 2024, turnover: SAR(1_420_000_000), audited: true, netWorth: SAR(460_000_000), currentRatio: 1.3 },
+          { fy: 2022, turnover: SAR(6_400_000_000), audited: true },
+          { fy: 2023, turnover: SAR(6_750_000_000), audited: true },
+          { fy: 2024, turnover: SAR(7_100_000_000), audited: true, netWorth: SAR(2_300_000_000), currentRatio: 1.3 },
           // Audited after the hero opens on 10 May, so PQ-11 reads the FY2022–FY2024 accounts only.
-          { fy: 2025, turnover: SAR(1_470_000_000), audited: false, auditDate: '2026-05-24' },
+          { fy: 2025, turnover: SAR(7_350_000_000), audited: false, auditDate: '2026-05-24' },
         ],
       },
     ],
@@ -305,14 +305,15 @@ export const QURAIN: TenantSeed = {
     },
   ],
   facility: {
-    // The limit carries the two submitted bids' bid bonds, so headroom stays KWD 3.1 M (plan 020 B11).
-    limit: KWD(28_560_000),
+    // The limit carries the submitted bids' bid bonds, so headroom stays KWD 3.1 M (plan 020 B11; T-2025-412 since the review of plan 039).
+    limit: KWD(28_680_000),
     utilised: KWD(22_800_000),
     committed: [
       { label: 'Bid bond: Kuwait South wastewater conveyance tunnels', tenderId: 'T-2026-058', kind: 'bid bond', amount: KWD(1_150_000) },
       { label: 'Bid bond: Northern Kuwait water transmission mains', tenderId: 'T-2026-062', kind: 'bid bond', amount: KWD(950_000) },
       { label: 'Bid bond: Mutlaa stormwater network (submitted 18 Feb)', tenderId: 'T-2025-418', kind: 'bid bond', amount: KWD(320_000) },
       { label: 'Bid bond: Kabd sewage treatment rehabilitation (submitted 1 Mar)', tenderId: 'T-2025-431', kind: 'bid bond', amount: KWD(240_000) },
+      { label: 'Bid bond: Ahmadi firewater network (submitted 11 Feb)', tenderId: 'T-2025-412', kind: 'bid bond', amount: KWD(120_000) },
     ],
     asOf: '2026-03-05',
     confirmedById: 'qurain.fin',

@@ -5,7 +5,7 @@ import { INTAKE_DAILY, LIFECYCLES, gccData, isGccTenantKey } from '@/data/gcc';
 import { NEAR_WD, SLA_AT_RISK_SHARE, GATE_SLA_HOURS } from '@/data/gcc/targets';
 import { GATE_AFTER } from '@/data/gcc/stages';
 import { NOW, hoursBetween, plusHours } from '@/data/gcc/lifecycle/chain';
-import { isNewNotice } from '@/data/gcc/lifecycle/intake';
+import { isNewNotice, isPassed } from '@/data/gcc/lifecycle/intake';
 import type { GateKind, GateRecord, IntakeDay, Lifecycle, Result, S1Facts, StageEntry, StepFacts, Submission, WorkEvent } from '@/data/gcc/lifecycle';
 import type { Team } from '@/data/gcc/types';
 import { DEMO_TODAY, workingDaysBetween } from '@/domain/calendar';
@@ -169,7 +169,11 @@ export interface Captures {
   /** New notices captured. */
   captured: number;
   bySource: Record<string, number>;
-  /** Duplicates and addenda linked to a tender already on the register. */
+  /**
+   * The funnel's "previous" (plan 039): re-issued notices of a tender seen
+   * before, and today's duplicates and addenda linked to a tender already on
+   * the register.
+   */
   linked: number;
   logged: number;
   screened: number;
@@ -177,7 +181,12 @@ export interface Captures {
   minutes: number[];
   /** Notices the reconciliations found missing (INT-3). */
   missed: number;
+  /** Wave 12 contract (plan 039): new notices that passed the AI / system initial screening (PF-7 "Tenders accepted"). */
+  passed: number;
 }
+
+/** Wave 12 contract (plan 039): new notices still open for bids now (PF-0 "Live pipeline"), by source id. */
+export interface ActiveNotices { count: number; bySource: Record<string, number> }
 
 const minutesBetween = (a: string, b: string) => Math.round(hoursBetween(a, b) * 60);
 
@@ -188,7 +197,7 @@ const minutesBetween = (a: string, b: string) => Math.round(hoursBetween(a, b) *
  * counts without tenders, so it stays as it is.
  */
 export function capturesIn(tenant: string, w: Win, viewer?: Person, done?: DemoDone): Captures {
-  const c: Captures = { captured: 0, bySource: {}, linked: 0, logged: 0, screened: 0, minutes: [], missed: 0 };
+  const c: Captures = { captured: 0, bySource: {}, linked: 0, logged: 0, screened: 0, minutes: [], missed: 0, passed: 0 };
   if (!isGccTenantKey(tenant)) return c;
   const hidden = new Set(viewer ? allOf(tenant, done).filter((l) => !visible(tenant, l, viewer)).map((l) => l.tenderId) : []);
   const days: IntakeDay[] = INTAKE_DAILY[tenant].filter((d) => inWindow(d.date, w));
@@ -200,11 +209,13 @@ export function capturesIn(tenant: string, w: Win, viewer?: Person, done?: DemoD
     c.screened += d.screened;
     c.minutes.push(...d.minutes);
     c.missed += d.missed;
+    c.passed += d.passed ?? 0;
   }
   for (const e of gccData(tenant).intakeToday.filter((x) => inWindow(x.receivedAt, w) && !(x.tenderId && hidden.has(x.tenderId)))) {
     if (!isNewNotice(e)) { c.linked++; continue; }
     c.captured++;
     c.bySource[e.sourceId] = (c.bySource[e.sourceId] ?? 0) + 1;
+    if (isPassed(e)) c.passed++;
     if (e.loggedAt) {
       c.logged++;
       c.minutes.push(minutesBetween(e.receivedAt, e.loggedAt));
@@ -214,6 +225,27 @@ export function capturesIn(tenant: string, w: Win, viewer?: Person, done?: DemoD
   if (inWindow(recon.at, w)) c.missed += recon.missed;
   c.screened += lifecyclesOf(tenant, viewer, done).filter((l) => inWindow(l.capturedAt, w) && l.capturedAt.slice(0, 10) === DEMO_TODAY && l.log.some((e) => e.step === 'screened')).length;
   return c;
+}
+
+/**
+ * New notices still open for bids now, whatever the period filter says (plan
+ * 039): the new notices of the last 30 days, today's intake events included;
+ * nothing older is still open. Like `capturesIn`, today's events of tenders
+ * the viewer may not open are left out; the daily history is counts without
+ * tenders.
+ */
+export function activeNotices(tenant: string, viewer?: Person, done?: DemoDone): ActiveNotices {
+  const a: ActiveNotices = { count: 0, bySource: {} };
+  if (!isGccTenantKey(tenant)) return a;
+  const add = (s: string, n: number) => { a.count += n; a.bySource[s] = (a.bySource[s] ?? 0) + n; };
+  for (const d of INTAKE_DAILY[tenant]) {
+    if (!d.open) continue;
+    // The day's open notices are all its new ones, so its sources are theirs.
+    for (const [s, n] of Object.entries(d.bySource)) add(s, Math.round((n * d.open) / d.logged));
+  }
+  const hidden = new Set(viewer ? allOf(tenant, done).filter((l) => !visible(tenant, l, viewer)).map((l) => l.tenderId) : []);
+  for (const e of gccData(tenant).intakeToday) if (isNewNotice(e) && !(e.tenderId && hidden.has(e.tenderId))) add(e.sourceId, 1);
+  return a;
 }
 
 /* ---------------------------------------------------------- open gates */
@@ -436,5 +468,6 @@ export function queriesFor(ctx: { tenant: string; viewer: Person; done: DemoDone
     resultsIn: (w: Win, kinds?: Result['result'][]) => resultsIn(tenant, w, kinds, viewer, done),
     workEventsIn: <K extends WorkEvent['kind']>(w: Win, kind: K) => workEventsIn(tenant, w, kind, viewer, done),
     capturesIn: (w: Win) => capturesIn(tenant, w, viewer, done),
+    activeNotices: () => activeNotices(tenant, viewer, done),
   };
 }

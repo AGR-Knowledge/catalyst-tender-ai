@@ -1,6 +1,8 @@
 import { useId } from 'react';
 import { Lock, PenLine, UserRoundCheck } from 'lucide-react';
 import type { CanResult } from '@/data/access';
+import { personById } from '@/data/people';
+import { ContactLinks } from './ContactLinks';
 import { FlagLine } from './FlagLine';
 import { Masked } from './Masked';
 import { whenLabel } from './When';
@@ -42,6 +44,8 @@ export interface MemberRow {
   conflict?: string;
   /** The signed-in member's own seat. */
   me?: boolean;
+  /** The member, for the contact links (plan 044). */
+  personId?: string;
 }
 
 const CHIP: Record<MemberStance, { tone: string; icon: string }> = {
@@ -53,7 +57,7 @@ const CHIP: Record<MemberStance, { tone: string; icon: string }> = {
   none: { tone: 'none', icon: '○' },
 };
 
-export function MembersPanel({ rows, headline, quorum, majority, masked, onRecord, recordCheck, onRecordFor, secretaryCheck, title = 'Committee positions' }: {
+export function MembersPanel({ rows, headline, quorum, majority, masked, onRecord, recordCheck, onRecordFor, secretaryCheck, contactSubject, title = 'Committee positions' }: {
   rows: MemberRow[];
   /** "2 of 5 positions · quorum needs 3". */
   headline?: string;
@@ -69,6 +73,8 @@ export function MembersPanel({ rows, headline, quorum, majority, masked, onRecor
   /** The Head of Tendering records for a member, as secretary. */
   onRecordFor?(seat: string): void;
   secretaryCheck?: CanResult;
+  /** Calendar, Call and Teams at each member's row end, except the viewer's own (plan 044): what a message is about. */
+  contactSubject?(row: MemberRow): string;
   title?: string;
 }) {
   const hid = useId();
@@ -102,10 +108,18 @@ export function MembersPanel({ rows, headline, quorum, majority, masked, onRecor
             <li key={r.seat} className={`mp-row ${r.me ? 'me' : ''} s-${r.stance}`}>
               <span className={`avatar sm ${r.stance === 'none' ? 'soft' : ''}`} aria-hidden>{r.initials}</span>
               <div className="mp-main">
-                <div className="mp-who">
-                  <span className="mp-name">{r.name}{r.me && <span className="mp-you"> · you</span>}</span>
-                  <span className="mp-seat">{r.seatLabel}</span>
-                </div>
+                {(() => {
+                  const who = (
+                    <div className="mp-who">
+                      <span className="mp-name">{r.name}{r.me && <span className="mp-you"> · you</span>}</span>
+                      <span className="mp-seat">{r.seatLabel}</span>
+                    </div>
+                  );
+                  // Calendar, Call and Teams at the row end, beside the name; the member's words below keep the full width.
+                  return contactSubject
+                    ? <div className="mp-top">{who}<ContactLinks person={r.me ? undefined : personById(r.personId)} subject={contactSubject(r)} keepSpace /></div>
+                    : who;
+                })()}
                 <div className="mp-line">
                   <span className={`mp-chip tone-${chip.tone}`}><span className="ic" aria-hidden>{chip.icon}</span>{r.stanceLabel}</span>
                   {r.at && <span className="mp-at num">{whenLabel(r.at.slice(0, 10), r.at.slice(11, 16), undefined, true)}</span>}

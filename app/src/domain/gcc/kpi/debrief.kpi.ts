@@ -1,6 +1,6 @@
 import { RIVALS, type Rival } from '@/data/gcc/debriefs';
 import { WIN_SHORT, groupOf } from '@/data/gcc/debriefs/vocab';
-import { DBR3_WAIT_DAYS, RATE_BANDS } from '@/data/gcc/targets';
+import { DBR3_WAIT_DAYS, DEBRIEF_DUE_DAYS, RATE_BANDS } from '@/data/gcc/targets';
 import { workingDaysBetween } from '@/domain/calendar';
 import { endedIn } from '../debriefs/archive';
 import { recordsFor, type DebriefEntry } from '../debriefs/records';
@@ -64,9 +64,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-1', label: 'Endings', kind: 'flow', cap: 'debrief.view',
     info: {
-      means: 'Bids that ended in the period, each with a debrief to record: won, lost, or stopped',
-      counted: 'Bids whose result, cancellation, withdrawal, No-Bid at DG2 or rejection at DG3 falls in the period. DG1 discards and holds that lapsed are left out.',
-      target: 'None (information)', source: 'Results, gate decisions and debriefs',
+      means: 'Bids that ended in the period: won, lost or stopped. Each one needs a debrief.',
+      counted: 'Bids with a result, a cancellation, a withdrawal, a No-Bid at DG2 or a rejection at DG3 in the period; tenders discarded or left on hold at DG1 are left out.',
+      target: 'No target',
+      source: 'Results, gate decisions and debriefs',
     },
     compute(ctx) {
       const list = ended(ctx);
@@ -86,9 +87,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-2', label: 'Debriefs accepted', kind: 'flow', cap: 'debrief.view',
     info: {
-      means: 'Whether every bid that ends leaves its lessons behind: the debriefs the Head of Tendering accepted',
-      counted: 'Bids ended in the period with an accepted debrief ÷ bids ended in the period.',
-      target: `${RATE_BANDS['DBR-2'].green}% green; ${RATE_BANDS['DBR-2'].orange}% or more orange`, source: 'Debriefs',
+      means: 'Whether every bid that ends leaves its lessons behind.',
+      counted: 'Bids that ended in the period with a debrief the Head of Tendering accepted, out of all the bids that ended.',
+      target: `${RATE_BANDS['DBR-2'].green}% of endings`,
+      source: 'Debriefs',
     },
     compute(ctx) {
       const list = ended(ctx);
@@ -105,9 +107,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-3', label: 'Awaiting sign-off', kind: 'state', cap: 'debrief.view',
     info: {
-      means: 'Debriefs the Project Director has submitted that wait for the Head of Tendering to accept or send back',
+      means: 'Debriefs the Project Director sent that wait for the Head of Tendering to accept or send back.',
       counted: 'Debriefs submitted and not yet accepted or sent back, whenever the bid ended.',
-      target: `Orange after ${plural(DBR3_WAIT_DAYS, 'working day')}`, source: 'Debriefs',
+      target: `Signed off within ${plural(DBR3_WAIT_DAYS, 'working day')}`,
+      source: 'Debriefs',
     },
     compute(ctx) {
       const list = awaiting(ctx);
@@ -124,9 +127,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-4', label: 'Debriefs overdue', kind: 'flow', cap: 'debrief.view',
     info: {
-      means: 'Bids that ended more than two weeks ago with no debrief submitted, while the team still remembers',
-      counted: 'Bids ended in the period whose debrief is past its due date (14 days after the ending) and not submitted.',
-      target: '0 green; any orange', source: 'Debriefs',
+      means: 'Bids that ended over two weeks ago with no debrief, while the team still remembers.',
+      counted: `Bids that ended in the period whose debrief, due ${DEBRIEF_DUE_DAYS} days after the ending, has not been submitted.`,
+      target: 'None',
+      source: 'Debriefs',
     },
     compute(ctx) {
       const list = overdueIn(ctx);
@@ -139,9 +143,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-5', label: 'Why we win', kind: 'flow', cap: 'debrief.view',
     info: {
-      means: 'The most common main reason we won, from the accepted debriefs of the wins in the period',
-      counted: "The main win reason in each accepted debrief of a bid won in the period. A tie shows both.",
-      target: 'None (information)', source: 'Debriefs',
+      means: 'The most common main reason we won in the period.',
+      counted: 'The main win reason in each accepted debrief of a bid won in the period; a tie shows both.',
+      target: 'No target',
+      source: 'Debriefs',
     },
     compute(ctx) {
       const wins = ended(ctx).filter((e) => e.record.ending === 'won');
@@ -158,9 +163,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DBR-6', label: 'Who beats us', kind: 'flow', cap: 'debrief.view',
     info: {
-      means: 'The rival named most often as the winner, from the accepted debriefs of the bids lost in the period',
-      counted: 'The winner named in each accepted debrief of a bid lost in the period. "Another bidder" and "Not known" are left out; a tie shows both.',
-      target: 'None (information)', source: 'Debriefs',
+      means: 'The rival who beat us most often in the period.',
+      counted: 'The winner named in each accepted debrief of a bid we lost in the period, leaving out “another bidder” and “not known”; a tie shows both.',
+      target: 'No target',
+      source: 'Debriefs',
     },
     compute(ctx) {
       const { lost, most } = beaten(ctx);

@@ -9,8 +9,11 @@ import { dashboardSpec } from '@/domain/gcc/dashboards';
 import { homeDashboardKey } from '@/domain/gcc/dashboards/home';
 import { buildDashboard, dashboardCtx } from '@/domain/gcc/dashboards/build';
 import { registryTile as adminTile } from '@/domain/gcc/admin';
+import { queriesFor } from '@/domain/gcc/lifecycle';
+import { companyDocuments } from '@/domain/gcc/actions/portfolio.actions';
+import { TENANT_TARGETS } from '@/data/gcc/portfolio';
 import { consoleVM } from '@/domain/platform/console';
-import type { TileVM } from '@/domain/gcc/viewmodels';
+import type { DashboardVM, DrillVM, TileVM } from '@/domain/gcc/viewmodels';
 import { kpiCtxOf, tilesOf } from '../s1/vm/tiles';
 import { CardHead, KV } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
@@ -23,9 +26,13 @@ import { DataTable } from '@/components/ui/DataTable';
  * the registry tiles of the screen strips, and the Platform Console's tiles.
  * The strips' own value tiles are built inside their pages, so the browser
  * script in the plan's acceptance checks reads those.
+ *
+ * Plan 040 adds the Head of Tendering's six tiles: their order, and that
+ * Live pipeline, Tenders accepted, Decisions on time and Documentation gaps
+ * read the same facts as their sources and their list panels.
  */
 
-interface Check { name: string; got: string; ok: boolean }
+interface Check { name: string; got: string; ok: boolean; expected?: string }
 
 const EXPECTED = 'all filled';
 
@@ -88,6 +95,80 @@ function checks(tenant: GccTenantKey): Check[] {
 
   // The platform world: the Console reads every tenant's counts, so it is the same row in each tenant.
   out.push({ name: 'Platform Console · PLT-1 … PLT-6', ...verdict(consoleVM({ doneBy: {}, added: [] }).tiles) });
+  return [...out, ...hotChecks(tenant)];
+}
+
+/* ------------------------------------------------------------- plan 040 */
+
+const HOT_ORDER = ['PF-0', 'PF-3', 'PF-2', 'PF-7', 'PF-4', 'SCR-6'];
+
+function hotVM(tenant: GccTenantKey, viewer: Person, period: PeriodKey): DashboardVM | null {
+  const spec = dashboardSpec('portfolio.hot');
+  if (!spec) return null;
+  const window = windowOf(period, tenant);
+  return buildDashboard(spec, dashboardCtx(spec, { tenant, viewer, viewAs: false, window, prev: previousOf(window), done: {}, now: DEMO_NOW }), dataPort());
+}
+
+const panelOf = (d: DrillVM | null | undefined) => (d?.kind === 'list' ? d.panel : null);
+
+/** The Head of Tendering's tiles at 30 days (90 days for Win & Loss's target), checked against their sources and panels. */
+function hotChecks(tenant: GccTenantKey): Check[] {
+  const hot = personById(`${tenant}.hot`);
+  const vm = hot && hotVM(tenant, hot, '30d');
+  if (!hot || !vm) return [{ name: '040 · Head of Tendering dashboard', got: 'not built', ok: false }];
+  const out: Check[] = [];
+  const add = (name: string, ok: boolean, got: string) => out.push({ name: `040 · ${name}`, ok, got, expected: 'as named' });
+  const tile = (id: string) => vm.tiles.find((t) => t.id === id);
+  const q = queriesFor({ tenant, viewer: hot, done: {} });
+  const w30 = windowOf('30d', tenant);
+
+  const order = vm.tiles.map((t) => t.id);
+  add('Tiles in order: Live pipeline, Win & Loss, Average ticket size, Tenders accepted, Decisions on time, Documentation gaps',
+    order.join() === HOT_ORDER.join(), vm.tiles.map((t) => t.label).join(' · '));
+
+  const active = q.activeNotices().count;
+  const pf0 = tile('PF-0');
+  add('Live pipeline = active notices now', !!pf0 && (active ? pf0.display.startsWith(active.toLocaleString('en-GB')) : pf0.display === 'No active tenders'), `${pf0?.display} · ${pf0?.detail} / activeNotices ${active}`);
+
+  const cap = q.capturesIn(w30);
+  const pf7 = tile('PF-7');
+  add('Tenders accepted = notices that passed the AI screening', !!pf7 && pf7.display === cap.passed.toLocaleString('en-GB') && (!(cap.captured + cap.linked) || pf7.detail === `of ${(cap.captured + cap.linked).toLocaleString('en-GB')} captured`),
+    `${pf7?.display} · ${pf7?.detail} · ${pf7?.ref?.k} ${pf7?.ref?.v} / passed ${cap.passed} of ${cap.captured + cap.linked}`);
+
+  const pf4 = tile('PF-4');
+  const decisions = q.gateEventsIn(w30).length;
+  const [on, all] = /^(\d+) of (\d+) on time$/.exec(pf4?.display ?? '')?.slice(1).map(Number) ?? [NaN, NaN];
+  const late = pf4?.detail === 'None late' ? 0 : Number(/^(\d+) late$/.exec(pf4?.detail ?? '')?.[1]);
+  add('Decisions on time: on time + late = gate decisions in the period', all === decisions && on + late === all, `${pf4?.display} · ${pf4?.detail} / ${decisions} decisions`);
+  const latePanel = panelOf(pf4?.drill);
+  add('Late decisions panel: one row per late decision, each with how late', !!latePanel && latePanel.rows.length === late && latePanel.rows.every((r) => /late$/.test(r.cells.late?.text ?? '')),
+    latePanel ? `${latePanel.rows.length} rows · ${latePanel.rows.map((r) => r.cells.late?.text).join(', ') || 'none'} / tile ${late} late` : 'no list panel');
+  add('Late decisions panel: the link under it opens every decision in the table', latePanel?.foot?.drill.kind === 'table' && (latePanel.foot.drill.ids?.length ?? 0) <= decisions && latePanel.foot.label.includes(String(decisions)),
+    latePanel?.foot ? `${latePanel.foot.label}` : 'no link');
+
+  const scr6 = tile('SCR-6');
+  const docs = companyDocuments({ tenant, viewer: hot, done: {}, now: DEMO_NOW });
+  const docPanel = panelOf(scr6?.drill);
+  add('Documents panel: every document in the credentials vault', !!docPanel && docPanel.rows.length === docs.length && docs.length > 0, `${docPanel?.rows.length ?? 0} rows / ${docs.length} in the vault`);
+  const gapRows = docPanel?.rows.filter((r) => r.cells.status?.text !== 'Valid').length ?? -1;
+  add('Documentation gaps = the panel’s Expired and Expiring rows, listed first', String(gapRows) === scr6?.display && (docPanel?.rows.slice(0, gapRows).every((r) => r.cells.status?.text !== 'Valid') ?? false),
+    `tile ${scr6?.display} · panel ${gapRows} (${docPanel?.rows.slice(0, Math.max(gapRows, 0)).map((r) => r.cells.status?.text).join(', ')})`);
+
+  const target = TENANT_TARGETS[tenant].hitRatePct;
+  const pf3 = hotVM(tenant, hot, '90d')?.tiles.find((t) => t.id === 'PF-3');
+  add('Win & Loss (90 days): counts, win rate, and the target from the tenant’s targets', !!pf3 && /^\d+ won · \d+ lost$/.test(pf3.display) && /^\d+% win rate$/.test(pf3.detail ?? '') && pf3.ref?.k === 'Target' && pf3.ref.v.startsWith(`${target}%`),
+    `${pf3?.display} · ${pf3?.detail} · ${pf3?.ref?.k} ${pf3?.ref?.v}`);
+
+  // The CEO and the Bid Manager keep the pursued pipeline under its own name.
+  const others = (['exec', 'bid'] as const).flatMap((role) => {
+    const p = personById(`${tenant}.${role}`);
+    const spec = p && dashboardSpec(homeDashboardKey(p) ?? '');
+    if (!p || !spec) return [];
+    const w = windowOf('30d', tenant);
+    const t = buildDashboard(spec, dashboardCtx(spec, { tenant, viewer: p, viewAs: false, window: w, prev: previousOf(w), done: {}, now: DEMO_NOW }), dataPort()).tiles.find((x) => x.id === 'PF-1');
+    return [`${p.title}: ${t?.label ?? 'no PF-1'}`];
+  });
+  add('CEO and Bid Manager: the pursued pipeline is never called “Live pipeline”', others.length === 2 && others.every((x) => !x.endsWith(': Live pipeline')), others.join(' · '));
   return out;
 }
 
@@ -101,13 +182,14 @@ export default function TilesCheck() {
       <CardHead title="Every tile has a detail and a reference line (plan 027e)" meta={failing ? <span className="t-red">{failing} of {rows.length} targets failing</span> : `All ${rows.length} targets met`} />
       <div style={{ padding: '6px 22px 14px' }}>
         <KV k="Read as" v="Each role's home dashboard, at every period, on the seed (no demo actions)" />
+        <KV k="Plan 040 rows" v="The Head of Tendering's six tiles at 30 days (Win & Loss at 90), against their sources and list panels" />
       </div>
       <DataTable
         rows={rows}
         rowKey={(c) => c.name}
         columns={[
           { key: 'n', header: 'Dashboard or strip', width: '1.6fr', primary: true, render: (c) => <span className="cell-main">{c.name}</span> },
-          { key: 'e', header: 'Target', width: '.8fr', priority: 2, render: () => EXPECTED },
+          { key: 'e', header: 'Target', width: '.8fr', priority: 2, render: (c) => c.expected ?? EXPECTED },
           { key: 'g', header: 'Got', width: '2fr', render: (c) => c.got },
           { key: 'r', header: 'Result', width: '.6fr', align: 'right', render: (c) => (c.ok ? <span className="t-green">✓ Pass</span> : <span className="t-red">× Fail</span>) },
         ]}

@@ -4,7 +4,7 @@ import { gccData, isGccTenantKey } from '@/data/gcc';
 import { HERO_ID } from '@/data/gcc/hero';
 import { s1Data } from '@/data/gcc/s1';
 import { DELIVERY_LOAD, PORTFOLIO_BANDS, TENANT_TARGETS } from '@/data/gcc/portfolio';
-import { CRITICAL_WD, MIN_N, NEAR_WD, RATE_BANDS, SLA_AT_RISK_SHARE, bandTone } from '@/data/gcc/targets';
+import { CRITICAL_WD, GATE_SLA_HOURS, MIN_N, NEAR_WD, RATE_BANDS, SLA_AT_RISK_SHARE, bandTone } from '@/data/gcc/targets';
 import type { Lifecycle } from '@/data/gcc/lifecycle';
 import { DEMO_TODAY, addDays } from '@/domain/calendar';
 import { convert, money } from '@/domain/money';
@@ -16,14 +16,17 @@ import { eligibilityFor } from '../s1/eligibility';
 import { CAPACITY_WINDOW_DAYS, asCommitment, peakMonth, teamLoad } from '../s1/triage';
 import { facilityHeadroom } from '../s1/bond';
 import {
-  credentialsAtRisk, dayMonth, dayText, dg1Open, dg2Open, inScope, inputsOutstanding, liveInScope, ownerTag, tenantCcy,
+  dayMonth, dayText, dg1Open, dg2Open, documentGaps, companyDocuments, inScope, inputsOutstanding, liveInScope, ownerTag, tenantCcy,
 } from '../actions/portfolio.actions';
+import { isScreenBuilt } from '@/pages/gcc/screens';
+import type { Source } from '@/data/gcc/types';
 import type { DrillVM } from '../viewmodels';
+import { documentsPanel, lateBy, lateDecisionsPanel } from './panels';
 import type { KpiCtx, KpiDef, KpiResult } from './types';
 
 /**
  * The portfolio KPIs (plan 015 Phase 2, dashboards.md §10.1–10.3 and §11.1):
- * PF-1 … PF-4 and PF-6, and SCR-1, SCR-5, SCR-6, CAP-1, DEC-4 … DEC-7 and
+ * PF-0 … PF-4, PF-6 and PF-7 (plan 040), and SCR-1, SCR-5, SCR-6, CAP-1, DEC-4 … DEC-7 and
  * OUT-3, which the stage dashboards (plan 013) reuse. Every value is derived
  * from the lifecycles (read through `queriesFor`, so restricted tenders never
  * reach a count their table hides), the tenant seed and the demo state.
@@ -90,18 +93,65 @@ function pipelineMoves(ctx: KpiCtx) {
   return { inIds: uniq(inIds), outIds };
 }
 
-/* ------------------------------------------------------------------- PF-1 … PF-6 */
+/* ------------------------------------------------------------------- PF-0 … PF-7 */
+
+/** The tender radar, when this viewer may open it (PF-0, PF-7). */
+const radarDrill = (ctx: KpiCtx): DrillVM | null =>
+  (isScreenBuilt('/radar') && can(ctx.viewer, 'radar.view').ok ? { kind: 'route', to: '/radar', label: 'Open the tender radar' } : null);
+
+const n0 = (n: number) => n.toLocaleString('en-GB');
+
+const PORTAL_KINDS: Source['kind'][] = ['portal', 'client-portal'];
+
+/** The portal sources among a by-source count, busiest first: "Etimad" without its qualifier, as on the Intake tiles, a long name cut to its first word or two. */
+function portalsOf(tenant: string, bySource: Record<string, number>): { name: string; n: number }[] {
+  const sources = isGccTenantKey(tenant) ? gccData(tenant).sources : [];
+  return Object.entries(bySource).flatMap(([id, n]) => {
+    const src = sources.find((x) => x.id === id);
+    // "Tender Board e-tendering" reads "Tender Board", "Dubai government e-procurement portal" "Dubai", so the reference line fits at 1440.
+    const full = src?.name.replace(/\s*\(.*\)$/, '') ?? id;
+    const two = full.split(' ').slice(0, 2).join(' ');
+    const name = full.length <= 12 ? full : two.length <= 12 ? two : full.split(' ')[0];
+    return n > 0 && src && PORTAL_KINDS.includes(src.kind) ? [{ name, n }] : [];
+  }).sort((a, b) => b.n - a.n);
+}
+
+/** Plan 040: tenders open for bids now, from the portals and mailboxes. The Head of Tendering's first tile. */
+const PF0: KpiDef = {
+  id: 'PF-0',
+  label: 'Live pipeline',
+  kind: 'state',
+  info: {
+    means: 'The tenders on the market that are still open for bids today: the pool we can choose from.',
+    counted: 'New tender notices our portals and mailboxes picked up whose bid date has not passed yet.',
+    target: 'No target',
+    source: 'Portals and mailboxes',
+  },
+  compute(ctx) {
+    const a = Q(ctx).activeNotices();
+    const portals = portalsOf(ctx.tenant, a.bySource);
+    if (!a.count) return { display: 'No active tenders', detail: 'None open for bids now', ref: { k: 'Largest', v: 'None' }, n: 0 };
+    return {
+      display: `${n0(a.count)} active ${a.count === 1 ? 'tender' : 'tenders'}`,
+      sub: `${n0(a.count)} open for bids now, from ${count(portals.length, 'portal')}${portals[0] ? ` · largest ${portals[0].name} ${n0(portals[0].n)}` : ''}`,
+      detail: `from ${count(portals.length, 'portal')}`,
+      ref: { k: 'Largest', v: portals[0] ? `${portals[0].name} ${n0(portals[0].n)}` : 'None' },
+      n: a.count,
+    };
+  },
+  drill: radarDrill,
+};
 
 const PF1: KpiDef = {
   id: 'PF-1',
-  label: 'Live pipeline',
+  label: 'Pursued pipeline',
   kind: 'state',
   periodAware: true,
   info: {
-    means: 'Every tender we decided to pursue that is still open: being sourced, priced or written, or submitted and waiting for the result.',
-    counted: 'Tenders in Stages 2 to 8 now, and their value in the company currency. "In" is pursued at DG1 since the window started; "out" is a No-Bid, a DG3 rejection, a withdrawal or a result.',
-    target: 'None (information)',
-    source: 'Tender lifecycles',
+    means: 'The bids we decided to pursue that are still being worked on or waiting for a result, and what they are worth.',
+    counted: 'Tenders now between Sourcing and Submission, with their value in the company currency; underneath, how many joined and left since the period began.',
+    target: 'No target',
+    source: 'Tender records',
   },
   compute(ctx) {
     const live = liveInScope(ctx).filter((l) => inPipeline(currentOf(l).stage));
@@ -116,7 +166,7 @@ const PF1: KpiDef = {
       ...(ctx.scope.kind === 'assigned' ? { label: 'My live bids' } : {}),
     };
   },
-  drill: (ctx) => ({ kind: 'table', label: `From tile: ${ctx.scope.kind === 'assigned' ? 'My live bids' : 'Live pipeline'} · now`, stages: PIPELINE, status: 'live' }),
+  drill: (ctx) => ({ kind: 'table', label: `From tile: ${ctx.scope.kind === 'assigned' ? 'My live bids' : 'Pursued pipeline'} · now`, stages: PIPELINE, status: 'live' }),
 };
 
 const submitted = (ctx: KpiCtx) => Q(ctx).submissionsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));
@@ -126,10 +176,10 @@ const PF2: KpiDef = {
   label: 'Average ticket size',
   kind: 'flow',
   info: {
-    means: 'The typical size of what we bid. A rising average with the same team means bigger, riskier bids.',
-    counted: 'The mean value of the bids submitted in the period, in the company currency.',
-    target: 'None (information)',
-    source: 'Tender lifecycles: submissions',
+    means: 'The typical size of the bids we sent. If it rises while the team stays the same, we are taking on bigger, riskier bids.',
+    counted: 'The average value of the bids submitted in the period, in the company currency.',
+    target: 'No target',
+    source: 'Bid submissions',
   },
   compute(ctx) {
     const subs = submitted(ctx);
@@ -150,19 +200,20 @@ const decided = (ctx: KpiCtx) => Q(ctx).resultsIn(ctx.window).filter((x) => inSc
 
 const PF3: KpiDef = {
   id: 'PF-3',
-  label: 'Win / loss',
+  label: 'Win & Loss',
   kind: 'flow',
   info: {
-    means: 'Of the results we received in this period, how many we won. With few results the rate swings, so the counts are shown first.',
-    counted: 'Results received in the period: won ÷ (won + lost). Withdrawn and cancelled tenders are left out.',
-    target: 'The company’s target hit rate, applied from 5 results',
-    source: 'Tender lifecycles: results',
+    means: 'How many of the results we received in the period we won, and how many we lost. With few results the rate swings, so the counts come first.',
+    counted: 'Bids won and bids lost in the period; withdrawn and cancelled tenders are left out.',
+    target: `The company’s win target, from ${MIN_N} results`,
+    source: 'Bid results',
   },
   compute(ctx): KpiResult {
     const res = decided(ctx);
     const target = isGccTenantKey(ctx.tenant) ? TENANT_TARGETS[ctx.tenant].hitRatePct : null;
+    const infoTarget = target !== null ? `${target}% or more, judged from ${MIN_N} results` : undefined;
     // No results yet: the same reference line as under five results, so the row stays put between periods.
-    if (!res.length) return { display: noneText(ctx.window, 'No results'), detail: 'Nothing won or lost', ...(target !== null ? { ref: { k: 'Target', v: `${target}% from ${MIN_N} results` } } : {}), n: 0 };
+    if (!res.length) return { display: noneText(ctx.window, 'No results'), detail: 'Nothing won or lost', ...(target !== null ? { ref: { k: 'Target', v: `${target}% from ${MIN_N} results` } } : {}), n: 0, infoTarget };
     const won = res.filter((x) => x.r.result === 'won');
     const n = res.length;
     const rate = pct(won.length, n);
@@ -172,12 +223,12 @@ const PF3: KpiDef = {
     return {
       display: `${won.length} won · ${n - won.length} lost`,
       sub: `Win rate ${rate}% (n = ${n})${won.length ? ` · ${m(ctx, valueWon)} won` : ''}${target !== null && n >= MIN_N ? ` · target ${target}%` : ''}`,
-      detail: won.length ? `${rate}% · ${m(ctx, valueWon)} won` : `Win rate ${rate}%`,
+      detail: `${rate}% win rate`,
       // Under five results there is no rating yet; the reference line still says when there will be.
       ...(target !== null ? { ref: { k: 'Target', v: n >= MIN_N ? `${target}%` : `${target}% from ${MIN_N} results` } } : {}),
-      // "Watch" would say it may slip; an orange hit rate is already under target.
-      ...(tone === 'orange' ? { status: 'Below target' } : {}),
-      tone, n, ...(n < MIN_N ? { smallSample: true } : {}),
+      // "Watch" or "Off track" would say less: any rate under the target reads "Below target" (plan 040).
+      ...(tone === 'orange' || tone === 'red' ? { status: 'Below target' } : {}),
+      tone, n, ...(n < MIN_N ? { smallSample: true } : {}), infoTarget,
     };
   },
   drill: (ctx) => tableOf(fromTile(ctx, 'results'), decided(ctx).map((x) => x.l.tenderId)),
@@ -185,18 +236,15 @@ const PF3: KpiDef = {
 
 const gateDecisions = (ctx: KpiCtx) => Q(ctx).gateEventsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));
 
-/** How late a gate decision was: "3 h", "1 h 20 m". */
-const lateBy = (g: { openedAt: string; at: string; slaHours: number }) => durationText(minutesBetween(g.openedAt, g.at) - g.slaHours * 60);
-
 const PF4: KpiDef = {
   id: 'PF-4',
   label: 'Decisions on time',
   kind: 'flow',
   info: {
-    means: 'How often DG1, DG2 and DG3 were decided within their time limits (24 h, 24 h and 48 h by default). A late decision takes days out of bid preparation.',
-    counted: 'Gate decisions recorded within their time limit ÷ all gate decisions in the period, from the moment each gate opened.',
-    target: '100% (green); 90% or more is orange',
-    source: 'Tender lifecycles: gate records',
+    means: 'Whether DG1, DG2 and DG3 were decided within their time limits. A late decision takes days out of preparing the bid.',
+    counted: `Gate decisions made in the period, and how many came within the limit (${GATE_SLA_HOURS.DG1} hours for DG1, ${GATE_SLA_HOURS.DG2} for DG2, ${GATE_SLA_HOURS.DG3} for DG3) from when the gate opened.`,
+    target: 'All on time',
+    source: 'Gate decision records',
   },
   compute(ctx) {
     const ev = gateDecisions(ctx);
@@ -207,20 +255,51 @@ const PF4: KpiDef = {
     const first = late[0];
     const lateText = !first ? 'all on time'
       : `${late.length} late${late.length > 1 ? ', latest' : ''}: ${first.g.gate} on ${first.l.tenderId} (${lateBy(first.g)})`;
+    // The tone bands are a share; the tile shows the counts it comes from (plan 040).
     const tone = bandTone(p, RATE_BANDS['PF-4']);
     return {
-      display: `${p}%`, sub: `${on} of ${ev.length} · ${lateText}`, tone, n: ev.length,
-      detail: `${on} of ${ev.length} on time`,
+      display: `${on} of ${ev.length} on time`, sub: `${on} of ${ev.length} · ${lateText}`, tone, n: ev.length,
+      detail: late.length ? `${late.length} late` : 'None late',
       ref: { k: 'Latest late', v: first ? first.l.tenderId : 'None' },
       // The target is 100%: orange is already below it, not something to watch.
       ...(tone === 'orange' ? { status: 'Below target' } : {}),
     };
   },
+  // The late decisions, each with how late it was; under them, every decision in the table, late ones first.
   drill(ctx) {
     const ev = gateDecisions(ctx);
-    const late = ev.filter((x) => !x.g.onTime).map((x) => x.l.tenderId);
-    return tableOf(fromTile(ctx, 'gate decisions'), ev.map((x) => x.l.tenderId), { order: uniq(late) });
+    if (!ev.length) return null;
+    const late = ev.filter((x) => !x.g.onTime);
+    const table = tableOf(fromTile(ctx, 'gate decisions'), ev.map((x) => x.l.tenderId), { order: uniq(late.map((x) => x.l.tenderId)) }) as Exclude<DrillVM, { kind: 'list' }>;
+    const panel = lateDecisionsPanel(ctx, late, ev.length, table);
+    return { kind: 'list', label: panel.title, panel };
   },
+};
+
+/** Plan 040: notices that passed the AI first screening in the period, out of every notice captured. */
+const PF7: KpiDef = {
+  id: 'PF-7',
+  label: 'Tenders accepted',
+  kind: 'flow',
+  info: {
+    means: 'Tenders that passed the first automatic screening in the period: the ones worth a closer look. The rest did not fit what we build or where we work.',
+    counted: 'New and re-issued notices captured in the period, and how many of them the AI screening passed.',
+    target: 'No target',
+    source: 'AI screening of captured notices',
+  },
+  compute(ctx) {
+    const c = Q(ctx).capturesIn(ctx.window);
+    const all = c.captured + c.linked;
+    if (!all) return { display: '0', detail: 'None captured', ref: { k: 'Rate', v: 'None' }, n: 0 };
+    return {
+      display: n0(c.passed),
+      sub: `${n0(c.passed)} of ${n0(all)} captured passed the AI screening · ${pct(c.passed, all)}%`,
+      detail: `of ${n0(all)} captured`,
+      ref: { k: 'Rate', v: `${pct(c.passed, all)}%` },
+      n: c.passed,
+    };
+  },
+  drill: radarDrill,
 };
 
 /** Live tenders in scope not yet submitted, with a deadline still ahead, soonest first. */
@@ -237,10 +316,10 @@ const PF6: KpiDef = {
   label: 'Next submission',
   kind: 'state',
   info: {
-    means: 'The next bid that must leave the building, and how many working days are left. GCC weekends and holidays are taken out.',
-    counted: 'The nearest submission deadline among your live bids not yet submitted, in the authority’s local time. The second nearest is shown under it.',
-    target: 'Orange within 5 working days; red within 2 with anything still missing',
-    source: 'Tender lifecycles and the country calendars',
+    means: 'The next bid that must go out, and the working days left. Weekends and public holidays are not counted.',
+    counted: 'The nearest submission deadline among your live bids not yet submitted, in the employer’s local time.',
+    target: `Nothing missing inside ${NEAR_WD} working days`,
+    source: 'Bid deadlines and holiday calendars',
   },
   compute(ctx) {
     const [first, second] = nextSubmissions(ctx);
@@ -271,10 +350,10 @@ const SCR1: KpiDef = {
   label: 'DG1 due',
   kind: 'state',
   info: {
-    means: 'Tenders waiting for the Bid Manager’s pursue or discard call, against the 24 h limit.',
-    counted: 'Live Stage 1 tenders whose DG1 is open now. The limit runs from M1, when the tender is logged with its evidence.',
-    target: 'Every DG1 within 24 h: orange with 6 h or less left, red once late',
-    source: 'Tender lifecycles: DG1 clock',
+    means: 'Tenders waiting for the Bid Manager to decide pursue or discard. Every hour of delay is time lost for preparing the bid.',
+    counted: `Tenders in Intake whose DG1 decision is open now; the ${GATE_SLA_HOURS.DG1}-hour limit starts when the tender is logged with its evidence.`,
+    target: `Each within ${GATE_SLA_HOURS.DG1} hours`,
+    source: 'DG1 records',
   },
   compute(ctx) {
     const open = dg1Open(ctx);
@@ -327,10 +406,10 @@ const SCR5: KpiDef = {
   label: 'Eligibility risks',
   kind: 'state',
   info: {
-    means: 'Live tenders with a prequalification line that fails or is at risk. Disqualification on paperwork is the most avoidable loss.',
-    counted: 'Live tenders in Stages 1 to 3 with any line that fails or is at risk, checked against the credentials vault on the date each line must hold.',
-    target: 'None: red for a fail on a pursued tender, orange for any other',
-    source: 'Eligibility checks against the credentials vault',
+    means: 'Live tenders where we fail, or may fail, a prequalification requirement. Losing a bid on paperwork is the most avoidable loss.',
+    counted: 'Tenders in Intake to Bid decision with a requirement we fail or may fail, checked against our certificates on the date the tender needs them.',
+    target: 'None',
+    source: 'Eligibility checks and the credentials vault',
   },
   compute(ctx) {
     const risks = eligibilityRisks(ctx);
@@ -349,37 +428,40 @@ const SCR5: KpiDef = {
 
 const SCR6: KpiDef = {
   id: 'SCR-6',
-  label: 'Credentials at risk',
+  label: 'Documentation gaps',
   kind: 'state',
   info: {
-    means: 'Company certificates that expire before a live bid is opened. Saudi tenders require them to be valid on the opening date, so an expiry here can disqualify the bid.',
-    counted: 'Certificates in the vault whose expiry falls before the opening date (or the date the tender says it must hold) of any live bid not yet opened.',
-    target: 'None: orange while a renewal is possible, red once one has expired',
-    source: 'Credentials vault × live tender dates',
+    means: 'Company documents that have expired, or will expire before a live bid needs them. Saudi tenders need certificates valid on the opening date, so a gap here can disqualify a bid.',
+    counted: 'Documents in the credentials vault that have expired, or expire before the opening date (or the date the tender names) of a live bid not yet opened.',
+    target: 'None',
+    source: 'Credentials vault and live tender dates',
   },
   compute(ctx) {
-    const risks = credentialsAtRisk(ctx);
-    if (!risks.length) return { display: '0', sub: 'Every certificate holds past its bids’ openings', detail: 'All hold past openings', ref: { k: 'Renew by', v: 'None' }, tone: 'green', n: 0 };
-    const first = risks[0];
+    const gaps = documentGaps(ctx);
+    if (!gaps.length) return { display: '0', sub: 'Every document holds past its bids’ openings', detail: 'All hold past openings', ref: { k: 'Renew by', v: 'None' }, tone: 'green', n: 0 };
+    const first = gaps[0];
     const bid = first.bids[0];
-    // The certificates this tile counts, soonest expiry first; and the first date any of them must hold.
-    const named = risks.slice(0, 2).map((r) => `${shortCred(r.cred.label)} ${dayMonth(r.validTo)}`);
-    const needed = risks.flatMap((r) => r.bids.map((b) => b.checkDate)).sort()[0];
-    const expired = risks.some((r) => r.validTo < DEMO_TODAY);
+    // The documents this tile counts, expired then soonest expiry; and the first date any of them must hold.
+    const named = gaps.slice(0, 2).map((r) => `${shortCred(r.cred.label)}${r.validTo ? ` ${dayMonth(r.validTo)}` : ''}`);
+    const needed = gaps.flatMap((r) => r.bids.map((b) => b.checkDate)).sort()[0];
+    const expired = gaps.some((r) => r.status === 'expired');
     return {
-      detail: first.requested ? `${shortCred(first.cred.label)} renewal requested` : risks.length > 2 ? `${named[0]} · ${risks.length - 1} more` : named.join(' · '),
-      ref: { k: 'Renew by', v: dayMonth(needed) },
+      detail: first.requested ? `${shortCred(first.cred.label)} renewal requested` : gaps.length > 2 ? `${named[0]} · ${gaps.length - 1} more` : named.join(' · '),
+      ref: { k: 'Renew by', v: needed ? dayMonth(needed) : 'Now' },
       // "Watch" and "Off track" say nothing about what to do: renew, or it has already lapsed.
       status: expired ? 'Expired' : 'Renew soon',
-      display: String(risks.length),
-      sub: `${shortCred(first.cred.label)} ${dayMonth(first.validTo)} · before ${bid.l.tenderId} ${bid.checkLabel} ${dayMonth(bid.checkDate)}${first.requested ? ' · renewal requested' : ''}`,
+      display: String(gaps.length),
+      sub: `${named[0]}${bid ? ` · before ${bid.l.tenderId} ${bid.checkLabel} ${dayMonth(bid.checkDate)}` : ' · expired'}${first.requested ? ' · renewal requested' : ''}`,
       tone: expired ? 'red' : 'orange',
       ownerTag: ownerTag(first.cred.ownerId) ?? undefined,
-      n: risks.length,
+      n: gaps.length,
     };
   },
-  // The Credentials tab, filtered to the certificates that affect live bids (plan 010's URL filter).
-  drill: () => ({ kind: 'route', to: '/company?tab=credentials&bids=affects', label: 'Open Company › Credentials' }),
+  // Every document in the vault, gaps first, with the link to Company › Credentials under it (plan 040).
+  drill(ctx) {
+    const panel = documentsPanel(ctx, companyDocuments(ctx));
+    return { kind: 'list', label: panel.title, panel };
+  },
 };
 
 /* ---------------------------------------------------------------- Capacity */
@@ -389,9 +471,9 @@ const CAP1: KpiDef = {
   label: 'Bid-team load',
   kind: 'state',
   info: {
-    means: 'Committed bid-team hours in the next four weeks against the hours available, for the busiest team.',
-    counted: 'Each team’s committed hours for its live bids over the next four weeks ÷ its engineers’, estimators’ and planners’ hours in the same weeks. The busiest team is shown; underneath, its peak month if that goes over capacity, or the load with the new tender waiting for DG1 if it were pursued.',
-    target: '85% or less (green); up to 100% is orange',
+    means: 'How busy the busiest bid team is over the next four weeks. Above full capacity, bids get rushed.',
+    counted: 'Hours the team has committed to its live bids in the next four weeks, as a share of the hours its engineers, estimators and planners have.',
+    target: `${PORTFOLIO_BANDS.teamLoadPct.green}% or less`,
     source: 'Team rosters and bid effort estimates',
   },
   compute(ctx) {
@@ -446,10 +528,10 @@ const DEC4: KpiDef = {
   kind: 'state',
   cap: 'see.positions',
   info: {
-    means: 'The value of the bids at DG2, weighted by their win probability. Only bids with a pack are counted, because earlier tenders have no probability yet.',
-    counted: 'Σ value × win probability over Stage 3 bids whose Bid / No-Bid pack has been issued, in the company currency.',
-    target: 'None (information)',
-    source: 'Bid / No-Bid packs: win probability',
+    means: 'What the bids at DG2 are worth, allowing for our chance of winning each. Only bids with a Bid / No-Bid pack count, because only they have a win chance yet.',
+    counted: 'Each bid’s value multiplied by its chance of winning, added up over the bids at DG2 with an issued pack.',
+    target: 'No target',
+    source: 'Bid / No-Bid packs',
   },
   compute(ctx) {
     const bids = issuedPacks(ctx);
@@ -481,10 +563,10 @@ const DEC5: KpiDef = {
   label: 'Capacity if won',
   kind: 'state',
   info: {
-    means: 'The delivery load if every bid at DG2 wins, on top of work already awarded, against the safe level.',
-    counted: 'Awarded work as a share of delivery capacity, plus what each Stage 3 bid would add if won, ÷ the company’s safe delivery level.',
-    target: '100% of the safe level or less (green); up to 115% is orange',
-    source: 'Operations delivery load and the Bid / No-Bid packs',
+    means: 'How loaded delivery would be if every bid at DG2 were won, on top of the work we already have. Above the safe level, a win becomes a delivery risk.',
+    counted: 'Work already awarded plus what each bid at DG2 would add, as a share of the company’s safe delivery level.',
+    target: 'The safe level or less',
+    source: 'Operations delivery load and the packs',
   },
   compute(ctx) {
     const c = capacityIfWon(ctx);
@@ -507,10 +589,10 @@ const DEC6: KpiDef = {
   kind: 'state',
   cap: 'company.view',
   info: {
-    means: 'What is left of the bank guarantee facility after the bonds we hold and those live bids would need. In the GCC, bonds tie up the facility for months.',
-    counted: 'Facility limit − bonds issued on contracts − bonds held for live bids and pending awards, as Finance last confirmed it. Under it: what is left after the bid bond of the bid at DG2.',
-    target: 'Orange below 10% of the limit; red below zero',
-    source: 'Finance: bank guarantee facility',
+    means: 'How much of the bank guarantee facility is still free. In the GCC, bonds tie up the facility for months, so a full facility stops us bidding.',
+    counted: 'The facility limit, less the bonds already issued and those held for live bids and pending awards, as Finance last confirmed it.',
+    target: `Above ${Math.round(PORTFOLIO_BANDS.facilityWarningShare * 100)}% of the limit`,
+    source: 'Finance: guarantee facility',
   },
   compute(ctx) {
     if (!isGccTenantKey(ctx.tenant)) return { display: 'Not available' };
@@ -536,10 +618,10 @@ const DEC7: KpiDef = {
   label: 'Inputs outstanding',
   kind: 'state',
   info: {
-    means: 'Inputs asked of colleagues for packs and not yet given. Packs slip when inputs slip.',
-    counted: 'Contributor inputs requested for Bid / No-Bid packs and not yet submitted. Late means past the date the Bid Manager set.',
-    target: 'None late (green); any late is orange, red on a pack already with the committee',
-    source: 'Bid / No-Bid pack input requests',
+    means: 'Inputs colleagues still owe for Bid / No-Bid packs. When inputs slip, packs slip.',
+    counted: 'Inputs asked for and not yet given; late means past the date the Bid Manager set.',
+    target: 'None late',
+    source: 'Pack input requests',
   },
   compute(ctx) {
     const open = inputsOutstanding(ctx);
@@ -571,10 +653,10 @@ const OUT3: KpiDef = {
   label: 'Value won',
   kind: 'flow',
   info: {
-    means: 'Contract value won in the period, against the order-intake target pro-rated to the period.',
-    counted: 'Σ contract value of the bids won in the period, in the company currency. The target is the annual order-intake target × the days in the period ÷ 365.',
-    target: 'The pro-rated order-intake target: 70% of it or more is orange; not judged for Today or 7 days',
-    source: 'Tender lifecycles: results; company targets',
+    means: 'The contract value we won in the period, against our order-intake target for the same length of time.',
+    counted: 'The value of the bids won in the period, in the company currency; the target is the yearly order-intake target scaled to the period.',
+    target: 'The order-intake target for the period',
+    source: 'Bid results and company targets',
   },
   compute(ctx) {
     if (!isGccTenantKey(ctx.tenant)) return { display: 'Not available' };
@@ -592,9 +674,10 @@ const OUT3: KpiDef = {
       ref: { k: 'Target', v: m(ctx, target) },
       tone: short ? undefined : p >= b.green ? 'green' : p >= b.orange ? 'orange' : 'red',
       n: w.length,
+      infoTarget: `${m(ctx, target)} for this period`,
     };
   },
   drill: (ctx) => tableOf(fromTile(ctx, 'contracts won'), wins(ctx).map((x) => x.l.tenderId)),
 };
 
-export const KPIS: KpiDef[] = [PF1, PF2, PF3, PF4, PF6, SCR1, SCR5, SCR6, CAP1, DEC4, DEC5, DEC6, DEC7, OUT3];
+export const KPIS: KpiDef[] = [PF0, PF1, PF2, PF3, PF4, PF6, PF7, SCR1, SCR5, SCR6, CAP1, DEC4, DEC5, DEC6, DEC7, OUT3];

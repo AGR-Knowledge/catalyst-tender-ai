@@ -475,10 +475,10 @@ export const T887_JEZZINE: ExtractedTender = {
       page: 49,
     },
     {
-      name: 'Associated Consulting Engineers (ACE)',
+      name: 'Consulting engineers named on the cover',
       role: 'Consultant named on the cover; role not stated (the RFB title page says CDR prepared the document)',
-      org: 'Associated Consulting Engineers',
-      address: 'B.P. 11-3446, Beirut, Lebanon',
+      org: 'Consulting engineers, Beirut',
+      address: 'Beirut, Lebanon',
       page: 1,
     },
   ],

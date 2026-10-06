@@ -184,13 +184,13 @@ export const BATINAH: TenantSeed = {
   key: 'batinah',
   company: {
     hq: 'Sohar; site office in Muscat',
-    employees: 1_400,
+    employees: 11_000,
     fyEnd: '12-31',
     financials: [
-      { fy: 2022, turnover: OMR(35_000_000), audited: true },
-      { fy: 2023, turnover: OMR(38_000_000), audited: true },
-      { fy: 2024, turnover: OMR(41_000_000), audited: true, netWorth: OMR(14_500_000), currentRatio: 1.31 },
-      { fy: 2025, turnover: OMR(43_500_000), audited: false, auditDate: '2026-04-30' },
+      { fy: 2022, turnover: OMR(350_000_000), audited: true },
+      { fy: 2023, turnover: OMR(380_000_000), audited: true },
+      { fy: 2024, turnover: OMR(410_000_000), audited: true, netWorth: OMR(145_000_000), currentRatio: 1.31 },
+      { fy: 2025, turnover: OMR(435_000_000), audited: false, auditDate: '2026-04-30' },
     ],
   },
   fit: {

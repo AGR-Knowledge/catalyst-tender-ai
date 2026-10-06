@@ -12,7 +12,7 @@ import type { KpiCtx, KpiDef } from './types';
  * Stage 2 · Sourcing (plan 013 Phase 2.2, dashboards.md §10.5), from 017's
  * Stage 2 step facts (interim summaries until plan 008b derives them from the
  * RFQ records). SRC-9 lives here too and is counted over the dashboard's own
- * stage, so Stage 4 reuses it. ⓘ texts are dashboards.md §11.9, verbatim.
+ * stage, so Stage 4 reuses it. ⓘ texts: plain English, rewritten in plan 040.
  */
 
 type S2 = { l: Lifecycle; f: S2Facts };
@@ -55,9 +55,10 @@ export const KPIS: KpiDef[] = [
     // Flow: with no clock running it reads the period's trailing rate.
     id: 'SRC-1', label: 'RFQ clock', kind: 'flow',
     info: {
-      means: 'Time left to send every RFQ for tenders pursued in the last 24 hours, against the 24 h target',
-      counted: 'While a tender pursued in the last 24 hours still has RFQs to send, the time left on the first. Otherwise the share of tenders whose RFQs went out within 24 h of Pursue, in the period.',
-      target: '100% within 24 h. Orange under 6 h left with RFQs unsent; red once breached', source: 'DG1 times and RFQ send times',
+      means: `Whether quote requests go to suppliers within ${TURNAROUND_HOURS.rfqsAfterDg1} hours of deciding to pursue. Late requests mean late quotes and a guessed price.`,
+      counted: `For a tender pursued in the last ${TURNAROUND_HOURS.rfqsAfterDg1} hours with requests still unsent, the time left; otherwise the share of tenders whose requests all went out in time.`,
+      target: `All within ${TURNAROUND_HOURS.rfqsAfterDg1} hours`,
+      source: 'Pursue decisions and quote requests',
     },
     compute(ctx) {
       const live = clockRunning(ctx);
@@ -91,9 +92,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-2', label: 'Packages covered', kind: 'state',
     info: {
-      means: 'Packages with at least three compliant, levelled quotes (or an accepted gap). Only comparable quotes count',
-      counted: 'Covered packages ÷ packages, across live Stage 2 tenders whose quotes have started to come in. The sub-line names the least covered.',
-      target: '100% green; 70% or more orange; under 70% red', source: 'Packages, quotes and levelling results',
+      means: 'Work packages with at least three comparable quotes, or an accepted gap. Without them the price rests on guesses.',
+      counted: 'Covered packages out of all packages, on tenders in Sourcing whose quotes have started to arrive.',
+      target: 'Every package',
+      source: 'Packages and quotes',
     },
     compute(ctx) {
       const all = s2Of(ctx);
@@ -121,9 +123,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-3', label: 'Replies on time', kind: 'state',
     info: {
-      means: 'RFQs answered, with a quote or a decline, by their reply date',
-      counted: 'RFQs answered by their reply date ÷ RFQs whose reply date has passed, on live Stage 2 tenders.',
-      target: '80% or more green; 60% or more orange', source: 'RFQ records',
+      means: 'How reliably suppliers answer our quote requests by the reply date.',
+      counted: 'Requests answered with a quote or a decline by their reply date, out of those whose reply date has passed.',
+      target: `${STAGE_BANDS.repliesOnTime.green}% or more`,
+      source: 'Quote requests',
     },
     compute(ctx) {
       const all = s2Of(ctx);
@@ -138,9 +141,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-4', label: 'Overdue RFQs', kind: 'state',
     info: {
-      means: 'RFQs past their reply date with no answer. The agent chases; escalated ones need you',
-      counted: 'RFQs on live Stage 2 tenders past their reply date without a quote or a decline. Escalated ones are in the sub-line.',
-      target: '0 green; any escalated red', source: 'RFQ records',
+      means: 'Quote requests past their reply date with no answer. The AI chases them; the ones it escalates need you.',
+      counted: 'Requests on tenders in Sourcing past their reply date with neither a quote nor a decline.',
+      target: 'None escalated',
+      source: 'Quote requests',
     },
     compute(ctx) {
       const all = s2Of(ctx);
@@ -154,9 +158,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-5', label: 'Open clarifications', kind: 'state',
     info: {
-      means: 'Supplier questions not yet answered. Stale ones hold up quotes',
-      counted: 'Supplier clarifications not yet answered on live Stage 2 tenders. Stale means past the answer SLA.',
-      target: '0 stale green; any stale red', source: 'Clarification log',
+      means: 'Supplier questions we have not answered yet. An old one holds up a quote.',
+      counted: 'Supplier questions not yet answered on tenders in Sourcing; old means past the time limit for an answer.',
+      target: 'None old',
+      source: 'Clarification log',
     },
     compute(ctx) {
       const all = s2Of(ctx);
@@ -169,9 +174,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-6', label: 'To level', kind: 'state',
     info: {
-      means: 'Quotes with adjustments (currency, VAT, delivery terms, exclusions) that a buyer must confirm before they count',
-      counted: 'Quotes on live Stage 2 tenders whose adjustments the agent proposed and a buyer has not yet confirmed.',
-      target: 'None (information)', source: 'Levelling records',
+      means: 'Quotes with adjustments (currency, VAT, delivery terms, exclusions) that a buyer must confirm before they can be compared.',
+      counted: 'Quotes on tenders in Sourcing whose adjustments the AI proposed and no buyer has confirmed yet.',
+      target: 'No target',
+      source: 'Quote levelling',
     },
     compute(ctx) {
       const withQuotes = s2Of(ctx).filter((x) => x.f.toLevel > 0);
@@ -186,9 +192,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'SRC-9', label: 'Long-lead at risk', kind: 'state',
     info: {
-      means: "Packages where the best compliant quote can't deliver in time for the programme",
-      counted: "Packages whose best compliant quote's lead time is later than the programme needs, across the live tenders of this dashboard's stage.",
-      target: '0 green; any red', source: 'Levelled quotes and package need-by dates',
+      means: 'Packages where even the best quote cannot deliver in time for the programme.',
+      counted: 'Packages whose best compliant quote delivers later than the programme needs it, on this dashboard’s live tenders.',
+      target: 'None',
+      source: 'Quotes and programme dates',
     },
     compute(ctx) {
       const n = scopeStage(ctx) ?? 4;

@@ -57,9 +57,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-1', label: 'Prices due', kind: 'state',
     info: {
-      means: 'Prices that must be approved soon to hold the submission date',
-      counted: `Stage 5 tenders whose price approval is due within ${NEAR_WD} working days, or past.`,
-      target: `Orange within ${NEAR_WD} working days; red once past`, source: 'Price approval dates',
+      means: 'Prices that must be approved soon to keep the submission date.',
+      counted: `Tenders in Pricing whose price approval is due within ${NEAR_WD} working days, or is past.`,
+      target: 'None late',
+      source: 'Price approval dates',
     },
     compute(ctx) {
       const list = pricesDue(ctx);
@@ -73,9 +74,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-2', label: 'Cost lines sourced', kind: 'state',
     info: {
-      means: 'How much of the price rests on real quotes or proven rates rather than guesses',
-      counted: 'Share of BOQ value priced from a levelled quote or a rate-library norm, across Stage 5 tenders, weighted by tender value.',
-      target: '95% or more green; 85% or more orange', source: 'Cost build-up',
+      means: 'How much of the price rests on real quotes or proven rates rather than estimates.',
+      counted: 'The share of the bill of quantities, by value, priced from a quote or a proven rate, across tenders in Pricing.',
+      target: `${RATE_BANDS['PRC-2'].green}% or more`,
+      source: 'Cost build-up',
     },
     compute(ctx) {
       const rows = s5Of(ctx);
@@ -89,9 +91,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-3', label: 'Below minimum margin', kind: 'state', cap: 'see.margin',
     info: {
-      means: 'Bids priced under the margin the committee set. They need a decision, not a quiet submission',
-      counted: 'Stage 5 tenders whose base-scenario margin is below the DG2 condition or the tenant floor. The sub-line shows the worst.',
-      target: '0 green; any red', source: 'Pricing scenarios and DG2 conditions',
+      means: 'Bids priced under the margin the committee set. They need a decision, not a quiet submission.',
+      counted: 'Tenders in Pricing whose base price gives a margin below the DG2 condition or the company floor.',
+      target: 'None',
+      source: 'Price scenarios and DG2 conditions',
     },
     compute(ctx) {
       const list = belowMargin(ctx);
@@ -104,9 +107,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-4', label: 'Estimated share', kind: 'state',
     info: {
-      means: 'The part of the price nobody has quoted yet',
-      counted: 'Share of BOQ value on estimated rates (no quote, no norm), across Stage 5 tenders, weighted by tender value.',
-      target: `${ESTIMATED_SHARE_BAND.green}% or less green; ${ESTIMATED_SHARE_BAND.orange}% or less orange`, source: 'Cost build-up',
+      means: 'The part of the price nobody has quoted yet. The bigger it is, the bigger the guess.',
+      counted: 'The share of the bill of quantities, by value, on estimated rates with neither a quote nor a proven rate, across tenders in Pricing.',
+      target: `${ESTIMATED_SHARE_BAND.green}% or less`,
+      source: 'Cost build-up',
     },
     compute(ctx) {
       const rows = s5Of(ctx);
@@ -121,9 +125,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-5', label: 'Re-prices', kind: 'flow',
     info: {
-      means: 'How often the price had to move, and how quickly we moved it',
-      counted: 'Re-prices triggered in the period (addendum, FX, quote change), with the 90th percentile turnaround.',
-      target: `p90 turnaround ${TURNAROUND_HOURS.reprice} h or less`, source: 'Pricing change log',
+      means: 'How often a price had to move, and how quickly we moved it.',
+      counted: 'Price changes started in the period (an addendum, an exchange rate, a quote change), and the turnaround of the slowest one in ten.',
+      target: `Turned round in ${TURNAROUND_HOURS.reprice} hours or less`,
+      source: 'Pricing change log',
     },
     compute: (ctx) => ({ ...turnaround(ctx, 'reprice', TURNAROUND_HOURS.reprice, 're-price'), ...turnSplit(ctx, 'reprice', TURNAROUND_HOURS.reprice, 'No price changes') }),
     drill: (ctx) => idsDrill(`From tile: Re-prices · ${ctx.window.label}`, qOf(ctx).workEventsIn(ctx.window, 'reprice').map((x) => x.l.tenderId)),
@@ -131,9 +136,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRC-6', label: 'Finance checks pending', kind: 'state',
     info: {
-      means: "Prices that can't be approved until Finance confirms the costs only they know",
-      counted: 'Stage 5 tenders at the finance check, waiting on Finance to confirm bonds, insurances and head-office recovery.',
-      target: '0 green; any orange', source: 'Finance confirmations',
+      means: 'Prices that cannot be approved until Finance confirms the costs only Finance knows.',
+      counted: 'Tenders in Pricing waiting for Finance to confirm bonds, insurance and head-office costs.',
+      target: 'None waiting',
+      source: 'Finance confirmations',
     },
     compute(ctx) {
       const list = financePending(ctx);

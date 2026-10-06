@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Info } from 'lucide-react';
 import type { CountryCode } from '@/data/tenants';
 import { DEMO_TODAY, addDays, calendarDaysBetween } from '@/domain/calendar';
 import {
-  CALENDAR_CATEGORIES, calendarItems, monthGrid, monthTitle, spanTitle, tzNote, weekStart, workDays, workingWeekText,
+  CALENDAR_CATEGORIES, LEAD_DAYS, calendarItems, calendarLeadUps, calendarOrder, monthGrid, monthTitle, spanTitle, tzNote, weekStart, workDays, workingWeekText,
   type CalendarCategory, type CalendarItemVM,
 } from '@/domain/gcc/calendar';
 import { profileOf, shortDate } from '@/domain/gcc/s1/common';
@@ -30,6 +30,9 @@ import './calendar.css';
  * first working day of the tenant's country. Read only: the view and the date
  * shown are in the URL (`?view=month&d=2026-03-01`), and the last view is
  * remembered in this browser as a convenience.
+ * Plan 041: what asks for a decision or an action also shows, lighter, on the
+ * 3 working days before it is due ("coming up"); a switch hides those, and the
+ * choice is remembered with the view.
  */
 
 type View = 'month' | 'workweek' | 'week' | 'agenda';
@@ -45,6 +48,14 @@ function storedView(): View | null {
 }
 function storeView(v: View) {
   try { localStorage.setItem(KEY, v); } catch { /* the view still holds for this visit */ }
+}
+/** Show the coming-up days: on unless switched off in this browser. A view choice, like the view, not demo state. */
+const LEAD_KEY = 'ctai.calendar.lead';
+function storedLead(): boolean {
+  try { return localStorage.getItem(LEAD_KEY) !== 'off'; } catch { return true; }
+}
+function storeLead(on: boolean) {
+  try { localStorage.setItem(LEAD_KEY, on ? 'on' : 'off'); } catch { /* holds for this visit */ }
 }
 
 const isIso = (s: string | null): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
@@ -93,7 +104,11 @@ function HowToRead({ cc, tz }: { cc: CountryCode; tz: string }) {
             ))}
           </ul>
           <ul className="gcal-how-rules">
-            <li>A day lists its items most important first, in the order above; within a kind, a flagged one (!) comes first. When a day is full, “+n more” opens the whole day.</li>
+            <li>A day lists its items most important first, in the order above; within a kind, a flagged one (!) comes first. What is coming up follows. When a day is full, “+n more” opens the whole day.</li>
+            <li className="gcal-how-lead">
+              <span className="gcal-chip gcal-c-gates lead" aria-hidden><span className="gcal-dot" /><span className="l">In {LEAD_DAYS} days · DG2</span></span>
+              <span>Coming up: shown on the {LEAD_DAYS} working days before it is due, for every decision and action (gates, submissions, authority deadlines, renewals and expiries, your requests). The switch “Coming-up days” hides them.</span>
+            </li>
             <li>{workingWeekText(cc)}. Hatched days are the weekend.</li>
             <li>Solid banners are public closures; the dashed one is Ramadan’s reduced public-sector hours. Moon-sighting dates say “expected”.</li>
             <li>A faded item has passed. Today is the filled date. {tz}.</li>
@@ -116,14 +131,17 @@ export default function Calendar() {
   const range = rangeOf(view, d, cc);
 
   const [onlyMine, setOnlyMine] = useState(false);
+  const [showLead, setShowLead] = useState(storedLead);
   const [hidden, setHidden] = useState<Set<CalendarCategory>>(() => new Set());
   const [openId, setOpenId] = useState<string | null>(null);
   const [openDay, setOpenDay] = useState<string | null>(null);
 
-  const items = useMemo(() => calendarItems({ tenant, viewer, done, from: range.from, to: range.to }), [tenant, viewer, done, range.from, range.to]);
+  const due = useMemo(() => calendarItems({ tenant, viewer, done, from: range.from, to: range.to }), [tenant, viewer, done, range.from, range.to]);
+  const leads = useMemo(() => (showLead ? calendarLeadUps({ tenant, viewer, done, from: range.from, to: range.to }) : []), [showLead, tenant, viewer, done, range.from, range.to]);
+  const items = useMemo(() => (leads.length ? [...due, ...leads].sort(calendarOrder) : due), [due, leads]);
   const mineOnly = useMemo(() => (onlyMine ? items.filter((i) => i.mine) : items), [items, onlyMine]);
-  // The month counts only its own days, not the neighbours' shown around it.
-  const counted = useMemo(() => (view === 'month' ? mineOnly.filter((i) => i.date.slice(0, 7) === d.slice(0, 7)) : mineOnly), [mineOnly, view, d]);
+  // The month counts only its own days, not the neighbours' shown around it; a lead-up is not another item.
+  const counted = useMemo(() => mineOnly.filter((i) => !i.lead && (view !== 'month' || i.date.slice(0, 7) === d.slice(0, 7))), [mineOnly, view, d]);
   const counts = useMemo(() => Object.fromEntries(CALENDAR_CATEGORIES.map((c) => [c.key, counted.filter((i) => i.category === c.key).length])) as Record<CalendarCategory, number>, [counted]);
   const visible = useMemo(() => mineOnly.filter((i) => !hidden.has(i.category)), [mineOnly, hidden]);
 
@@ -169,8 +187,15 @@ export default function Calendar() {
           <button type="button" className={`gcal-mine ${onlyMine ? 'on' : ''}`} aria-pressed={onlyMine} onClick={() => setOnlyMine((x) => !x)}>
             <span className="sw" aria-hidden><span /></span>Only mine
           </button>
-          <span className="gcal-tz">{tzNote(items, tenant)}</span>
-          <HowToRead cc={cc} tz={tzNote(items, tenant)} />
+          <button
+            type="button" className={`gcal-mine ${showLead ? 'on' : ''}`} aria-pressed={showLead} aria-label="Show coming-up days"
+            title={`Coming up: shown on the ${LEAD_DAYS} working days before it is due`}
+            onClick={() => { storeLead(!showLead); setShowLead(!showLead); }}
+          >
+            <span className="sw" aria-hidden><span /></span>Coming-up days
+          </button>
+          <span className="gcal-tz" title={tzNote(due, tenant)}>{tzNote(due, tenant)}</span>
+          <HowToRead cc={cc} tz={tzNote(due, tenant)} />
         </div>
 
         {/* The legend is also the filter: each colour says what it means, and a click hides or shows it. */}

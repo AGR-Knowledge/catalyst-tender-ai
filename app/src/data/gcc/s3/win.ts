@@ -1,7 +1,8 @@
 import type { WinModel } from './types';
 
 /**
- * Win models (pack §9.1). The base is the tenant's hit rate for the sector;
+ * Win models (pack §9.1). The base is the tenant's hit rate for the sector
+ * over the last 12 months of lifecycles (review of plan 039, 2026-10-06);
  * each driver adds or takes points, with its reason and source. The domain
  * adds them up, clamps the result and sets the band from `comparables`.
  * Simulated outputs of the Win-Probability & Recommendation agent.
@@ -10,7 +11,7 @@ import type { WinModel } from './types';
 export const WIN_MODELS: WinModel[] = [
   {
     tenant: 'najd', tenderId: 'T-2026-097',
-    base: { pct: 33, label: 'Water hit rate, trailing 12 months (7 of 21)' },
+    base: { pct: 59, label: 'Water hit rate, trailing 12 months (33 of 56)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 9, why: 'WCWS: 2 awards from 3 bids since 2022', source: 'Client history: award records',
         cites: ['najd-wcws-2022', 'najd-wcws-2023', 'najd-wcws-2024'] },
@@ -32,7 +33,7 @@ export const WIN_MODELS: WinModel[] = [
   },
   {
     tenant: 'najd', tenderId: 'T-2026-101',
-    base: { pct: 33, label: 'Water hit rate, trailing 12 months (7 of 21)' },
+    base: { pct: 59, label: 'Water hit rate, trailing 12 months (33 of 56)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 3, why: 'SCWS: repeat client, though payments are sometimes late', source: 'Bid history; client history' },
       { key: 'value-band', label: 'Value band', points: 4, why: 'Value near the band\'s lower edge', source: 'Bid history; Fit model & rules' },
@@ -51,7 +52,7 @@ export const WIN_MODELS: WinModel[] = [
   },
   {
     tenant: 'corniche', tenderId: 'T-2026-029',
-    base: { pct: 38, label: 'Buildings MEP hit rate, trailing 12 months (5 of 13)' },
+    base: { pct: 47, label: 'Buildings MEP hit rate, trailing 12 months (15 of 32)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 4, why: 'Government-backed developer with a good payment record', source: 'Client history' },
       { key: 'value-band', label: 'Value band', points: 2, why: 'Inside the preferred band', source: 'Bid history; Fit model & rules' },
@@ -70,7 +71,7 @@ export const WIN_MODELS: WinModel[] = [
   },
   {
     tenant: 'qurain', tenderId: 'T-2026-049',
-    base: { pct: 31, label: 'Water hit rate, trailing 12 months (5 of 16)' },
+    base: { pct: 43, label: 'Water hit rate, trailing 12 months (12 of 28)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 8, why: 'Sanitation agency: reliable payer and a repeat client', source: 'Client history' },
       { key: 'value-band', label: 'Value band', points: 2, why: 'Inside the preferred band', source: 'Bid history; Fit model & rules' },
@@ -87,10 +88,10 @@ export const WIN_MODELS: WinModel[] = [
       { text: '−5 pts if the bond pushes the facility below its warning level', points: -5 },
     ],
   },
-  // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package. 38 + 14 = 52; 12 comparables give ± 8.
+  // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package. 47 + 14 = 61; 12 comparables give ± 8.
   {
     tenant: 'corniche', tenderId: 'T-2026-061',
-    base: { pct: 38, label: 'Buildings MEP hit rate, trailing 12 months (5 of 13)' },
+    base: { pct: 47, label: 'Buildings MEP hit rate, trailing 12 months (15 of 32)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 8, why: 'CBHH: its specialist hospital MEP, delivered in 2022', source: 'Client history: award records',
         cites: ['corniche-cbhh-2020'] },
@@ -109,11 +110,11 @@ export const WIN_MODELS: WinModel[] = [
     ],
     bidders: ['tessaline-mep', 'sarab-bs', 'brevanne', 'corniche'],
   },
-  // Plan 023: Batinah's T-2026-042. Base: the Roads hit rate from Batinah's history (4 of 18); drivers +39 → 61;
+  // Plan 023: Batinah's T-2026-042. Base: the Roads hit rate from Batinah's history (12 of 31); drivers +39 → 78;
   // 18 comparables → ± 8. The bid bond amount is a condition of the bid, not a win driver: it moves no points.
   {
     tenant: 'batinah', tenderId: 'T-2026-042',
-    base: { pct: 22, label: 'Roads hit rate, trailing 12 months (4 of 18)' },
+    base: { pct: 39, label: 'Roads hit rate, trailing 12 months (12 of 31)' },
     drivers: [
       { key: 'client', label: 'Client history', points: 11, why: 'The Authority: 4 awards from 5 bids since 2017', source: 'Client history: award records',
         cites: ['batinah-ilra-2017', 'batinah-ilra-2019', 'batinah-ilra-2020', 'batinah-ilra-2021', 'batinah-ilra-2024'] },

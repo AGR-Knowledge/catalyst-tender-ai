@@ -3,8 +3,8 @@ import type { Rng } from '../../lifecycle/rng';
 /**
  * Fictional people for supplier contacts (plan 031): first and family names
  * by the supplier's home country, emails at `{supplier id}.example`, and
- * phone numbers in the country's format. Combinations are drawn at random,
- * so no contact is a real person.
+ * phone numbers in the country's format. Combinations are drawn at random;
+ * a drawn name that matches a well-known real person is swapped (`NOT_REAL`).
  */
 
 type Locale = 'gulf' | 'indian' | 'filipino' | 'egyptian' | 'german' | 'italian' | 'english' | 'nordic' | 'dutch' | 'iberian' | 'french' | 'korean' | 'japanese' | 'chinese' | 'polish' | 'slavic' | 'turkish' | 'levant';
@@ -93,6 +93,33 @@ const LOCALE: Record<string, Locale> = {
 
 export const GCC_CODES = new Set(['SA', 'AE', 'QA', 'OM', 'KW', 'BH']);
 
+/**
+ * Drawn combinations that match a well-known real person (a minister, an
+ * official, an athlete, an actor or a musician), found in the names audit of
+ * plan 043 (2026-10-06), each with the fictional name shown instead. The
+ * generator draws and de-duplicates on the drawn name and swaps only the name
+ * it keeps (`fictionalName`), so its random stream is unchanged. "Fahad
+ * Al-Enezi" was Qurain's CEO, so a draw of it was refused; it maps to the CEO's
+ * new name so that a draw of it is still refused.
+ */
+const NOT_REAL: Record<string, string> = {
+  'Fahad Al-Enezi': 'Fawaz Al-Eidan',
+  'Salem Al-Dosari': 'Salem Al-Khuraiji', 'Saeed Al-Ghamdi': 'Saeed Al-Fuhaid', 'Khalid Al-Dosari': 'Khalid Al-Jubaili',
+  'Khalid Al-Zahrani': 'Khalid Al-Sharekh', 'Yousef Al-Shehri': 'Yousef Al-Huwaidi', 'Hamad Al-Kuwari': 'Hamad Al-Dhuwaihi',
+  'Reem Al-Mansoori': 'Reem Al-Nuaimat', 'Tariq Al-Harbi': 'Tariq Al-Muzaini', 'Fahad Al-Mutairi': 'Fahad Al-Thunayan',
+  'Noura Al-Balushi': 'Noura Al-Shuraim', 'Khalid Al-Rashidi': 'Khalid Al-Hamdhan',
+  'Sherif Farouk': 'Sherif Sallam', 'Karim Abdelaziz': 'Karim Halawa', 'Karim Fahmy': 'Karim Tawfik', 'Amr Mostafa': 'Amr Rizk',
+  'Amr Fahmy': 'Amr Desouky', 'Hany Abdelaziz': 'Hany Barsoum', 'Hany Mostafa': 'Hany Abdelmoneim', 'Mona Farouk': 'Mona Gaafar',
+  'Amr Abdelaziz': 'Amr Mansy', 'Georges Saadeh': 'Georges Moukarzel',
+  'Marta Ortega': 'Marta Valdés', 'Pablo García': 'Pablo Arrieta', 'Xiaoming Zhang': 'Xiaoming Fang',
+  'Ji-hoon Lee': 'Ji-hoon Seong', 'Seo-yeon Park': 'Seo-yeon Baek', 'Dong-hyun Yoon': 'Dong-hyun Gil',
+  'Jürgen Vogel': 'Jürgen Dörfler', 'Matthias Brandt': 'Matthias Ostermann', 'Jürgen Becker': 'Jürgen Wendling', 'Matthias Hartmann': 'Matthias Kühnel',
+  'Mark Bautista': 'Mark Dimaculangan', 'Mark Mendoza': 'Mark Lumibao',
+  'Lakshmi Menon': 'Lakshmi Panicker', 'Anil Menon': 'Anil Kartha', 'Priya Pillai': 'Priya Kaimal',
+  'David Walsh': 'David Ormerod', 'James Doyle': 'James Tolley', 'Owen Harding': 'Owen Mallory',
+  'Henrik Holm': 'Henrik Ahlgren', 'Anders Nyström': 'Anders Vikberg', 'Marco Conti': 'Marco Belloni',
+};
+
 /** A person's name for a supplier in `country`. In a GCC firm the technical leads are often expatriates. */
 export function personName(r: Rng, country: string, role: 'md' | 'tendering' | 'qa' | 'hse'): string {
   const home = LOCALE[country] ?? 'english';
@@ -102,6 +129,9 @@ export function personName(r: Rng, country: string, role: 'md' | 'tendering' | '
   const p = POOLS[locale];
   return `${r.pick(p.first)} ${r.pick(p.last)}`;
 }
+
+/** The name shown for a drawn name: the drawn one, unless it matches a real person. */
+export const fictionalName = (drawn: string): string => NOT_REAL[drawn] ?? drawn;
 
 /** "Jürgen Brandt" → "jurgen.brandt". */
 export function emailLocal(name: string): string {

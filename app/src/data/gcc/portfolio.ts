@@ -17,11 +17,11 @@ export interface TenantTargets {
 }
 
 export const TENANT_TARGETS: Record<GccTenantKey, TenantTargets> = {
-  najd: { hitRatePct: 25, orderIntakeAnnual: { amount: 2_000_000_000, ccy: 'SAR' } },
-  corniche: { hitRatePct: 25, orderIntakeAnnual: { amount: 900_000_000, ccy: 'AED' } },
-  dafna: { hitRatePct: 25, orderIntakeAnnual: { amount: 800_000_000, ccy: 'QAR' } },
-  batinah: { hitRatePct: 30, orderIntakeAnnual: { amount: 50_000_000, ccy: 'OMR' } },
-  qurain: { hitRatePct: 25, orderIntakeAnnual: { amount: 110_000_000, ccy: 'KWD' } },
+  najd: { hitRatePct: 45, orderIntakeAnnual: { amount: 11_000_000_000, ccy: 'SAR' } },
+  corniche: { hitRatePct: 25, orderIntakeAnnual: { amount: 5_000_000_000, ccy: 'AED' } },
+  dafna: { hitRatePct: 25, orderIntakeAnnual: { amount: 3_800_000_000, ccy: 'QAR' } },
+  batinah: { hitRatePct: 30, orderIntakeAnnual: { amount: 430_000_000, ccy: 'OMR' } },
+  qurain: { hitRatePct: 25, orderIntakeAnnual: { amount: 780_000_000, ccy: 'KWD' } },
 };
 
 /**

@@ -141,7 +141,7 @@ export default function Debriefs() {
     // A KPI names its list "From tile: …" for the dashboards' table; the chip here already says "From".
     const words = d.kind === 'table' ? d.label.replace(/^From tile:\s*/, '') : '';
     if (d.kind === 'table') choose({ key: `tile:${d.label}`, label: sector || group ? `${words}, whole company` : words, ids: d.ids ?? [], wide: true });
-    else navigate(d.to);
+    else if (d.kind === 'route') navigate(d.to);
   }, [choose, navigate, sector, group]);
 
   // A tile's list can hold a debrief outside the period's endings (Awaiting sign-off is a state): read it from 12 months then.

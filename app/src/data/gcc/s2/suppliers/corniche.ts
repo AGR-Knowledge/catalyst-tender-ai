@@ -8,15 +8,15 @@ import { suppliers, type SupplierTuple } from './build';
  * Portal persona's firm in every tenant.
  */
 
-const ECUC = 'Emirates Cooling Utilities Company';
+const ECUC = 'Chillmont Cooling Utilities Company';
 const CBHH = 'Crescent Bay Health Holding';
 
 const OK = (at: string): ['clear', string, 'clear', string] => ['clear', at, 'clear', at];
 
 const ROWS: SupplierTuple[] = [
   ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['pumps', 'chem-dosing', 'process-mech'], [], 20, 'approved', OK('2026-02-03'), [86, 1, 4, 1], 'high', [74, 6.5], false, 'corniche.supplier'],
-  ['arctis', 'Arctis Chiller Technik GmbH', 'DE', 'Stuttgart', ['chillers'], [ECUC], 6, 'approved', OK('2025-11-12'), [93, 0, 6, 2], 'medium', [90, 4.0], false],
-  ['setouchi', 'Setouchi Refrigeration Co.', 'JP', 'Okayama', ['chillers'], [ECUC], 4, 'approved', ['due', '2025-08-20', 'clear', '2025-12-02'], [95, 0, 5, 2], 'medium', [88, 4.5], false],
+  ['arctis', 'Kaltenau Chiller Technik GmbH', 'DE', 'Stuttgart', ['chillers'], [ECUC], 6, 'approved', OK('2025-11-12'), [93, 0, 6, 2], 'medium', [90, 4.0], false],
+  ['setouchi', 'Ushimado Refrigeration Co.', 'JP', 'Okayama', ['chillers'], [ECUC], 4, 'approved', ['due', '2025-08-20', 'clear', '2025-12-02'], [95, 0, 5, 2], 'medium', [88, 4.5], false],
   // Plan 016c: both on ECUC's list, so T-2026-044's seeded RFQs (P-01, P-02; avlRequired) went to approved suppliers.
   ['tilal-thermal', 'Tilal Thermal Systems LLC', 'AE', 'Dubai', ['chillers', 'cooling-towers'], [ECUC], 38, 'approved', OK('2026-01-18'), [85, 2, 8, 2], 'medium', [84, 4.0], false],
   ['warsan-thermal', 'Warsan Thermal Equipment LLC', 'AE', 'Dubai', ['chillers', 'cooling-towers'], [ECUC], 40, 'approved', OK('2026-01-22'), [87, 1, 6, 2], 'medium', [86, 4.0], false],
@@ -35,7 +35,7 @@ const ROWS: SupplierTuple[] = [
   // Plan 022: T-2026-061, the Abu Dhabi hospital MEP package. Two AHU manufacturers (the hvac suppliers above are
   // contractors), and three each for the packages no supplier above covers: medical gas, fire and plumbing.
   ['qarn-air', 'Qarn Air Handling Industries LLC', 'AE', 'Abu Dhabi', ['hvac'], [CBHH], 46, 'approved', OK('2026-01-14'), [88, 1, 7, 2], 'medium', [87, 4.0], false],
-  ['kestrelwind', 'Kestrelwind Lufttechnik GmbH', 'DE', 'Kassel', ['hvac'], [], 5, 'approved', OK('2025-12-04'), [91, 0, 4, 1], 'low', [84, 5.0], false],
+  ['kestrelwind', 'Falkenwind Lufttechnik GmbH', 'DE', 'Kassel', ['hvac'], [], 5, 'approved', OK('2025-12-04'), [91, 0, 4, 1], 'low', [84, 5.0], false],
   ['oskerwyn-medgas', 'Oskerwyn Medical Gas Systems Ltd', 'GB', 'Leeds', ['medical-gas'], [CBHH], 7, 'approved', OK('2025-11-26'), [94, 0, 5, 2], 'medium', [89, 4.5], false],
   ['valmora-medgas', 'Valmora Gas Medicali S.r.l.', 'IT', 'Bergamo', ['medical-gas'], [], 4, 'approved', OK('2026-01-09'), [90, 1, 3, 1], 'low', [82, 5.0], false],
   ['thalmira-medgas', 'Thalmira Medical Gas Services LLC', 'AE', 'Abu Dhabi', ['medical-gas'], [CBHH], 44, 'approved', OK('2026-02-05'), [86, 1, 6, 2], 'high', [85, 4.0], false],
@@ -45,7 +45,7 @@ const ROWS: SupplierTuple[] = [
   ['baniyas-plumbing', 'Baniyas Plumbing and Drainage LLC', 'AE', 'Abu Dhabi', ['plumbing'], [CBHH], 43, 'approved', OK('2026-01-28'), [87, 1, 8, 2], 'medium', [88, 4.0], false],
   ['wathba-hydro', 'Wathba Hydro Services LLC', 'AE', 'Abu Dhabi', ['plumbing'], [], 39, 'approved', OK('2025-12-11'), [84, 2, 6, 1], 'medium', [83, 4.5], false],
   ['galdrevin-plumbing', 'Galdrevin Plumbing Contracting LLC', 'AE', 'Abu Dhabi', ['plumbing'], [], 36, 'pending', OK('2026-02-24'), [80, 3, 4, 0], 'low', [76, 5.5], false],
-  ['reem-power', 'Reem Power Systems LLC', 'AE', 'Abu Dhabi', ['lv'], [CBHH], 42, 'approved', OK('2026-01-16'), [88, 1, 8, 2], 'medium', [89, 4.0], false],
+  ['reem-power', 'Saadiyat Power Systems LLC', 'AE', 'Abu Dhabi', ['lv'], [CBHH], 42, 'approved', OK('2026-01-16'), [88, 1, 8, 2], 'medium', [89, 4.0], false],
   ['corvane-elv', 'Corvane ELV Systems LLC', 'AE', 'Dubai', ['bms'], [], 35, 'approved', OK('2026-02-02'), [86, 1, 7, 2], 'medium', [85, 4.0], false],
 ];
 

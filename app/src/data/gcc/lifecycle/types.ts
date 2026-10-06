@@ -257,4 +257,8 @@ export interface IntakeDay {
   minutes: number[];
   /** Notices on a portal's daily list that were not captured (the 06:00 reconciliation). */
   missed: number;
+  /** Wave 12 contract (plan 039): new notices that passed the AI / system initial screening. */
+  passed?: number;
+  /** Wave 12 contract (plan 039): new notices captured that day still open for bids today (deadline ahead). */
+  open?: number;
 }

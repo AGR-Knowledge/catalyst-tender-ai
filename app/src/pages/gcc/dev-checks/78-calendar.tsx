@@ -10,10 +10,11 @@ import { keyDatesFor } from '@/domain/gcc/s1';
 import { rfqsFor, sentBy } from '@/domain/gcc/s2';
 import { vaultFor } from '@/domain/gcc/company/vault';
 import {
-  CALENDAR_CATEGORIES, byImportance, calendarBanners, calendarDay, calendarItemDetail, calendarItems, firstWeekday, monthGrid, weekStart, weekendDays,
-  type CalendarItemVM,
+  CALENDAR_CATEGORIES, LEAD_DAYS, byImportance, calendarBanners, calendarDay, calendarItemDetail, calendarItems, calendarLeadUps, ccOf, firstWeekday, hasLeadUp,
+  leadDays, leadDaysLeft, monthGrid, weekStart, weekendDays, type CalendarItemVM,
 } from '@/domain/gcc/calendar';
-import { profileOf } from '@/domain/gcc/s1/common';
+import { plural, profileOf, shortDate } from '@/domain/gcc/s1/common';
+import { isWorkingDay } from '@/domain/calendar';
 import { CardHead } from '@/components/ui/primitives';
 import { DataTable } from '@/components/ui/DataTable';
 
@@ -26,6 +27,8 @@ import { DataTable } from '@/components/ui/DataTable';
  * Orchestrator follow-up (2026-09-28): weeks start on the country's first
  * working day, quotes are one item per tender and day, and a day lists its
  * items most important first.
+ * Plan 041: lead-ups on the 3 working days before every decision or action,
+ * in the item's country, from today on; none for information-only dates.
  */
 
 interface Check { name: string; ok: boolean; got: string }
@@ -170,6 +173,84 @@ function checks(tenant: string): Check[] {
   const clash = bs.filter((a, n) => bs.some((b, m) => m > n && a.from <= b.to && b.from <= a.to));
   add('Banners share one row: none overlaps another', !clash.length, `${bs.length} banners${clash.length ? ` · overlapping: ${clash.map((b) => b.key).join(', ')}` : ''}`);
 
+  // 18–25. Lead-ups (plan 041), as the Head of Tendering.
+  const leads = calendarLeadUps({ tenant, viewer: hot, done: DONE, from: FROM, to: TO });
+  const dueAll = calendarItems({ tenant, viewer: hot, done: DONE, from: addDays(FROM, 1), to: TO });
+  const leadsOf = (id: string) => leads.filter((l) => l.lead?.dueId === id).map((l) => l.date);
+  const expected = (i: CalendarItemVM) => leadDays(i.date, ccOf(i, tenant)).filter((x) => x >= DEMO_TODAY);
+  const actions = dueAll.filter((i) => !i.past && hasLeadUp(i));
+  const leadOff = actions.filter((i) => leadsOf(i.id).join() !== expected(i).join());
+  const orphan = leads.filter((l) => !actions.some((i) => i.id === l.lead?.dueId) && l.lead!.due <= TO);
+  add('Lead-ups: every decision or action due shows on its 3 working days before, from today on', !leadOff.length && !orphan.length,
+    `${actions.length} items · ${leads.length} lead-up days${leadOff.length ? ` · off: ${leadOff.slice(0, 3).map((i) => i.id).join(', ')}` : ''}${orphan.length ? ` · ${orphan.length} without a due item` : ''}`);
+
+  const info = dueAll.filter((i) => !hasLeadUp(i));
+  const infoKinds = [...new Set(info.map((i) => (i.ref.kind === 'key-date' ? i.ref.keyDate : i.ref.kind)))];
+  const infoLeads = info.filter((i) => leadsOf(i.id).length).length;
+  const wrongKind = info.filter((i) => i.ref.kind !== 'quotes' && !(i.ref.kind === 'key-date' && ['opening', 'answers', 'site-visit', 'pre-bid', 'validity-end', 'bond-validity-end'].includes(i.ref.keyDate)));
+  add('Information-only dates get no lead-up (bid opening, answers, meetings, quotes, validity)', !infoLeads && !wrongKind.length,
+    `${info.length} items (${infoKinds.join(', ') || 'none'}) · ${infoLeads} with lead-ups`);
+
+  // Three samples: a gate, a submission, a renewal or expiry, over a year. Prefer one whose 3 lead days are all from today.
+  const FAR = addDays(FROM, 52 * 7);
+  const farLeads = calendarLeadUps({ tenant, viewer: hot, done: DONE, from: FROM, to: FAR });
+  const farActions = calendarItems({ tenant, viewer: hot, done: DONE, from: addDays(FROM, 1), to: FAR }).filter((i) => !i.past && hasLeadUp(i));
+  const sample = (pick: (i: CalendarItemVM) => boolean) => {
+    const xs = farActions.filter(pick);
+    return xs.find((i) => expected(i).length === LEAD_DAYS) ?? xs[0];
+  };
+  const sampleRow = (name: string, i: CalendarItemVM | undefined) => {
+    if (!i) { add(name, true, 'none due in the next 12 months: nothing to sample'); return; }
+    const cc = ccOf(i, tenant);
+    const got = farLeads.filter((l) => l.lead?.dueId === i.id).map((l) => l.date);
+    const want = expected(i);
+    const counts = got.map((x) => leadDaysLeft(x, i.date, cc));
+    // An item due so soon that its lead days have all passed has none, rightly.
+    const ok = got.join() === want.join() && got.every((x) => isWorkingDay(x, cc) && x >= DEMO_TODAY && x < i.date)
+      && counts.join() === counts.map((_, n) => counts.length - n).join();
+    add(name, ok, `${i.chip}${i.tenderId ? ` ${i.tenderId}` : ''} due ${shortDate(i.date)} (${cc}): ${got.length ? `${got.map((x) => shortDate(x)).join(', ')} · ${counts.join(', ')} working days left` : `none: its ${LEAD_DAYS} working days before (${leadDays(i.date, cc).map((x) => shortDate(x)).join(', ')}) are before today`}`);
+  };
+  sampleRow('Sample: a decision gate shows on the working days before it', sample((i) => i.category === 'gates'));
+  sampleRow('Sample: a submission shows on the working days before it', sample((i) => i.ref.kind === 'key-date' && i.ref.keyDate === 'submission' || i.ref.kind === 'submission'));
+  sampleRow('Sample: a renewal or expiry shows on the working days before it', sample((i) => i.ref.kind === 'credential' && i.ref.what === 'renewal') ?? sample((i) => i.ref.kind === 'credential'));
+
+  // The country week and a holiday, whatever the tenant: due Mon 16 Mar skips Fri–Sat in KSA and Sat–Sun in the UAE; due Sun 29 Mar in KSA skips Eid (19–28 Mar).
+  const sa16 = leadDays('2026-03-16', 'SA').join();
+  const ae16 = leadDays('2026-03-16', 'AE').join();
+  const sa29 = leadDays('2026-03-29', 'SA').join();
+  add('Working days follow the country: KSA skips Fri–Sat, the UAE Sat–Sun, both skip a closure',
+    sa16 === '2026-03-11,2026-03-12,2026-03-15' && ae16 === '2026-03-11,2026-03-12,2026-03-13' && sa29 === '2026-03-16,2026-03-17,2026-03-18',
+    `KSA before Mon 16 Mar: ${sa16} · UAE: ${ae16} · KSA before Sun 29 Mar (Eid): ${sa29}`);
+
+  // Never before today or on the due day; a day lists every due item before its lead-ups.
+  const early = leads.filter((l) => l.date < DEMO_TODAY || l.date >= l.lead!.due);
+  const merged = [...items, ...leads];
+  const leadFirst = [...new Set(leads.map((l) => l.date))].filter((day) => {
+    const list = byImportance(merged.filter((i) => i.date === day));
+    const firstLead = list.findIndex((i) => i.lead);
+    return firstLead >= 0 && list.slice(firstLead).some((i) => !i.lead);
+  });
+  add('Lead-ups: never before today or on the due day; due items come first in a day', !early.length && !leadFirst.length,
+    `${leads.length} lead-up days${early.length ? ` · out of range: ${early.slice(0, 3).map((l) => l.id).join(', ')}` : ''}${leadFirst.length ? ` · lead-up before a due item on ${leadFirst.slice(0, 3).join(', ')}` : ', due items first'}`);
+
+  // Lead-ups only for what the viewer may see: the Bid Manager and someone not cleared for restricted tenders.
+  const bm = firstWithRole(tenant, 'bid');
+  const seen = [bm, outsider].filter((p): p is Person => !!p).map((p) => {
+    const own = new Set(calendarItems({ tenant, viewer: p, done: DONE, from: FROM, to: addDays(TO, 30) }).map((i) => i.id));
+    const ls = calendarLeadUps({ tenant, viewer: p, done: DONE, from: FROM, to: TO });
+    return { p, n: ls.length, stray: ls.filter((l) => !own.has(l.lead!.dueId) || (l.tenderId && restricted.has(l.tenderId) && p === outsider)).length };
+  });
+  add('Lead-ups only for items the viewer may see (Bid Manager, not cleared)', seen.length === 2 && seen.every((x) => !x.stray),
+    seen.map((x) => `${x.p.name}: ${x.n} lead-up days, ${x.stray} stray`).join(' · '));
+
+  // A lead-up opens the due item's own detail, with how far off it is.
+  const l0 = leads[0];
+  const d0 = l0 ? calendarItemDetail(l0.id, { tenant, viewer: hot, done: DONE }) : null;
+  const n0 = l0 ? leadDaysLeft(l0.date, l0.lead!.due, ccOf(l0, tenant)) : 0;
+  add('A lead-up opens its due item, with “Due …, in N working days”',
+    !!d0 && d0.item.id === l0.lead!.dueId && d0.lead === `Due ${shortDate(l0.lead!.due)}, in ${plural(n0, 'working day')}`,
+    d0 ? `${l0.chip} on ${shortDate(l0.date)} → ${d0.item.title} · “${d0.lead}”` : 'no lead-up to open');
+
   return out;
 }
 
@@ -180,7 +261,7 @@ export default function CalendarCheck() {
   const failing = rows.filter((r) => !r.ok).length;
   return (
     <>
-      <CardHead title="Calendar (plan 027b)" meta={failing ? `${failing} of ${rows.length} failing` : `All ${rows.length} pass`} />
+      <CardHead title="Calendar (plans 027b and 041)" meta={failing ? `${failing} of ${rows.length} failing` : `All ${rows.length} pass`} />
       <DataTable
         rows={rows}
         rowKey={(c) => c.name}

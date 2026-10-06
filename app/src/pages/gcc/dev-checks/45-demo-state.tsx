@@ -34,11 +34,11 @@ const EXPECT: Record<string, string> = {
   '5.9 Determinism': 'same array for the same done · equal rows for a copy',
   // Najd: scripts A–C
   '5.1 Script A: hero row after DG1 Pursue': 'Stage 2 · packaging · owner Joseph Mathew',
-  '5.1 Live stage counts for Faisal Al-Harbi': 'S1 12 → 11 · S2 2 → 3 · port rows agree',
+  '5.1 Live stage counts for Faisal Al-Harbi': 'S1 12 → 11 · S2 7 → 8 · port rows agree',
   '5.1 Tracker DG1 chip': 'Pursue · Omar Siddiqui · 8 Mar 10:00 · on time',
   '5.1 DG1 decisions today include the hero': 'yes',
   '5.2 Pursue → Re-open → Pursue': 're-opened: Stage 1 · again: Stage 2 · DG1 records 2 (1 re-opened)',
-  '5.3 Discard on a low-fit tender': 'T-2026-126 fit 35 · discarded · S1 12 → 11 · closed 180 → 181',
+  '5.3 Discard on a low-fit tender': 'T-2026-126 fit 35 · discarded · S1 12 → 11 · closed 377 → 378',
   '5.4 Script B: step after pkg, shortlist, RFQs sent': 'shortlisting · rfqs-out · quotes-in',
   '5.4 RFQs sent: row fact and 008a count': 'row 8 of 8 · 008a 8 of 8',
   '5.5 Script C: re-run and issue the pack': 'fresh · v2 with the committee · DG2 clock from 7 Mar 14:10',

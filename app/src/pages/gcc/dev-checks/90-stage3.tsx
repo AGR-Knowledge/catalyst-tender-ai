@@ -35,11 +35,11 @@ import { DataTable } from '@/components/ui/DataTable';
 // Plan 009a acceptance values (the only numbers typed here).
 const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
   najd: {
-    '097 · Win probability': '58 ± 8',
+    '097 · Win probability': '84 ± 8',
     '097 · Driver points (Σ)': '+25',
     '097 · Comparables': '14',
-    '097 · Base: water hit rate from history': '33% (7 of 21)',
-    '097 · Calibration': 'Calibrated on 33 decided bids: bands within ±10 points except under 30%, where the model is over-confident (0 of 13 won)',
+    '097 · Base: water hit rate from history': '59% (33 of 56)',
+    '097 · Calibration': 'Calibrated on 86 decided bids: bands within ±10 points except under 30%, where the model is over-confident (0 of 20 won)',
     '097 · Competitors (bidders incl. us)': '5 (6)',
     '097 · Uncited claims suppressed': '1 uncited claim suppressed (no source, no claim)',
     // plan 022: the count is of every tenant's evidence: 12 (009a) + 7 for T-2026-061 (plan 022) + 5 for T-2026-042 (plan 023).
@@ -53,8 +53,8 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     '097 · Freshness': 'Pack generated 07 Mar 14:10. Stale: Addendum 2 received 08 Mar 09:12 changes 2 packages (P-03 Filtration, P-09 Pipes and valves).',
     '097 · Stale sections': '9.6, 9.7, 9.10',
     '097 · Delivery load if both win': '101%',
-    '097 · Weighted value (DEC-4)': 'SAR 205,900,000',
-    '097 · Facility after bond': 'SAR 88.9 M',
+    '097 · Weighted value (DEC-4)': 'SAR 298,200,000',
+    '097 · Facility after bond': 'SAR 632.9 M',
     '097 · Inputs': '6 requested · 0 outstanding · 0 late',
     '097 · Lens (CFO · TD · OD · Sector · HoT)': '9.5 · 9.6 · 9.4 · 9.1 · top',
     '101 · Pack': 'Draft v1 · not issued',
@@ -85,15 +85,15 @@ const EXPECT: Partial<Record<GccTenantKey, Record<string, string>>> = {
     // Plan 020 lane E
     '097 · Margin but not positions (Commercial Manager)': '8.5–11.5% · win Masked for your role · positions Masked for your role · weighted none',
     '097 · Facility basis': 'finance · confirmed',
-    '101 · Facility after bond': 'SAR 93.2 M · bank-facility · Provisional: Finance has not confirmed headroom for this bid yet',
+    '101 · Facility after bond': 'SAR 637.2 M · bank-facility · Provisional: Finance has not confirmed headroom for this bid yet',
     '097 · Bid bond (007a)': 'SAR 7.1 M (2% of the estimate), valid 120 days',
     '097 · Win theme citing WCWS': 'Delivery record with WCWS on water treatment (2022 won, 2024 won)',
     'T-2026-097 · Sections with no input requested': 'none',
     'T-2026-101 · Sections with no input requested': 'none',
-    'Flow 2 · Letter signature': 'For and on behalf of Najd Arcline Contracting Co.',
+    'Flow 2 · Letter signature': 'For and on behalf of Najd Arvelle Contracting Co.',
     'Flow 7 · Letter after re-open': 'none · kept with its re-open: yes',
     'Flow 7 · Bid after re-open: letter': 'none',
-    'Flow 7 · Two re-opens keep their own reasons': 'No-Bid · A competitor withdrew: Hijr Al-Watan Contracting withdrew from the tender | Bid · A partner offered a JV: Tihama Hydro Works offered a JV on the process package',
+    'Flow 7 · Two re-opens keep their own reasons': 'No-Bid · A competitor withdrew: Hijr Al-Watan Contracting withdrew from the tender | Bid · A partner offered a JV: Qunfudhah Hydro Works offered a JV on the process package',
     'Flow 9 · Conditions after a re-open': 'T-2026-097-R1-C1 closed · then T-2026-097-R2-C1 open, T-2026-097-R2-C2 open',
     'Sent-back flag stays in the pack risks (T-2026-104)': 'open 1 · sent back 1 (sent-back) · resolved 0',
     // Plan 016a 1.6: T-2026-097's pack reads its frozen roll-up (no live requirements), so its 9.3 is unchanged.
@@ -221,7 +221,7 @@ function najdRows(): Record<string, string> {
   got['097 · Evidence records'] = `${EVIDENCE.length} · ${badEvidence.length ? `${badEvidence.length} not synthetic or not .example` : 'all synthetic, .example hosts'}`;
   const tihama = COMPETITORS.find((c) => c.id === 'tihama');
   const partnerTenants = (Object.keys(GCC_DATA) as GccTenantKey[]).filter((k) => GCC_DATA[k].partners.some((p) => p.name === tihama?.name));
-  got['097 · Tihama on partner lists agrees with the seed'] = agree(JSON.stringify([...(tihama?.alsoPartnerOf ?? [])].sort()) === JSON.stringify(partnerTenants.sort()), partnerTenants.join(', '));
+  got['097 · Qunfudhah on partner lists agrees with the seed'] = agree(JSON.stringify([...(tihama?.alsoPartnerOf ?? [])].sort()) === JSON.stringify(partnerTenants.sort()), partnerTenants.join(', '));
   got['097 · Margin range'] = pack.summary.margin ?? '—';
   const maskedSection = JSON.stringify({ ...masked.sections['9.7'], id: undefined });
   got['097 · Margin masked'] = `${masked.summary.margin} · ${/\d/.test(maskedSection) ? 'digits present' : 'no digits'}`;
@@ -360,7 +360,7 @@ function najdRows(): Record<string, string> {
   got['Flow 7 · Letter after re-open'] = `${rec7?.letter ? 'shown' : 'none'} · kept with its re-open: ${rec7?.reopens[0]?.letter ? 'yes' : 'no'}`;
   const f7bid = applyWrites(f7, writesOf(dg2Write({ tenderId: A, decision: 'bid', staleAcknowledged: true }, 'najd.hot', s7)));
   got['Flow 7 · Bid after re-open: letter'] = dg2RecordFor(T, A, f7bid)?.letter ? 'shown' : 'none';
-  const f7c = applyWrites(f7bid, writesOf(reopenRequestWrite(T, A, f7bid, { reason: 'Tihama Hydro Works offered a JV on the process package', trigger: 'jv-offer' }, 'najd.bid')));
+  const f7c = applyWrites(f7bid, writesOf(reopenRequestWrite(T, A, f7bid, { reason: 'Qunfudhah Hydro Works offered a JV on the process package', trigger: 'jv-offer' }, 'najd.bid')));
   const f7d = applyWrites(f7c, writesOf(reopenApproveWrite(T, A, f7c, 'najd.hot')));
   got['Flow 7 · Two re-opens keep their own reasons'] = (dg2RecordFor(T, A, f7d)?.reopens ?? []).map((r) => `${r.decision.label} · ${r.trigger}: ${r.reason}`).join(' | ') || 'none';
 

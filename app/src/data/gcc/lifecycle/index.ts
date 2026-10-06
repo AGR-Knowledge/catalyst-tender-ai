@@ -56,7 +56,7 @@ export function buildLifecycles(tenant: GccTenantKey): TenantLifecycles {
   const drafts = foldHistory({ tenant, cc, seed, fixedIds: new Set(fixed.map((l) => l.tenderId)), claimed: new Set(FIXED[tenant].claimed) });
   const g = generateHistory({
     tenant, seed, fixed, drafts, targets: FLOW_TARGETS[tenant],
-    ...(tenant === 'najd' ? { againstMajority12m: RESULT_SPLITS.dg2.againstMajority, submissionsFixed: true } : {}),
+    ...(tenant === 'najd' ? { againstMajority12m: RESULT_SPLITS.dg2.againstMajority, splits: RESULT_SPLITS } : {}),
   });
   const lifecycles = [...fixed, ...g.lifecycles].sort((a, b) => cmp(a.capturedAt, b.capturedAt) || cmp(a.tenderId, b.tenderId));
   const ids = new Set<string>();
@@ -75,7 +75,7 @@ export const LIFECYCLE_LOAD_MS = performance.now() - started;
 
 export const LIFECYCLES = Object.fromEntries(GCC_KEYS.map((k) => [k, BUILT[k].lifecycles])) as Record<GccTenantKey, Lifecycle[]>;
 
-/** Capture volumes for the 365 days before today; today's are plan 004's `intakeToday` events. */
+/** Capture volumes for the 730 days before today; today's are plan 004's `intakeToday` events. */
 export const INTAKE_DAILY = Object.fromEntries(GCC_KEYS.map((k) => [k, BUILT[k].intake])) as Record<GccTenantKey, IntakeDay[]>;
 
 export const GENERATION = Object.fromEntries(GCC_KEYS.map((k) => [k, { generated: BUILT[k].generated, notes: BUILT[k].notes }])) as

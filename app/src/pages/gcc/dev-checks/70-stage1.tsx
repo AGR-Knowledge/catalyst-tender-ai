@@ -46,7 +46,8 @@ const GROUPS: [string, string[]][] = [
 
 const EXPECT: Record<string, string> = {
   // 10.1 Five answers. Turnover (plan 020 B10, C10): Corniche's and Qurain Meridian Arabia's FY2025 audits fall after
-  // opening, so each PQ-11 has one reading: Corniche fails at SAR 1.12 bn (AED 1.10 bn); Qurain passes at SAR 1.35 bn.
+  // opening, so each PQ-11 has one reading: Corniche fails at SAR 4.64 bn (AED 4.54 bn); Qurain passes at SAR 6.75 bn
+  // (review of plan 039: every company sized to its lifecycles, and PQ-11 raised to SAR 5 bn so each answer stays).
   'najd · PQ-01, 04, 06, 07, 08 KSA registrations': 'pass', 'najd · PQ-02 Zakat': 'at-risk', 'najd · PQ-03 GOSI': 'at-risk',
   'najd · PQ-05 Classification': 'pass', 'najd · PQ-09 STP experience': 'pass', 'najd · PQ-10 O&M': 'pass', 'najd · PQ-11 Turnover': 'interpretation',
   'najd · PQ-12 to PQ-15': 'pass',
@@ -56,22 +57,22 @@ const EXPECT: Record<string, string> = {
   'dafna · PQ-05 Classification': 'fail', 'dafna · PQ-09 STP experience': 'fail', 'dafna · PQ-10 O&M': 'fail', 'dafna · PQ-11 Turnover': 'fail',
   'dafna · PQ-12 to PQ-15': 'pass',
   'dafna JV · PQ-05 Classification': 'pass', 'dafna JV · PQ-09 STP experience': 'pass', 'dafna JV · PQ-10 O&M': 'pass', 'dafna JV · PQ-11 Turnover': 'pass',
-  'dafna JV · PQ-11 why': 'Pass: lead Tihama Hydro Works Co. SAR 1.10 bn ≥ 60%; combined SAR 1.94 bn',
-  'dafna JV · PQ-09 why': 'Pass (partner): Tihama Hydro Works Co., 2 STPs ≥ 100,000 m³/day',
+  'dafna JV · PQ-11 why': 'Pass: lead Qunfudhah Hydro Works Co. SAR 4.95 bn ≥ 60%; combined SAR 8.57 bn',
+  'dafna JV · PQ-09 why': 'Pass (partner): Qunfudhah Hydro Works Co., 2 STPs ≥ 100,000 m³/day',
   'batinah · PQ-01, 04, 06, 07, 08 KSA registrations': 'fail', 'batinah · PQ-02 Zakat': 'fail', 'batinah · PQ-03 GOSI': 'fail',
   'batinah · PQ-05 Classification': 'fail', 'batinah · PQ-09 STP experience': 'fail', 'batinah · PQ-10 O&M': 'fail', 'batinah · PQ-11 Turnover': 'fail',
   'qurain · PQ-01, 04, 06, 07, 08 KSA registrations': 'pass', 'qurain · PQ-02 Zakat': 'pass', 'qurain · PQ-03 GOSI': 'pass',
   'qurain · PQ-05 Classification': 'pass', 'qurain · PQ-09 STP experience': 'pass', 'qurain · PQ-10 O&M': 'pass', 'qurain · PQ-11 Turnover': 'pass',
   'qurain · PQ-12 to PQ-15': 'pass',
   'najd · roll-up': '13 met · 2 at risk · 1 interpretation · 0 fail → eligible; renew two certificates before 10 May',
-  'dafna · roll-up': 'fails 4 lines alone → eligible only with a JV partner (Tihama Hydro Works Co.)',
+  'dafna · roll-up': 'fails 4 lines alone → eligible only with a JV partner (Qunfudhah Hydro Works Co.)',
   'najd · weighted fit': '82', 'corniche · weighted fit': '63', 'dafna · weighted fit': '71', 'batinah · weighted fit': '38', 'qurain · weighted fit': '78',
   'najd · verdict': 'Pursue', 'corniche · verdict': 'Recommend discard', 'dafna · verdict': 'Pursue with conditions (JV needed)',
   'batinah · verdict': 'Recommend discard', 'qurain · verdict': 'Pursue with conditions',
   'najd · capped': 'none', 'corniche · capped': 'pq-fail', 'dafna · capped': 'pq-fail-jv', 'batinah · capped': 'none', 'qurain · capped': 'capacity',
   'corniche · what would change it, first': 'Join a Grade 1 bidder as MEP subcontractor (inside the 30% subcontracting cap)',
-  'corniche · PQ-11 why': 'Average turnover FY2022–FY2024 (audited): SAR 1.12 bn (AED 1.10 bn), below the SAR 1.2 bn threshold',
-  'qurain · PQ-11 why': 'Qurain Meridian Arabia Co.: Average turnover FY2022–FY2024 (audited): SAR 1.35 bn, meets the SAR 1.2 bn threshold',
+  'corniche · PQ-11 why': 'Average turnover FY2022–FY2024 (audited): SAR 4.64 bn (AED 4.54 bn), below the SAR 5 bn threshold',
+  'qurain · PQ-11 why': 'Qurain Meridian Arabia Co.: Average turnover FY2022–FY2024 (audited): SAR 6.75 bn, meets the SAR 5 bn threshold',
   'qurain · what would change it: turnover': 'none',
   'qurain · what would change it: capacity':'Water tendering team peaks at 139% in April: release a bid or add estimators',
   'qurain · what would change it: facility':
@@ -86,7 +87,7 @@ const EXPECT: Record<string, string> = {
   'Eligibility risks': '3: T-2026-118, T-2026-119, T-2026-109',
   'Hero bid bond': 'SAR 9,600,000 at 2% (higher-until-resolved)',
   'Qurain hero bid bond and facility': 'SAR 9,600,000 at 2% (KWD 785,920) · headroom KWD 3.1 M · performance bond KWD 1.96 M',
-  'Facility, as Finance confirmed it': 'facility headroom SAR 96.0 M as of 05 Mar, confirmed by Finance',
+  'Facility, as Finance confirmed it': 'facility headroom SAR 640.0 M as of 05 Mar, confirmed by Finance',
   'Key-date flag 1': 'Site visit Tue 17 Mar falls during Ramadan reduced hours: authority office hours are shorter; confirm the slot',
   'Key-date flag 2': 'Answers to questions are due Wed 25 Mar, inside the expected Eid al-Fitr closure (dates depend on moon sighting): expect a delay',
   'Key-date flag 3': 'Initial guarantee must be valid at least 90 days from opening (to 8 Aug 2026): bank lead time 5 working days',
@@ -128,9 +129,9 @@ const EXPECT: Record<string, string> = {
   'C2: radar, assisted-login text': '3 · client-portal',
   'C3: hero pack locked while 2 fields are open': 'locked in every tenant',
   'C4: Dafna Pursue as prime, no note':
-    'Record the JV with Tihama Hydro Works Co. as the submission strategy, or add a note on why the company bids alone (it fails 4 PQ lines on its own).',
+    'Record the JV with Qunfudhah Hydro Works Co. as the submission strategy, or add a note on why the company bids alone (it fails 4 PQ lines on its own).',
   'C4: Dafna Pursue as prime, with a note': 'valid',
-  'C4: Dafna Pursue with the JV scenario recorded': 'valid · Submission strategy: JV with Tihama Hydro Works Co. (60/40)',
+  'C4: Dafna Pursue with the JV scenario recorded': 'valid · Submission strategy: JV with Qunfudhah Hydro Works Co. (60/40)',
   'C4: JV with a partner not on the list': 'No partner "nobody" on the partner list.',
   'C5: Discard open while locked': 'najd no · corniche yes · dafna no · batinah yes · qurain no',
   'C5: Corniche Discard (PQ fail), fields open': 'valid · 2 fields open on record',
@@ -138,7 +139,7 @@ const EXPECT: Record<string, string> = {
   'C5: Najd Discard, fields open': '2 fields still being validated by Aisha Al-Qahtani. DG1 can be recorded once they are resolved.',
   'C6: rollupReason': 'pq-fail-classification → pq-fail · pq-fail-turnover → pq-fail · pq-fail → pq-fail · capacity → capacity',
   'C7: eligibilityFor, unknown partner':
-    'error · No partner "nobody" on Dafna Keystone Civil W.L.L.\'s partner list: the JV scenario was not checked',
+    'error · No partner "nobody" on Dafna Kerrowstone Civil W.L.L.\'s partner list: the JV scenario was not checked',
   'C9: Stage 3 bid bonds': 'T-2026-097 2% · 120 days · T-2026-101 2% · 120 days · T-2026-029 2% · 90 days · T-2026-049 2% · 90 days',
   'C9: hero bond validity': 'Valid 90 days from opening (to Sat 8 Aug) · stated',
   'C11: DG1 pack capacity window': 'Today to submission (8 Mar – 10 May): 61% → 79%',
@@ -147,9 +148,9 @@ const EXPECT: Record<string, string> = {
   // Plan 021, phase 4 (rule fixes)
   '4.1: Pursue → Re-open → Pursue': 'S2 · not in queue · round 2 · previous 1',
   '4.1: Discard → Re-open → Discard': 'closed · not in queue · round 2 · previous 1',
-  // Orchestrator review: the company leads first; Rafid still lacks the KSA registrations every JV member needs.
-  '4.2: Najd Pursue in a JV with Rafid, no note': 'Add a note: in a JV with Rafid Process Engineering, 11 PQ lines still fail.',
-  '4.2: Najd Pursue in a JV with Rafid, with a note': 'valid',
+  // Orchestrator review: the company leads first; Thawban still lacks the KSA registrations every JV member needs.
+  '4.2: Najd Pursue in a JV with Thawban, no note': 'Add a note: in a JV with Thawban Process Engineering, 11 PQ lines still fail.',
+  '4.2: Najd Pursue in a JV with Thawban, with a note': 'valid',
   '4.3: Corniche Discard (capacity), fields open, audit': '2 fields still open',
   '4.3: Corniche Discard (PQ fail), fields open, audit': '2 fields still open, which cannot change a PQ fail',
   '4.10: Coordinator, radar and captures today': 'radar 10 · captures 10',
@@ -327,7 +328,7 @@ function reviewFixes(): Check[] {
   const jv = { kind: 'jv' as const, partnerId: TIHAMA_JV.partnerId, shares: TIHAMA_JV.shares };
   const verdict = (v: { ok: boolean; errors: string[] }) => (v.ok ? 'valid' : v.errors.join(' '));
   add('C4: Dafna Pursue as prime, no note', verdict(validateDg1({ tenderId: H, decision: 'pursue' }, packD)));
-  add('C4: Dafna Pursue as prime, with a note', verdict(validateDg1({ tenderId: H, decision: 'pursue', note: 'Tihama declined; a named O&M subcontractor covers PQ-10' }, packD)));
+  add('C4: Dafna Pursue as prime, with a note', verdict(validateDg1({ tenderId: H, decision: 'pursue', note: 'Qunfudhah declined; a named O&M subcontractor covers PQ-10' }, packD)));
   const wJv = dg1Write({ tenderId: H, decision: 'pursue', strategy: jv }, 'dafna.bid', packD);
   add('C4: Dafna Pursue with the JV scenario recorded',
     `${verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: jv }, packD))} · ${wJv.effects.find((e) => e.startsWith('Submission strategy')) ?? '—'}`);
@@ -387,9 +388,9 @@ function plan021(): Check[] {
   // 4.2: a partner the recommendation didn't name must clear the PQ, or the note says why.
   const pack = dg1PackFor(k, H, base)!;
   const rafid = { kind: 'jv' as const, partnerId: 'rafid', shares: [60, 40] as [number, number] };
-  add('4.2: Najd Pursue in a JV with Rafid, no note', verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid }, pack, base)));
-  add('4.2: Najd Pursue in a JV with Rafid, with a note',
-    verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid, note: 'Rafid leads the process design only' }, pack, base)));
+  add('4.2: Najd Pursue in a JV with Thawban, no note', verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid }, pack, base)));
+  add('4.2: Najd Pursue in a JV with Thawban, with a note',
+    verdict(validateDg1({ tenderId: H, decision: 'pursue', strategy: rafid, note: 'Thawban leads the process design only' }, pack, base)));
   // 4.3: the PQ-fail wording only with a PQ-fail reason.
   const packC = dg1PackFor('corniche', H, {})!;
   const openText = (code: string) =>

@@ -2,19 +2,19 @@ import { useMemo } from 'react';
 import { useTenantKey } from '@/domain/tenancy';
 import { money } from '@/domain/money';
 import { dayFlags, isWorkingDay } from '@/domain/calendar';
-import { windowOf, PERIODS, type PeriodKey } from '@/domain/gcc/period';
+import { windowOf, periodLabel, type PeriodKey } from '@/domain/gcc/period';
 import { GCC_DATA, isGccTenantKey, type GccTenantKey } from '@/data/gcc';
 import { HERO_ID, HERO_REF } from '@/data/gcc/hero';
 import { TENANTS } from '@/data/tenants';
 import { GENERATION, LIFECYCLES, LIFECYCLE_LOAD_MS, LIFECYCLE_SEEDS, buildLifecycles } from '@/data/gcc/lifecycle';
-import { FLOW_TARGETS, LIVE_TARGETS, NAJD_PIPELINE, RESULT_SPLITS, WINDOW_FROM, WINDOW_KEYS } from '@/data/gcc/lifecycle/targets';
+import { AVG_TICKET_RANGE_M, FLOW_TARGETS, LIVE_TARGETS, NAJD_PIPELINE, RESULT_SPLITS, WINDOW_FROM, WINDOW_KEYS } from '@/data/gcc/lifecycle/targets';
 import { hash32 } from '@/data/gcc/lifecycle/rng';
 import { hoursBetween } from '@/data/gcc/lifecycle/chain';
 import { POOLS } from '@/data/gcc/lifecycle/pools';
 import { authoredRef } from '@/data/gcc/lifecycle/live/common';
 import { personById, type Person } from '@/data/people';
 import {
-  capturesIn, currentOf, eligibilityOf, gateEventsIn, healthOf, lifecycle, lifecyclesOf, liveOf, openGate, resultsIn, staleOf, submissionsIn, visibleOf,
+  activeNotices, capturesIn, currentOf, eligibilityOf, gateEventsIn, healthOf, lifecycle, lifecyclesOf, liveOf, openGate, resultsIn, staleOf, submissionsIn, visibleOf,
 } from '@/domain/gcc/lifecycle';
 import { port } from '@/domain/gcc/lifecycle.port';
 import { eligibilityFor } from '@/domain/gcc/s1';
@@ -32,7 +32,7 @@ import { TenderTracker } from '@/components/dashboard/TenderTracker';
 
 interface Check { name: string; expected?: string; got: string }
 
-const label = (k: PeriodKey) => PERIODS.find((p) => p.key === k)!.label;
+const label = periodLabel;
 const split = (xs: { g: { decision: string } }[], keys: string[]) => `${xs.length} (${keys.map((k) => xs.filter((x) => x.g.decision === k).length).join(' · ')})`;
 const onTime = (xs: { g: { onTime: boolean } }[]) => `${xs.filter((x) => x.g.onTime).length} / ${xs.length}`;
 const pctOf = (n: number, d: number) => (d ? `${Math.round((n / d) * 100)}%` : '—');
@@ -51,7 +51,10 @@ function flowChecks(key: GccTenantKey, k: PeriodKey): Check[] {
   const ccy = GCC_DATA[key].fit.band.min.ccy;
   const avg = subs.length ? subs.reduce((s, x) => s + x.l.value.amount, 0) / subs.length : null;
   const out: Check[] = [];
-  if (t.captured !== undefined) out.push({ name: `${p}Notices captured`, expected: String(t.captured), got: String(capturesIn(key, w, undefined, {}).captured) });
+  const c = capturesIn(key, w, undefined, {});
+  if (t.captured !== undefined) out.push({ name: `${p}Notices captured (new)`, expected: String(t.captured), got: String(c.captured) });
+  // Plan 039: the funnel's Captured and AI screening columns.
+  if (t.previous !== undefined) out.push({ name: `${p}Previous (re-issued) · passed AI screening`, expected: `${t.previous} · ${t.passed}`, got: `${c.linked} · ${c.passed}` });
   out.push({ name: `${p}DG1 (pursue · discard · hold)`, expected: `${t.dg1.total} (${t.dg1.by.pursue} · ${t.dg1.by.discard} · ${t.dg1.by.hold})`, got: split(dg1, ['pursue', 'discard', 'hold']) });
   if (t.dg1.onTime !== undefined) out.push({ name: `${p}DG1 on time`, expected: `${t.dg1.onTime} / ${t.dg1.total}`, got: onTime(dg1) });
   out.push({ name: `${p}DG2 (bid · no-bid)`, expected: `${t.dg2.total} (${t.dg2.by.bid} · ${t.dg2.by['no-bid']})`, got: split(dg2, ['bid', 'no-bid']) });
@@ -59,6 +62,10 @@ function flowChecks(key: GccTenantKey, k: PeriodKey): Check[] {
   out.push({ name: `${p}DG3 (approved · rejected)`, expected: `${t.dg3.total} (${t.dg3.by.approved} · ${t.dg3.by.rejected})`, got: split(dg3, ['approved', 'rejected']) });
   if (t.dg3.onTime !== undefined) out.push({ name: `${p}DG3 on time`, expected: `${t.dg3.onTime} / ${t.dg3.total}`, got: onTime(dg3) });
   out.push({ name: `${p}Bids submitted`, expected: String(t.submitted), got: String(subs.length) });
+  const range = AVG_TICKET_RANGE_M[key];
+  if (t.avgTicketM === undefined && range && avg !== null) {
+    out.push({ name: `${p}PF-2 average ticket within ${money(range[0] * 1_000_000, ccy)}–${range[1]} M`, expected: 'yes', got: avg >= range[0] * 1e6 && avg <= range[1] * 1e6 ? 'yes' : `no: ${money(avg, ccy)}` });
+  }
   if (t.avgTicketM !== undefined) {
     out.push({
       name: `${p}PF-2 average ticket`, expected: t.avgTicketM === null ? 'No bids submitted' : money(t.avgTicketM * 1_000_000, ccy),
@@ -99,7 +106,8 @@ function splitChecks(key: GccTenantKey): Check[] {
     out.push({ name: `90 days · discarded: ${code}`, expected: String(n), got: String(dg1.filter((x) => x.g.decision === 'discard' && x.g.reasonCodes[0] === code).length) });
   }
   const h = GCC_DATA[key].history;
-  out.push({ name: 'Derived history: DG2 decisions · on time · against majority · re-opened', expected: '54 · 51 · 2 · 2', got: `${h.dg2.length} · ${h.dg2.filter((r) => r.withinSla).length} · ${h.dg2.filter((r) => r.againstMajority).length} · ${h.dg2.filter((r) => r.reopened).length}` });
+  const t12 = FLOW_TARGETS[key]['12m']!;
+  out.push({ name: 'Derived history: DG2 decisions · on time · against majority · re-opened', expected: `${t12.dg2.total} · ${t12.dg2.onTime} · ${RESULT_SPLITS.dg2.againstMajority} · ${RESULT_SPLITS.dg2.reopened}`, got: `${h.dg2.length} · ${h.dg2.filter((r) => r.withinSla).length} · ${h.dg2.filter((r) => r.againstMajority).length} · ${h.dg2.filter((r) => r.reopened).length}` });
   return out;
 }
 
@@ -263,6 +271,8 @@ function compute(key: GccTenantKey) {
     checks.push({ name: 'PF-1 · Stages 2–8', expected: `${NAJD_PIPELINE.tenders} · ${money(NAJD_PIPELINE.valueM * 1_000_000, 'SAR')}`, got: `${pf1.length} · ${money(pf1.reduce((s, l) => s + l.value.amount, 0), 'SAR')}` });
   }
   for (const k of WINDOW_KEYS) checks.push(...flowChecks(key, k));
+  // Plan 039: the notices still open for bids now are the new ones of the last 30 days.
+  checks.push({ name: 'Active notices now = new notices of the last 30 days', expected: String(capturesIn(key, windowOf('30d', key), undefined, {}).captured), got: String(activeNotices(key).count) });
   checks.push(...splitChecks(key));
   checks.push(...maskingChecks(key), ...visibilityChecks(key), ...dataChecks(key), ...eligibilityChecks(key), ...headerChecks(key));
 

@@ -58,10 +58,10 @@ const EXPECT: Record<string, string> = {
   'Hero P-02 RFQ draft': '6 lines, no rate field',
   // 10.3 Levelling: adjustment kinds, in rule order
   'Levelling: Rhein Aqua Systems GmbH': 'currency, delivery (est.), validity, lead-time',
-  'Levelling: Hanseong Water Machinery': 'currency, delivery (est.)',
+  'Levelling: Bongnim Water Machinery': 'currency, delivery (est.)',
   'Levelling: Nordklar Filtration AB': 'exclusion (est.)',
-  'Levelling: Castellan Separators Srl': 'currency, payment',
-  'Levelling: Hijaz Power Equipment Co.': 'vat',
+  'Levelling: Valbrembo Separators Srl': 'currency, payment',
+  'Levelling: Hada Power Equipment Co.': 'vat',
   // 10.4 Simulated flows
   'Flow 1: confirm every adjustment': 'to level 0 · P-02 open · covered 7',
   'Flow 2: Gulf Process quotes T-104 P-02': 'overdue 3 · P-02 3 quotes, 1 to level',

@@ -8,15 +8,29 @@ import { useTenantKey } from '@/domain/tenancy';
  * The period filter's one copy of the rules (dashboards.md §2). Each window is
  * the last N calendar days including today, ending at the demo clock (Sun 8 Mar
  * 2026, 10:00 tenant time). The previous window is the N days before it; for
- * Today it is yesterday, same hours. Nothing else computes dates for periods.
+ * Today it is yesterday, same hours. "All" is the whole history (730 days, from
+ * Sat 9 Mar 2024) and has no previous window. Nothing else computes dates for
+ * periods.
  *
  * Times are tenant-local ISO date-times, `YYYY-MM-DDTHH:MM`, like the rest of
  * the GCC data, so the same window holds in every tenant's time zone.
  */
 
-export type PeriodKey = 'today' | '7d' | '30d' | '90d' | '12m';
+export type PeriodKey = 'all' | 'today' | '7d' | '30d' | '90d' | '12m';
 
-export const PERIODS: { key: PeriodKey; label: string; days: number }[] = [
+/** Days of history the lifecycles and intake volumes cover, today included (plan 039). */
+export const HISTORY_DAYS = 730;
+
+/** The first day of the history: Sat 9 Mar 2024. */
+export const HISTORY_FROM = addDays(DEMO_TODAY, -(HISTORY_DAYS - 1));
+
+/**
+ * Every window the data can be read for. Today and 7 days are no longer
+ * offered (user decision, 2026-10-06), but code and dev checks may still
+ * read them.
+ */
+const PERIOD_DEFS: { key: PeriodKey; label: string; days: number }[] = [
+  { key: 'all', label: 'All', days: HISTORY_DAYS },
   { key: 'today', label: 'Today', days: 1 },
   { key: '7d', label: '7 days', days: 7 },
   { key: '30d', label: '30 days', days: 30 },
@@ -24,9 +38,16 @@ export const PERIODS: { key: PeriodKey; label: string; days: number }[] = [
   { key: '12m', label: '12 months', days: 365 },
 ];
 
+/** The periods the filter offers, in order: All · 30 days · 90 days · 12 months. */
+export const PERIODS: { key: PeriodKey; label: string; days: number }[] = (['all', '30d', '90d', '12m'] as PeriodKey[]).map((k) => PERIOD_DEFS.find((p) => p.key === k)!);
+
 export const DEFAULT_PERIOD: PeriodKey = '30d';
 
+/** True for a period the filter offers; a stored or linked `today` or `7d` is not, so it falls back to 30 days. */
 export const isPeriodKey = (v: unknown): v is PeriodKey => PERIODS.some((p) => p.key === v);
+
+/** "30 days", for any key, offered or not. */
+export const periodLabel = (key: PeriodKey): string => PERIOD_DEFS.find((p) => p.key === key)!.label;
 
 export interface PeriodWindow {
   key: PeriodKey;
@@ -54,7 +75,7 @@ function shortDate(iso: string): string {
 
 const tzOf = (tenant: string) => TENANTS.find((t) => t.key === tenant)?.tzLabel;
 
-const periodOf = (key: PeriodKey) => PERIODS.find((p) => p.key === key)!;
+const periodOf = (key: PeriodKey) => PERIOD_DEFS.find((p) => p.key === key)!;
 
 /** The window for a period, ending at the demo clock. */
 export function windowOf(key: PeriodKey, tenant: string): PeriodWindow {
@@ -73,9 +94,16 @@ export function windowOf(key: PeriodKey, tenant: string): PeriodWindow {
   };
 }
 
-/** The window before: the same number of days, or for Today the same hours yesterday. */
+/**
+ * The window before: the same number of days, or for Today the same hours
+ * yesterday. All has none: an empty window just before the history (it ends
+ * before it starts, so nothing falls in it), with `days` 0.
+ */
 export function previousOf(w: PeriodWindow): PeriodWindow {
   const fromDay = w.from.slice(0, 10);
+  if (w.key === 'all') {
+    return { ...w, from: `${fromDay}T00:00`, to: `${addDays(fromDay, -1)}T23:59`, label: 'No earlier period', rangeText: `Before ${dateText(fromDay)}`, startText: shortDate(fromDay), days: 0 };
+  }
   const label = `Previous ${w.label === 'Today' ? 'day' : w.label}`;
   if (w.key === 'today') {
     const day = addDays(fromDay, -1);

@@ -72,7 +72,7 @@ const ALL_STEPS = ONBOARDING.map((s) => s.key);
 
 export const TENANTS: ProfiledTenant[] = [
   {
-    key: 'najd', name: 'Najd Arcline Contracting Co.', legal: 'Najd Arcline Contracting Company, closed joint stock company, Riyadh', country: 'Saudi Arabia', currency: 'SAR',
+    key: 'najd', name: 'Najd Arvelle Contracting Co.', legal: 'Najd Arvelle Contracting Company, closed joint stock company, Riyadh', country: 'Saudi Arabia', currency: 'SAR',
     residency: 'KSA, in-Kingdom region', sso: 'Microsoft Entra ID', admin: 'Faisal Al-Harbi', adminEmail: 'f.alharbi@najd.example',
     created: '2025-06-15', live: true, goLive: 'September 2025', seats: 20,
     sources: [
@@ -89,7 +89,7 @@ export const TENANTS: ProfiledTenant[] = [
     monogram: 'NA', accent: 'najd', headTitle: 'Head of Tendering', sectors: ['Water and wastewater', 'Utility networks', 'Roads'],
   },
   {
-    key: 'corniche', name: 'Corniche Lattice MEP LLC', legal: 'Corniche Lattice MEP LLC, Dubai', country: 'United Arab Emirates', currency: 'AED',
+    key: 'corniche', name: 'Corniche Lumvale MEP LLC', legal: 'Corniche Lumvale MEP LLC, Dubai', country: 'United Arab Emirates', currency: 'AED',
     residency: 'UAE (me-central-1)', sso: 'Okta', admin: 'Rania Khoury', adminEmail: 'r.khoury@corniche.example',
     created: '2025-08-04', live: true, goLive: 'November 2025', seats: 16,
     sources: [
@@ -104,7 +104,7 @@ export const TENANTS: ProfiledTenant[] = [
     monogram: 'CL', accent: 'corniche', headTitle: 'Head of Tendering', sectors: ['Buildings MEP', 'District cooling', 'Fit-out'],
   },
   {
-    key: 'dafna', name: 'Dafna Keystone Civil W.L.L.', legal: 'Dafna Keystone Civil W.L.L., Doha, with a registered branch in Riyadh', country: 'Qatar', currency: 'QAR',
+    key: 'dafna', name: 'Dafna Kerrowstone Civil W.L.L.', legal: 'Dafna Kerrowstone Civil W.L.L., Doha, with a registered branch in Riyadh', country: 'Qatar', currency: 'QAR',
     residency: 'Qatar, in-country region', sso: 'Google Workspace', admin: 'Nasser Al-Kuwari', adminEmail: 'n.alkuwari@dafna.example',
     created: '2025-09-01', live: true, goLive: 'December 2025', seats: 16,
     sources: [
@@ -133,7 +133,7 @@ export const TENANTS: ProfiledTenant[] = [
   },
   {
     key: 'qurain', name: 'Qurain Meridian Projects Co.', legal: 'Qurain Meridian Projects Co. K.S.C.C., Kuwait City; bids in KSA through Qurain Meridian Arabia Co.', country: 'Kuwait', currency: 'KWD',
-    residency: 'Bahrain (me-south-1)', sso: 'Microsoft Entra ID', admin: 'Bader Al-Mutawa', adminEmail: 'b.almutawa@qurain.example',
+    residency: 'Bahrain (me-south-1)', sso: 'Microsoft Entra ID', admin: 'Basel Al-Mudhaf', adminEmail: 'b.almudhaf@qurain.example',
     created: '2025-05-20', live: true, goLive: 'August 2025', seats: 16,
     sources: [
       { name: 'CAPT (Central Agency for Public Tenders)', mode: 'Scheduled, login' },
@@ -147,15 +147,15 @@ export const TENANTS: ProfiledTenant[] = [
     monogram: 'QM', accent: 'qurain', headTitle: 'Head of Tendering', sectors: ['Water', 'Infrastructure', 'Oil and gas facilities'],
   },
   {
-    key: 'gen-in', name: 'Genesis EPC India Ltd', legal: 'Genesis EPC India Limited, CIN U45200MH2009PLC191230', country: 'India', currency: 'INR',
-    residency: 'Mumbai (ap-south-1)', sso: 'Microsoft Entra ID', admin: 'S. Kapoor', adminEmail: 'it.admin@genesis-epc.in',
+    key: 'gen-in', name: 'Genesis EPC India Ltd', legal: 'Genesis EPC India Limited, CIN U45200MH2009PLC000000', country: 'India', currency: 'INR',
+    residency: 'Mumbai (ap-south-1)', sso: 'Microsoft Entra ID', admin: 'S. Kapoor', adminEmail: 'it.admin@genesis-epc.example',
     created: '2025-04-14', live: true, goLive: 'July 2025', seats: 8,
     sources: [
       { name: 'CPPP portal', mode: 'Polled every 15 min' },
       { name: 'GeM portal', mode: 'Polled every 15 min' },
       { name: 'State utility portals (7)', mode: 'Polled hourly' },
-      { name: 'tenders@genesis-epc.in mailbox', mode: 'IMAP, attachments opened' },
-      { name: 'rfp@genesis-infra.com mailbox', mode: 'IMAP, attachments opened' },
+      { name: 'tenders@genesis-epc.example mailbox', mode: 'IMAP, attachments opened' },
+      { name: 'rfp@genesis-epc.example mailbox', mode: 'IMAP, attachments opened' },
       { name: 'Scanned drop at \\\\bidoffice\\intake', mode: 'OCR on arrival' },
     ],
     doneSteps: ALL_STEPS,
@@ -163,11 +163,11 @@ export const TENANTS: ProfiledTenant[] = [
     monogram: 'GE', accent: 'ink', headTitle: 'Head of Tendering', sectors: ['Power', 'Transport', 'Renewables', 'Oil & gas'],
   },
   {
-    key: 'gen-gulf', name: 'Genesis Infra Gulf JV', legal: 'Genesis Infra and Al Noor Contracting JV LLC, Abu Dhabi', country: 'United Arab Emirates', currency: 'AED',
-    residency: 'UAE (me-central-1)', sso: 'Okta', admin: 'F. Al Mansoori', adminEmail: 'f.almansoori@genesis-gulf.com',
+    key: 'gen-gulf', name: 'Genesis EPC Gulf JV', legal: 'Genesis EPC and Al Ramlaan Contracting JV LLC, Abu Dhabi', country: 'United Arab Emirates', currency: 'AED',
+    residency: 'UAE (me-central-1)', sso: 'Okta', admin: 'F. Al Mansoori', adminEmail: 'f.almansoori@genesis-gulf.example',
     created: '2026-02-02', live: false, goLive: 'May 2026', seats: 5,
     sources: [
-      { name: 'bids@genesis-gulf.com mailbox', mode: 'IMAP, attachments opened' },
+      { name: 'bids@genesis-gulf.example mailbox', mode: 'IMAP, attachments opened' },
       { name: 'Abu Dhabi Procurement portal', mode: 'Credentials pending' },
     ],
     doneSteps: ['entity', 'residency', 'sources'],
@@ -203,7 +203,7 @@ const CODES = Object.keys(COUNTRY_PROFILE) as CountryCode[];
 /** A tenant name that ends a sentence, without doubling the stop of "Co." or "W.L.L.". */
 export const nameStop = (name: string) => (name.endsWith('.') ? name : `${name}.`);
 
-/** Two capital initials, e.g. "Najd Arcline Contracting Co." → NA. */
+/** Two capital initials, e.g. "Najd Arvelle Contracting Co." → NA. */
 export const monogramOf = (name: string) =>
   name.split(' ').filter((w) => /^[A-Z]/.test(w)).slice(0, 2).map((w) => w[0]).join('') || name.slice(0, 2).toUpperCase();
 

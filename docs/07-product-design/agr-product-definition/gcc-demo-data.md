@@ -48,14 +48,14 @@ Resemblance to real organisations or people is unintended. Real public bodies ap
 
 ## 2. Tenants
 
-Five fictional GCC EPC contractors plus the existing Indian tenant. The Platform Console also lists **Genesis Infra Gulf JV**, the existing onboarding tenant, as an *onboarding* tenant. It is not switchable.
+Five fictional GCC EPC contractors plus the existing Indian tenant. The Platform Console also lists **Genesis EPC Gulf JV**, the existing onboarding tenant, as an *onboarding* tenant. It is not switchable.
 
 | Key | Tenant | HQ | Sectors | Size (avg turnover) | Currency | Residency [A] | Accent [A] |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `najd` | **Najd Arcline Contracting Co.** (primary) | Riyadh, KSA | Water & wastewater (lead), utility networks, roads | SAR 1.41 bn | SAR | KSA in-Kingdom region | teal |
-| `corniche` | **Corniche Lattice MEP LLC** | Dubai, UAE | Buildings MEP, district cooling, fit-out | AED 1.10 bn | AED | UAE (me-central-1) | violet |
-| `dafna` | **Dafna Keystone Civil W.L.L.** | Doha, Qatar (with a Riyadh branch) | Civil works, utility networks, pump stations | QAR 820 M | QAR | Qatar region | amber |
-| `batinah` | **Batinah Waypoint Roads LLC** | Sohar, Oman | Roads, bridges, earthworks | OMR 38 M | OMR | UAE (me-central-1) | slate blue |
+| `najd` | **Najd Arvelle Contracting Co.** (primary) | Riyadh, KSA | Water & wastewater (lead), utility networks, roads | SAR 9.33 bn | SAR | KSA in-Kingdom region | teal |
+| `corniche` | **Corniche Lumvale MEP LLC** | Dubai, UAE | Buildings MEP, district cooling, fit-out | AED 4.54 bn | AED | UAE (me-central-1) | violet |
+| `dafna` | **Dafna Kerrowstone Civil W.L.L.** | Doha, Qatar (with a Riyadh branch) | Civil works, utility networks, pump stations | QAR 3.51 bn | QAR | Qatar region | amber |
+| `batinah` | **Batinah Waypoint Roads LLC** | Sohar, Oman | Roads, bridges, earthworks | OMR 380 M | OMR | UAE (me-central-1) | slate blue |
 | `qurain` | **Qurain Meridian Projects Co.** (group; bids in KSA through Qurain Meridian Arabia Co.) | Kuwait City | Water, infrastructure, oil & gas facilities | KWD 142 M group (KSA subsidiary SAR 1.35 bn) | KWD | Bahrain (me-south-1) | crimson |
 | `gen-in` | Genesis EPC India Ltd (existing) | Mumbai | Existing Indian data | existing | INR | Mumbai (ap-south-1) | existing |
 
@@ -83,14 +83,14 @@ Nine criteria (spec §6.6). Weights sum to 100. The Head of Tendering edits them
 
 **The PQ-fail cap:** any Fail line caps the verdict at "Pursue with conditions (JV needed)", when a partner in the tenant's list closes every failing line, or else at "Recommend discard". This applies whatever the weighted score (spec §6.6).
 
-### 2.2 Najd Arcline Contracting Co. (tenant A, primary)
+### 2.2 Najd Arvelle Contracting Co. (tenant A, primary)
 
 **Company:**
-- Riyadh HQ; offices in Dammam and Jeddah; about 4,800 staff.
+- Riyadh HQ; offices in Dammam and Jeddah; about 18,500 staff.
 - Financial year ends 31 Dec.
-- Audited turnover: FY2022 SAR 1.32 bn, FY2023 SAR 1.39 bn, FY2024 SAR 1.52 bn (average FY22–24: **SAR 1.41 bn**).
-- FY2025 draft (unaudited) SAR 1.66 bn. The audit sign-off is expected on **15 Apr 2026**.
-- Net worth SAR 610 M; current ratio 1.34 (FY2024).
+- Audited turnover: FY2022 SAR 8.75 bn, FY2023 SAR 9.20 bn, FY2024 SAR 10.05 bn (average FY22–24: **SAR 9.33 bn**). Sized on 2026-10-06 (review of plan 039) so a year's value won is about a year's turnover.
+- FY2025 draft (unaudited) SAR 11.0 bn. The audit sign-off is expected on **15 Apr 2026**.
+- Net worth SAR 4.03 bn; current ratio 1.34 (FY2024).
 
 **Credential vault** (the deliberate expiries drive M-2):
 
@@ -115,17 +115,17 @@ Nine criteria (spec §6.6). Weights sum to 100. The Head of Tendering edits them
 - **Riyadh East STP O&M**: 2019–2024.
 
 **JV partners list:**
-- Rafid Process Engineering (process design);
-- Tihama Hydro Works Co. (a potential partner that is also a market competitor).
+- Thawban Process Engineering (process design);
+- Qunfudhah Hydro Works Co. (a potential partner that is also a market competitor).
 
 **Capacity and facility:**
 - **Water tendering team:** 6 tendering engineers, 2 estimators, 1 planner.
   - Committed load for the next 4 weeks is **78%**; with the hero tender it is **96%** (CAP-1 orange).
 - **Bank guarantee facility:**
-  - limit SAR 602.3 M;
-  - utilised on contracts SAR 410 M;
-  - committed SAR 96.3 M: SAR 94 M by live bids, plus the SAR 2.3 M bid bond issued for submitted T-2025-298 (plan 020 B11);
-  - **headroom SAR 96 M**, as of Thu 5 Mar, confirmed by Finance.
+  - limit SAR 4.0 bn (2026-10-06; was SAR 602.3 M);
+  - utilised on contracts SAR 3.24 bn;
+  - committed SAR 120.5 M: SAR 94 M by live bids, the SAR 2.3 M bid bond issued for submitted T-2025-298 (plan 020 B11), and SAR 24.2 M for four February bids awaiting their results (T-2025-426, -435, -436, -446; since 2026-10-06);
+  - **headroom SAR 640 M** (16% of the limit, as SAR 96 M was of the old one), as of Thu 5 Mar, confirmed by Finance.
 
 **Sources:**
 
@@ -140,7 +140,7 @@ Nine criteria (spec §6.6). Weights sum to 100. The Head of Tendering edits them
 
 The reconciliation card counts **9 sources** (with the other portals it watches).
 
-### 2.3 Corniche Lattice MEP LLC (tenant B)
+### 2.3 Corniche Lumvale MEP LLC (tenant B)
 
 - **Company:** UAE MEP contractor; Dubai Municipality and Abu Dhabi classifications [A].
   - **No Saudi CR, classification or registrations.**
@@ -150,23 +150,23 @@ The reconciliation card counts **9 sources** (with the other portals it watches)
 - **Facility:** AED 380 M limit, 58% used. **Team:** Buildings MEP team at 64% load.
 - **Hero result:** Recommend discard (§4.7).
 
-### 2.4 Dafna Keystone Civil W.L.L. (tenant C)
+### 2.4 Dafna Kerrowstone Civil W.L.L. (tenant C)
 
 - **Company:** Doha HQ. Its Riyadh branch holds a Saudi CR and all KSA registrations. It is classified **Water & sewage works Grade 2**.
 - **Experience:** one STP of 110,000 m³/day (civil and mechanical, 2020); no O&M.
-- **Turnover:** average QAR 820 M (about SAR 845 M).
-- **Partners list:** **Tihama Hydro Works Co.**:
+- **Turnover:** average QAR 3.51 bn (about SAR 3.62 bn).
+- **Partners list:** **Qunfudhah Hydro Works Co.**:
   - fictional KSA contractor, Water & sewage **Grade 1**;
   - two STPs over 100,000 m³/day, one tertiary;
   - 4 years of O&M;
-  - turnover SAR 1.10 bn.
+  - turnover SAR 4.95 bn (average FY22–24).
 - **Facility:** QAR 260 M limit, 41% used. **Team:** Utilities team at 72% load.
-- **Hero result:** Pursue with conditions, as a JV with Tihama as lead at 60% (§4.7).
+- **Hero result:** Pursue with conditions, as a JV with Qunfudhah as lead at 60% (§4.7).
 
 ### 2.5 Batinah Waypoint Roads LLC (tenant D)
 
 - **Company:** Oman roads contractor, classified Excellent grade with the Tender Board [A]. No KSA presence; no water experience.
-- **Turnover:** average OMR 38 M (about SAR 371 M).
+- **Turnover:** average OMR 380 M (about SAR 3.71 bn).
 - **Hero route:** the tender arrives by email from a prospective partner, not from a watched portal.
 - **Also the tenant for:** the third demo tender, T-2026-042 Sohar–Buraimi road dualling (§4B): an Arabic document with three scanned pages, used for demo script E, and Batinah's Pursue story.
   The Lebanon roads tender (§9) stays as intake variety: sector fit, but geography out. The scanned Lebanese roads tender is replaced by §4B.
@@ -178,7 +178,7 @@ The reconciliation card counts **9 sources** (with the other portals it watches)
   - Water & sewage **Grade 1**;
   - all KSA registrations current;
   - two KSA STPs over 100,000 m³/day, one tertiary, plus 3 years of O&M;
-  - turnover of SAR 1.35 bn.
+  - turnover of SAR 6.75 bn.
 - **Facility** (group level, in KWD):
   - limit KWD 28.56 M; used KWD 22.8 M; committed KWD 2.66 M: KWD 2.1 M by two live Kuwait bids, plus the bid bonds issued for submitted T-2025-418 (KWD 0.32 M) and T-2025-431 (KWD 0.24 M) (plan 020 B11);
   - **headroom KWD 3.1 M** (about SAR 37.9 M).
@@ -190,23 +190,23 @@ Names are fictional composites. **Role keys** come from plan 003. The same role 
 
 | Role key | Najd (A) | Corniche (B) | Dafna (C) | Batinah (D) | Qurain (E) |
 | --- | --- | --- | --- | --- | --- |
-| `hot` Head of Tendering | Faisal Al-Harbi | Rania Khoury | Nasser Al-Kuwari | Said Al-Balushi | Bader Al-Mutawa |
+| `hot` Head of Tendering | Faisal Al-Harbi | Rania Khoury | Nasser Al-Kuwari | Said Al-Balushi | Basel Al-Mudhaf |
 | `coord` Tender Coordinator | Aisha Al-Qahtani | Joanna D'Souza | Maria Santos | Shamsa Al-Hinai | Grace Pereira |
 | `bid` Bid Manager | Omar Siddiqui | Sameer Qureshi | Bilal Ahmed | Imran Sheikh | Tariq Mahmood |
-| `proc` Procurement Lead | Joseph Mathew | Ivan Petrov | Suresh Babu | Ravi Shankar | Sanjay Verma |
-| `exec` CEO (committee member, seat `ceo`; the Head of Tendering approves DG2) | Eng. Abdulaziz Al-Dosari | Hamad Al Mazrouei | Jassim Al-Sulaiti | Talal Al-Rawahi | Fahad Al-Enezi |
-| `member` CFO | Khalid Al-Mutairi | Priya Raman | Waleed Hamdan | Hilal Al-Kindi | Rashed Al-Ajmi |
+| `proc` Procurement Lead | Joseph Mathew | Ivan Petrov | Sudhir Balan | Rakesh Sundaram | Sandeep Vohra |
+| `exec` CEO (committee member, seat `ceo`; the Head of Tendering approves DG2) | Eng. Abdulaziz Al-Dosari | Humaid Al Matrooshi | Jaber Al-Shahwani | Talal Al-Rawahi | Fawaz Al-Eidan |
+| `member` CFO | Khalid Al-Mutairi | Preeti Raghunath | Waleed Hamdan | Hilal Al-Kindi | Rashed Al-Ajmi |
 | `member` Technical Director | Dr Hany Farouk | Stefan Novak | Emad Youssef | Ashraf Kamel | Walid Saab |
-| `member` Operations Director | Saad Al-Shehri | Yousef Al Hammadi | Mubarak Al-Marri | Salim Al-Saadi | Hamad Al-Rashidi |
+| `member` Operations Director | Sami Al-Suhaimi | Yousef Al Hammadi | Mubarak Al-Marri | Salim Al-Saadi | Hamad Al-Rashidi |
 | `member` Sector Head | Majed Al-Otaibi (Water) | Mariam Al Suwaidi (Buildings) | Abdulla Al-Emadi (Utilities) | Khamis Al-Amri (Roads) | Dalal Al-Shatti (Water & Infra) |
 | `comm` Commercial Manager | Tarek Haddad | Daniel Okafor | George Khalil | Nabil Aoun | Karim Nassar |
-| `plan` Planning Manager | Arjun Pillai | Kiran Patel | Deepak Sharma | Vinod Kumar | Rohit Malhotra |
+| `plan` Planning Manager | Arjun Pillai | Kiran Pandya | Deepak Sharma | Vinod Kumar | Rohit Malhotra |
 | `comp` Compliance / Legal Lead | Lina Barakat | Hala Mansour | Reem Al-Ansari | Muna Al-Harthy | Nour El-Din |
-| `prop` Proposal Manager (Stage 6 owner; added 2026-09-25) | Rami Aziz | Sophie Laurent | Ahmed Fathy | Latifa Al-Maawali | Mona Al-Rifai |
-| `dir` Project Director (Stage 9 owner; designate on Stage 1–3 packs) | Mohammed Al-Ghamdi | Graham Whitfield | Mark Ellison | Peter Grant | Alan Brooks |
+| `prop` Proposal Manager (Stage 6 owner; added 2026-09-25) | Rami Aziz | Sophie Laurent | Ayman Fikry | Latifa Al-Maawali | Mona Al-Rifai |
+| `dir` Project Director (Stage 9 owner; designate on Stage 1–3 packs) | Mazen Al-Ghufaili | Graham Whitfield | Mark Ellison | Philip Garside | Alan Brooks |
 | `fin` Finance / Treasury | Sultan Al-Anazi | Anil Kumar | Hisham Nasr | Badar Al-Riyami | Yacoub Al-Qattan |
-| `hr` HR (credential owner; no switcher entry) | Noura Al-Shammari | Fatima Al Nuaimi | Sara Al-Mohannadi | Zainab Al-Lawati | Huda Al-Kandari |
-| `supplier` (portal preview) | Ahmed Saleh, Gulf Process Systems Co. | as A's supplier | as A's supplier | as A's supplier | as A's supplier |
+| `hr` HR (credential owner; no switcher entry) | Noura Al-Shammari | Fatima Al Naqbi | Sara Al-Mohannadi | Zainab Al-Lawati | Huda Al-Kandari |
+| `supplier` (portal preview) | Amjad Salameh, Gulf Process Systems Co. | as A's supplier | as A's supplier | as A's supplier | as A's supplier |
 | `platform` Catalyst operator | Catalyst Platform Operations (not tenant-specific) | | | | |
 
 ---
@@ -294,7 +294,7 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 | PQ-08 | VAT registration | 38 |
 | PQ-09 | **≥ 2 completed STPs, each ≥ 100,000 m³/day, in the last 10 years** (since 10 May 2016), at least one with tertiary treatment; as prime or consortium lead | 38 |
 | PQ-10 | ≥ 3 years' O&M of an STP ≥ 50,000 m³/day, or a named O&M subcontractor meeting it | 38 |
-| PQ-11 | **Average annual turnover over the last three financial years ≥ SAR 1.2 bn (audited)**. Consortia: the lead ≥ 60% of the requirement, all members together ≥ 100% [synthetic rule] | 39 |
+| PQ-11 | **Average annual turnover over the last three financial years ≥ SAR 5 bn (audited)** (raised from SAR 1.2 bn on 2026-10-06, when every company was sized to its bid history, so each tenant keeps its answer). Consortia: the lead ≥ 60% of the requirement, all members together ≥ 100% [synthetic rule] | 39 |
 | PQ-12 | Positive net worth and current ratio ≥ 1.1 in the latest audited accounts | 39 |
 | PQ-13 | Key personnel: Project Manager (≥ 20 years, 10 in water and wastewater), Process Design Lead (≥ 15), Saudi national HSE Manager (≥ 10), Commissioning Manager (≥ 12) | 40 |
 | PQ-14 | ISO 9001 / 14001 / 45001. **The source typo "ISO 90001" is seeded** → flag "likely ISO 9001" [the typo is in the real template] | 40 |
@@ -310,14 +310,14 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 6. **VAT not named.**
 7. **TSE pipeline length:** 16 km in the scope (p. 23) against 18 km in the drawings list title (p. 47). Medium confidence.
 8. **Turnover years ambiguity** (PQ-11) for tenant A. FY2025 accounts are audited on 15 Apr, before opening:
-   - reading 1, FY2022–24: avg SAR 1.41 bn, **passes**;
-   - reading 2, FY2023–25: avg SAR 1.52 bn, **passes**.
+   - reading 1, FY2022–24: avg SAR 9.33 bn, **passes**;
+   - reading 2, FY2023–25: avg SAR 10.08 bn, **passes**.
 
    Interpretation line; a query is drafted.
 
 ### 4.7 Expected result per tenant
 
-| PQ line | Najd (A) | Corniche (B) | Dafna (C) alone → JV with Tihama | Batinah (D) | Qurain (E) via KSA subsidiary |
+| PQ line | Najd (A) | Corniche (B) | Dafna (C) alone → JV with Qunfudhah | Batinah (D) | Qurain (E) via KSA subsidiary |
 | --- | --- | --- | --- | --- | --- |
 | PQ-01, 04, 06, 07, 08 KSA registrations | Pass | **Fail** (not registered in KSA) | Pass (Riyadh branch) | **Fail** | Pass |
 | PQ-02 Zakat | **At risk** (30 Apr) | **Fail** | Pass | **Fail** | Pass |
@@ -325,10 +325,10 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 | PQ-05 Classification | Pass (G1) | **Fail** | **Fail** alone (G2) → **Pass** in JV (Art. 9) | **Fail** | Pass |
 | PQ-09 STP experience | Pass (150k tertiary; 120k) | **Fail** (MEP subcontracts only) | **Fail** alone (one STP) → **Pass** combined | **Fail** | Pass |
 | PQ-10 O&M | Pass | **Fail** | **Fail** alone → **Pass** (partner) | **Fail** | Pass |
-| PQ-11 Turnover | **Interpretation** (both pass) | **Fail** (SAR 1.12 bn) | **Fail** alone (SAR 845 M) → **Pass** (lead 1.10 bn ≥ 60%; combined 1.94 bn) | **Fail** (SAR 371 M) | Pass (SAR 1.35 bn) |
+| PQ-11 Turnover | **Interpretation** (both pass) | **Fail** (SAR 4.64 bn) | **Fail** alone (SAR 3.62 bn) → **Pass** (lead 4.95 bn ≥ 60%; combined 8.57 bn) | **Fail** (SAR 3.71 bn) | Pass (SAR 6.75 bn) |
 | PQ-12 to PQ-15 | Pass | n/a | Pass | n/a | Pass |
 | **Weighted fit** | **82** | 63 | 71 | 38 | 78 |
-| **Recommendation** | **Pursue**: renew Zakat and GOSI before 10 May; confirm turnover years | **Recommend discard** (PQ-fail cap). *What would change it:* join a Grade 1 bidder as MEP subcontractor (inside the 30% cap) | **Pursue with conditions (JV needed)**: Tihama Hydro as lead, 60/40 | **Recommend discard**: size, geography and eligibility. Flagged for a person; never auto-discarded | **Pursue with conditions**: team at 118% in April; facility headroom KWD 3.1 M covers the bid bond (about KWD 0.79 M), but not the performance bond (about KWD 1.96 M) plus the 10% advance-payment guarantee, if won and the 10% advance is taken. Hold until Finance confirms the facility or a bid is released |
+| **Recommendation** | **Pursue**: renew Zakat and GOSI before 10 May; confirm turnover years | **Recommend discard** (PQ-fail cap). *What would change it:* join a Grade 1 bidder as MEP subcontractor (inside the 30% cap) | **Pursue with conditions (JV needed)**: Qunfudhah Hydro as lead, 60/40 | **Recommend discard**: size, geography and eligibility. Flagged for a person; never auto-discarded | **Pursue with conditions**: team at 118% in April; facility headroom KWD 3.1 M covers the bid bond (about KWD 0.79 M), but not the performance bond (about KWD 1.96 M) plus the 10% advance-payment guarantee, if won and the 10% advance is taken. Hold until Finance confirms the facility or a bid is released |
 | DG1 path in the demo | Pursue, with team assigned; RFQ clock starts | Discard (reason codes: PQ fail, geography), or re-routed as a subcontract opportunity | Pursue with the JV scenario recorded | Discard (size, PQ fail, geography) | Hold: request to Finance; SLA keeps running |
 
 **Money shown per tenant** (hero estimate SAR 480 M at demo rates):
@@ -341,9 +341,9 @@ All certificates must be **valid at bid opening**, for the bidder **and every li
 The original SAR always shows beside the converted value (spec §5.6).
 
 **Decided 2026-09-26** (plan 007a review):
-- Corniche's PQ-11 reads one fail: average AED 1.10 bn ≈ SAR 1.12 bn against SAR 1.2 bn (§2 figures).
+- Corniche's PQ-11 reads one fail: average AED 4.54 bn ≈ SAR 4.64 bn against SAR 5 bn (§2 figures).
 - Qurain's PQ-11 is a clean pass with no interpretation line. Spec §11 gives the turnover interpretation to Najd only.
-- Dafna's joint-venture turnover is SAR 1.94 bn (1.10 + 0.8448).
+- Dafna's joint-venture turnover is SAR 8.57 bn (4.95 + 3.62).
 - The facility check compares headroom with the performance guarantee plus the 10% advance-payment guarantee if won. The tender offers a 10% advance against an equal guarantee (booklet p. 36).
 
 ### 4.8 BOQ bills and procurement packages (A's view)
@@ -437,9 +437,9 @@ Q-01 trade licence · Q-02 Abu Dhabi classification, MEP first grade · Q-04 Civ
 | P-06 Plumbing, drainage and water treatment | 17.9 | subcontract | Includes the RO plant for dialysis |
 | P-07 ELV, BMS and nurse call | 11.6 | supply, self-install | In-house design, supply only |
 
-Self-performed AED 85.0 M; total AED 185.0 M; subcontract works 21.9% of the 35% cap. No RFQs or quotes are seeded. Scripted replies: P-01 Arctis (EUR ex-works, excludes the towers), Tilal (VAT included), Warsan (30-day validity); P-02 Qarn (clean), Barsha (excludes AHU controls), Kestrelwind (EUR, delivered). Required quote validity 150 days (120 + 30).
+Self-performed AED 85.0 M; total AED 185.0 M; subcontract works 21.9% of the 35% cap. No RFQs or quotes are seeded. Scripted replies: P-01 Kaltenau (EUR ex-works, excludes the towers), Tilal (VAT included), Warsan (30-day validity); P-02 Qarn (clean), Barsha (excludes AHU controls), Falkenwind (EUR, delivered). Required quote validity 150 days (120 + 30).
 
-**Stage 3 pack** (seeded v1, not issued): win **52 ± 8** (base 38, drivers +14; 12 comparables give ± 8: the band rule has no ± 9); competitors Tessaline MEP Contracting, Sarab Building Services Co., Brevanne Engineering Services (Gulf), all fictional; margin 8.0–11.0%; bond AED 2.0 M fixed; headroom after the bond AED 157.6 M; delivery load 55% now, 70% if T-2026-029 and T-2026-061 both win, against a safe 75%; **Bid with conditions**. All six contributor inputs are in. Above the AED 40 M referral, so DG2 would go to the Bid Committee. No demo action moves T-2026-061 past Stage 1 yet (plan 022 execution report, Blockers).
+**Stage 3 pack** (seeded v1, not issued): win **61 ± 8** (base 47, the Buildings MEP hit rate of the last 12 months, 15 of 32; drivers +14; 12 comparables give ± 8: the band rule has no ± 9); competitors Tessaline MEP Contracting, Maswaan Building Services Co., Brevanne Engineering Services (Gulf), all fictional; margin 8.0–11.0%; bond AED 2.0 M fixed; headroom after the bond AED 157.6 M; delivery load 55% now, 70% if T-2026-029 and T-2026-061 both win, against a safe 75%; **Bid with conditions**. All six contributor inputs are in. Above the AED 40 M referral, so DG2 would go to the Bid Committee. No demo action moves T-2026-061 past Stage 1 yet (plan 022 execution report, Blockers).
 
 ### 4A.5 Page map as built
 | Page | Content | Page | Content |
@@ -497,7 +497,7 @@ PQ-01 commercial registration · PQ-02 Tender Board, roads and bridges, Excellen
 
 Self-performed (earthworks, paving, drainage installation, bridge structures, lighting cabling, preliminaries) OMR 16.4 M; total **OMR 32.0 M**. No RFQs or quotes are seeded. Scripted replies: P-04 Alpen (EUR ex-works), Emilia (EUR, 45-day validity), Karst (EUR ex-works, an exclusion); P-05 Samail (OMR, VAT included), Jebel Lumen (USD), Luminara (OMR, VAT not stated, a luminaire deviation).
 
-**Stage 3 pack** (seeded v1, not issued): win **61 ± 8** (base 22, drivers +39; 18 comparables give ± 8: the band rule has no ± 7); competitors Liwa Highways Contracting LLC, Shinas Bridges and Roads LLC, Mahda Infrastructure SAOC, all fictional; margin 7.0–10.0%; bond OMR 320,000 (1% of the estimate until VAL-042-1 is resolved); headroom after the bond OMR 11.0 M; delivery load 57% now, 65% if won, against a safe 70%; **Bid with conditions** (confirm the bond with the employer; name the bridge specialist). All six contributor inputs are in. Above the OMR 4 M referral, so DG2 goes to the Bid Committee. No demo action moves T-2026-042 past Stage 2 yet.
+**Stage 3 pack** (seeded v1, not issued): win **78 ± 8** (base 39, the Roads hit rate of the last 12 months, 12 of 31; drivers +39; 18 comparables give ± 8: the band rule has no ± 7); competitors Dhank Highways Contracting LLC, Shinas Bridges and Roads LLC, Mahda Infrastructure SAOC, all fictional; margin 7.0–10.0%; bond OMR 320,000 (1% of the estimate until VAL-042-1 is resolved); headroom after the bond OMR 11.0 M; delivery load 57% now, 65% if won, against a safe 70%; **Bid with conditions** (confirm the bond with the employer; name the bridge specialist). All six contributor inputs are in. Above the OMR 4 M referral, so DG2 goes to the Bid Committee. No demo action moves T-2026-042 past Stage 2 yet.
 
 ### 4B.5 Page map as built
 | Page | Content | Page | Content |
@@ -528,13 +528,13 @@ Self-performed (earthworks, paving, drainage installation, bridge structures, li
 | T-2026-109 | Tabuk water transmission pipeline, Phase 1 | S2. Pursued Wed 4 Mar 11:20; 9 of 9 packages issued · 27 RFQs sent Thu 5 Mar 10:05 (within 24 h); replies due Sun 15 Mar | SRC-1 trailing 100% |
 | T-2026-104 | Jubail industrial wastewater treatment upgrade | S2. Pursued 26 Feb; **7 of 11 packages covered**; 4 overdue RFQs (2 escalated); 5 adjustments to confirm | Script B levelling |
 | T-2026-101 | Abha STP upgrade | S3, pack in preparation. **Inputs outstanding:** Finance facility (late), Legal risks (due today) | DEC-7 |
-| T-2026-097 | Madinah WTP expansion (SAR 355 M), reference WCWS/PRJ/2026/0009 | **At DG2.** Pack issued Sat 7 Mar 14:10 (SLA to Sun 8 Mar 14:10); positions recorded 2 of 5 (CFO: support with conditions; Technical Director: support). Win probability **58 ± 8**; margin range **8.5–11.5%**. **Stale:** Addendum 2 received today 09:12, changing 2 packages | Script C |
+| T-2026-097 | Madinah WTP expansion (SAR 355 M), reference WCWS/PRJ/2026/0009 | **At DG2.** Pack issued Sat 7 Mar 14:10 (SLA to Sun 8 Mar 14:10); positions recorded 2 of 5 (CFO: support with conditions; Technical Director: support). Win probability **84 ± 8** (base 59, the water hit rate of the last 12 months, 33 of 56; drivers +25); margin range **8.5–11.5%**. **Stale:** Addendum 2 received today 09:12, changing 2 packages | Script C |
 | T-2026-088 | Dammam stormwater tunnels | Later stage (S6), "Current stage" only | Realistic register |
 | T-2026-079 | Qassim water networks | Submitted Thu 19 Feb 2026 (not Sun 22 Feb, Founding Day, a KSA closure); awaiting award | Realistic register |
 
 **History** (drives OUT-1 … OUT-7, SCR-2 … SCR-4, DEC-2, DEC-10):
 - **Trailing 12 months:** 33 decided submitted bids; **9 won, 24 lost → hit rate 27%**.
-  - Water: 7 of 21 (33%). Roads: 2 of 12 (17%).
+  - Water: 7 of 21 (33%). Roads: 2 of 12 (17%). *Superseded by plan 039: the last 12 months now hold 42 won and 44 lost; water 33 of 56 (59%), the base of every Najd water win model.*
   - Loss reasons: price 13, technical score 5, local content 3, PQ 1, other 2.
 - **DG1, last 90 days:** 46 decisions (15 Pursue, 29 Discard, 2 Hold).
   - On time: 44 of 46 (96%).
@@ -578,7 +578,7 @@ The derived values should land here (catalogue §A IDs):
 | Intake | **INT-1 New today 11** (Etimad 7, portals 1, email 2, scanned 1) · **INT-2 p90 11 min** (worst 14 min) · **INT-3 Missed 0** (reconciled 06:00, 9 sources) · **INT-4 8 of 9 healthy** (Etimad credentials expire Fri 13 Mar) · **INT-5 Fields to check 6** (2 block DG1; oldest 2 h 16 m) · **INT-10 Documents to buy 1** (T-2026-122 booklet, SAR 3,000, closes Tue 10 Mar) |
 | Screening | **SCR-1 DG1 due 2** (first in 6 h 10 m) · **SCR-5 Eligibility risks 3** · **SCR-6 Credentials expiring 2** (Zakat 30 Apr, GOSI 7 May; both before T-2026-118 opens 10 May) · **SCR-7 Queries closing 1** (T-2026-118 questions close Wed 18 Mar) |
 | Sourcing | **SRC-1** trailing 100% · **SRC-2** 7 of 11 on T-2026-104 · **SRC-3** 71% · **SRC-4** 4 overdue (2 escalated) · **SRC-5** 6 open, 0 stale · **SRC-6** 5 to level |
-| Decision | **DEC-1** 1 pack (SLA 4 h 10 m; 2 of 5 positions, quorum 3) · **DEC-4** SAR 206 M weighted (0.58 × 355) · **DEC-6** SAR 96 M headroom · **DEC-7** 2 outstanding, 1 late · **DEC-8** 1 stale |
+| Decision | **DEC-1** 1 pack (SLA 4 h 10 m; 2 of 5 positions, quorum 3) · **DEC-4** SAR 298 M weighted (0.84 × 355) · **DEC-6** SAR 640 M headroom · **DEC-7** 2 outstanding, 1 late · **DEC-8** 1 stale |
 | Outcomes | **OUT-1** 27% (n = 33) |
 | Capacity | **CAP-1** Water team 78% now, 96% with the hero tender |
 
@@ -594,23 +594,23 @@ The derived values should land here (catalogue §A IDs):
 | Package | Suppliers (fictional) | Notable for levelling |
 | --- | --- | --- |
 | P-01 Piling, dewatering | Rasikh Foundations Co. (KSA) · Taweel Geotechnical | Screening due on one |
-| P-02 Process mechanical | Rhein Aqua Systems GmbH (DE) · Gulf Process Systems Co. (KSA, high LC) · Hanseong Water Machinery (KR) | EUR quote, **ex-works**; validity 60 days vs 120 required; lead time 34 weeks vs 28 needed |
+| P-02 Process mechanical | Rhein Aqua Systems GmbH (DE) · Gulf Process Systems Co. (KSA, high LC) · Bongnim Water Machinery (KR) | EUR quote, **ex-works**; validity 60 days vs 120 required; lead time 34 weeks vs 28 needed |
 | P-03 Tertiary filters and UV | Nordklar Filtration AB (SE) · Sahara Clearwater Technologies (UAE) | Excludes installation supervision → allowance, "estimated" |
-| P-04 Sludge dewatering | Castellan Separators Srl (IT) · Gulf Process Systems Co. | 30% advance requested |
-| P-06 Substation and transformers | Hijaz Power Equipment Co. (KSA) · Levant Switchgear SAL | Quote **inclusive of 15% VAT** → shown excluding VAT |
-| P-08 ICA and SCADA | Qimma Automation (KSA) | Only one compliant quote → gap to accept or chase |
-| P-10 GRP pipes (mandatory list) | Tuwaiq Pipe Industries (KSA) · Eastern Composite Pipes Co. (KSA) | National product; LC contribution |
+| P-04 Sludge dewatering | Valbrembo Separators Srl (IT) · Gulf Process Systems Co. | 30% advance requested |
+| P-06 Substation and transformers | Hada Power Equipment Co. (KSA) · Levant Switchgear SAL | Quote **inclusive of 15% VAT** → shown excluding VAT |
+| P-08 ICA and SCADA | Dhurwa Automation (KSA) | Only one compliant quote → gap to accept or chase |
+| P-10 GRP pipes (mandatory list) | Thadiq Pipe Industries (KSA) · Eastern Composite Pipes Co. (KSA) | National product; LC contribution |
 | P-11 Pumps | Aldervane Pumps · Dunmore Hydraulics | Deviation on material grade → non-compliant |
 
-- **Supplier Portal persona:** Ahmed Saleh, estimator at Gulf Process Systems Co. (P-02 RFQ for T-2026-118, once RFQs are sent).
+- **Supplier Portal persona:** Amjad Salameh, estimator at Gulf Process Systems Co. (P-02 RFQ for T-2026-118, once RFQs are sent).
 
 ## 7. Competitors (fictional; Stage 3 lane)
 
 For the hero tender and T-2026-097. Every claim needs a source in the demo data (spec §9.2):
 - **Hijr Al-Watan Contracting** (KSA): large water EPC; 3 STP awards 2023–25. Source: award notices (synthetic).
 - **Sahab Gulf Water Technologies** (KSA/UAE): process specialist; usually bids in a JV.
-- **Al-Masar United Contracting** (KSA): aggressive on price; lowest bidder in 4 of its last 7 tenders. Source: opening reports (synthetic).
-- **Tihama Hydro Works Co.** (KSA): also tenant C's partner. In the market, contractors are both partners and rivals.
+- **Al-Thamad United Contracting** (KSA): aggressive on price; lowest bidder in 4 of its last 7 tenders. Source: opening reports (synthetic).
+- **Qunfudhah Hydro Works Co.** (KSA): also tenant C's partner. In the market, contractors are both partners and rivals.
 - **Istria Aqua Engineering** (foreign EPC): enters through local JVs.
 
 ## 8. Bid Committee per tenant

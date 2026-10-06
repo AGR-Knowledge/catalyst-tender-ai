@@ -12,7 +12,7 @@ import type { KpiCtx, KpiDef } from './types';
 /**
  * Stage 1 · Intake (plan 013 Phase 2.1, dashboards.md §10.4). The Tender
  * Coordinator's home: what came in, what must be checked, and which deadlines
- * are close. ⓘ texts are dashboards.md §11.9, verbatim.
+ * are close. ⓘ texts: plain English, rewritten in plan 040.
  */
 
 const route = (path: string): DrillVM | null => (isScreenBuilt(path) ? { kind: 'route', to: path } : null);
@@ -96,9 +96,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-1', label: 'Captured', labelToday: 'Captured today', kind: 'flow',
     info: {
-      means: 'Tender notices the platform picked up from your portals, mailboxes and scanned post',
-      counted: 'Notices received in the period, all sources. Duplicates and addenda are counted once, under Linked.',
-      target: 'None (information)', source: 'Intake events',
+      means: 'How many tender notices reached us from portals, mailboxes and scanned post. It shows how widely we are looking.',
+      counted: 'New notices received in the period from every source; repeats and addenda of a tender we already have are counted apart, as linked.',
+      target: 'No target',
+      source: 'Intake records',
     },
     compute(ctx) {
       const c = qOf(ctx).capturesIn(ctx.window);
@@ -116,9 +117,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-5', label: 'Fields to check', kind: 'state',
     info: {
-      means: 'Values the agent read with low confidence, or read two different ways. A person checks them. Pursue stays locked while blocking ones are open',
-      counted: 'Open items in the intake queue on live tenders, including items sent back to the agent. The age runs from when the agent raised the item.',
-      target: `0. Any blocking DG1 is orange; the oldest over ${STAGE_BANDS.queueOldestRedH} h is red`, source: 'Validation items',
+      means: 'Details the AI read with low confidence, or read two different ways, for a person to check. Pursue stays locked while a blocking one is open.',
+      counted: 'Open check items on live tenders, including items sent back to the AI; the age runs from when the item was raised.',
+      target: `None older than ${STAGE_BANDS.queueOldestRedH} hours`,
+      source: 'Intake check queue',
     },
     compute(ctx) {
       const items = openFields(ctx).flatMap((g) => g.items);
@@ -133,9 +135,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-2', label: 'Intake to logged', kind: 'flow',
     info: {
-      means: 'How long it takes from a notice arriving to it being logged with an ID. The slowest tenth is shown, because one slow tender is the one that gets missed',
-      counted: 'The 90th percentile (nearest rank) of the minutes from receipt to TID, over the notices logged in the period. The worst one is in the sub-line.',
-      target: `${INTAKE_TARGET_MIN} min or less (green); up to ${STAGE_BANDS.intakeOrangeMin} min orange`, source: 'Intake events with timestamps',
+      means: 'How long a notice waits before it is logged with a tender ID. We watch the slow ones, because a slow tender is the one that gets missed.',
+      counted: 'Minutes from a notice arriving to it being logged, for the slowest one in ten of the notices logged in the period.',
+      target: `${INTAKE_TARGET_MIN} minutes or less`,
+      source: 'Intake records',
     },
     compute(ctx) {
       const mins = qOf(ctx).capturesIn(ctx.window).minutes;
@@ -149,9 +152,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-4', label: 'Sources healthy', kind: 'state',
     info: {
-      means: 'Whether each portal and mailbox connection is working. A silent broken source is how tenders get missed',
-      counted: 'Connections reporting Healthy ÷ connections configured, at their last poll. The worst one is named in the sub-line.',
-      target: 'All healthy (green); any degraded or expiring orange; any down red', source: 'Connector records',
+      means: 'Whether each portal and mailbox connection is working. A source that breaks quietly is how tenders get missed.',
+      counted: 'Connections that reported healthy at their last check, out of all the connections set up.',
+      target: 'All healthy',
+      source: 'Portal and mailbox connections',
     },
     compute(ctx) {
       const s = sourcesOf(ctx.tenant);
@@ -170,9 +174,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-3', label: 'Missed tenders', kind: 'flow',
     info: {
-      means: "Tenders on a portal's daily list that we didn't log. It should always be zero",
-      counted: "Notices the daily reconciliations found on a portal's list but not in the register, over the reconciliations run in the period.",
-      target: '0 (green); 1 or more red', source: 'Reconciliation runs',
+      means: 'Tenders on a portal’s daily list that we did not log. It should always be zero.',
+      counted: 'Notices the daily cross-checks found on a portal’s list but not in our register, in the period.',
+      target: 'None',
+      source: 'Daily portal cross-checks',
     },
     compute(ctx) {
       const missed = qOf(ctx).capturesIn(ctx.window).missed;
@@ -189,9 +194,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'INT-10', label: 'Documents to buy', kind: 'state',
     info: {
-      means: 'Tenders whose booklet must be bought before it can be downloaded. The platform never pays; a person approves the purchase',
-      counted: 'Live Stage 1 tenders whose documents are sold and not yet bought. The sub-line names the one whose purchase closes first.',
-      target: `Orange when a purchase closes within ${STAGE_BANDS.bookletWd} working days`, source: 'Tender records: document fee and purchase deadline',
+      means: 'Tenders whose documents must be bought before they can be downloaded. The platform never pays; a person approves each purchase.',
+      counted: 'Live tenders in Intake whose documents are sold and not yet bought.',
+      target: `Bought over ${STAGE_BANDS.bookletWd} working days before sales close`,
+      source: 'Tender records',
     },
     compute(ctx) {
       const list = toBuy(ctx);

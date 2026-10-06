@@ -1,7 +1,7 @@
 import { firstWithRole } from '@/data/people';
 import type { Tone } from '@/data/types';
 import type { Lifecycle, S7Facts } from '@/data/gcc/lifecycle';
-import { NEAR_WD, RATE_BANDS } from '@/data/gcc/targets';
+import { GATE_SLA_HOURS, NEAR_WD, RATE_BANDS } from '@/data/gcc/targets';
 import { slaState } from '../clock';
 import { deadlineWd, openGate } from '../lifecycle';
 import type { TileRefVM } from '../viewmodels';
@@ -58,9 +58,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-1', label: 'Mandatory gaps', kind: 'state',
     info: {
-      means: "Must-have requirements we can't yet prove. One open gap at submission can exclude the bid",
-      counted: 'Mandatory requirements without accepted evidence, across Stage 7 tenders.',
-      target: `0 green; any orange; any within ${NEAR_WD} working days of submission red`, source: 'Compliance matrix',
+      means: 'Must-have requirements we cannot prove yet. One open gap at submission can exclude the bid.',
+      counted: 'Mandatory requirements without accepted evidence, across tenders in Compliance.',
+      target: 'None',
+      source: 'Compliance matrix',
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.mandatoryGaps);
@@ -73,9 +74,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-2', label: 'Requirements evidenced', kind: 'state',
     info: {
-      means: 'How complete the compliance matrix is',
-      counted: 'Requirements with evidence attached and checked ÷ all requirements, across Stage 7 tenders.',
-      target: '100% green', source: 'Compliance matrix',
+      means: 'How complete the compliance matrix is.',
+      counted: 'Requirements with evidence attached and checked, out of all requirements, across tenders in Compliance.',
+      target: 'Every requirement',
+      source: 'Compliance matrix',
     },
     compute(ctx) {
       const rows = s7Of(ctx);
@@ -90,9 +92,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-3', label: 'Redlines open', kind: 'state',
     info: {
-      means: 'Contract positions still undecided. Each one is price or risk',
-      counted: 'Contract deviations recommended but not yet accepted, amended or escalated, across Stage 7 tenders.',
-      target: `Information; orange when any is on a bid due within ${NEAR_WD} working days`, source: 'Contract review',
+      means: 'Contract terms we have not decided on yet. Each one is price or risk.',
+      counted: 'Proposed changes to the contract not yet accepted, amended or escalated, across tenders in Compliance.',
+      target: `None open within ${NEAR_WD} working days of submission`,
+      source: 'Contract review',
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.redlinesOpen);
@@ -107,9 +110,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-4', label: 'Risks without owner', kind: 'state',
     info: {
-      means: 'A risk nobody owns is a risk nobody manages',
-      counted: 'Risk-register items with no named owner, across Stage 7 tenders.',
-      target: '0 green; any red', source: 'Risk register',
+      means: 'A risk nobody owns is a risk nobody manages.',
+      counted: 'Risk register items with no named owner, across tenders in Compliance.',
+      target: 'None',
+      source: 'Risk register',
     },
     compute(ctx) {
       const s = sumOf(ctx, (f) => f.risksWithoutOwner);
@@ -120,9 +124,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-5', label: 'DG3 waiting', kind: 'state',
     info: {
-      means: 'Bids ready for final approval by the Head of Tendering',
-      counted: 'DG3 packs issued with no decision. The sub-line shows the time left on the first, against the 48 h limit.',
-      target: 'Orange under 25% of the time limit; red once breached', source: 'DG3 packs and decisions',
+      means: 'Bids ready for final approval by the Head of Tendering.',
+      counted: `DG3 packs issued with no decision yet; underneath, the time left on the first, out of ${GATE_SLA_HOURS.DG3} hours.`,
+      target: `Each within ${GATE_SLA_HOURS.DG3} hours`,
+      source: 'DG3 packs and decisions',
     },
     compute(ctx) {
       const list = dg3Waiting(ctx);
@@ -143,9 +148,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'CMP-6', label: 'DG3 on time', kind: 'flow',
     info: {
-      means: 'Whether final approvals are keeping pace with the submission dates',
-      counted: 'DG3 decisions made within 48 h of pack issue ÷ DG3 decisions in the period.',
-      target: '100% green; 90% or more orange', source: 'DG3 decisions',
+      means: 'Whether final approvals keep pace with the submission dates.',
+      counted: `DG3 decisions made in the period, and how many came within ${GATE_SLA_HOURS.DG3} hours of the pack being issued.`,
+      target: 'All on time',
+      source: 'DG3 decisions',
     },
     compute: (ctx) => {
       const r = onTimeRate(qOf(ctx).gateEventsIn(ctx.window, 'DG3').map((x) => ({ onTime: x.g.onTime })), 'No DG3 decisions in this period', RATE_BANDS['CMP-6'], 'within 48 h');

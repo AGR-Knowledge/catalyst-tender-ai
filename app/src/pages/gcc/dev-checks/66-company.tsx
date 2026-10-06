@@ -13,7 +13,8 @@ import { bidRecordFor, bidSummaryFor, type BidRecordVM } from '@/domain/gcc/comp
 import { BID_RECORD_YEARS } from '@/data/gcc/company/bidRecord';
 import { gccData } from '@/data/gcc';
 import { flow } from '@/domain/gcc/flows';
-import { windowOf } from '@/domain/gcc/period';
+import { previousOf, windowOf } from '@/domain/gcc/period';
+import { resultsIn, submissionsIn } from '@/domain/gcc/lifecycle';
 import { calibrationFor } from '@/domain/gcc/s3/win';
 import { money } from '@/domain/money';
 import { supplierMasterFor, supplierProfileFor } from '@/domain/gcc/suppliers/profile';
@@ -239,7 +240,8 @@ function checks(): Check[] {
   add('032 Funnel = PF-5 at 12 months', ...each(({ ctx, r }) => {
     const f = flow('PF-5')!.compute(ctx);
     const part = (step: string, key: string) => f.steps.find((x) => x.key === step)?.parts.find((p) => p.key === key)?.count ?? 0;
-    const want = [part('captured', 'notices'), part('dg1', 'pursue'), part('submitted', 'on-time') + part('submitted', 'late'), part('results', 'won')];
+    const sent = queriesFor({ tenant: ctx.tenant, viewer: ctx.viewer, done: {} }).submissionsIn(ctx.window).length;
+    const want = [part('captured', 'notices'), part('dg1', 'pursue'), sent, part('won', 'won')];
     const got = r.funnel.steps.map((x) => x.count);
     return [want.join() === got.join() && got[2] === r.totals.submitted && got[3] === r.totals.won, got.join(' → ')];
   }));
@@ -271,6 +273,23 @@ function checks(): Check[] {
       return Math.round((y.valueWon.amount / convert(f.turnover.amount, f.turnover.ccy, y.valueWon.ccy)) * 100);
     });
     return [pcts.every((p) => p >= 40 && p <= 160), pcts.map((p) => `${p}%`).join('/')];
+  }));
+
+  // 26b. Review of plan 039: the 2024–25 year is inside the lifecycles, so it repeats what the All period holds for the same dates.
+  add('039 Seed 2024–25 = the lifecycles of 9 Mar 2024 – 8 Mar 2025', ...each(({ t }) => {
+    const y = BID_RECORD_YEARS[t as keyof typeof BID_RECORD_YEARS][3];
+    const w = previousOf(windowOf('12m', t));
+    const ccy = y.valueWon.ccy;
+    const subs = submissionsIn(t, w, undefined, {});
+    const res = resultsIn(t, w, ['won', 'lost'], undefined, {});
+    const won = res.filter((x) => x.r.result === 'won');
+    const m = (n: number) => Math.round(n / 1e5) / 10;
+    const vSub = m(subs.reduce((a, x) => a + convert(x.l.value.amount, x.l.value.ccy, ccy), 0));
+    const vWon = m(won.reduce((a, x) => a + convert(x.r.value?.amount ?? x.l.value.amount, x.r.value?.ccy ?? x.l.value.ccy, ccy), 0));
+    const got = `${subs.length} bids, ${won.length} won, ${res.length - won.length} lost, ${ccy} ${vSub} M bid, ${vWon} M won`;
+    const ok = y.from === w.from.slice(0, 10) && y.submitted === subs.length && y.won === won.length && y.lost === res.length - won.length
+      && m(y.valueSubmitted.amount) === vSub && m(y.valueWon.amount) === vWon;
+    return [ok, ok ? got : `${got}; seed ${y.submitted}/${y.won}/${y.lost}, ${m(y.valueSubmitted.amount)}/${m(y.valueWon.amount)}`];
   }));
 
   // 27. The five-year series: the four seeded years, then the derived 12 months equal to the totals.

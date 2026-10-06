@@ -24,14 +24,14 @@ const named = (...xs: [id: string, short: string][]): Rival[] => xs.map(([id, sh
 });
 
 export const RIVALS: Record<GccTenantKey, Rival[]> = {
-  najd: named(['al-masar', 'Al-Masar'], ['hijr', 'Hijr Al-Watan'], ['sahab', 'Sahab'], ['tihama', 'Tihama Hydro'], ['istria', 'Istria Aqua']),
-  corniche: named(['tessaline-mep', 'Tessaline'], ['sarab-bs', 'Sarab'], ['brevanne', 'Brevanne']),
+  najd: named(['al-masar', 'Al-Thamad'], ['hijr', 'Hijr Al-Watan'], ['sahab', 'Sahab'], ['tihama', 'Qunfudhah Hydro'], ['istria', 'Istria Aqua']),
+  corniche: named(['tessaline-mep', 'Tessaline'], ['sarab-bs', 'Maswaan'], ['brevanne', 'Brevanne']),
   dafna: [
     { id: 'pellstone', name: 'Thumama Pellstone Contracting W.L.L.', short: 'Pellstone' },
     { id: 'karstel', name: 'Karstel Civil Engineering W.L.L.', short: 'Karstel' },
     { id: 'trevannon', name: 'Mesaieed Trevannon Infrastructure W.L.L.', short: 'Trevannon' },
   ],
-  batinah: named(['liwa-highways', 'Liwa Highways'], ['shinas-bridges', 'Shinas Bridges'], ['mahda-infra', 'Mahda']),
+  batinah: named(['liwa-highways', 'Dhank Highways'], ['shinas-bridges', 'Shinas Bridges'], ['mahda-infra', 'Mahda']),
   qurain: [
     { id: 'ostrel', name: 'Failaka Ostrel Contracting Co.', short: 'Ostrel' },
     { id: 'brennock', name: 'Jahra Brennock Projects Co.', short: 'Brennock' },

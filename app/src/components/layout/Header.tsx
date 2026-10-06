@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Bell, ChevronDown, ChevronRight, Eye, Menu, Moon, RotateCcw, Sun } from 'lucide-react';
+import { Bell, BookOpen, ChevronDown, ChevronRight, Eye, Menu, Moon, RotateCcw, Sun } from 'lucide-react';
 import { WALK_ORDER, roleOf } from '@/data/roles';
 import { PERSON_GROUPS, peopleOf, roleLine, switcherOf, type Person } from '@/data/people';
 import { can } from '@/data/access';
@@ -40,7 +40,7 @@ function usePageHead() {
   const waiting = live.alertsFor(state.role).length;
   const heads: Record<string, { title: string; sub: string }> = {
     dashboard: { title: role.view, sub: `${TODAY_LABEL.replace(/^\w+, /, '')}, ${waiting ? `${plural(waiting, 'item')} waiting on you` : 'nothing waiting on you'}` },
-    workflow: { title: 'Envisaged Product Workflow', sub: 'Nine stages, ten agents, three mandatory human gates. Select a stage for its agent, owner and outputs.' },
+    workflow: { title: 'User manual', sub: 'Nine stages, ten agents, three mandatory human gates. Select a stage for its agent, owner and outputs.' },
     agents: { title: 'Agent Console', sub: 'Status, guardrails and evaluation scores for the ten agents. Operations and AI governance only.' },
     pipeline: { title: 'Pipeline', sub: 'Live pursuits in the bid office.' },
     submission: { title: 'Submission desk', sub: `${t.id} · ${t.name}: packaging, signatures and portal submission. Milestone M3.` },
@@ -213,6 +213,16 @@ export function Header({ onMenu }: { onMenu: () => void }) {
                     )}
                   </div>
                 )}
+                {/* The user manual (plan 044): Settings › Help opens it too. */}
+                <div style={{ borderTop: '1px solid var(--line-2)', marginTop: 6, paddingTop: 6 }}>
+                  <button type="button" role="menuitem" className="role-opt" onClick={() => { setProfile(false); goPage('/workflow'); }}>
+                    <BookOpen size={14} aria-hidden style={{ marginTop: 3, color: 'var(--ink-4)' }} />
+                    <span style={{ flex: 1, minWidth: 0 }}>
+                      <span className="t">User manual</span>
+                      <span className="s">How the nine stages and three decision gates work, and who does what.</span>
+                    </span>
+                  </button>
+                </div>
               </div>
               <div className="pop-foot">
                 <span style={{ flex: 1 }}>In production each user signs in to their own view.</span>

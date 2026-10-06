@@ -5,21 +5,25 @@ import { InfoTip } from './InfoTip';
 
 /**
  * The decision funnel as its own card (dashboards.md §1 Z3, user decision
- * 2026-09-28; plan 027d). One column per step, and every column has the same
- * five rows on one grid, so they line up: the step and what it decides, the
- * part that went on, a bar split by the column's own outcomes, the other
- * parts, and the rate. The bar is not a tapered funnel: the counts are
- * decisions in the period, not one group of tenders followed through.
- * Every non-zero number is a link that filters the table to exactly those
- * tenders. The bar only draws the counts; its words are in the rows.
+ * 2026-09-28; plan 027d), and the stage flow strips. One column per step, and
+ * every column has the same five rows on one grid, so they line up: the step
+ * and what it decides, the headline, a bar split by the column's own
+ * outcomes, the other parts, and the note. The bar is not a tapered funnel:
+ * each column's bar splits its own counts. Every non-zero number with tenders
+ * behind it is a link that filters the table to exactly those tenders. The
+ * bar only draws the counts; its words are in the rows.
  */
 
 type Outcome = NonNullable<FlowPartVM['outcome']>;
 
-/** The bar's order and the key's words: the same in every column. */
-const OUTCOMES: { o: Outcome; word: string }[] = [
-  { o: 'on', word: 'Went on' }, { o: 'stopped', word: 'Stopped' }, { o: 'held', word: 'Waiting' },
-];
+/** The bar's order: the same in every column. */
+const ORDER: Outcome[] = ['on', 'previous', 'stopped', 'held'];
+
+/** The key's words. The decision funnel (PF-5) reads Approved / Rejected / Pending (plan 039); the stage strips keep theirs. */
+const WORDS: Record<'funnel' | 'strip', Record<Outcome, string>> = {
+  funnel: { on: 'Approved', stopped: 'Rejected', held: 'Pending', previous: 'Previous' },
+  strip: { on: 'Went on', stopped: 'Stopped', held: 'Waiting', previous: 'Previous' },
+};
 
 /** A non-zero segment is at least this share of the bar, so a single "held" stays visible. */
 const MIN_SHARE = 4;
@@ -48,7 +52,7 @@ function Part({ step, p, main, onDrill }: { step: FlowStepVM; p: FlowPartVM; mai
 }
 
 function Bar({ parts }: { parts: FlowPartVM[] }) {
-  const split = OUTCOMES.flatMap(({ o }) => parts.filter((p) => p.outcome === o));
+  const split = ORDER.flatMap((o) => parts.filter((p) => p.outcome === o));
   const w = shares(split.map((p) => p.count));
   return (
     <div className="fc-bar" aria-hidden>
@@ -84,10 +88,23 @@ function Column({ s, first, onDrill }: { s: FlowStepVM; first: boolean; onDrill(
   );
 }
 
+/**
+ * The decision funnel's columns share the width by how much their longest row
+ * says (plan 039), so "104 approved · 72 rejected · 9 pending" fits beside
+ * "42 won" at 1280. The stage strips keep equal columns.
+ */
+function widths(flow: FlowZoneVM): CSSProperties {
+  if (flow.id !== 'PF-5') return {};
+  const len = (s: FlowStepVM) => Math.max(s.parts.slice(1).map(partText).join(' · ').length, (s.note ?? '').length, `${s.label} ${s.sub ?? ''}`.length);
+  const ws = flow.steps.map((s) => Math.min(2, Math.max(1, len(s) / 22)));
+  return { gridTemplateColumns: ws.map((w) => `minmax(118px, ${w.toFixed(2)}fr)`).join(' ') };
+}
+
 export function FlowCard({ flow, onDrill }: { flow: FlowZoneVM; onDrill(d: DrillVM): void }) {
   const id = useId();
   const used = new Set(flow.steps.flatMap((s) => s.parts.map((p) => p.outcome)));
-  const key = OUTCOMES.filter(({ o }) => used.has(o));
+  const words = WORDS[flow.id === 'PF-5' ? 'funnel' : 'strip'];
+  const key = (['on', 'stopped', 'held', 'previous'] as Outcome[]).filter((o) => used.has(o)).map((o) => ({ o, word: words[o] }));
   return (
     <section className="card fc" aria-labelledby={id}>
       <header className="fc-head">
@@ -107,8 +124,8 @@ export function FlowCard({ flow, onDrill }: { flow: FlowZoneVM; onDrill(d: Drill
         <p className="fc-miss">Nothing moved in this period.</p>
       ) : (
         <div className="fc-scroll">
-          {/* Seven or more columns (Stage 2) set rows 4 and 5 a half-point smaller, so they still fit at 1280. */}
-          <ol className={`fc-cols ${flow.steps.length >= 7 ? 'dense' : ''}`} style={{ '--fc-n': flow.steps.length } as CSSProperties}>
+          {/* Six or more columns (the funnel, Stage 2) set rows 4 and 5 a half-point smaller, so they still fit at 1280. */}
+          <ol className={`fc-cols ${flow.steps.length >= 6 ? 'dense' : ''}`} style={{ '--fc-n': flow.steps.length, ...widths(flow) } as CSSProperties}>
             {flow.steps.map((s, i) => <Column key={s.key} s={s} first={i === 0} onDrill={onDrill} />)}
           </ol>
         </div>

@@ -7,7 +7,7 @@ import { dayText, dueInWindow, hoursShort, idsDrill, liveIn, nearestRank, onTime
 /**
  * Stage 4 · Planning (plan 013 Phase 2.4, dashboards.md §10.7 and §11.2).
  * SRC-9 (Long-lead at risk) is defined with Stage 2 and counted over this
- * dashboard's stage. ⓘ texts are dashboards.md §11.2, verbatim.
+ * dashboard's stage. ⓘ texts: plain English, rewritten in plan 040.
  */
 
 type S4 = { l: Lifecycle; f: S4Facts };
@@ -50,9 +50,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PLN-1', label: 'Baselines due', kind: 'state',
     info: {
-      means: 'Programmes that must be released soon so pricing and the proposal can use them',
-      counted: `Stage 4 tenders whose baseline release date is ${NEAR_WD} working days away or less, or past.`,
-      target: `Orange within ${NEAR_WD} working days; red once past`, source: 'Programme baselines',
+      means: 'Programmes that must be released soon so pricing and the proposal can use them.',
+      counted: `Tenders in Planning whose programme release is ${NEAR_WD} working days away or less, or past.`,
+      target: 'None late',
+      source: 'Programmes',
     },
     compute(ctx) {
       const list = baselinesDue(ctx);
@@ -66,9 +67,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PLN-2', label: 'Programme over time', kind: 'state',
     info: {
-      means: 'Our programme is longer than the employer allows. Either re-sequence, or the bid needs a qualification the committee has seen',
-      counted: "Stage 4 tenders whose planned duration is longer than the employer's required duration.",
-      target: '0 green; any red', source: 'Programme baselines',
+      means: 'Bids whose programme is longer than the employer allows. Re-sequence it, or the committee must accept a qualification.',
+      counted: 'Tenders in Planning whose planned duration is longer than the duration the employer requires.',
+      target: 'None',
+      source: 'Programmes',
     },
     compute(ctx) {
       const list = overTime(ctx);
@@ -81,9 +83,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PLN-4', label: 'Resource clashes', kind: 'state',
     info: {
-      means: 'Two bids planning on the same people or plant at the same time. One of the programmes will not hold',
-      counted: 'Stage 4–8 tenders whose peak key resources (named people, cranes, TBMs) overlap with another bid or a live project in the same weeks.',
-      target: '0 green; any orange', source: 'Resource-loaded programmes',
+      means: 'Two bids counting on the same people or plant in the same weeks. One of the programmes will not hold.',
+      counted: 'Tenders from Planning to Submission whose key people or plant overlap with another bid or a live project in the same weeks.',
+      target: 'None',
+      source: 'Resource-loaded programmes',
     },
     compute(ctx) {
       const list = clashes(ctx);
@@ -95,9 +98,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PLN-5', label: 'Re-plans', kind: 'flow',
     info: {
-      means: 'How often the programme had to change, and how fast we turned it round',
-      counted: 'Re-plans triggered in the period (addendum, quote lead time, scope change), with the 90th percentile turnaround.',
-      target: `p90 turnaround ${TURNAROUND_HOURS.replan} h or less`, source: 'Programme change log',
+      means: 'How often a programme had to change, and how fast we turned it round.',
+      counted: 'Programme changes started in the period (an addendum, a quote lead time, a scope change), and the turnaround of the slowest one in ten.',
+      target: `Turned round in ${TURNAROUND_HOURS.replan} hours or less`,
+      source: 'Programme change log',
     },
     compute: (ctx) => ({ ...turnaround(ctx, 'replan', TURNAROUND_HOURS.replan, 're-plan'), ...turnSplit(ctx, 'replan', TURNAROUND_HOURS.replan, 'No programme changes') }),
     drill: (ctx) => idsDrill(`From tile: Re-plans · ${ctx.window.label}`, qOf(ctx).workEventsIn(ctx.window, 'replan').map((x) => x.l.tenderId)),
@@ -105,9 +109,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PLN-6', label: 'M2 on time', kind: 'flow',
     info: {
-      means: 'M2 is the checkpoint where the programme and the price agree. A late M2 means pricing on an old programme',
-      counted: 'M2 reconciliations due in the period that were completed by their planned date ÷ M2 reconciliations due in the period.',
-      target: '100% green; 80% or more orange', source: 'M2 reconciliation records',
+      means: 'M2 is the checkpoint where the programme and the price are made to agree. A late M2 means pricing on an old programme.',
+      counted: 'M2 checkpoints due in the period, and how many were completed by their planned date.',
+      target: 'All on time',
+      source: 'M2 records',
     },
     compute: (ctx) => {
       const r = onTimeRate(dueInWindow(ctx, 'm2'), 'No M2 due in this period', RATE_BANDS['PLN-6'], 'by their date');

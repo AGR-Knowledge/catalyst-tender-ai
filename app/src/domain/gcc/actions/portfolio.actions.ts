@@ -24,7 +24,8 @@ import type { ActionSource } from './types';
  * portfolio KPIs and the sidebar's gate chips, so a tile, a row and a chip
  * never disagree:
  * - `dg1Open`: DG1 due now (SCR-1, DG1 rows, the DG1 chip);
- * - `credentialsAtRisk`: certificates that expire before a live bid opens (SCR-6, Renewal rows);
+ * - `credentialsAtRisk`: certificates that expire before a live bid opens (SCR-6, Renewal rows), and
+ *   `companyDocuments` / `documentGaps`, the whole vault with a status each (SCR-6's list panel, plan 040);
  * - `inputsOutstanding`: contributor inputs not yet given (DEC-7, Late input rows);
  * - `dg2Open` and `dg3Open`: gates waiting for a decision (DG2 and DG3 rows and chips).
  *
@@ -147,19 +148,24 @@ const CHECK_LABEL: Record<string, CredentialRisk['bids'][number]['checkLabel']> 
  * checked on); the others check every certificate of the bid's country
  * against the opening date. Bids already opened are past the check.
  */
+/** A credential's expiry after any renewal recorded in the demo (`renewed:<id>`). */
+function renewedTo(c: Credential, done: PortfolioCtx['done']): string | null {
+  const raw = done[`renewed:${c.id}`];
+  if (!raw) return c.validTo;
+  try { return (JSON.parse(raw) as { validTo?: string }).validTo ?? c.validTo; } catch { return c.validTo; }
+}
+
+/** The Head of Tendering (or the Bid Manager) asked the owner to renew it (`renewal-requested:<id>`). */
+const renewalRequested = (c: Credential, done: PortfolioCtx['done']) => !!done[`renewal-requested:${c.id}`] && done[`renewal-requested:${c.id}`] !== 'no';
+
 export function credentialsAtRisk(ctx: PortfolioCtx): CredentialRisk[] {
   if (!isGccTenantKey(ctx.tenant)) return [];
   const d = gccData(ctx.tenant);
   const byId = new Map<string, CredentialRisk>();
-  const renewedTo = (c: Credential) => {
-    const raw = ctx.done[`renewed:${c.id}`];
-    if (!raw) return c.validTo;
-    try { return (JSON.parse(raw) as { validTo?: string }).validTo ?? c.validTo; } catch { return c.validTo; }
-  };
   const add = (c: Credential, l: Lifecycle, checkDate: string, kind: string) => {
-    const validTo = renewedTo(c);
+    const validTo = renewedTo(c, ctx.done);
     if (!validTo || validTo >= checkDate) return;
-    const r = byId.get(c.id) ?? { cred: c, validTo, bids: [], requested: !!ctx.done[`renewal-requested:${c.id}`] && ctx.done[`renewal-requested:${c.id}`] !== 'no' };
+    const r = byId.get(c.id) ?? { cred: c, validTo, bids: [], requested: renewalRequested(c, ctx.done) };
     if (!r.bids.some((b) => b.l.tenderId === l.tenderId)) r.bids.push({ l, checkDate, checkLabel: CHECK_LABEL[kind] ?? 'opens' });
     byId.set(c.id, r);
   };
@@ -184,6 +190,43 @@ export function credentialsAtRisk(ctx: PortfolioCtx): CredentialRisk[] {
     .map((r) => ({ ...r, bids: r.bids.sort((a, b) => a.checkDate.localeCompare(b.checkDate)) }))
     .sort((a, b) => a.validTo.localeCompare(b.validTo));
 }
+
+/**
+ * Plan 040: a company document's status on the Documentation gaps tile and its
+ * list panel. Expired: past its expiry today. Expiring before a bid: valid
+ * today, but not on the date a live bid needs it (SCR-6's `credentialsAtRisk`).
+ * Valid: everything else.
+ */
+export type DocumentStatus = 'expired' | 'expiring' | 'valid';
+
+export interface CompanyDocument {
+  cred: Credential;
+  /** After any renewal recorded in the demo; null = no expiry. */
+  validTo: string | null;
+  status: DocumentStatus;
+  /** The live bids it falls short on, earliest check first (empty when it holds for every live bid). */
+  bids: CredentialRisk['bids'];
+  requested: boolean;
+  renewed: boolean;
+}
+
+const DOC_RANK: Record<DocumentStatus, number> = { expired: 0, expiring: 1, valid: 2 };
+
+/** Every document in the credentials vault with its status, gaps first, then by expiry. */
+export function companyDocuments(ctx: PortfolioCtx): CompanyDocument[] {
+  if (!isGccTenantKey(ctx.tenant)) return [];
+  const risks = new Map(credentialsAtRisk(ctx).map((r) => [r.cred.id, r]));
+  return gccData(ctx.tenant).credentials.map((c): CompanyDocument => {
+    const r = risks.get(c.id);
+    const validTo = r?.validTo ?? renewedTo(c, ctx.done);
+    const status: DocumentStatus = validTo !== null && validTo < DEMO_TODAY ? 'expired' : r ? 'expiring' : 'valid';
+    return { cred: c, validTo, status, bids: r?.bids ?? [], requested: renewalRequested(c, ctx.done), renewed: !!ctx.done[`renewed:${c.id}`] };
+  }).sort((a, b) => DOC_RANK[a.status] - DOC_RANK[b.status]
+    || (a.validTo ?? '9999').localeCompare(b.validTo ?? '9999') || a.cred.label.localeCompare(b.cred.label));
+}
+
+/** The documents with a gap (Documentation gaps, SCR-6): expired, or expiring before a live bid needs them. */
+export const documentGaps = (ctx: PortfolioCtx) => companyDocuments(ctx).filter((x) => x.status !== 'valid');
 
 export interface InputOutstanding { l: Lifecycle; item: InputItem; late: boolean }
 

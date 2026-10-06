@@ -71,9 +71,9 @@ export const LIVE_QURAIN: Lifecycle[] = [
         ],
       },
       positions: { recorded: 1, of: 5, bySeat: { technical: { stance: 'support', at: '2026-03-08T09:45' } } },
-      win: { p: 52, band: 8 }, marginRange: [7, 10],
+      win: { p: 64, band: 8 }, marginRange: [7, 10],
       facilityAfter: facilityAfter(QURAIN, t049.value.amount, 2),
-      weightedValue: { amount: Math.round(t049.value.amount * 0.52), ccy: t049.value.ccy },
+      weightedValue: { amount: Math.round(t049.value.amount * 0.64), ccy: t049.value.ccy },
     },
   }),
   K.row('T-2025-405', dg1Record(QURAIN, 'T-2025-405').title!, 'Jahra sewer network ext.', 'Northern Governorates Public Works Office', 'Jahra', 'Water', 14, 'capt', {

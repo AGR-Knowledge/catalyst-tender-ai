@@ -138,17 +138,17 @@ function compute(key: GccTenantKey) {
 // Plan 004 acceptance values, per tenant.
 const EXPECT: Record<GccTenantKey, Record<string, string>> = {
   najd: {
-    'Hero weighted fit': '82', 'Facility headroom': 'SAR 96.0 M', 'Intake p90 (min)': '11', 'Intake worst (min)': '14', 'New today': '11',
+    'Hero weighted fit': '82', 'Facility headroom': 'SAR 640.0 M', 'Intake p90 (min)': '11', 'Intake worst (min)': '14', 'New today': '11',
     'Validations open (block DG1)': '6 (2)', 'Oldest validation raised': '2026-03-08T07:44', 'Credentials expiring before 10 May': 'Zakat, GOSI',
-    'Hit rate': '27% (9 of 33)', 'DG1 on time': '44 of 46', 'DG1 due (first SLA)': '2 (6 h 10 m)', 'Sources healthy': '8 of 9', 'Documents to buy': '1',
+    'Hit rate': '49% (42 of 86)', 'DG1 on time': '41 of 44', 'DG1 due (first SLA)': '2 (6 h 10 m)', 'Sources healthy': '8 of 9', 'Documents to buy': '1',
     'Eligibility risks (live tenders)': '3', 'Credentials at risk on live bids': 'Zakat, GOSI', 'Water team, next 4 weeks': '78%', 'Water team, with the hero': '96%',
     'BOQ total and lines': 'SAR 480.0 M, 236 lines',
   },
-  corniche: { 'Hero weighted fit': '63', 'Hit rate': '27% (6 of 22)', 'Buildings MEP tendering team, next 4 weeks': '64%', 'Bidder FY2025 audited after the hero opens': 'yes' },
-  dafna: { 'Hero weighted fit': '71', 'Hit rate': '28% (5 of 18)', 'Utilities tendering team, next 4 weeks': '72%' },
-  batinah: { 'Hero weighted fit': '38', 'Hit rate': '32% (8 of 25)' },
+  corniche: { 'Hero weighted fit': '63', 'Hit rate': '48% (27 of 56)', 'Buildings MEP tendering team, next 4 weeks': '64%', 'Bidder FY2025 audited after the hero opens': 'yes' },
+  dafna: { 'Hero weighted fit': '71', 'Hit rate': '49% (22 of 45)', 'Utilities tendering team, next 4 weeks': '72%' },
+  batinah: { 'Hero weighted fit': '38', 'Hit rate': '49% (30 of 61)' },
   qurain: {
-    'Hero weighted fit': '78', 'Facility headroom': 'KWD 3.1 M', 'Hit rate': '27% (8 of 30)', 'Water tendering team, April': '118%', 'Credentials expiring before 10 May': 'none',
+    'Hero weighted fit': '78', 'Facility headroom': 'KWD 3.1 M', 'Hit rate': '49% (36 of 74)', 'Water tendering team, April': '118%', 'Credentials expiring before 10 May': 'none',
     'Bidder FY2025 audited after the hero opens': 'yes',
   },
 };

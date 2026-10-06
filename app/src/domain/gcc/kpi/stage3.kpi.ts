@@ -1,6 +1,6 @@
 import type { Tone } from '@/data/types';
 import { can } from '@/data/access';
-import { DG2_QUORUM } from '@/data/gcc/targets';
+import { DG2_QUORUM, GATE_SLA_HOURS } from '@/data/gcc/targets';
 import { hoursText, openGate, staleOf } from '../lifecycle';
 import { tenderCtx } from '../lifecycle.port';
 import { idsDrill, liveIn, STAGE_BANDS, tileLabel } from './stages';
@@ -37,9 +37,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DEC-1', label: 'Awaiting DG2', kind: 'state',
     info: {
-      means: 'Bid / No-Bid packs issued and waiting for DG2, with positions recorded and time left',
-      counted: 'Issued packs with no DG2 decision. The sub-line shows the one whose 24 h limit ends first: positions recorded, the quorum and the time left.',
-      target: `Orange under ${STAGE_BANDS.dg2OrangeH} h left; red once breached`, source: 'Bid / No-Bid packs and DG2 records',
+      means: 'Bid / No-Bid packs waiting for the committee’s decision, and how close the first one is to its time limit.',
+      counted: `Issued packs with no DG2 decision yet; underneath, the one whose ${GATE_SLA_HOURS.DG2}-hour limit ends first.`,
+      target: `Each within ${GATE_SLA_HOURS.DG2} hours`,
+      source: 'Packs and DG2 records',
     },
     compute(ctx) {
       const list = awaiting(ctx);
@@ -61,9 +62,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'DEC-8', label: 'Stale packs', kind: 'state',
     info: {
-      means: 'Packs whose evidence changed after they were built, for example by an addendum. A committee must not decide on stale evidence',
-      counted: 'Issued or draft Bid / No-Bid packs whose inputs changed after the pack was generated: an addendum, a new quote or a renewed credential.',
-      target: '0 green; any issued pack stale red', source: 'Pack versions and change events',
+      means: 'Packs whose evidence changed after they were built, for example by an addendum. The committee must not decide on old evidence.',
+      counted: 'Packs, issued or in draft, whose inputs changed after the pack was made: an addendum, a new quote or a renewed certificate.',
+      target: 'None',
+      source: 'Pack versions and change records',
     },
     compute(ctx) {
       const list = stalePacks(ctx);

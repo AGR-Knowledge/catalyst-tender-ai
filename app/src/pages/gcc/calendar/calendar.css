@@ -49,7 +49,8 @@
 .gcal-mine.on .sw { background: var(--ink); }
 .gcal-mine.on .sw span { transform: translateX(10px); }
 .gcal-how { width: 26px; height: 26px; }
-.gcal-tz { margin-left: auto; font-size: 12px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+/* It shortens rather than wrap the toolbar (plan 041 added a switch); its full text is its title and the ⓘ. */
+.gcal-tz { margin-left: auto; flex: 1 1 140px; min-width: 0; text-align: right; font-size: 12px; color: var(--ink-4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 /* "How to read the calendar": each colour's meaning, then the rules of a day. */
 .gcal-how-cats, .gcal-how-rules { list-style: none; margin: 0; padding: 0; display: grid; }
@@ -58,6 +59,8 @@
 .gcal-how-cats .gcal-dot { transform: translateY(-1px); }
 .gcal-how-cats b { font-weight: 600; color: var(--ink-2); white-space: nowrap; }
 .gcal-how-rules { gap: 6px; font-size: 12px; color: var(--ink-2); line-height: 1.5; }
+.gcal-how-rules .gcal-how-lead { display: grid; gap: 4px; }
+.gcal-how-lead .gcal-chip { width: auto; justify-self: start; pointer-events: none; }
 
 /* ───────── The legend, which is also the filter ───────── */
 .gcal-cats { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -93,6 +96,15 @@
 .gcal-chip .fl, .gcal-ev .fl { flex: none; font-weight: 700; color: var(--orange); }
 .gcal-chip.past, .gcal-ev.past, .gcal-ag-row.past { opacity: 0.5; }
 .gcal-chip:focus-visible, .gcal-ev:focus-visible, .gcal-ag-row:focus-visible, .gcal-more:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+/*
+ * A lead-up (plan 041): the item's lighter chip on the working days before it
+ * is due. Its colour as a dashed outline and a hollow dot, no tint, quieter text.
+ */
+.gcal-chip.lead { background: transparent; border: 1px dashed color-mix(in srgb, var(--cat) 60%, transparent); color: var(--ink-3); }
+.gcal-chip.lead:hover { border-style: solid; border-color: var(--cat); }
+.gcal-chip.lead .gcal-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--cat); }
+.gcal-chip.lead .l { font-weight: 500; }
+.gcal-chip.lead.gcal-c-requests { border-color: var(--ink-5); }
 
 /* ───────── Month ───────── */
 .gcal-card { overflow: hidden; }
@@ -218,6 +230,11 @@
 .gcal-dm-row .tt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gcal-dm-row .fl { color: var(--ink-2); line-height: 1.45; }
 .gcal-dm-row .fl span { color: var(--orange); font-weight: 700; }
+/* A coming-up row: the countdown in the time column, beside a hollow dot of its colour. */
+.gcal-dm-row.lead { grid-template-columns: 128px minmax(0, 1fr) auto; }
+.gcal-dm-row.lead .t { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.gcal-dm-row.lead .gcal-dot { width: 7px; height: 7px; background: transparent; box-shadow: inset 0 0 0 1.5px var(--cat); }
+.gcal-dm-row.lead .l { color: var(--ink-2); font-weight: 400; }
 /* An item opened from the day sits over the list: one scrim is enough. */
 .gcal-day-host ~ .gcal-modal-host .scrim { background: transparent; }
 
@@ -239,6 +256,8 @@
 .gcal-ag-row .tt { grid-column: 3 / -1; font-size: 12px; color: var(--ink-3); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .gcal-ag-row .fl { grid-column: 3 / -1; font-size: 12px; color: var(--ink-2); line-height: 1.45; }
 .gcal-ag-row .fl span { color: var(--orange); font-weight: 700; }
+.gcal-ag-row.lead .gcal-dot { background: transparent; box-shadow: inset 0 0 0 1.5px var(--cat); }
+.gcal-ag-row.lead .l { color: var(--ink-3); font-weight: 400; }
 .gcal-ag-lede { margin: 0; padding: 0 22px 10px; font-size: 13px; color: var(--ink-3); line-height: 1.5; }
 .gcal-ag-notes { margin: 0; padding: 0 22px 16px 38px; display: grid; gap: 5px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 
@@ -250,6 +269,7 @@
 .gcal-md section { display: grid; gap: 6px; }
 .gcal-md h4 { margin: 0; font-size: 11px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-4); }
 .gcal-md p { margin: 0; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
+.gcal-md p.gcal-md-lead { font-size: 13px; font-weight: 600; color: var(--ink); padding: 7px 10px; border-radius: var(--radius-sm); border: 1px dashed color-mix(in srgb, var(--cat) 60%, transparent); }
 .gcal-md-when { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .gcal-md-when .num { font-size: 14px; font-weight: 600; color: var(--ink); }
 .gcal-md-when .cd { font-size: 12.5px; color: var(--ink-3); }
@@ -293,6 +313,9 @@
 /* Narrow (1280): the weekend's label gives way, and the legend tightens to stay on one line. */
 @container content (max-width: 1080px) {
   .gcal-dow .we-l { display: none; }
+  /* The time-zone note gives way to keep the toolbar on one line; "How to read the calendar" still says it. */
+  .gcal-tz { display: none; }
+  .gcal-how { margin-left: auto; }
   .gcal-cats { gap: 4px; }
   .gcal-cat { gap: 5px; padding: 0 7px 0 6px; font-size: 11.5px; }
 }

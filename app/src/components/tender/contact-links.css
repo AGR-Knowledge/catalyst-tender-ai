@@ -1,0 +1,27 @@
+/* ───────── ContactLinks: Calendar, Call and Teams beside a colleague (plan 044) ───────── */
+
+.cl { display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap; }
+.cl-b {
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+  height: 22px; padding: 0 7px 0 6px; border-radius: var(--radius-pill);
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink-3);
+  font-family: inherit; font-size: 11.5px; font-weight: 500; line-height: 1; text-decoration: none; cursor: pointer;
+  transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform var(--dur-press) var(--ease-out);
+}
+.cl-b svg { width: 12px; height: 12px; flex: none; color: var(--ink-4); }
+.cl-b:hover { border-color: var(--line-strong); color: var(--ink); background: var(--surface-active); }
+.cl-b:hover svg { color: var(--ink-2); }
+.cl-b:active { transform: scale(0.96); }
+.cl-b:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 1px; border-radius: var(--radius-pill); }
+/* Icons only: a 22 px circle per link. */
+.cl.compact .cl-b { width: 22px; padding: 0; }
+/* The viewer's own row holds the same width, unseen. */
+.cl-ghost { visibility: hidden; pointer-events: none; }
+
+/* Members panel (DG2): the links at the row end, beside the name and seat; one width on every row. */
+.mp-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; min-width: 0; }
+.mp-top > .mp-who { flex: 1 1 auto; min-width: 0; flex-direction: column; align-items: flex-start; gap: 1px; }
+.mp-top > .cl { margin-top: 1px; }
+
+/* A table cell with a name and its links: the links at the cell end. */
+.cl-cell { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 0; }

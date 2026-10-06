@@ -1,7 +1,7 @@
 import type { Partner } from './types';
 
 /**
- * Tihama Hydro Works Co.: a fictional KSA water contractor (gcc-demo-data
+ * Qunfudhah Hydro Works Co.: a fictional KSA water contractor (gcc-demo-data
  * §2.4). It appears on two tenants' partner lists (Najd, Dafna) and as a
  * competitor in Stage 3: in the GCC market, contractors are both partners and
  * rivals. Each tenant holds what it knows about the partner; this is the same
@@ -9,7 +9,7 @@ import type { Partner } from './types';
  */
 export const TIHAMA: Partner = {
   id: 'tihama',
-  name: 'Tihama Hydro Works Co.',
+  name: 'Qunfudhah Hydro Works Co.',
   country: 'SA',
   note: 'KSA water contractor, Water & sewage works Grade 1. Can lead a JV on large STPs. Also a competitor.',
   credentials: [
@@ -32,9 +32,9 @@ export const TIHAMA: Partner = {
       value: { amount: 510_000_000, ccy: 'SAR' }, completed: '2018-11-30', role: 'prime', scope: 'Civil, mechanical and electrical works, secondary treatment' },
   ],
   financials: [
-    { fy: 2022, turnover: { amount: 1_050_000_000, ccy: 'SAR' }, audited: true },
-    { fy: 2023, turnover: { amount: 1_100_000_000, ccy: 'SAR' }, audited: true },
-    { fy: 2024, turnover: { amount: 1_150_000_000, ccy: 'SAR' }, audited: true, netWorth: { amount: 430_000_000, ccy: 'SAR' }, currentRatio: 1.28 },
-    { fy: 2025, turnover: { amount: 1_210_000_000, ccy: 'SAR' }, audited: false, auditDate: '2026-04-30' },
+    { fy: 2022, turnover: { amount: 4_730_000_000, ccy: 'SAR' }, audited: true },
+    { fy: 2023, turnover: { amount: 4_950_000_000, ccy: 'SAR' }, audited: true },
+    { fy: 2024, turnover: { amount: 5_180_000_000, ccy: 'SAR' }, audited: true, netWorth: { amount: 1_940_000_000, ccy: 'SAR' }, currentRatio: 1.28 },
+    { fy: 2025, turnover: { amount: 5_450_000_000, ccy: 'SAR' }, audited: false, auditDate: '2026-04-30' },
   ],
 };

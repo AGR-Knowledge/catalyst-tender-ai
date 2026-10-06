@@ -16,6 +16,7 @@ import { SlaClock } from '@/components/tender/SlaClock';
 import { GateChip } from '@/components/tender/GateChip';
 import { StatusPill, HEALTH_ORDER } from '@/components/tender/StatusPill';
 import { usePop } from '@/components/tender/Tip';
+import { TenderLabelPills, useTenderLabels } from '@/components/tender/TenderLabel';
 import type { ColumnDef } from './types';
 
 /**
@@ -117,11 +118,24 @@ export function WinCell({ row }: { row: TenderRowVM }) {
     : <span className="tk-sub" title="Win probability was estimated for the DG2 decision and is kept in the tender's record">Recorded at DG2</span>;
 }
 
+/** The TID, with the OG and Previous labels under it (plan 042), so the column keeps its width. */
+function TidCell({ id }: { id: string }) {
+  const labels = useTenderLabels(id);
+  if (!labels.og && !labels.previous) return <>{id}</>;
+  return (
+    <span className="cell-two tid-cell">
+      <span>{id}</span>
+      <span {...{ [CELL_ACTION]: '' }}><TenderLabelPills labels={labels} /></span>
+    </span>
+  );
+}
+
 const nullsLast = (v: string | null | undefined) => v ?? '9999';
 
 export const COLUMNS: ColumnDef[] = [
   { id: 'tid', header: 'TID', build: () => ({
     headerName: 'TID', pinned: 'left', width: 112, cellClass: 'tk-mono', valueGetter: (p) => p.data?.id,
+    cellRenderer: (p: P) => p.data && <TidCell id={p.data.id} />,
   }) },
   { id: 'tender', header: 'Tender', build: () => ({
     headerName: 'Tender', pinned: 'left', minWidth: 280, flex: 2,

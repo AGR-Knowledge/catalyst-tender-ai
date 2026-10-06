@@ -18,6 +18,16 @@ function sizeOf(s: string): string {
   return '';
 }
 
+/** A figure followed by its noun ("176 active tenders", plan 040): the figure at full size, the noun beside it in the body font. */
+const FIGURE_NOUN = /^([\d,.]+) ([a-z][a-z ]*)$/;
+const NOUN_STYLE = { fontFamily: 'var(--font-sans)', fontSize: 14.5, fontWeight: 500, letterSpacing: 0, color: 'var(--ink-2)', marginLeft: 6 } as const;
+
+function Value({ display }: { display: string }) {
+  const m = FIGURE_NOUN.exec(display);
+  if (m) return <div className={`kt-value ${sizeOf(m[1])}`} title={display}>{m[1]}<span style={NOUN_STYLE}>{m[2]}</span></div>;
+  return <div className={`kt-value ${sizeOf(display)}`} title={display}>{display}</div>;
+}
+
 /**
  * A tile's status words (dashboards.md §3), one per tone that judges the value.
  * A KPI's `status` replaces the word where the default would mislead ("Below
@@ -45,8 +55,8 @@ function statusOf(tile: TileVM): { label: string; tone: Tone; icon: string } | n
  *
  * The rows are a subgrid of the tile row (`dashboard.css`), so the values,
  * details and reference lines of tiles side by side sit at the same heights.
- * A tile with a drill-down is a button; one without isn't clickable and
- * doesn't look it.
+ * A tile with a drill-down is a button (to the table, another screen, or a
+ * list panel, plan 040); one without isn't clickable and doesn't look it.
  */
 export function KpiTile({ tile, onDrill, index = 0 }: { tile: TileVM; onDrill(d: DrillVM): void; index?: number }) {
   // Not registered yet: one line, "Not available yet" (dev builds name the id).
@@ -61,7 +71,7 @@ export function KpiTile({ tile, onDrill, index = 0 }: { tile: TileVM; onDrill(d:
   const body = (
     <>
       {tile.masked ? <div className="kt-value masked-v"><Masked by={tile.masked.by} /></div>
-        : <div className={`kt-value ${sizeOf(tile.display)}`} title={tile.display}>{tile.display}</div>}
+        : <Value display={tile.display} />}
       {tile.detail ? <div className="kt-detail" title={tile.sub ?? tile.detail}>{tile.detail}</div>
         : tile.sub && <div className="kt-sub">{tile.sub}</div>}
       <div className="kt-ref">
@@ -84,7 +94,7 @@ export function KpiTile({ tile, onDrill, index = 0 }: { tile: TileVM; onDrill(d:
       {drill ? (
         <button
           type="button" className="kt-hit" onClick={() => onDrill(drill)}
-          aria-label={`${tile.label}: ${value}${status ? `, ${status.label}` : ''}.${tile.sub ? ` ${tile.sub}.` : ''} ${drill.kind === 'route' ? 'Open' : 'Show these tenders'}`}
+          aria-label={`${tile.label}: ${value}${status ? `, ${status.label}` : ''}.${tile.sub ? ` ${tile.sub}.` : ''} ${drill.kind === 'route' ? 'Open' : drill.kind === 'list' ? `Show the list: ${drill.panel.title}` : 'Show these tenders'}`}
         >{body}</button>
       ) : <div className="kt-body">{body}</div>}
     </div>

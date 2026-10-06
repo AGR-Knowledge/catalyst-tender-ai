@@ -105,7 +105,7 @@ export function TenantAddModal() {
       <div className="fld-grid">
         <div className="fld span2">
           <label htmlFor="tn-name">Company or JV name</label>
-          <input id="tn-name" value={f.name} onChange={set('name')} placeholder="e.g. Genesis Infra Saudi LLC" autoComplete="off" />
+          <input id="tn-name" value={f.name} onChange={set('name')} placeholder="e.g. Genesis EPC Saudi LLC" autoComplete="off" />
           {taken && <small className="t-red">A tenant with this name already exists</small>}
         </div>
         <div className="fld">

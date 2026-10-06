@@ -61,17 +61,17 @@ export const LIVE_CORNICHE: Lifecycle[] = [
         ],
       },
       positions: { recorded: 0, of: 5, bySeat: {} },
-      win: { p: 44, band: 8 }, marginRange: [7.5, 10], facilityAfter: facilityAfter(CORNICHE, registerRow(CORNICHE, 'T-2026-029').value.amount, 2),
+      win: { p: 53, band: 8 }, marginRange: [7.5, 10], facilityAfter: facilityAfter(CORNICHE, registerRow(CORNICHE, 'T-2026-029').value.amount, 2),
     },
   }),
-  K.row('T-2026-041', 'Al Reem mixed-use tower MEP', 'Al Reem tower MEP', 'Harbour Gate Real Estate', 'Al Reem Island', 'Buildings MEP', 145, 'abudhabi-portal', {
+  K.row('T-2026-041', 'Al Reem mixed-use tower MEP', 'Al Reem tower MEP', 'Berthwick Real Estate', 'Al Reem Island', 'Buildings MEP', 145, 'abudhabi-portal', {
     captured: '2026-02-02T09:10', m1: '2026-02-02T15:00', dg1: K.pursue('2026-02-03T10:40'),
     packIssued: '2026-02-18T14:00', dg2: K.bid('2026-02-19T11:00'),
     steps: { '4:resource-loading': '2026-03-03T10:00' },
     now: { stage: 4, step: 'resource-loading' }, submissionDeadline: { date: '2026-04-15', time: '14:00' },
     facts: { stage: 4, durationPlannedM: 26, durationRequiredM: 28, floatDays: 18, longLeadAtRisk: 1, peakManpower: 380, baselineDue: '2026-03-10', m2Due: '2026-03-17' },
   }),
-  K.row('T-2026-026', 'Jebel Ali logistics district cooling plant', 'Jebel Ali logistics cooling plant', 'Emirates Cooling Utilities Company', 'Jebel Ali', 'District cooling', 210, 'dubai-portal', {
+  K.row('T-2026-026', 'Jebel Ali logistics district cooling plant', 'Jebel Ali logistics cooling plant', 'Chillmont Cooling Utilities Company', 'Jebel Ali', 'District cooling', 210, 'dubai-portal', {
     captured: '2026-01-26T09:00', m1: '2026-01-26T14:00', dg1: K.pursue('2026-01-27T10:00'),
     packIssued: '2026-02-11T14:00', dg2: K.bid('2026-02-12T10:30'),
     steps: { '4:m2': '2026-02-26T09:00', '5:cost-build-up': '2026-03-02T09:00' },
@@ -118,7 +118,7 @@ export const LIVE_CORNICHE: Lifecycle[] = [
     events: [{ kind: 'm2', due: '2026-01-15', at: '2026-01-15T12:00' }, { kind: 'review', due: '2026-02-04', at: '2026-02-04T10:00' }],
     facts: K.s8({ packageReadyPct: 100, signaturesPending: 0, openingDate: '2026-02-23', expectedAwardBy: '2026-04-20' }, 12.4, '2026-06-23', '2026-06-23'),
   }),
-  K.fromOutcome('CO-O22', 'T-2025-120', 'Emirates Cooling Utilities Company', 'Dubai Marina', 'dubai-portal', {
+  K.fromOutcome('CO-O22', 'T-2025-120', 'Chillmont Cooling Utilities Company', 'Dubai Marina', 'dubai-portal', {
     captured: '2025-11-14T09:00', m1: '2025-11-17T14:00', dg1: K.pursue('2025-11-18T10:00'),
     packIssued: '2025-12-08T15:00', dg2: dg2Gate(dg2Record(CORNICHE, 'T-2025-120'), K.hot),
     dg3Issued: '2025-12-18T14:00', dg3: K.approved('2025-12-19T10:00'),

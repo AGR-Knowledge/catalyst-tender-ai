@@ -57,6 +57,8 @@ export function screenHead(pathname: string): { title: string; sub?: string } | 
   if (path === '/' || path === '/dashboard') return { title: 'Dashboard' };
   if (path === '/requests') return { title: 'My requests', sub: 'Everything the bid teams are waiting for from you.' };
   // A presenter's lens (plan 014), not a product screen, so it has no SCREENS entry.
+  // The user manual (plan 044): the shared `/workflow` page, not a GCC screen.
+  if (path === '/workflow') return { title: 'User manual', sub: 'How the nine stages and three decision gates work, who does what, and what each stage produces.' };
   if (path === '/demo/compare') return { title: 'Compare tenants', sub: 'Demo view: the same tender in five companies.' };
   const stage = /^\/stages\/(\d+)$/.exec(path);
   if (stage) {

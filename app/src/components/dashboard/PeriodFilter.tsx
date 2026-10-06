@@ -2,8 +2,8 @@ import { useRef, type KeyboardEvent } from 'react';
 import { PERIODS, type PeriodKey, type PeriodWindow } from '@/domain/gcc/period';
 
 /**
- * The period filter (dashboards.md §2): Today · 7 days · 30 days · 90 days ·
- * 12 months, with the window's dates under it. It drives the tiles, the flow
+ * The period filter (dashboards.md §2): All · 30 days · 90 days · 12 months,
+ * with the window's dates under it (plan 039). It drives the tiles, the flow
  * strip and the graph; never Needs your action or the table.
  */
 export function PeriodFilter({ value, window, onChange }: { value: PeriodKey; window: PeriodWindow; onChange(k: PeriodKey): void }) {

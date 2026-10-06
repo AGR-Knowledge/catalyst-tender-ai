@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Monitor, Moon, Plus, RotateCcw, Sun } from 'lucide-react';
+import { BookOpen, Monitor, Moon, Plus, RotateCcw, Sun } from 'lucide-react';
 import { useTenants } from '@/domain/tenants';
 import { useTenant } from '@/domain/tenancy';
 import { statusTone } from '@/data/tenants';
@@ -140,6 +140,15 @@ export function Settings() {
           <CardHead title="Users and roles" meta="Managed by your Head of Tendering" />
         </Card>
       )}
+
+      {/* The user manual (plan 044): the `/workflow` page, in every company. */}
+      <Card id="manual" style={{ marginTop: 'var(--gap)' }}>
+        <CardHead title="Help" />
+        <div className="setting">
+          <div><div className="setting-t">User manual</div><div className="setting-s">How the nine stages and three decision gates work, who does what, and what each stage produces</div></div>
+          <button type="button" className="btn" onClick={() => goPage('/workflow')}><BookOpen size={13} aria-hidden />Open</button>
+        </div>
+      </Card>
 
       <div className="split" style={{ '--cols': '1fr 1fr', marginTop: 'var(--gap)' } as React.CSSProperties}>
         <Card>

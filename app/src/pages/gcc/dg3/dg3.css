@@ -46,3 +46,9 @@
 .dg3-seen ul { margin: 6px 0 0; padding-left: 18px; display: grid; gap: 3px; line-height: 1.45; }
 .dg3-seen li.s-fail { color: var(--red); }
 .dg3-hist { display: grid; gap: 8px; }
+
+/* Contact links (plan 044): beside the pack's issuer, and at the end of each item that names a person. */
+.dg3-ev-mw { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.dg3-item-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px 12px; }
+.dg3-item-txt { min-width: 0; flex: 1 1 auto; }
+.dg3-item-row > .cl { margin-top: 1px; }

@@ -24,18 +24,18 @@ export const MODEL_ROUTING = [
 ];
 
 export const SUPPLIERS: Supplier[] = [
-  { name: 'Bharat Heavy Electricals', trade: 'Transformers and HV equipment', score: 8.6, projects: 41, response: 98, screening: 'Cleared', standing: 'Preferred' },
-  { name: 'Toshiba T&D India', trade: 'Transformers and switchgear', score: 9.1, projects: 23, response: 94, screening: 'Cleared', standing: 'Preferred' },
-  { name: 'Crompton Greaves', trade: 'Transformers and motors', score: 7.9, projects: 31, response: 78, screening: 'Cleared', standing: 'Approved' },
-  { name: 'KEC International', trade: 'Transmission lines and towers', score: 8.8, projects: 52, response: 91, screening: 'Cleared', standing: 'Preferred' },
-  { name: 'Sterlite Power', trade: 'HV cabling and OPGW', score: 8.2, projects: 28, response: 86, screening: 'Cleared', standing: 'Approved' },
-  { name: 'L&T Construction', trade: 'Civil works and foundations', score: 8.9, projects: 64, response: 89, screening: 'Cleared', standing: 'Preferred' },
-  { name: 'Tata Projects', trade: 'Civil and balance of plant', score: 8.4, projects: 47, response: 83, screening: 'Cleared', standing: 'Approved' },
-  { name: 'Apar Industries', trade: 'Conductors and cables', score: 7.6, projects: 19, response: 72, screening: 'Cleared', standing: 'Approved' },
-  { name: 'Sungrow India', trade: 'Solar inverters', score: 6.4, projects: 12, response: 64, screening: 'Cleared', standing: 'Watch' },
-  { name: 'Delta Green Energy', trade: 'Solar inverters and SCADA', score: 6.1, projects: 9, response: 58, screening: 'Cleared', standing: 'Watch' },
-  { name: 'Hitachi Energy India', trade: 'Protection & control', score: 9.0, projects: 26, response: 96, screening: 'Cleared', standing: 'Preferred' },
-  { name: 'Kirloskar Brothers', trade: 'Pumps and water systems', score: 8.1, projects: 33, response: 88, screening: 'Cleared', standing: 'Approved' },
+  { name: 'Narmada Heavy Electricals', trade: 'Transformers and HV equipment', score: 8.6, projects: 41, response: 98, screening: 'Cleared', standing: 'Preferred' },
+  { name: 'Sahyadri T&D Systems India', trade: 'Transformers and switchgear', score: 9.1, projects: 23, response: 94, screening: 'Cleared', standing: 'Preferred' },
+  { name: 'Kanchan Gridtech', trade: 'Transformers and motors', score: 7.9, projects: 31, response: 78, screening: 'Cleared', standing: 'Approved' },
+  { name: 'Vindhya Transmission International', trade: 'Transmission lines and towers', score: 8.8, projects: 52, response: 91, screening: 'Cleared', standing: 'Preferred' },
+  { name: 'Konkan Gridlines', trade: 'HV cabling and OPGW', score: 8.2, projects: 28, response: 86, screening: 'Cleared', standing: 'Approved' },
+  { name: 'Ambarlok Constructions', trade: 'Civil works and foundations', score: 8.9, projects: 64, response: 89, screening: 'Cleared', standing: 'Preferred' },
+  { name: 'Sindhurekha Projects', trade: 'Civil and balance of plant', score: 8.4, projects: 47, response: 83, screening: 'Cleared', standing: 'Approved' },
+  { name: 'Anvaya Conductors', trade: 'Conductors and cables', score: 7.6, projects: 19, response: 72, screening: 'Cleared', standing: 'Approved' },
+  { name: 'Bhanuvarta Solar India', trade: 'Solar inverters', score: 6.4, projects: 12, response: 64, screening: 'Cleared', standing: 'Watch' },
+  { name: 'Anantam Energy Systems', trade: 'Solar inverters and SCADA', score: 6.1, projects: 9, response: 58, screening: 'Cleared', standing: 'Watch' },
+  { name: 'Nilgiri Grid Systems India', trade: 'Protection & control', score: 9.0, projects: 26, response: 96, screening: 'Cleared', standing: 'Preferred' },
+  { name: 'Kshitij Pumps', trade: 'Pumps and water systems', score: 8.1, projects: 33, response: 88, screening: 'Cleared', standing: 'Approved' },
 ];
 
 export const SUPPLIER_TOTAL = 214;
@@ -57,8 +57,8 @@ export const SOURCES = [
   { name: 'CPPP portal', mode: 'Polled every 15 min', state: 'Healthy', tone: 'green' as const },
   { name: 'GeM portal', mode: 'Polled every 15 min', state: 'Healthy', tone: 'green' as const },
   { name: 'State utility portals (7)', mode: 'Polled hourly', state: 'Healthy', tone: 'green' as const },
-  { name: 'tenders@genesis-epc.in mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
-  { name: 'rfp@genesis-infra.com mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
+  { name: 'tenders@genesis-epc.example mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
+  { name: 'rfp@genesis-epc.example mailbox', mode: 'IMAP, attachments opened', state: 'Healthy', tone: 'green' as const },
   { name: 'Scanned drop at \\\\bidoffice\\intake', mode: 'OCR on arrival', state: '2 queued', tone: 'orange' as const },
 ];
 

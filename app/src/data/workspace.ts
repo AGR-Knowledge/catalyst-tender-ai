@@ -47,7 +47,7 @@ export const INTAKE_TODAY = [
   { time: '06:44', source: 'Email · tenders@', id: 'T-2026-054', name: 'Township Infrastructure', client: 'Private developer', fit: '38%', disp: 'Low fit, held', tone: 'ink3' as Tone },
   { time: '07:03', source: 'Scanned · OCR', id: 'T-2026-041', name: 'Addendum 3', client: 'TN Transco', fit: 'n/a', disp: 'Linked to parent', tone: 'cyan' as Tone },
   { time: '08:20', source: 'Portal · GeM', id: 'T-2026-038', name: 'Corrigendum 2', client: 'PowerGrid', fit: 'n/a', disp: 'Linked to parent', tone: 'cyan' as Tone },
-  { time: '09:51', source: 'Email · client', id: 'T-2026-056', name: 'Pipeline Package 7', client: 'Jamnagar Petro', fit: '82%', disp: 'Shortlisted → DG1', tone: 'green' as Tone },
+  { time: '09:51', source: 'Email · client', id: 'T-2026-056', name: 'Pipeline Package 7', client: 'Kutch Coast Refinery', fit: '82%', disp: 'Shortlisted → DG1', tone: 'green' as Tone },
 ];
 
 /* ───────────── Stage 2: Procurement (T-2026-041) ───────────── */
@@ -71,7 +71,7 @@ export const PACKAGES: RfqPackage[] = [
   { key: 'steel', name: 'Structural steel', column: 'issued', invited: 5, responded: 2, nudges: 3, meta: 'escalated', note: 'Agent nudged three non-responders at T+48h and T+96h, then escalated to the buyer. Two bidders are now past SLA.' },
   { key: 'hv', name: 'HV cabling', column: 'issued', invited: 6, responded: 4, nudges: 2, meta: '', note: 'Coverage already meets the three-quote threshold. Two responses outstanding but not blocking.' },
   { key: 'civil', name: 'Civil works (foundations)', column: 'issued', invited: 6, responded: 5, nudges: 1, meta: '', note: 'Held open for one late responder who has priced competitively before.' },
-  { key: 'tx', name: 'Transformers', column: 'normalising', invited: 4, responded: 3, nudges: 1, meta: '3 quotes parsed', issue: 'Crompton Greaves: freight excluded', note: 'Crompton Greaves excludes freight. Ranking waits until it is adjusted.' },
+  { key: 'tx', name: 'Transformers', column: 'normalising', invited: 4, responded: 3, nudges: 1, meta: '3 quotes parsed', issue: 'Kanchan Gridtech: freight excluded', note: 'Kanchan Gridtech excludes freight. Ranking waits until it is adjusted.' },
   { key: 'cp', name: 'Control & protection', column: 'normalising', invited: 5, responded: 4, nudges: 1, meta: 'Validity differs across 4 offers', issue: 'Validity 30-120 days', note: 'Validity runs from 30 to 120 days and is set to a common expiry for comparison.' },
   { key: 'earth', name: 'Earthing & lightning', column: 'evaluated', invited: 5, responded: 4, nudges: 0, meta: 'Best-fit ready', recommendation: 'Best fit on price and lead time', note: 'Ranked on price and lead time. Awaiting buyer selection.' },
   { key: 'site', name: 'Site establishment', column: 'evaluated', invited: 4, responded: 3, nudges: 1, meta: 'Best-fit ready', recommendation: 'Best fit on price', note: 'Ranked on price. Awaiting buyer selection.' },
@@ -80,9 +80,9 @@ export const PACKAGES: RfqPackage[] = [
 ];
 
 export const TRANSFORMER_QUOTES = [
-  { key: 'bhel', supplier: 'Bharat Heavy Electricals', price: 41.2, freight: 'Included', validity: '90 days', lead: '34 wks', note: 'Normalised best fit', tone: 'green' as Tone },
-  { key: 'cg', supplier: 'Crompton Greaves', price: 39.8, freight: 'Excluded', validity: '60 days', lead: '38 wks', note: '+₹ 1.6 Cr freight to compare', tone: 'orange' as Tone },
-  { key: 'tos', supplier: 'Toshiba T&D India', price: 43.6, freight: 'Included', validity: '120 days', lead: '29 wks', note: 'Fastest delivery', tone: 'ink3' as Tone },
+  { key: 'bhel', supplier: 'Narmada Heavy Electricals', price: 41.2, freight: 'Included', validity: '90 days', lead: '34 wks', note: 'Normalised best fit', tone: 'green' as Tone },
+  { key: 'cg', supplier: 'Kanchan Gridtech', price: 39.8, freight: 'Excluded', validity: '60 days', lead: '38 wks', note: '+₹ 1.6 Cr freight to compare', tone: 'orange' as Tone },
+  { key: 'tos', supplier: 'Sahyadri T&D Systems India', price: 43.6, freight: 'Included', validity: '120 days', lead: '29 wks', note: 'Fastest delivery', tone: 'ink3' as Tone },
 ];
 
 export const PROCUREMENT_GUARDS = [
@@ -122,7 +122,7 @@ export const SENSITIVITY = [
 
 export const REPRICE_LOG = [
   { when: '04 Mar 09:12', trigger: 'Addendum 3: scope added to civil package', impact: 4.1 },
-  { when: '02 Mar 16:40', trigger: 'Transformer quote revised (BHEL)', impact: -0.8 },
+  { when: '02 Mar 16:40', trigger: 'Transformer quote revised (NHEL)', impact: -0.8 },
   { when: '28 Feb 11:05', trigger: 'Steel index escalation applied', impact: 2.2 },
   { when: '26 Feb 08:30', trigger: 'FX revaluation of EUR content', impact: 1.4 },
   { when: '23 Feb 14:20', trigger: 'Switchgear override, rank 2 supplier selected', impact: 0.6 },

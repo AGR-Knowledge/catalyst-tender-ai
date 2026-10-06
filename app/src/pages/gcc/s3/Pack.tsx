@@ -186,7 +186,7 @@ export function PackView({ tenant, tenderId, mode, access, sight, onOpenInputs }
     ),
     '9.9': (
       <InputsSection
-        sec={s['9.9']} {...sectionProps('9.9')} onOpenInputs={mode === 'tab' ? onOpenInputs : undefined}
+        sec={s['9.9']} {...sectionProps('9.9')} onOpenInputs={mode === 'tab' ? onOpenInputs : undefined} contacts={mode === 'gate'}
         nudgeCheck={holds('input.request') ? access.check('input.request') : null} onNudge={nudge}
       />
     ),

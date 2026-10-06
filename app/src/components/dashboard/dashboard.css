@@ -145,6 +145,8 @@
 .fc-seg.o-on, .fc-sw.o-on { background: var(--green); }
 .fc-seg.o-stopped, .fc-sw.o-stopped { background: var(--ink-6); }
 .fc-seg.o-held, .fc-sw.o-held { background: var(--orange); }
+/* Plan 039: re-issued notices, in a calm pale blue: neither the tenant accent nor a warning. */
+.fc-seg.o-previous, .fc-sw.o-previous { background: color-mix(in srgb, var(--blue) 45%, var(--surface)); }
 
 /*
  * Z5 · Z4: one row, the main card at two thirds and Needs your action at one

@@ -33,7 +33,7 @@ export function declineLetter(tenant: string, tenderId: string, byId: string): L
   const t = gccData(tenant).register.find((x) => x.id === tenderId);
   if (!t) return null;
   const signatory = personById(t.bidManagerId) ?? personById(byId);
-  // The tenant's display name ("Najd Arcline Contracting Co."), not its legal description.
+  // The tenant's display name ("Najd Arvelle Contracting Co."), not its legal description.
   const company = TENANTS.find((x) => x.key === tenant)?.name ?? tenant;
   const values: Record<string, string> = {
     issuer: t.issuer, reference: referenceOf(tenant, tenderId), title: t.title,

@@ -22,7 +22,7 @@ const ROWS: SupplierTuple[] = [
   // Plan 016c: both on SGSA's list, so T-2026-058's seeded RFQs (P-01; avlRequired) went to approved suppliers.
   ['hokuriku-shield', 'Hokuriku Shield Machines Co.', 'JP', 'Kanazawa', ['tbm'], [SGSA], 1, 'approved', OK('2026-01-14'), [94, 0, 2, 1], 'low', [85, 6.0], false],
   ['taihu-shield', 'Taihu Shield Machinery Co.', 'CN', 'Wuxi', ['tbm'], [SGSA], 1, 'approved', OK('2025-12-02'), [84, 2, 3, 0], 'medium', [71, 6.5], false],
-  ['wafra-segments', 'Wafra Precast Segments Co.', 'KW', 'Wafra', ['segments', 'precast'], [SGSA], 47, 'approved', OK('2025-12-11'), [87, 1, 5, 2], 'medium', [89, 4.0], true],
+  ['wafra-segments', 'Sabriya Precast Segments Co.', 'KW', 'Wafra', ['segments', 'precast'], [SGSA], 47, 'approved', OK('2025-12-11'), [87, 1, 5, 2], 'medium', [89, 4.0], true],
   ['sulaibiya-precast', 'Sulaibiya Precast Co.', 'KW', 'Sulaibiya', ['segments', 'precast'], [], 44, 'approved', OK('2026-01-19'), [84, 2, 6, 1], 'high', [83, 4.5], true],
   ['kabd-precast', 'Kabd Precast Industries Co.', 'KW', 'Kabd', ['segments', 'precast'], [SGSA], 45, 'approved', OK('2026-01-26'), [85, 1, 6, 2], 'medium', [86, 4.0], true],
   ['failaka-grouting', 'Failaka Grouting Services W.L.L.', 'KW', 'Kuwait City', ['grouting'], [SGSA], 39, 'approved', OK('2025-10-26'), [88, 1, 7, 2], 'medium', [87, 4.0], false],
@@ -30,7 +30,7 @@ const ROWS: SupplierTuple[] = [
   ['kazma-micro', 'Kazma Microtunnelling Co.', 'KW', 'Kuwait City', ['trenchless', 'grouting', 'shafts'], [NWGP], 41, 'approved', OK('2026-02-09'), [86, 1, 6, 2], 'medium', [85, 4.0], false],
   ['khiran-ground', 'Khiran Ground Engineering Co.', 'KW', 'Khiran', ['shafts', 'piling', 'trenchless', 'grouting'], [SGSA], 40, 'approved', OK('2025-12-14'), [86, 1, 7, 2], 'medium', [85, 4.0], false],
   ['subiya-foundations', 'Subiya Foundations Co.', 'KW', 'Jahra', ['shafts', 'piling', 'trenchless'], [NWGP], 42, 'approved', OK('2026-01-06'), [83, 2, 6, 1], 'high', [80, 5.0], false],
-  ['ventalba-vent', 'Ventalba Ventilation S.L.', 'ES', 'Bilbao', ['ventilation'], [], 3, 'approved', OK('2025-11-14'), [90, 0, 4, 1], 'low', [87, 4.5], false],
+  ['ventalba-vent', 'Ventorria Ventilation S.L.', 'ES', 'Bilbao', ['ventilation'], [], 3, 'approved', OK('2025-11-14'), [90, 0, 4, 1], 'low', [87, 4.5], false],
   ['rhone-ventilation', 'Rhône Tunnel Ventilation SAS', 'FR', 'Lyon', ['ventilation'], [], 3, 'approved', OK('2025-12-08'), [89, 0, 3, 1], 'medium', [84, 5.0], false],
   ['fahaheel-air', 'Fahaheel Air Systems Co.', 'KW', 'Fahaheel', ['ventilation', 'hvac'], [], 37, 'approved', OK('2026-01-28'), [80, 2, 5, 1], 'high', [72, 6.0], false],
   // Pipelines
@@ -51,7 +51,7 @@ const ROWS: SupplierTuple[] = [
   ['adriatic-cp', 'Adriatic Corrosion Protection d.o.o.', 'HR', 'Rijeka', ['cathodic'], [], 3, 'approved', OK('2025-12-10'), [90, 0, 3, 1], 'low', [85, 5.0], false],
   ['rai-electrical', 'Rai Electrical Contracting Co.', 'KW', 'Al-Rai', ['hv', 'lv', 'ica'], [SGSA], 38, 'approved', OK('2025-12-27'), [85, 1, 7, 2], 'medium', [84, 4.0], false],
   ['qurtuba-power', 'Qurtuba Power Systems Co.', 'KW', 'Kuwait City', ['hv', 'lv', 'ica'], [NWGP], 41, 'approved', OK('2026-01-21'), [88, 1, 8, 3], 'medium', [88, 3.5], false],
-  ['nuwaiseeb-electrical', 'Nuwaiseeb Electrical Works Co.', 'KW', 'Ahmadi', ['hv', 'lv'], [], 39, 'approved', OK('2025-11-18'), [83, 2, 6, 1], 'high', [80, 5.0], false],
+  ['nuwaiseeb-electrical', 'Fintas Electrical Works Co.', 'KW', 'Ahmadi', ['hv', 'lv'], [], 39, 'approved', OK('2025-11-18'), [83, 2, 6, 1], 'high', [80, 5.0], false],
   ['mishref-controls', 'Mishref Controls and Telemetry Co.', 'KW', 'Mishref', ['ica'], [NWGP], 35, 'approved', OK('2026-02-10'), [87, 1, 5, 2], 'low', [86, 4.0], false],
 ];
 

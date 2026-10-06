@@ -25,7 +25,7 @@ export function membersFor(tenant: string, tenderId: string, done: Record<string
   const record = dg2RecordFor(tenant, tenderId, done, sight);
   const rows = positions.seats.map((s): MemberRow => {
     const p = personById(s.personId);
-    const base = { seat: s.seat, name: s.name, initials: p?.initials ?? '', seatLabel: p?.title ?? s.label, me: viewer.seat === s.seat };
+    const base = { seat: s.seat, name: s.name, initials: p?.initials ?? '', seatLabel: p?.title ?? s.label, me: viewer.seat === s.seat, personId: s.personId };
     const pos = s.position;
     if (!pos) return { ...base, stance: 'none', stanceLabel: 'Not yet recorded' };
     const seen = record?.positions.find((x) => x.seat === s.seat);

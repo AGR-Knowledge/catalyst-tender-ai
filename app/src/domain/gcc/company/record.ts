@@ -489,8 +489,11 @@ function funnelOf(tenant: string, viewer: Person, done: DemoDone, w: PeriodWindo
   };
   const captured = part('captured', 'notices')?.count ?? 0;
   const pursued = narrowed([part('dg1', 'pursue')]);
-  const submitted = narrowed([part('submitted', 'on-time'), part('submitted', 'late')]);
-  const won = narrowed([part('results', 'won')]);
+  // Plan 039: the funnel has no Submitted column any more; the bids sent are the submissions in the window, and Won is its own column.
+  const sent = uniq(q.submissionsIn(w).map((x) => x.l.tenderId));
+  const sentKept = sent.filter((id) => { const l = q.one(id); return !!l && keep(l); });
+  const submitted = { ids: sentKept, count: sector ? sentKept.length : sent.length };
+  const won = narrowed([part('won', 'won')]);
   return {
     capturedAllSectors: !!sector,
     steps: [

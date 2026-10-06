@@ -27,9 +27,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'REQ-1', label: 'Open requests', kind: 'state',
     info: {
-      means: 'Everything the bid teams are waiting for from you',
-      counted: 'Requests to you not yet submitted: pack inputs, credential renewals and questions from the bid teams.',
-      target: 'None (information)', source: 'Requests',
+      means: 'Everything the bid teams are waiting for from you.',
+      counted: 'Requests to you not yet answered: pack inputs, certificate renewals and questions from the bid teams.',
+      target: 'No target',
+      source: 'Requests',
     },
     compute(ctx) {
       const open = mine(ctx).filter(isOutstanding);
@@ -47,9 +48,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'REQ-2', label: 'Due in 48 h', kind: 'state',
     info: {
-      means: 'What to do first',
-      counted: 'Open requests due within the next 48 hours. Late ones are counted under Late.',
-      target: 'None (information)', source: 'Requests',
+      means: 'What to do first.',
+      counted: 'Open requests due in the next 48 hours; late ones are counted under Late.',
+      target: 'No target',
+      source: 'Requests',
     },
     compute(ctx) {
       const list = dueSoon(ctx);
@@ -61,9 +63,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'REQ-3', label: 'Late', kind: 'state',
     info: {
-      means: 'Inputs holding up a pack or a price',
+      means: 'Inputs holding up a pack or a price.',
       counted: 'Open requests past their due date.',
-      target: '0 green; any red', source: 'Requests',
+      target: 'None',
+      source: 'Requests',
     },
     compute(ctx) {
       const late = mine(ctx).filter((r) => r.status === 'late');
@@ -76,9 +79,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'REQ-4', label: 'Submitted', kind: 'flow',
     info: {
-      means: "What you've delivered in this period",
+      means: 'What you delivered in the period.',
       counted: 'Requests you answered in the period, whether or not a pack has used them yet.',
-      target: 'None (information)', source: 'Requests',
+      target: 'No target',
+      source: 'Requests',
     },
     compute(ctx) {
       const list = mine(ctx).filter((r) => inWindow(r.submittedAt, ctx.window)).sort((a, b) => b.submittedAt!.localeCompare(a.submittedAt!));

@@ -13,9 +13,9 @@ export const KEY_PERSONNEL: KeyPerson[] = [
   // Najd
   { id: 'najd-kp-1', tenant: 'najd', name: 'Hassan Al-Zahrani', role: 'project-manager', title: 'Project Manager', years: 24, sectorYears: 14, saudiNational: true,
     availableFrom: '2026-05-01', committedTo: '2026-04-30' },
-  { id: 'najd-kp-2', tenant: 'najd', name: 'Dr Samir Nassar', role: 'process-lead', title: 'Process Design Lead', years: 18, sectorYears: 18, saudiNational: false,
+  { id: 'najd-kp-2', tenant: 'najd', name: 'Dr Samer Najjar', role: 'process-lead', title: 'Process Design Lead', years: 18, sectorYears: 18, saudiNational: false,
     availableFrom: '2026-03-01' },
-  { id: 'najd-kp-3', tenant: 'najd', name: 'Fahd Al-Rashid', role: 'hse-manager', title: 'HSE Manager', years: 12, sectorYears: 9, saudiNational: true,
+  { id: 'najd-kp-3', tenant: 'najd', name: 'Fahd Al-Rumaih', role: 'hse-manager', title: 'HSE Manager', years: 12, sectorYears: 9, saudiNational: true,
     availableFrom: '2026-03-01' },
   { id: 'najd-kp-4', tenant: 'najd', name: 'Rajesh Iyer', role: 'commissioning-manager', title: 'Commissioning Manager', years: 15, sectorYears: 13, saudiNational: false,
     availableFrom: '2026-04-01' },
@@ -23,7 +23,7 @@ export const KEY_PERSONNEL: KeyPerson[] = [
     availableFrom: '2026-03-01' },
 
   // Corniche: strong MEP people, but no Saudi national HSE Manager
-  { id: 'corniche-kp-1', tenant: 'corniche', name: 'Vikram Nair', role: 'project-manager', title: 'Project Manager', years: 23, sectorYears: 10, saudiNational: false,
+  { id: 'corniche-kp-1', tenant: 'corniche', name: 'Vineet Nambiar', role: 'project-manager', title: 'Project Manager', years: 23, sectorYears: 10, saudiNational: false,
     availableFrom: '2026-03-01' },
   { id: 'corniche-kp-2', tenant: 'corniche', name: 'Elena Marsh', role: 'process-lead', title: 'Process Design Lead', years: 15, sectorYears: 8, saudiNational: false,
     availableFrom: '2026-03-01' },
@@ -58,9 +58,9 @@ export const KEY_PERSONNEL: KeyPerson[] = [
   // Qurain: every PQ-13 role is held by the KSA subsidiary
   { id: 'qurain-kp-1', tenant: 'qurain', entity: 'qurain-arabia', name: 'Adel Al-Fadhli', role: 'project-manager', title: 'Project Manager', years: 25, sectorYears: 15, saudiNational: false,
     availableFrom: '2026-03-01' },
-  { id: 'qurain-kp-2', tenant: 'qurain', entity: 'qurain-arabia', name: 'Ravi Menon', role: 'process-lead', title: 'Process Design Lead', years: 17, sectorYears: 17, saudiNational: false,
+  { id: 'qurain-kp-2', tenant: 'qurain', entity: 'qurain-arabia', name: 'Ranjit Madhavan', role: 'process-lead', title: 'Process Design Lead', years: 17, sectorYears: 17, saudiNational: false,
     availableFrom: '2026-03-01' },
-  { id: 'qurain-kp-3', tenant: 'qurain', entity: 'qurain-arabia', name: 'Ibrahim Al-Shahrani', role: 'hse-manager', title: 'HSE Manager', years: 10, sectorYears: 8, saudiNational: true,
+  { id: 'qurain-kp-3', tenant: 'qurain', entity: 'qurain-arabia', name: 'Ibrahim Al-Sufyani', role: 'hse-manager', title: 'HSE Manager', years: 10, sectorYears: 8, saudiNational: true,
     availableFrom: '2026-03-01' },
   { id: 'qurain-kp-4', tenant: 'qurain', entity: 'qurain-arabia', name: 'Paolo Greco', role: 'commissioning-manager', title: 'Commissioning Manager', years: 14, sectorYears: 12, saudiNational: false,
     availableFrom: '2026-03-01' },

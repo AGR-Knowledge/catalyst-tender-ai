@@ -158,7 +158,7 @@ function GateBody({ s, access, viewAs }: { s: Dg3State; access: TenderAccess; vi
 
       <div className="dg2-grid">
         <div className="dg2-left">
-          <Evidence lines={lines} meta={meta} />
+          <Evidence lines={lines} meta={meta} tenderId={s.tenderId} issuer={comp} />
         </div>
         <aside className="dg2-right" aria-label="The DG3 decision">
           {d && (

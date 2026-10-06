@@ -5,84 +5,98 @@ import { inScope } from '../actions/portfolio.actions';
 import type { KpiCtx } from '../kpi/types';
 import type { DrillVM, FlowPartVM, FlowStepVM } from '../viewmodels';
 import type { FlowDef } from './types';
-import { GATE_SUB, splitNote } from './notes';
 
 /**
- * PF-5, the decision funnel (plan 015 Phase 3, dashboards.md §1 Z3 and §11.1):
- * what was captured, decided at each gate, submitted and won or lost in the
- * period, over the dashboard's scope. The counts are decisions in the window,
- * whichever tenders they were on, so the steps need not add up. Every number
- * opens the table on exactly those tenders, closed ones included. The Bid
- * Manager's funnel starts at DG1: notices aren't assigned to anyone yet.
+ * PF-5, the decision funnel (plan 015 Phase 3, dashboards.md §1 Z3 and §11.1;
+ * plan 039). It reads left to right as one batch narrowing: what came in,
+ * what passed the AI screening, what each gate decided, and what was won. Each
+ * column counts what happened in the period, over the dashboard's scope; the
+ * targets are set so each gate decides about what the one before approved.
+ * Every number on a gate column opens the table on exactly those tenders,
+ * closed ones included. Captured and AI screening are intake volumes without
+ * tender rows. The Bid Manager's funnel starts at DG1: notices aren't
+ * assigned to anyone yet.
  *
- * Every column has the same rows (plan 027d): what it is, the part that went
- * on, a bar split by outcome, the other parts, and the rate as a note. Each
- * part says whether it went on, stopped or is still waiting.
+ * Every column has the same rows (plan 027d): what it is, the headline, a bar
+ * split by outcome (approved, rejected, pending, and previous for re-issued
+ * notices), the other parts, and a note in counts.
  */
 
 const uniq = (ids: string[]) => [...new Set(ids)];
+const n = (v: number) => v.toLocaleString('en-GB');
 
-function part(ctx: KpiCtx, step: string, key: string, label: string, ids: string[], outcome: FlowPartVM['outcome']): FlowPartVM {
+function part(ctx: KpiCtx, step: string, key: string, label: string, ids: string[], outcome?: FlowPartVM['outcome']): FlowPartVM {
   const drill: DrillVM | null = ids.length
     ? { kind: 'table', label: `From funnel: ${step} ${label} · ${ctx.window.label}`, ids: uniq(ids), status: 'all' }
     : null;
-  return { key, count: ids.length, label, drill, outcome };
+  return { key, count: ids.length, label, drill, ...(outcome ? { outcome } : {}) };
 }
 
-/** A column: its parts, and the rate of the first part over all of them. */
-const column = (key: string, label: string, sub: string, noun: string, parts: FlowPartVM[]): FlowStepVM => ({ key, label, sub, parts, note: splitNote(parts, noun) });
+/** "8 approved of 12 decided": the note under every column, in counts. */
+const ofNote = (count: number, what: string, total: number, noun: string) => (total ? `${n(count)} ${what} of ${n(total)} ${noun}` : 'None in this period');
 
 const DECISION_FUNNEL: FlowDef = {
   id: 'PF-5',
   label: 'Decision funnel',
   info: {
-    means: 'Decisions made in this period at each gate, whichever tenders they were on. It is not one group of tenders followed through, so the steps need not add up.',
-    counted: 'Notices captured from every source (new ones, and duplicates or addenda linked to a tender already on the register); DG1, DG2 and DG3 decisions recorded; bids submitted, on time or late; and results received, all in the period. Each column’s bar splits its own outcomes: green went on, grey stopped, orange still waiting.',
+    means: 'How the tenders of this period narrow, step by step, from what came in to what was won. Read it left to right.',
+    counted: 'Captured: new notices, and previous ones (re-issued tenders seen before). AI screening: the notices that passed. DG1, DG2 and DG3: the decisions at each gate. Won: the results against the bids submitted. Green is approved, grey rejected, orange pending, pale blue previous.',
     target: 'None (information)',
     source: 'Intake volumes and tender lifecycles',
   },
   compute(ctx) {
     const q = queriesFor({ tenant: ctx.tenant, viewer: ctx.viewer, done: ctx.done });
     const gates = q.gateEventsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));
-    const at = (gate: GateKind, decision: GateDecision) => gates.filter((x) => x.g.gate === gate && x.g.decision === decision).map((x) => x.l.tenderId);
+    const at = (gate: GateKind, decision?: GateDecision) => gates.filter((x) => x.g.gate === gate && (!decision || x.g.decision === decision)).map((x) => x.l.tenderId);
     const steps: FlowStepVM[] = [];
 
     if (ctx.scope.kind !== 'assigned') {
-      // New notices went on to the register; duplicates and addenda were linked to a tender already on it.
       const c = q.capturesIn(ctx.window);
-      const radar = can(ctx.viewer, 'radar.view').ok;
-      steps.push(column('captured', 'Captured', 'New notices', 'received', [
-        { key: 'notices', count: c.captured, label: 'new', outcome: 'on', drill: radar ? { kind: 'route', to: '/radar', label: 'Open the tender radar' } : null },
-        { key: 'linked', count: c.linked, label: 'linked', outcome: 'stopped', drill: null },
-      ]));
+      const radar: DrillVM | null = can(ctx.viewer, 'radar.view').ok ? { kind: 'route', to: '/radar', label: 'Open the tender radar' } : null;
+      const total = c.captured + c.linked;
+      steps.push({
+        key: 'captured', label: 'Captured', sub: 'Total in', note: ofNote(c.linked, 're-issued', total, 'in'),
+        parts: [
+          { key: 'in', count: total, label: 'in', drill: null },
+          { key: 'notices', count: c.captured, label: 'new', outcome: 'on', drill: c.captured ? radar : null },
+          { key: 'previous', count: c.linked, label: 'previous', outcome: 'previous', drill: null },
+        ],
+      });
+      steps.push({
+        key: 'screening', label: 'AI screening', sub: 'Initial screening', note: ofNote(c.passed, 'passed', total, 'screened'),
+        parts: [
+          { key: 'passed', count: c.passed, label: 'passed', outcome: 'on', drill: c.passed ? radar : null },
+          { key: 'out', count: Math.max(0, total - c.passed), label: 'screened out', outcome: 'stopped', drill: null },
+        ],
+      });
     }
+    const gate = (g: GateKind, sub: string, parts: [GateDecision, string, FlowPartVM['outcome']][]): FlowStepVM => {
+      const all = at(g);
+      const on = at(g, parts[0][0]);
+      return {
+        key: g.toLowerCase(), label: g, sub, note: ofNote(on.length, 'approved', all.length, 'decided'),
+        parts: [part(ctx, g, 'decided', 'decided', all), ...parts.map(([d, label, o]) => part(ctx, g, d, label, at(g, d), o))],
+      };
+    };
     steps.push(
-      column('dg1', 'DG1', GATE_SUB.DG1, 'decided', [
-        part(ctx, 'DG1', 'pursue', 'pursued', at('DG1', 'pursue'), 'on'),
-        part(ctx, 'DG1', 'discard', 'discarded', at('DG1', 'discard'), 'stopped'),
-        part(ctx, 'DG1', 'hold', 'held', at('DG1', 'hold'), 'held'),
-      ]),
-      column('dg2', 'DG2', GATE_SUB.DG2, 'decided', [
-        part(ctx, 'DG2', 'bid', 'bid', at('DG2', 'bid'), 'on'),
-        part(ctx, 'DG2', 'no-bid', 'no-bid', at('DG2', 'no-bid'), 'stopped'),
-      ]),
-      column('dg3', 'DG3', GATE_SUB.DG3, 'decided', [
-        part(ctx, 'DG3', 'approved', 'approved', at('DG3', 'approved'), 'on'),
-        part(ctx, 'DG3', 'rejected', 'rejected', at('DG3', 'rejected'), 'stopped'),
-      ]),
+      gate('DG1', 'First-level screening', [['pursue', 'approved', 'on'], ['discard', 'rejected', 'stopped'], ['hold', 'pending', 'held']]),
+      gate('DG2', 'Bid or no-bid', [['bid', 'approved', 'on'], ['no-bid', 'rejected', 'stopped']]),
+      gate('DG3', 'Final approval', [['approved', 'approved', 'on'], ['rejected', 'rejected', 'stopped']]),
     );
+    // Won: the results of the period against the bids submitted in it; pending is what is still to hear about.
     const subs = q.submissionsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));
-    const sent = (onTime: boolean) => subs.filter((x) => x.s.onTime === onTime).map((x) => x.l.tenderId);
-    steps.push(column('submitted', 'Submitted', 'Bids sent', 'submitted', [
-      part(ctx, 'Submitted', 'on-time', 'on time', sent(true), 'on'),
-      part(ctx, 'Submitted', 'late', 'late', sent(false), 'stopped'),
-    ]));
     const res = q.resultsIn(ctx.window).filter((x) => inScope(x.l, ctx.scope));
     const by = (r: 'won' | 'lost') => res.filter((x) => x.r.result === r).map((x) => x.l.tenderId);
-    steps.push(column('results', 'Results', 'Won or lost', 'results', [
-      part(ctx, 'Results', 'won', 'won', by('won'), 'on'),
-      part(ctx, 'Results', 'lost', 'lost', by('lost'), 'stopped'),
-    ]));
+    const won = by('won');
+    const lost = by('lost');
+    steps.push({
+      key: 'won', label: 'Won', sub: 'Final shortlist', note: ofNote(won.length, 'won', subs.length, 'submitted'),
+      parts: [
+        part(ctx, 'Won', 'won', 'won', won, 'on'),
+        part(ctx, 'Won', 'lost', 'lost', lost, 'stopped'),
+        { key: 'pending', count: Math.max(0, subs.length - won.length - lost.length), label: 'pending', outcome: 'held', drill: null },
+      ],
+    });
     return { steps };
   },
 };

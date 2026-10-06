@@ -7,7 +7,7 @@ import type { Competitor, Evidence } from './types';
  * made up for the demo, and every URL uses an `.example` host.
  *
  * Every claim cites at least one evidence record, except one deliberate
- * uncited claim on Al-Masar, which the pack must suppress (spec §9.2: no
+ * uncited claim on Al-Thamad, which the pack must suppress (spec §9.2: no
  * source, no claim).
  */
 
@@ -28,13 +28,13 @@ export const EVIDENCE: Evidence[] = [
     url: 'https://intel.market-feed.example/companies/sahab-gulf-water' },
   { id: 'EV-06', kind: 'award-notice', date: '2024-12-08', title: 'Award notice: Yanbu WTP process package, to a Sahab Gulf Water Technologies JV (synthetic)',
     url: 'https://awards.portal.example/2024/yanbu-wtp-process' },
-  { id: 'EV-07', kind: 'opening-report', date: '2026-01-20', title: 'Bid opening reports: Al-Masar United Contracting, last 7 tenders (synthetic)',
+  { id: 'EV-07', kind: 'opening-report', date: '2026-01-20', title: 'Bid opening reports: Al-Thamad United Contracting, last 7 tenders (synthetic)',
     url: 'https://openings.portal.example/bidders/al-masar-united' },
-  { id: 'EV-08', kind: 'award-notice', date: '2025-08-19', title: 'Award notice: Hafr Al-Batin sewer network, to Al-Masar United Contracting (synthetic)',
+  { id: 'EV-08', kind: 'award-notice', date: '2025-08-19', title: 'Award notice: Hafr Al-Batin sewer network, to Al-Thamad United Contracting (synthetic)',
     url: 'https://awards.portal.example/2025/hafr-al-batin-sewer' },
-  { id: 'EV-09', kind: 'award-notice', date: '2024-03-11', title: 'Award notice: Jeddah North STP, to Tihama Hydro Works Co. (synthetic)',
+  { id: 'EV-09', kind: 'award-notice', date: '2024-03-11', title: 'Award notice: Jeddah North STP, to Qunfudhah Hydro Works Co. (synthetic)',
     url: 'https://awards.portal.example/2024/jeddah-north-stp' },
-  { id: 'EV-10', kind: 'market-intel', date: '2025-06-30', title: 'Market-intelligence feed: Tihama Hydro Works Co., O&M contracts (synthetic)',
+  { id: 'EV-10', kind: 'market-intel', date: '2025-06-30', title: 'Market-intelligence feed: Qunfudhah Hydro Works Co., O&M contracts (synthetic)',
     url: 'https://intel.market-feed.example/companies/tihama-hydro-works' },
   { id: 'EV-11', kind: 'market-intel', date: '2025-10-05', title: 'Market-intelligence feed: Istria Aqua Engineering, GCC entries through local JVs (synthetic)',
     url: 'https://intel.market-feed.example/companies/istria-aqua' },
@@ -46,9 +46,9 @@ export const EVIDENCE: Evidence[] = [
     url: 'https://awards.portal.example/2024/al-ain-specialist-hospital-mep' },
   { id: 'EV-061-02', kind: 'award-notice', date: '2025-07-03', title: 'Award notice: Abu Dhabi rehabilitation centre MEP, to Tessaline MEP Contracting (synthetic)',
     url: 'https://awards.portal.example/2025/abu-dhabi-rehabilitation-centre-mep' },
-  { id: 'EV-061-03', kind: 'opening-report', date: '2026-01-14', title: 'Tender opening reports: Sarab Building Services Co., last 6 MEP tenders (synthetic)',
+  { id: 'EV-061-03', kind: 'opening-report', date: '2026-01-14', title: 'Tender opening reports: Maswaan Building Services Co., last 6 MEP tenders (synthetic)',
     url: 'https://openings.portal.example/bidders/sarab-building-services' },
-  { id: 'EV-061-04', kind: 'award-notice', date: '2025-10-22', title: 'Award notice: Dubai clinic tower MEP, to Sarab Building Services Co. (synthetic)',
+  { id: 'EV-061-04', kind: 'award-notice', date: '2025-10-22', title: 'Award notice: Dubai clinic tower MEP, to Maswaan Building Services Co. (synthetic)',
     url: 'https://awards.portal.example/2025/dubai-clinic-tower-mep' },
   { id: 'EV-061-05', kind: 'market-intel', date: '2025-12-01', title: 'Market-intelligence feed: Brevanne Engineering Services (Gulf), healthcare MEP and medical gas (synthetic)',
     url: 'https://intel.market-feed.example/companies/brevanne-engineering-gulf' },
@@ -58,9 +58,9 @@ export const EVIDENCE: Evidence[] = [
     url: 'https://intel.market-feed.example/tenders/cbhh-prj-2026-011' },
 
   // Plan 023: T-2026-042 (Batinah), three fictional Omani roads contractors.
-  { id: 'EV-042-01', kind: 'award-notice', date: '2024-11-17', title: 'Award notice: Ibri bypass dualling, to Liwa Highways Contracting LLC (synthetic)',
+  { id: 'EV-042-01', kind: 'award-notice', date: '2024-11-17', title: 'Award notice: Ibri bypass dualling, to Dhank Highways Contracting LLC (synthetic)',
     url: 'https://awards.portal.example/2024/ibri-bypass-dualling' },
-  { id: 'EV-042-02', kind: 'opening-report', date: '2026-01-25', title: 'Tender opening reports: Liwa Highways Contracting LLC, last 5 roads tenders (synthetic)',
+  { id: 'EV-042-02', kind: 'opening-report', date: '2026-01-25', title: 'Tender opening reports: Dhank Highways Contracting LLC, last 5 roads tenders (synthetic)',
     url: 'https://openings.portal.example/bidders/liwa-highways-contracting' },
   { id: 'EV-042-03', kind: 'award-notice', date: '2025-06-09', title: 'Award notice: Wadi Hawasina bridges, to Shinas Bridges and Roads LLC (synthetic)',
     url: 'https://awards.portal.example/2025/wadi-hawasina-bridges' },
@@ -99,7 +99,7 @@ export const COMPETITORS: Competitor[] = [
     ],
   },
   {
-    id: 'al-masar', name: 'Al-Masar United Contracting', country: 'Saudi Arabia',
+    id: 'al-masar', name: 'Al-Thamad United Contracting', country: 'Saudi Arabia',
     profile: 'Networks and treatment contractor that competes hard on price',
     pricingPosture: 'aggressive',
     claims: [
@@ -113,7 +113,7 @@ export const COMPETITORS: Competitor[] = [
     ],
   },
   {
-    id: 'tihama', name: 'Tihama Hydro Works Co.', country: 'Saudi Arabia',
+    id: 'tihama', name: 'Qunfudhah Hydro Works Co.', country: 'Saudi Arabia',
     profile: 'KSA water contractor, Water & sewage works Grade 1. A competitor here, and a JV partner elsewhere',
     pricingPosture: 'market', alsoPartnerOf: ['najd', 'dafna'],
     claims: [
@@ -153,7 +153,7 @@ export const COMPETITORS: Competitor[] = [
     ],
   },
   {
-    id: 'sarab-bs', name: 'Sarab Building Services Co.', country: 'United Arab Emirates and Saudi Arabia',
+    id: 'sarab-bs', name: 'Maswaan Building Services Co.', country: 'United Arab Emirates and Saudi Arabia',
     profile: 'Regional MEP contractor that competes hard on price',
     pricingPosture: 'aggressive',
     claims: [
@@ -179,7 +179,7 @@ export const COMPETITORS: Competitor[] = [
 
   // Plan 023: likely bidders on Batinah's T-2026-042, all fictional.
   {
-    id: 'liwa-highways', name: 'Liwa Highways Contracting LLC', country: 'Oman',
+    id: 'liwa-highways', name: 'Dhank Highways Contracting LLC', country: 'Oman',
     profile: 'Large Omani roads contractor, Tender Board Excellent grade, with its own asphalt plants in North Al Batinah',
     pricingPosture: 'aggressive',
     claims: [

@@ -181,21 +181,17 @@ export const NIT: ExtractedTender = {
 
   contacts: [
     {
-      name: 'K. C. Bhatt',
+      name: 'Deputy General Manager (Technical)',
       role: 'Dy. General Manager/Tech',
       org: 'National Highways & Infrastructure Development Corporation Ltd.',
-      email: 'kc.bhatt@gov.in',
       phone: '+91-11-23461626',
       address: 'Third Floor, PTI Building, 4 Sansad Marg, New Delhi-110001',
       page: 2,
     },
     {
-      name: 'Shri Subhash Chandra',
-      role: 'Independent External Monitor (IEM)',
+      name: 'Independent External Monitor',
+      role: 'Independent External Monitor (IEM), named in the notice',
       org: 'NHIDCL',
-      email: 'subhash59@hotmail.com',
-      phone: 'Mobile 9717790920, Landline 011-26888030',
-      address: 'B-9, Tower 10, New Moti Bagh Complex, 702, New Delhi-110021',
       page: 2,
     },
   ],
@@ -212,7 +208,7 @@ export const NIT: ExtractedTender = {
       ref: 'Notice Inviting Bid',
       title: 'Integrity Pact and IEM',
       summary:
-        'Under the SOP for adoption of the Integrity Pact, Shri Subhash Chandra is appointed IEM for NHIDCL, with CVC and MoRTH approval.',
+        'Under the SOP for adoption of the Integrity Pact, an Independent External Monitor (IEM) is appointed for NHIDCL, with CVC and MoRTH approval.',
       page: 2,
     },
     {
@@ -263,7 +259,7 @@ export const NIT: ExtractedTender = {
     {
       title: 'Integrity Pact with IEM',
       detail:
-        'An Integrity Pact applies and Shri Subhash Chandra is the IEM. Confirm the pact signing requirement in the RFP.',
+        'An Integrity Pact applies and the notice names the IEM. Confirm the pact signing requirement in the RFP.',
       page: 2,
       severity: 'medium',
     },

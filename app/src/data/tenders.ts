@@ -61,7 +61,7 @@ export const TENDERS: Tender[] = [
     },
   },
   {
-    id: 'T-2026-049', name: 'Refinery Piping Package 4B', client: 'Jamnagar Petro', sector: 'Oil & gas',
+    id: 'T-2026-049', name: 'Refinery Piping Package 4B', client: 'Kutch Coast Refinery', sector: 'Oil & gas',
     value: 655, stage: 7, due: '2026-03-17', win: 69, band: 5, confidence: 'high', bidManager: 'R. Iyer', gate: 'DG3',
     status: 'Compliance verification, DG3 in review',
     detail: {
@@ -112,7 +112,7 @@ export const TENDERS: Tender[] = [
     },
   },
   {
-    id: 'T-2026-056', name: 'Pipeline Package 7', client: 'Jamnagar Petro', sector: 'Oil & gas',
+    id: 'T-2026-056', name: 'Pipeline Package 7', client: 'Kutch Coast Refinery', sector: 'Oil & gas',
     value: 298, stage: 1, due: '2026-04-21', win: null, fit: 82, confidence: 'high', bidManager: 'R. Iyer', gate: 'DG1',
     status: 'DG1 due, fit-score 82%, 2 fields in validation',
     detail: {
@@ -132,13 +132,13 @@ export const TENDERS: Tender[] = [
   { id: 'T-2026-036', name: 'Coastal Desalination Package B', client: 'TN Water Board', sector: 'Water', value: 402, stage: 8, due: '2026-03-09', win: 66, band: 6, confidence: 'high', bidManager: 'N. Gupta', gate: null, status: 'Packaged, submits tomorrow' },
   { id: 'T-2026-038', name: '765 kV Line, Section 3', client: 'PowerGrid', sector: 'Power', value: 718, stage: 6, due: '2026-03-21', win: 58, band: 7, confidence: 'high', bidManager: 'N. Gupta', gate: null, status: 'Drafting, red-team scheduled' },
   { id: 'T-2026-039', name: 'Industrial Park Roads & Drainage', client: 'GIDC', sector: 'Urban infra', value: 128, stage: 6, due: '2026-03-24', win: 52, band: 8, confidence: 'high', bidManager: 'P. Shah', gate: null, status: 'Drafting with 71% reuse' },
-  { id: 'T-2026-042', name: 'LNG Terminal Civil Works', client: 'Petronet East', sector: 'Oil & gas', value: 894, stage: 5, due: '2026-03-27', win: 44, band: 9, confidence: 'medium', bidManager: 'P. Shah', gate: null, status: 'Scenario set in preparation' },
+  { id: 'T-2026-042', name: 'LNG Terminal Civil Works', client: 'Purvatat LNG Terminal', sector: 'Oil & gas', value: 894, stage: 5, due: '2026-03-27', win: 44, band: 9, confidence: 'medium', bidManager: 'P. Shah', gate: null, status: 'Scenario set in preparation' },
   { id: 'T-2026-043', name: 'Airport Apron Extension', client: 'AAI Bhubaneswar', sector: 'Transport', value: 233, stage: 3, due: '2026-03-31', win: 39, band: 10, confidence: 'medium', bidManager: 'N. Gupta', gate: null, status: 'DG2 evidence pack in assembly' },
   { id: 'T-2026-045', name: '220 kV GIS Substation, Kochi', client: 'Kerala SEB', sector: 'Power', value: 176, stage: 4, due: '2026-04-02', win: 63, band: 7, confidence: 'high', bidManager: 'P. Shah', gate: null, status: 'Baseline programme in validation' },
   { id: 'T-2026-046', name: 'Water Treatment Plant (120 MLD)', client: 'Maha Jeevan', sector: 'Water', value: 189, stage: 2, due: '2026-04-06', win: 47, band: 9, confidence: 'medium', bidManager: 'N. Gupta', gate: null, status: 'RFQs out, 3 of 5 packages covered' },
   { id: 'T-2026-048', name: 'Rail Electrification Phase IV', client: 'CORE Allahabad', sector: 'Transport', value: 541, stage: 3, due: '2026-04-08', win: 55, band: 8, confidence: 'medium', bidManager: 'P. Shah', gate: null, status: 'Win-probability model running' },
   { id: 'T-2026-050', name: 'Hybrid Renewable Park BoP', client: 'NTPC Renewables', sector: 'Renewables', value: 367, stage: 1, due: '2026-04-14', win: null, fit: 61, confidence: 'medium', bidManager: 'N. Gupta', gate: null, status: 'Screening, 2 fields in validation' },
-  { id: 'T-2026-051', name: 'Steel Plant Utilities Package', client: 'JSW Dolvi', sector: 'Industrial', value: 622, stage: 2, due: '2026-04-16', win: 42, band: 10, confidence: 'medium', bidManager: 'P. Shah', gate: null, status: 'Scope split into 7 packages' },
+  { id: 'T-2026-051', name: 'Steel Plant Utilities Package', client: 'Mahisagar Steel Works', sector: 'Industrial', value: 622, stage: 2, due: '2026-04-16', win: 42, band: 10, confidence: 'medium', bidManager: 'P. Shah', gate: null, status: 'Scope split into 7 packages' },
   { id: 'T-2026-054', name: 'Township Infrastructure', client: 'Private developer', sector: 'Urban infra', value: 74, stage: 1, due: '2026-04-18', win: null, fit: 38, confidence: 'low', bidManager: 'P. Shah', gate: null, status: 'Low fit, held for review' },
 ];
 

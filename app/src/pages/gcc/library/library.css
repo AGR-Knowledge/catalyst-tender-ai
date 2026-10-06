@@ -113,3 +113,6 @@
   .tl-list-card { max-height: 380px; }
   .tl-card-lib { height: 680px; }
 }
+/* Plan 042: the OG and Previous pills beside a TID in the list and the card head. */
+.tl-labels { margin: 0 6px 0 2px; }
+.tl-id .tl-labels { margin: 0 0 0 6px; }

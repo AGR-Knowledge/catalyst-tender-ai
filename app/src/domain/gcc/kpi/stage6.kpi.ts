@@ -24,9 +24,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-1', label: 'Sections late', kind: 'state',
     info: {
-      means: 'Sections that are behind. Late sections get written in a hurry, and it shows in the score',
-      counted: 'Proposal sections past their internal due date and not locked, across Stage 6 tenders. The sub-line names the tender with most.',
-      target: `0 green; any orange; any on a bid due within ${NEAR_WD} working days red`, source: 'Proposal section plan',
+      means: 'Proposal sections behind their internal date. Late sections get written in a hurry, and it shows in the score.',
+      counted: 'Sections past their internal due date and not yet final, across tenders in Proposal.',
+      target: 'None',
+      source: 'Proposal plan',
     },
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.sections.late > 0);
@@ -42,9 +43,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-2', label: 'Sections locked', kind: 'state',
     info: {
-      means: 'How much of each proposal is final',
-      counted: 'Locked sections ÷ all sections, across Stage 6 tenders. The sub-line names the least advanced proposal and the working days to its submission.',
-      target: 'None (information)', source: 'Proposal section plan',
+      means: 'How much of each proposal is final.',
+      counted: 'Final sections out of all sections, across tenders in Proposal; underneath, the least advanced proposal.',
+      target: 'No target',
+      source: 'Proposal plan',
     },
     compute(ctx) {
       const rows = s6Of(ctx);
@@ -64,9 +66,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-3', label: 'Below pass mark', kind: 'state',
     info: {
-      means: 'Proposals that would fail the technical evaluation as they stand. A failed technical envelope means the price is never opened',
-      counted: 'Stage 6 tenders whose simulated technical score is below the published pass mark. The sub-line shows the worst.',
-      target: '0 green; any red', source: 'Technical score simulation',
+      means: 'Proposals that would fail the technical evaluation as they stand. If the technical envelope fails, the price is never opened.',
+      counted: 'Tenders in Proposal whose estimated technical score is below the published pass mark.',
+      target: 'None',
+      source: 'Technical score estimate',
     },
     compute(ctx) {
       const list = belowPass(ctx);
@@ -79,9 +82,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-4', label: 'SME tasks overdue', kind: 'state',
     info: {
-      means: 'Specialists who owe text. This is usually where proposals slip',
-      counted: 'Specialist writing tasks past their due date, across Stage 6 tenders.',
-      target: '0 green; any orange', source: 'Proposal task list',
+      means: 'Specialists who still owe text. This is usually where proposals slip.',
+      counted: 'Writing tasks for specialists past their due date, across tenders in Proposal.',
+      target: 'None',
+      source: 'Proposal tasks',
     },
     compute(ctx) {
       const rows = s6Of(ctx).filter((x) => x.f.smeOverdue > 0);
@@ -95,9 +99,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-5', label: 'Reviews held', kind: 'flow',
     info: {
-      means: 'Whether proposals are being reviewed before they lock',
-      counted: 'Red-team reviews due in the period that were held by their date ÷ reviews due in the period. A review due today and not yet held is not counted.',
-      target: '100% green', source: 'Review records',
+      means: 'Whether proposals are reviewed before they are made final.',
+      counted: 'Red-team reviews due in the period, and how many were held by their date; one due today and not yet held is not counted.',
+      target: 'All held',
+      source: 'Review records',
     },
     compute: (ctx) => {
       const r = onTimeRate(dueInWindow(ctx, 'review'), 'No reviews due in this period', STAGE_BANDS.full, 'held by their date');
@@ -108,9 +113,10 @@ export const KPIS: KpiDef[] = [
   {
     id: 'PRP-6', label: 'Content reused', kind: 'state',
     info: {
-      means: 'How much of the writing starts from proven, cited material',
-      counted: 'Share of drafted text reused from past bids with the source cited, across Stage 6 tenders, weighted by tender value.',
-      target: 'None (information)', source: 'Proposal content library',
+      means: 'How much of the writing starts from proven material from past bids.',
+      counted: 'The share of drafted text reused from past bids with its source named, weighted by tender value.',
+      target: 'No target',
+      source: 'Proposal content library',
     },
     compute(ctx) {
       const rows = s6Of(ctx);

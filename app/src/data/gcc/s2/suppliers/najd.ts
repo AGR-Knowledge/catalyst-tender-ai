@@ -30,7 +30,7 @@ const ROWS: SupplierTuple[] = [
   ['rhein-aqua', 'Rhein Aqua Systems GmbH', 'DE', 'Duisburg', ['process-mech'], [ECWS, GCIU], 12, 'approved', OK('2025-12-15'), [93, 0, 6, 2], 'medium', [92, 5.0], false],
   // Plan 016a 4.1: on GCIU's list too, so T-2026-104 P-04's seeded RFQs (avlRequired) went to approved suppliers.
   ['gulf-process', 'Gulf Process Systems Co.', 'SA', 'Dammam', ['process-mech', 'sludge', 'chem-dosing'], [ECWS, GCIU], 58, 'approved', OK('2026-02-03'), [86, 1, 9, 3], 'high', [74, 6.5], true, 'najd.supplier'],
-  ['hanseong', 'Hanseong Water Machinery', 'KR', 'Changwon', ['process-mech', 'pumps', 'surge'], [GCIU], 6, 'approved', OK('2025-10-30'), [90, 1, 5, 1], 'low', [86, 4.5], false],
+  ['hanseong', 'Bongnim Water Machinery', 'KR', 'Changwon', ['process-mech', 'pumps', 'surge'], [GCIU], 6, 'approved', OK('2025-10-30'), [90, 1, 5, 1], 'low', [86, 4.5], false],
   ['vistula', 'Vistula Process Equipment S.A.', 'PL', 'Gdańsk', ['process-mech'], [], 4, 'pending', OK('2026-01-20'), [83, 2, 3, 0], 'low', [71, 6.0], false],
 
   // Tertiary filtration, DAF and UV; odour control
@@ -41,7 +41,7 @@ const ROWS: SupplierTuple[] = [
   ['lumenza', 'Lumenza UV Systems B.V.', 'NL', 'Eindhoven', ['filtration'], [], 5, 'approved', ['clear', '2026-01-27', 'flag', '2026-01-27'], [90, 0, 3, 1], 'low', [88, 3.5], false],
 
   // Sludge thickening and dewatering
-  ['castellan', 'Castellan Separators Srl', 'IT', 'Bergamo', ['sludge'], [ECWS, GCIU], 8, 'approved', OK('2025-10-14'), [92, 1, 6, 2], 'medium', [89, 4.0], false],
+  ['castellan', 'Valbrembo Separators Srl', 'IT', 'Bergamo', ['sludge'], [ECWS, GCIU], 8, 'approved', OK('2025-10-14'), [92, 1, 6, 2], 'medium', [89, 4.0], false],
   ['brenner', 'Brenner Zentrifugen GmbH', 'DE', 'Rosenheim', ['sludge'], [], 7, 'approved', ['due', '2025-09-02', 'clear', '2025-12-01'], [88, 1, 4, 1], 'low', [83, 5.0], false],
   ['salwa', 'Salwa Environmental Equipment', 'SA', 'Hofuf', ['sludge', 'odour', 'chem-dosing'], [GCIU], 51, 'approved', OK('2025-12-19'), [85, 2, 10, 3], 'medium', [87, 4.0], true],
 
@@ -49,7 +49,7 @@ const ROWS: SupplierTuple[] = [
   ['khuzama', 'Khuzama Air Treatment', 'SA', 'Riyadh', ['odour'], [ECWS], 43, 'approved', OK('2026-02-10'), [89, 1, 5, 2], 'low', [90, 3.5], true],
 
   // HV substations and transformers; LV distribution, MCCs and cables
-  ['hijaz-power', 'Hijaz Power Equipment Co.', 'SA', 'Jeddah', ['hv', 'lv'], [ECWS, GCIU, NCWS], 49, 'approved', OK('2025-10-08'), [91, 1, 11, 4], 'medium', [93, 3.5], true],
+  ['hijaz-power', 'Hada Power Equipment Co.', 'SA', 'Jeddah', ['hv', 'lv'], [ECWS, GCIU, NCWS], 49, 'approved', OK('2025-10-08'), [91, 1, 11, 4], 'medium', [93, 3.5], true],
   ['levant-switchgear', 'Levant Switchgear SAL', 'LB', 'Beirut', ['hv', 'lv'], [ECWS, GCIU], 10, 'approved', OK('2025-11-04'), [78, 3, 8, 1], 'high', [72, 7.5], false],
   // Plan 016c: on GCIU's list, so T-2026-104 P-06's seeded RFQ (avlRequired) went to an approved supplier.
   ['weser', 'Weser Transformer Works GmbH', 'DE', 'Bremen', ['hv'], [GCIU], 3, 'approved', OK('2025-12-22'), [95, 0, 4, 1], 'high', [81, 5.0], false],
@@ -58,7 +58,7 @@ const ROWS: SupplierTuple[] = [
   ['sarawat', 'Sarawat Panel Builders', 'SA', 'Abha', ['lv'], [], 45, 'approved', ['due', '2025-09-05', 'clear', '2025-12-14'], [84, 2, 6, 1], 'low', [79, 5.0], true],
 
   // Instrumentation, control and SCADA
-  ['qimma', 'Qimma Automation', 'SA', 'Riyadh', ['ica'], [ECWS, GCIU, NCWS], 42, 'approved', OK('2026-02-24'), [92, 0, 10, 3], 'medium', [94, 3.0], false],
+  ['qimma', 'Dhurwa Automation', 'SA', 'Riyadh', ['ica'], [ECWS, GCIU, NCWS], 42, 'approved', OK('2026-02-24'), [92, 0, 10, 3], 'medium', [94, 3.0], false],
   ['ellanby', 'Ellanby Instrumentation Ltd', 'GB', 'Leeds', ['ica'], [GCIU], 2, 'approved', OK('2025-11-19'), [86, 1, 5, 1], 'low', [82, 5.0], false],
   ['asir-telemetry', 'Asir Telemetry Solutions', 'SA', 'Khamis Mushait', ['ica'], [], 39, 'pending', OK('2026-01-29'), [83, 2, 4, 0], 'high', [75, 6.0], false],
   ['hatta', 'Hatta Instrumentation FZE', 'AE', 'Dubai', ['ica'], [], 14, 'approved', OK('2025-12-04'), [85, 1, 6, 1], 'medium', [80, 5.0], false],
@@ -72,7 +72,7 @@ const ROWS: SupplierTuple[] = [
   ['sudair-steel', 'Sudair Steel Pipe Co.', 'SA', 'Sudair', ['pipes'], [NCWS], 55, 'approved', OK('2025-10-19'), [87, 1, 9, 3], 'medium', [88, 4.0], true],
 
   // GRP pipes (mandatory list); steel structures and covers
-  ['tuwaiq-pipe', 'Tuwaiq Pipe Industries', 'SA', 'Riyadh', ['grp'], [ECWS, NCWS], 61, 'approved', OK('2026-02-16'), [92, 0, 11, 4], 'medium', [95, 3.0], true],
+  ['tuwaiq-pipe', 'Thadiq Pipe Industries', 'SA', 'Riyadh', ['grp'], [ECWS, NCWS], 61, 'approved', OK('2026-02-16'), [92, 0, 11, 4], 'medium', [95, 3.0], true],
   ['eastern-composite', 'Eastern Composite Pipes Co.', 'SA', 'Dammam', ['grp'], [ECWS, NCWS], 57, 'approved', OK('2025-11-06'), [88, 1, 9, 3], 'high', [86, 4.0], true],
   ['qassim-fibreglass', 'Qassim Fibreglass Industries', 'SA', 'Buraydah', ['grp', 'steel'], [], 49, 'approved', OK('2025-12-29'), [85, 2, 7, 1], 'low', [82, 4.5], true],
   ['harrat', 'Harrat Composite Pipes', 'SA', 'Madinah', ['grp', 'steel'], [], 46, 'approved', OK('2026-01-22'), [83, 1, 5, 1], 'low', [80, 5.0], true],

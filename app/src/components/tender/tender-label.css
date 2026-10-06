@@ -1,0 +1,13 @@
+/* OG and Previous labels (plan 042): a word in a small pill beside a TID. No stripes; light and dark from the tokens. */
+.tlab-pills { font-family: var(--font-sans); display: inline-flex; align-items: center; gap: 4px; flex: none; white-space: nowrap; vertical-align: middle; }
+.tlab {
+  display: inline-flex; align-items: center; font-size: 10.5px; font-weight: 600; line-height: 15px; letter-spacing: 0.01em;
+  padding: 0 6px; border-radius: var(--radius-pill); border: 1px solid var(--line-strong);
+}
+.tlab-og { color: var(--ink-2); background: var(--surface-active); }
+.tlab-previous { color: var(--blue); background: var(--blue-soft); border-color: color-mix(in srgb, var(--blue) 35%, transparent); }
+.tlab.tip-trigger { cursor: help; }
+/* The workspace header's line under the title: "Re-issue of T-… (cancelled by the employer, Wed 25 Feb) · Open earlier tender". */
+.tlab-prevline { margin: 6px 0 0; font-size: 12.5px; color: var(--ink-3); }
+.tlab-prevline .mono { color: var(--ink-2); }
+.tlab-prevline .btn-link { font-size: 12.5px; }

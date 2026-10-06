@@ -5,7 +5,7 @@ import { firstWithRole, personById, type Person } from '@/data/people';
 import { CALENDARS } from '@/data/gcc/calendar';
 import { stageShortLabel, stepLabel } from '@/data/gcc/stages';
 import type { CountryCode } from '@/data/tenants';
-import { DEMO_TODAY, addDays, calendarDaysBetween, countdownText, dateText, dayFlags, isWeekend, weekdayOf, weekendText, whenText } from '@/domain/calendar';
+import { DEMO_TODAY, addDays, calendarDaysBetween, countdownText, dateText, dayFlags, isWeekend, isWorkingDay, weekdayOf, weekendText, whenText, workingDaysBetween } from '@/domain/calendar';
 import { isScreenBuilt } from '@/pages/gcc/screens';
 import { DEMO_NOW, addHours } from '../clock';
 import { dataPort } from '../port';
@@ -30,6 +30,8 @@ import type { GateKey, Health, MoneyVM, TenderRowVM } from '../viewmodels';
  * - supplier replies due, one item per tender and reply day, however many packages (`rfqsFor`);
  * - credential expiries and renewal requests due (`vaultFor`);
  * - the viewer's own open or late requests (`requestsFor`).
+ * Plan 041: an item that asks someone to decide or do something also shows,
+ * lighter, on the 3 working days before it is due (`calendarLeadUps`).
  */
 
 export type CalendarCategory = 'submissions' | 'deadlines' | 'meetings' | 'gates' | 'quotes' | 'validity' | 'requests';
@@ -99,6 +101,20 @@ export interface CalendarItemVM {
   /** Behind the demo clock. */
   past: boolean;
   ref: ItemRef;
+  /** Set on a lead-up (plan 041): a lighter copy of the due item on one of the working days before it. */
+  lead?: LeadUp;
+}
+
+export interface LeadUp {
+  /** The due item this one warns of. */
+  dueId: string;
+  /** Its due date and time. */
+  due: string;
+  dueTime?: string;
+  /** Working days from this day to the due date, in the item's country: 1 to 3. */
+  days: number;
+  /** "In 3 days", "In 2 days", "Tomorrow" ("Next working day" across a weekend or a holiday). */
+  word: string;
 }
 
 export interface CalendarCtx { tenant: string; viewer: Person; done: Readonly<Record<string, string>> }
@@ -234,13 +250,113 @@ export function calendarItems({ tenant, viewer, done, from, to }: CalendarCtx & 
     || a.id.localeCompare(b.id));
 }
 
+/* ------------------------------------------------------------ lead-ups (plan 041) */
+
+/** How many working days before its due date an item shows as coming up. */
+export const LEAD_DAYS = 3;
+
+/**
+ * Key dates that ask the tender team to do something get a lead-up; dates the
+ * authority keeps (the bid opening, the answers it publishes), meetings and
+ * the validity of a submitted bid are information and don't.
+ */
+const KIND_LEADS: Record<KeyDateKind, boolean> = {
+  submission: true, originals: true, purchase: true, participation: true, questions: true,
+  published: false, opening: false, answers: false, 'site-visit': false, 'pre-bid': false, 'validity-end': false, 'bond-validity-end': false,
+};
+
+/**
+ * An item gets a lead-up when it asks someone to decide or do something:
+ * gate decisions, submissions (and the originals), the authority's purchase,
+ * participation and questions deadlines, credential expiries and renewals,
+ * and the viewer's own requests. Supplier replies are the suppliers' to give.
+ */
+export function hasLeadUp(item: CalendarItemVM): boolean {
+  switch (item.ref.kind) {
+    case 'key-date': return KIND_LEADS[item.ref.keyDate];
+    case 'quotes': return false;
+    default: return true;
+  }
+}
+
+/** The `n` working days before `due` in a country, earliest first: weekends and closures skipped. */
+export function leadDays(due: string, cc: CountryCode, n = LEAD_DAYS): string[] {
+  const out: string[] = [];
+  for (let d = addDays(due, -1), guard = 0; out.length < n && guard < 60; d = addDays(d, -1), guard++) if (isWorkingDay(d, cc)) out.unshift(d);
+  return out;
+}
+
+/**
+ * Working days left from a lead-up's day to its due date: the working days
+ * from that day up to the day before the due date, so the last working day
+ * before a Friday due date in Qatar is 1, not 0.
+ */
+export const leadDaysLeft = (day: string, due: string, cc: CountryCode) => workingDaysBetween(addDays(day, -1), addDays(due, -1), cc);
+
+/** "In 3 days", "In 2 days", "Tomorrow", counted in working days; one working day across a weekend or a holiday is "Next working day". */
+export function leadWord(day: string, due: string, days: number): string {
+  if (days > 1) return `In ${days} days`;
+  return calendarDaysBetween(day, due) === 1 ? 'Tomorrow' : 'Next working day';
+}
+
+/** Calendar days a lead-up may sit before its due date: three working days across a weekend and the longest closure. */
+const LOOKAHEAD = 30;
+
+/**
+ * The lead-ups in `from`…`to`: for every item the viewer sees that asks for a
+ * decision or an action, one lighter entry on each of the 3 working days
+ * before it is due, in the item's own country (the authority's for a key
+ * date). Nothing before demo day: an item due within 3 working days shows
+ * only on the days left. Derived from `calendarItems`, so the viewer sees
+ * lead-ups only for what they may see.
+ */
+export function calendarLeadUps({ tenant, viewer, done, from, to }: CalendarCtx & { from: string; to: string }): CalendarItemVM[] {
+  const start = from > DEMO_TODAY ? from : DEMO_TODAY;
+  if (start > to) return [];
+  const due = calendarItems({ tenant, viewer, done, from: addDays(start, 1), to: addDays(to, LOOKAHEAD) });
+  const out: CalendarItemVM[] = [];
+  for (const item of due.filter((i) => !i.past && hasLeadUp(i))) {
+    const days = leadDays(item.date, ccOf(item, tenant));
+    days.forEach((day, n) => {
+      if (day < start || day > to) return;
+      const left = days.length - n;
+      const word = leadWord(day, item.date, left);
+      const what = item.ref.kind === 'gate' ? item.ref.gate : item.chip;
+      const { time: _time, ...rest } = item;
+      out.push({
+        ...rest, id: `lead:${day}:${item.id}`, chip: `${word} · ${what}`, date: day, allDay: true, flags: [], past: false,
+        lead: { dueId: item.id, due: item.date, ...(item.time ? { dueTime: item.time } : {}), days: left, word },
+      });
+    });
+  }
+  return out.sort(calendarOrder);
+}
+
+/** A list's order: by date; in a day, due items (by time, untimed last, then category) before lead-ups (nearest due first). */
+export function calendarOrder(a: CalendarItemVM, b: CalendarItemVM): number {
+  return a.date.localeCompare(b.date)
+    || Number(!!a.lead) - Number(!!b.lead)
+    || (a.lead && b.lead ? a.lead.due.localeCompare(b.lead.due) || (a.lead.dueTime ?? '99:99').localeCompare(b.lead.dueTime ?? '99:99') : 0)
+    || (a.time ?? '99:99').localeCompare(b.time ?? '99:99')
+    || CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category]
+    || a.title.localeCompare(b.title)
+    || a.id.localeCompare(b.id);
+}
+
 /** Within a category, the key dates that decide the bid first: the submission before the opening and the originals. */
 const KIND_RANK: KeyDateKind[] = ['submission', 'opening', 'originals', 'questions', 'answers', 'purchase', 'participation', 'site-visit', 'pre-bid', 'validity-end', 'bond-validity-end'];
 const kindRank = (i: CalendarItemVM) => (i.ref.kind === 'key-date' ? KIND_RANK.indexOf(i.ref.keyDate) : i.ref.kind === 'submission' ? 0 : KIND_RANK.length);
 
-/** A day's items, most important first: by category (legend order), a flagged one first within its kind, then the viewer's own, the deciding key date, then by time. */
+/**
+ * A day's items, most important first: by category (legend order), a flagged
+ * one first within its kind, then the viewer's own, the deciding key date,
+ * then by time. Lead-ups come after every due item, nearest due first, so a
+ * full day folds them into "+n more" before any due item.
+ */
 export function byImportance(items: CalendarItemVM[]): CalendarItemVM[] {
-  return [...items].sort((a, b) => CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category]
+  return [...items].sort((a, b) => Number(!!a.lead) - Number(!!b.lead)
+    || (a.lead && b.lead ? a.lead.due.localeCompare(b.lead.due) || (a.lead.dueTime ?? '99:99').localeCompare(b.lead.dueTime ?? '99:99') : 0)
+    || CATEGORY_RANK[a.category] - CATEGORY_RANK[b.category]
     || Number(b.flags.length > 0) - Number(a.flags.length > 0)
     || Number(b.mine) - Number(a.mine)
     || kindRank(a) - kindRank(b)
@@ -343,31 +459,35 @@ export interface CalendarDayVM {
   date: string;
   /** "Sunday 15 March 2026". */
   title: string;
-  /** "5 items · 1 flagged". */
+  /** "5 items · 1 flagged · 2 coming up". */
   count: string;
   /** The working calendar that day: "Weekend: Fri–Sat", "Ramadan hours: …", "Eid holiday expected: …". */
   notes: string[];
-  /** Most important first, as the month's cell lists them. */
-  groups: { category: CalendarCategory; label: string; rows: { item: CalendarItemVM; countdown: string }[] }[];
+  /** Most important first, as the month's cell lists them; the lead-ups last, as "Coming up". */
+  groups: { category: CalendarCategory | 'lead'; label: string; rows: { item: CalendarItemVM; countdown: string }[] }[];
 }
 
 /** Everything on one day, grouped by category in order of importance: what "+n more" and the day's number open. */
 export function calendarDay(date: string, items: CalendarItemVM[], tenant: string): CalendarDayVM {
   const cc = profileOf(tenant).countryCode;
-  const day = byImportance(items.filter((i) => i.date === date));
+  const all = byImportance(items.filter((i) => i.date === date));
+  const day = all.filter((i) => !i.lead);
+  const leads = all.filter((i) => i.lead);
   const flagged = day.filter((i) => i.flags.length).length;
   const [y, m] = [date.slice(0, 4), date.slice(5, 7)];
   return {
     date,
     title: `${DAY_NAME[weekdayOf(date)]} ${Number(date.slice(8, 10))} ${monthName(`${y}-${m}-01`)} ${y}`,
-    count: `${plural(day.length, 'item')}${flagged ? ` · ${flagged} flagged` : ''}`,
+    count: [day.length || !leads.length ? plural(day.length, 'item') : '', flagged ? `${flagged} flagged` : '', leads.length ? `${leads.length} coming up` : ''].filter(Boolean).join(' · '),
     notes: dayFlags(date, cc).map((f) => (
       f.key === 'weekend' ? `Weekend in ${placeName(cc)} (${weekendText(cc)})`
         : f.key === 'ramadan-hours' ? `Ramadan reduced hours: the ${f.detail.charAt(0).toLowerCase()}${f.detail.slice(1)}`
           : f.key === 'closure-expected' ? f.detail : `${f.label}: ${f.detail}`)),
-    groups: CALENDAR_CATEGORIES
-      .map((c) => ({ category: c.key, label: c.label, rows: day.filter((i) => i.category === c.key).map((item) => ({ item, countdown: itemCountdown(item, tenant) })) }))
-      .filter((g) => g.rows.length),
+    groups: [
+      ...CALENDAR_CATEGORIES
+        .map((c) => ({ category: c.key as CalendarDayVM['groups'][number]['category'], label: c.label, rows: day.filter((i) => i.category === c.key).map((item) => ({ item, countdown: itemCountdown(item, tenant) })) })),
+      { category: 'lead' as const, label: 'Coming up', rows: leads.map((item) => ({ item, countdown: itemCountdown(item, tenant) })) },
+    ].filter((g) => g.rows.length),
   };
 }
 
@@ -390,6 +510,8 @@ export interface CalendarActionVM { label: string; to: string; primary?: boolean
 
 export interface CalendarDetailVM {
   item: CalendarItemVM;
+  /** Opened from a lead-up: "Due Thu 12 Mar, in 3 working days", counted from the lead-up's day. */
+  lead?: string;
   categoryLabel: string;
   when: {
     /** "Thu 12 Mar 2026, 10:00 AST". */
@@ -430,7 +552,7 @@ function tenantTimeText(item: CalendarItemVM, tenant: string): string | undefine
 
 
 /** The country whose working days count for an item: the authority's for a key date, the tenant's for the rest. */
-function ccOf(item: CalendarItemVM, tenant: string): CountryCode {
+export function ccOf(item: CalendarItemVM, tenant: string): CountryCode {
   const t = item.ref.kind === 'key-date' ? tenderOf(tenant, item.ref.tenderId) : undefined;
   return t ? authorityCalendar(t, tenant).cc : profileOf(tenant).countryCode;
 }
@@ -445,6 +567,8 @@ function weekendNoteOf(item: CalendarItemVM, tenant: string): string | undefined
 
 /** "in 4 days · 4 working days", "Today", "Passed"; "Overdue" for a gate and "Late" for a request once behind the clock. */
 export function itemCountdown(item: CalendarItemVM, tenant: string): string {
+  // A lead-up counts to its due date: "Due Thu 12 Mar".
+  if (item.lead) return `Due ${shortDate(item.lead.due)}`;
   if (item.past) return item.ref.kind === 'gate' ? 'Overdue' : item.category === 'requests' || (item.ref.kind === 'credential' && item.ref.what === 'renewal') ? 'Late' : 'Passed';
   if (item.date === DEMO_TODAY) return 'Today';
   return `in ${countdownText(DEMO_TODAY, item.date, ccOf(item, tenant))}`;
@@ -452,6 +576,14 @@ export function itemCountdown(item: CalendarItemVM, tenant: string): string {
 
 /** The accessible name of a chip: "Submission deadline, T-2025-298 Makkah water distribution, Thu 12 Mar 10:00 AST, Submissions". */
 export function itemLabel(item: CalendarItemVM): string {
+  if (item.lead) {
+    return [
+      `Coming up: ${item.title}`,
+      item.tenderId && `${item.tenderId} ${item.shortTitle ?? ''}`.trim(),
+      `due ${shortDate(item.lead.due)}${item.lead.dueTime ? ` ${item.lead.dueTime} ${item.tz}` : ''}, in ${plural(item.lead.days, 'working day')}`,
+      CATEGORY_LABEL[item.category],
+    ].filter(Boolean).join(', ');
+  }
   return [
     item.title,
     item.tenderId && `${item.tenderId} ${item.shortTitle ?? ''}`.trim(),
@@ -529,6 +661,14 @@ function stageNeeds(f: Lifecycle['facts'] | undefined): NeedVM[] {
  */
 export function calendarItemDetail(id: string, ctx: CalendarCtx): CalendarDetailVM | null {
   const { tenant, viewer, done } = ctx;
+  // A lead-up (`lead:<day>:<due id>`) opens its due item's detail, with how far off it is.
+  if (id.startsWith('lead:')) {
+    const day = id.slice(5, 15);
+    const base = calendarItemDetail(id.slice(16), ctx);
+    if (!base) return null;
+    const n = leadDaysLeft(day, base.item.date, ccOf(base.item, tenant));
+    return { ...base, lead: `Due ${shortDate(base.item.date)}, in ${plural(n, 'working day')}` };
+  }
   const d = done as Record<string, string>;
   const item = calendarItems({ ...ctx, from: '0000-01-01', to: '9999-12-31' }).find((i) => i.id === id);
   if (!item) return null;

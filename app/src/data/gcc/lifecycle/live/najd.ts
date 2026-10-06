@@ -176,7 +176,7 @@ const STAGE2_3: Lifecycle[] = [
     now: { stage: 3, step: 'pack-in-preparation' },
     facts: {
       stage: 3, pack: 'preparation', inputs: summary(INPUTS_101), positions: { recorded: 0, of: 5, bySeat: {} },
-      win: { p: 47, band: 12 }, marginRange: [9.5, 12], facilityAfter: facilityAfter(NAJD, registerRow(NAJD, 'T-2026-101').value.amount, BOND_PCT),
+      win: { p: 73, band: 12 }, marginRange: [9.5, 12], facilityAfter: facilityAfter(NAJD, registerRow(NAJD, 'T-2026-101').value.amount, BOND_PCT),
     },
   }),
   story('T-2026-097', {
@@ -198,9 +198,9 @@ const STAGE2_3: Lifecycle[] = [
           technical: { stance: 'support', at: '2026-03-08T08:15' },
         },
       },
-      win: { p: 58, band: 8 }, marginRange: [8.5, 11.5],
+      win: { p: 84, band: 8 }, marginRange: [8.5, 11.5],
       facilityAfter: facilityAfter(NAJD, registerRow(NAJD, 'T-2026-097').value.amount, BOND_PCT),
-      weightedValue: SAR((registerRow(NAJD, 'T-2026-097').value.amount / M) * 0.58),
+      weightedValue: SAR((registerRow(NAJD, 'T-2026-097').value.amount / M) * 0.84),
     },
   }),
 ];
@@ -358,8 +358,13 @@ const STAGE9_AND_CLOSED: Lifecycle[] = [
   }),
   row('T-2026-106', 'Al-Kharj treated effluent line', 'Al-Kharj TSE line', CCWS, 'Al-Kharj', 'Utility networks', 230, {
     captured: '2026-02-08T09:30', m1: '2026-02-08T15:00', dg1: pursue('2026-02-09T10:15'),
+    // Review of plan 039 (2026-10-06): still live, levelling the last quotes, rather than withdrawn on 1 Mar.
     steps: { '2:rfqs-out': '2026-02-10T09:00', '2:quotes-in': '2026-02-19T10:00', '2:levelling': '2026-02-26T10:00' },
-    close: { at: '2026-03-01T11:00', as: 'withdrawn', note: 'The JV partner withdrew; the bid cannot meet the PQ alone', stage: 2, step: 'levelling' },
+    now: { stage: 2, step: 'levelling' }, submissionDeadline: { date: '2026-04-22', time: '10:00' },
+    facts: s2({
+      packages: { total: 10, covered: 8 }, rfqs: { sent: 30, total: 30, overdue: 0, escalated: 0, answeredOnTime: 26, dueSoFar: 28 },
+      toLevel: 3, notCoveredPct: 1.8, repliesDue: '2026-03-11', clarifications: { open: 1, stale: 0 }, bestFitApproved: 0,
+    }),
   }),
   row('T-2026-099', 'Hafr Al-Batin water network', 'Hafr Al-Batin water network', NCWS, 'Hafr Al-Batin', 'Utility networks', 165, {
     captured: '2026-02-01T09:00', m1: '2026-02-02T13:00', dg1: pursue('2026-02-03T10:20'),
@@ -411,10 +416,12 @@ const COMPLETIONS: Lifecycle[] = [
     dg2: { at: '2025-12-04T11:00', decision: 'no-bid', byId: HOT, onTime: true, reasonCodes: ['capacity'], note: 'The networks team is committed to three December submissions' },
     close: { at: '2025-12-04T11:00', as: 'no-bid', note: 'No-Bid at DG2: capacity' },
   }),
+  // Plan 039: 13 weeks earlier than plan 004's record, so the 90 days hold one No-Bid before T-2026-099's.
   fromDg1('T-2025-447', CCWS, 'Al-Kharj', 'Water and wastewater', 60, {
-    captured: '2025-12-18T09:00', m1: '2025-12-21T17:00', packIssued: '2026-01-18T15:00',
-    dg2: { ...dg2Gate(dg2Record(NAJD, 'T-2025-447'), HOT), reasonCodes: ['below-value'], note: 'Scope below the value band once the reservoirs were re-measured' },
-    close: { at: '2026-01-19T11:00', as: 'no-bid', note: 'No-Bid at DG2: below the value band' },
+    captured: '2025-09-18T09:00', m1: '2025-09-21T17:00', packIssued: '2025-10-19T15:00',
+    dg1: { ...dg1Gate(dg1Record(NAJD, 'T-2025-447')), at: '2025-09-22T15:10' },
+    dg2: { ...dg2Gate(dg2Record(NAJD, 'T-2025-447'), HOT), at: '2025-10-20T11:00', reasonCodes: ['below-value'], note: 'Scope below the value band once the reservoirs were re-measured' },
+    close: { at: '2025-10-20T11:00', as: 'no-bid', note: 'No-Bid at DG2: below the value band' },
   }),
   fromDg1('T-2026-031', ECWS, 'Dammam', 'Utility networks', 95, {
     captured: '2026-01-18T09:00', m1: '2026-01-20T15:00', packIssued: '2026-02-04T16:00',

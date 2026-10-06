@@ -281,7 +281,7 @@ Each field carries a value, confidence, page, a note, and for Arabic documents `
 | --- | --- | --- |
 | ✅ Pass | Requirement met, with evidence linked | "Classification Grade 1, Water & sewage works: certificate valid to 14 Nov 2027" |
 | ⚠️ At risk | Met today, but fails by bid opening (certificates must be valid *at opening*), or the evidence is weak | "GOSI certificate expires **Thu 7 May 2026**, 3 days before bid opening (Sun 10 May). Renew before submission." |
-| ⚠️ Interpretation | The requirement is ambiguous, so the agent shows both readings | "'Average turnover of the last three financial years'. FY2025 accounts are due to be audited on 15 Apr, before opening. **FY2022–FY2024** gives an average of SAR 1.41 bn; **FY2023–FY2025** gives SAR 1.52 bn. Both pass the SAR 1.2 bn threshold. Suggested query to the employer drafted." |
+| ⚠️ Interpretation | The requirement is ambiguous, so the agent shows both readings | "'Average turnover of the last three financial years'. FY2025 accounts are due to be audited on 15 Apr, before opening. **FY2022–FY2024** gives an average of SAR 9.33 bn; **FY2023–FY2025** gives SAR 10.08 bn. Both pass the SAR 5 bn threshold. Suggested query to the employer drafted." |
 | ❌ Fail | Not met (tenant C example) | "Two completed STPs ≥ 100,000 m³/day in 10 years: 1 on record (110,000 m³/day, 2020). JV partner needed." |
 | — Not stated | The tender doesn't ask | |
 
@@ -377,7 +377,7 @@ The agent turns ambiguities found in extraction and eligibility into **draft cla
 3. Eligibility roll-up with the ❌ and ⚠️ lines expanded.
 4. Fit breakdown (collapsed by default).
 5. Capacity: the bid team's load in the submission window; the capacity clash with other pursuits.
-6. Bond: required amount and validity, against **bank guarantee facility headroom**. Finance/Treasury's figure carries a timestamp: "facility headroom SAR 96 M as of 05 Mar, confirmed by Finance".
+6. Bond: required amount and validity, against **bank guarantee facility headroom**. Finance/Treasury's figure carries a timestamp: "facility headroom SAR 640.0 M as of 05 Mar, confirmed by Finance".
 7. Comparable past bids and their outcomes.
 8. Open validations and queries. **DG1 cannot be recorded while a field marked "blocks DG1" is unvalidated.** The screen shows "2 fields still being validated by {coordinator}", with a Nudge button.
 
@@ -509,7 +509,7 @@ The **Bid / No-Bid pack** is one scrollable page with a sticky summary. Each sec
 
 | § | Section | Content |
 | --- | --- | --- |
-| 9.1 | **Win probability** | A score with an **uncertainty band** (e.g. 58% ± 8). A **driver table** gives each feature's contribution: client history, value band, geography and presence, competitor count, capacity load, planned price position, local content score, JV. It notes the calibration method. A **low-data warning** appears when comparables number fewer than 5. **What would move it:** e.g. "+6 pts with local content ≥ 40%", "−5 pts if a 7th bidder qualifies" |
+| 9.1 | **Win probability** | A score with an **uncertainty band** (e.g. 84% ± 8). A **driver table** gives each feature's contribution: client history, value band, geography and presence, competitor count, capacity load, planned price position, local content score, JV. It notes the calibration method. A **low-data warning** appears when comparables number fewer than 5. **What would move it:** e.g. "+6 pts with local content ≥ 40%", "−5 pts if a 7th bidder qualifies" |
 | 9.2 | **Competitors** | Likely bidders, **fictional names** in the demo. Each shows the evidence source (e.g. the employer's prequalified list, past award notices, market-intelligence feed), strengths, recent comparable wins, and pricing posture. **Every claim is cited; no source means no claim** (a spec guardrail) |
 | 9.3 | **Eligibility and JV** | The S1 PQ roll-up, refreshed with any renewed credentials. JV structure and shares if applicable |
 | 9.4 | **Resource and capacity** | Bid effort to date and to go (people-weeks, external cost). Delivery impact if won: key staff, plant, peak manpower. The **portfolio conflict roll-up**: tenders at DG2 this cycle, their win probability, and capacity if won; combined against the **safe-delivery threshold** (the tenant sets it, e.g. 70%) |
@@ -670,7 +670,7 @@ Each script is 8–12 minutes, and they can be combined. The tested click path f
 | --- | --- | --- | --- |
 | **A. From portal to Pursue** | A (KSA) | Radar → capture of the hero tender → booklet purchase approved by a person → intake steps → queue (2 fields; the initial-guarantee 1% vs 2% conflict) → Eligibility (Zakat and GOSI at risk; turnover years) → queries drafted (VAT; turnover years) → DG1 Pursue with team → RFQ clock | M-1, M-2, M-3 |
 | **B. Quotes without chasing** | A | Packages → shortlist (screening blocks one supplier) → RFQs → nudges → levelling (VAT, EUR, ex-works, validity) → best-fit, override → Supplier Portal preview | M-4 |
-| **C. The committee decides** | A | Pack (win probability 58 ± 8, competitors, facility, capacity clash, margin range) → issue → switch to the CFO, the Technical Director and the CEO to record positions → the Head of Tendering approves Bid with conditions → audit | M-5, M-6 |
+| **C. The committee decides** | A | Pack (win probability 84 ± 8, competitors, facility, capacity clash, margin range) → issue → switch to the CFO, the Technical Director and the CEO to record positions → the Head of Tendering approves Bid with conditions → audit | M-5, M-6 |
 | **D. Same tender, five companies** | A–E | Switch tenants and open the hero tender → Compare tenants lens | M-7 |
 | **E. Arabic in, English out** | D (Batinah) | The Tender Coordinator uploads T-2026-042, the scanned Arabic tender → OCR → bilingual fields, as the Bid Manager → "Arabic prevails" flag | M-8 |
 | **F. Who can see what** | A, Platform | Head of Tendering "View as"; margin masked for Procurement; Platform Console break-glass | M-9 |

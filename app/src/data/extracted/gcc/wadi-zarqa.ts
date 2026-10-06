@@ -537,7 +537,7 @@ export const WADI_ZARQA: ExtractedTender = {
     {
       title: 'Interface with As Samra BOT operator',
       detail:
-        'The WZPS pretreatment works sit on a site run by the As Samra Project Company, whose contract ran to 30 Dec 2025. The DBO contractor must not affect WZPS operation or the adjacent live transmission main. Access rights depend on the Employer and SPC agreement.',
+        'The WZPS pretreatment works sit on a site run by the As Samra plant’s BOT operating company, whose contract ran to 30 Dec 2025. The DBO contractor must not affect WZPS operation or the adjacent live transmission main. Access rights depend on the Employer and SPC agreement.',
       page: 68,
       severity: 'medium',
     },

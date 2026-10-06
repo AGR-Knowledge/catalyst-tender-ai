@@ -1,5 +1,7 @@
 import { holdersOf } from '@/data/access';
-import { personById } from '@/data/people';
+import { personById, type Person } from '@/data/people';
+import { contactSubject } from '@/domain/gcc/contact';
+import { ContactLinks } from '@/components/tender/ContactLinks';
 import type { Tone } from '@/data/types';
 import type { Dg3LineState, Dg3LineVM } from '@/domain/gcc/dg3';
 import { Masked } from '@/components/tender/Masked';
@@ -22,7 +24,16 @@ const STATE: Record<Dg3LineState, { label: string; tone: Tone; icon: string }> =
 /** What a person on an item does: owns the risk, or signs the document. */
 const PERSON_WORD: Record<string, string> = { risks: 'Owner', signatories: 'Signs' };
 
-export function Evidence({ lines, meta }: { lines: Dg3LineVM[]; meta: string }) {
+/** What a message to that person is about (plan 044). */
+const ABOUT: Record<string, string> = { risks: 'a top risk you own', signatories: 'your signature' };
+
+export function Evidence({ lines, meta, tenderId, issuer }: {
+  lines: Dg3LineVM[];
+  meta: string;
+  tenderId: string;
+  /** Who issued the pack (Compliance): Calendar, Call and Teams beside the line that names them. */
+  issuer?: Person;
+}) {
   // Failing lines first; otherwise the pack's own order, so the price sits beside the margin condition.
   const sorted = [...lines.filter((l) => l.state === 'fail'), ...lines.filter((l) => l.state !== 'fail')];
   const count = (s: Dg3LineState) => lines.filter((l) => l.state === s).length;
@@ -31,7 +42,10 @@ export function Evidence({ lines, meta }: { lines: Dg3LineVM[]; meta: string }) 
     <section className="dg3-ev" aria-labelledby="dg3-ev-h">
       <header className="dg3-ev-h">
         <h3 id="dg3-ev-h">Evidence in the DG3 pack</h3>
-        <span className="dg3-ev-m">{meta}</span>
+        <span className="dg3-ev-mw">
+          <span className="dg3-ev-m">{meta}</span>
+          <ContactLinks person={issuer} subject={contactSubject(tenderId, 'DG3', 'the DG3 pack')} />
+        </span>
       </header>
       <p className="dg3-ev-sum">
         {fails ? <><span className="t-red">{fails === 1 ? '1 check fails' : `${fails} checks fail`}</span> · {count('pass')} pass</> : `All ${count('pass')} checks pass`}
@@ -55,15 +69,22 @@ export function Evidence({ lines, meta }: { lines: Dg3LineVM[]; meta: string }) 
                 <ul className="dg3-items">
                   {l.items.map((it) => {
                     const p = personById(it.ownerId);
+                    // Links at the item's end; the same width on every item of a list that names anyone.
+                    const contacts = l.items!.some((x) => x.ownerId);
                     return (
                       <li key={it.text}>
-                        <span>{it.text}</span>
-                        {(p || it.tag) && (
-                          <span className="dg3-item-m">
-                            {p && <span>{PERSON_WORD[l.key] ?? 'Owner'}: {p.name}, {p.title}</span>}
-                            {it.tag && <span className="dg3-tag">{it.tag}</span>}
-                          </span>
-                        )}
+                        <div className="dg3-item-row">
+                          <div className="dg3-item-txt">
+                            <span>{it.text}</span>
+                            {(p || it.tag) && (
+                              <span className="dg3-item-m">
+                                {p && <span>{PERSON_WORD[l.key] ?? 'Owner'}: {p.name}, {p.title}</span>}
+                                {it.tag && <span className="dg3-tag">{it.tag}</span>}
+                              </span>
+                            )}
+                          </div>
+                          {contacts && <ContactLinks person={p} subject={contactSubject(tenderId, 'DG3', ABOUT[l.key] ?? l.label.toLowerCase())} keepSpace />}
+                        </div>
                       </li>
                     );
                   })}

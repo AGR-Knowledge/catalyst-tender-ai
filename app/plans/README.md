@@ -54,6 +54,68 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 036 | [The Debrief tab and sign-off](036-debrief-tab.md): a Debrief tab on every ended tender: what we know, the six-section form, the record, Accept or Send back, "Fill in an example"; the Debrief record in Library › 07 Result; runbook Script G | 11 | the wave 11 contract; 035 to verify | DONE (2026-09-30, reviewed) |
 | 037 | [The Debriefs archive and the Bid record](037-debrief-archive.md): `/debriefs` for the KPI team: why we win and lose, what decided it, who beats us, why bids stopped, lessons by area, every debrief with a CSV; Bid record's "Why we lost" reads the debriefs | 11 | the wave 11 contract; 035 to verify | DONE (2026-09-30, reviewed) |
 | 038 | [The sign-in page](038-sign-in-gate.md): the deployed demo opens on a Sign in page for one fixed email and password (the repo holds only the hash); Sign out really signs out; on the dev server the gate applies only in a tab that opened `/login` | 11 | none | DONE (2026-09-30, reviewed) |
+| 039 | [Funnel, periods and the Najd numbers](039-funnel-periods-numbers.md): Captured → AI screening → DG1 → DG2 → DG3 → Won, read as one batch narrowing; Approved / Rejected / Pending; 176 new + 18 previous; periods All · 30 · 90 days · 12 months; Najd's numbers and a 45% win target | 12 | none (contract written) | DONE (2026-10-06, reviewed) |
+| 040 | [Dashboard tiles and plain ⓘ texts](040-tiles-and-info.md): Live pipeline = 176 active tenders from N portals; Win & Loss; Tenders accepted; Decisions on time as counts with the late ones listed; Documentation gaps with a document list; tile order; every KPI ⓘ in plain English | 12 | none (contract written) | DONE (2026-10-06, reviewed) |
+| 041 | [Calendar lead-up](041-calendar-lead-up.md): every decision or action due shows on the 3 working days before it and on the day | 12 | none | DONE (2026-10-06, reviewed) |
+| 042 | [OG and Previous labels](042-og-previous-labels.md): "OG" on the tenders built on real client-supplied documents; "Previous" on re-issued tenders, linked to the earlier record | 12 | none | DONE (2026-10-06, reviewed) |
+| 043 | [Real-names audit](043-names-audit.md): no real people or companies in the data; public bodies and portals stay | 12 | none | DONE (2026-10-06, reviewed) |
+| 044 | [Contact links and the user manual](044-contact-and-manual.md): Calendar, Call and Teams links next to every contributor where the Head of Tendering approves; the `/workflow` manual for GCC companies, opened from Settings | 12 | none | DONE (2026-10-06, reviewed) |
+
+**Wave 12 review (orchestrator, 2026-10-06): 039–044 accepted.**
+- Typecheck and build pass. `/dev/checks` passes in all five tenants. Screens checked with no console errors: Najd Head of Tendering (dashboard at 30 and 90 days, calendar, DG2 T-2026-097, Company › Bid record, `/workflow`), Najd Bid Manager, Corniche Head of Tendering at 12 months.
+- Two session-limit stops and one network error interrupted 039, 040, 041 and 043; each was resumed with its context.
+- **Orchestrator fixes:**
+  - the unescaped apostrophe in `wadi-zarqa.ts`;
+  - old names left in other lanes' files (`pools.ts`, `live/corniche.ts`, `live/dafna.ts`, `Proc.tsx`, `fixtures.ts`, `letter.ts`, `FlowModals.tsx`, `contacts.ts`, `dashboards.md`);
+  - 043's report: real people are described generically ("Shares the name of a public figure");
+  - 040's §10.1 tile text applied to `dashboards.md`;
+  - a corrupted shared Vite dependency cache (two copies of React) that crashed Company › Bid record on the dev server. Not a code fault; `vite --force` clears it.
+- **Review decisions (user, 2026-10-06):**
+  - Najd made bigger: FY2025 turnover SAR 11.0 bn, order intake SAR 11 bn, facility SAR 4.0 bn. The other tenants are scaled so value won reads 1.03–1.11× turnover;
+  - recent approvals stay live: the pursued pipeline is 27 tenders, SAR 6.83 bn;
+  - win bases follow the 12-month sector hit rates: T-2026-097 reads 84 ± 8, still "Bid with conditions";
+  - the GCC manual names the Head of Tendering at DG2 and DG3, and its KPI lines are targets;
+  - Batinah and Qurain re-issues: T-2026-027 ← T-2025-184 and T-2026-062 ← T-2025-259.
+- **Open for the user:**
+  - the hero's PQ-11 turnover threshold was raised from SAR 1.2 bn to SAR 5 bn, so the five answers don't move;
+  - lead-ups for site visits and pre-bid meetings;
+  - six tiles on one row at 1280 (today they wrap 3 + 3);
+  - the manual's RACI table has no Head of Tendering row;
+  - item 9 (BOQ and the supplier database at DG2) stays parked.
+- **Follow-ups:**
+  - generated tenders whose issuer doesn't fit the title (e.g. a roads office issuing an odour-control upgrade) now show in the 30-day drills;
+  - contact links on Needs your action, the workspace and booklet approval;
+  - labels in ⌘K search and the Stage 1 lists;
+  - the KPI "Since …" text drops the year under All.
+
+**Wave 12 (orchestrator, 2026-10-06): 039–044 in parallel, six agents started from the orchestrator session (user's choice, 2026-10-06), from the user's 18-point change list.**
+- **User decisions (2026-10-06):**
+  - the funnel reads as one batch narrowing: Captured → AI screening → DG1 → DG2 → DG3 → Won; Najd 30 days 194 → 18 → 12 → 8 → 7 → 3, 12 months 2,080 → 250 → 185 → 104 → 96 → 42;
+  - "Final shortlist / qualified" = bids won; "old tenders" = re-issued tenders ("Previous"), the funnel's former "linked" 18;
+  - Win & Loss: 14 won and 11 lost over **90 days**; about 3–4 wins a month; win target 45% (Najd);
+  - tile 1 "Live pipeline" = active tenders (176) and the number of portals; the pursued pipeline leaves the Head of Tendering's tiles; "Tenders accepted" = passed AI screening; Bid-team load leaves the Head of Tendering's tiles;
+  - periods: All · 30 days · 90 days · 12 months, default 30 days; Today and 7 days go;
+  - real public bodies and portals stay; every person and company must be fictional;
+  - Documentation gaps: the tile opens a list panel of documents with expiry date and status;
+  - Approved / Rejected / Pending in the funnel only; the DG1 screen keeps Pursue / Discard / Hold;
+  - item 9 (BOQ and supplier database at DG2) is **parked**: the user will come back to it;
+  - contact buttons are real links (Teams, tel:, calendar invite);
+  - the user manual is the existing `/workflow` page, reused as it is;
+  - OG = the 4 tenders on real client-supplied PDFs; the calendar lead-up applies to every tender;
+  - the new numbers are Najd's; the other four tenants get the same layout with their own scaled numbers.
+- **Contract written by the orchestrator before the wave** (typecheck passes):
+  - `IntakeDay.passed?` and `IntakeDay.open?` (`data/gcc/lifecycle/types.ts`);
+  - `Captures.passed`, `ActiveNotices`, `activeNotices()` and `queriesFor(...).activeNotices()` (`domain/gcc/lifecycle.ts`), stubbed: 039 fills the data and may change the body, not the signatures;
+  - `FlowPartVM.outcome` gains `'previous'` (`domain/gcc/viewmodels.ts`).
+- **File ownership** (no lane edits another lane's files; shared one-line edits are re-read right before editing):
+  - **039:** `data/gcc/lifecycle/**`, `data/gcc/portfolio.ts`, `data/gcc/targets.ts`, `domain/gcc/period.ts`, `domain/gcc/lifecycle.ts`, `domain/gcc/flows/**`, `components/dashboard/PeriodFilter.tsx`, `components/dashboard/FlowCard.tsx`, the `fc-*` rules in `components/dashboard/dashboard.css`, dev checks 40, 50 and 69 plus the pins its numbers move elsewhere (listed in its report), and `dashboards.md` §2 and §12;
+  - **040:** `domain/gcc/kpi/**`, `domain/gcc/dashboards/**`, `domain/gcc/actions/portfolio.actions.ts`, `domain/gcc/viewmodels.ts` (after the contract), `components/dashboard/{KpiTile,InfoTip,DashboardPage}.tsx`, new `components/dashboard/ListPanel.tsx` and `list-panel.css`, dev check 51;
+  - **041:** `domain/gcc/calendar/**`, `pages/gcc/calendar/**`, dev check 78;
+  - **042:** new `data/gcc/reissued.ts`, new `domain/gcc/labels.ts`, new `components/tender/TenderLabel.tsx`, `components/dashboard/columns/base.cols.tsx`, `pages/gcc/workspace/WorkspaceHeader.tsx`, `pages/gcc/library/**`;
+  - **043:** name strings in `src/data/**` (except files owned by 039 and 042's new file), `src/data/extracted/**`, `docs/07-product-design/agr-product-definition/gcc-demo-data.md`, `scripts/**` only if a name is baked into a generated PDF (ask first);
+  - **044:** new `data/gcc/contacts.ts`, new `domain/gcc/contact.ts`, new `components/tender/ContactLinks.tsx` and `contact-links.css`, `pages/gcc/dg2/**`, `pages/gcc/dg3/**`, `components/tender/MembersPanel.tsx`, `pages/Workflow.tsx`, `pages/Settings.tsx`, `App.tsx` (the `workflow` route line only).
+- **Dev ports:** 039 → 5191, 040 → 5192, 041 → 5193, 042 → 5194, 043 → 5195, 044 → 5196. Screenshot helper: `node <scratchpad>/shot.mjs <url> <tenant> <personId> <out.png> [w] [h] [--click sel]…` (path given in each agent's brief).
+- **Shared checkout:** typecheck errors in another lane's files are that lane's work in progress; your own files must be clean. Nobody commits.
 
 **Wave 10b review of 033 and 034 (orchestrator, 2026-09-29): both accepted.**
 - 034's executor stopped before its report, with the data and dev check 69 in place. The orchestrator measured what was left, finished it (the docs lines, the checks, the report) and reviewed both plans together.

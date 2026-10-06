@@ -4,7 +4,7 @@ import { isGccTenantKey, type GccTenantKey } from '@/data/gcc';
 import { personById, type Person } from '@/data/people';
 import { can } from '@/data/access';
 import { DEMO_NOW } from '@/domain/gcc/clock';
-import { PERIODS, previousOf, windowOf, type PeriodKey } from '@/domain/gcc/period';
+import { PERIODS, periodLabel, previousOf, windowOf, type PeriodKey } from '@/domain/gcc/period';
 import { dataPort } from '@/domain/gcc/port';
 import type { DemoDone } from '@/domain/gcc/lifecycle.port';
 import { dashboardSpec } from '@/domain/gcc/dashboards';
@@ -38,10 +38,10 @@ const NAJD: { key: string; period: PeriodKey; tile: string; expected: string; ma
   { key: 'stage.1', period: 'today', tile: 'INT-10', expected: '1 · T-2026-122 · SAR 3,000 · closes Tue 10 Mar' },
   { key: 'stage.2', period: '30d', tile: 'SRC-1', expected: '100%', match: 'part' },
   { key: 'stage.2', period: '30d', tile: 'SRC-2', expected: 'T-2026-104: 7 of 11', match: 'includes' },
-  { key: 'stage.2', period: '30d', tile: 'SRC-3', expected: '71%', match: 'part' },
-  { key: 'stage.2', period: '30d', tile: 'SRC-4', expected: '4 · 2 escalated' },
-  { key: 'stage.2', period: '30d', tile: 'SRC-5', expected: '6 · 0 stale' },
-  { key: 'stage.2', period: '30d', tile: 'SRC-6', expected: '5', match: 'part' },
+  { key: 'stage.2', period: '30d', tile: 'SRC-3', expected: '77%', match: 'part' },
+  { key: 'stage.2', period: '30d', tile: 'SRC-4', expected: '7 · 2 escalated' },
+  { key: 'stage.2', period: '30d', tile: 'SRC-5', expected: '14 · 0 stale' },
+  { key: 'stage.2', period: '30d', tile: 'SRC-6', expected: '22', match: 'part' },
   { key: 'stage.3', period: '30d', tile: 'DEC-1', expected: '1 · 2 of 5 positions · quorum 3 · 4 h 10 m left' },
   { key: 'stage.3', period: '30d', tile: 'DEC-8', expected: '1 · T-2026-097 · Addendum 2 received 08 Mar 09:12' },
   { key: 'stage.5', period: '30d', tile: 'PRC-3', expected: '1 · T-2025-329: 7.8% vs 9.0%' },
@@ -51,11 +51,11 @@ const NAJD: { key: string; period: PeriodKey; tile: string; expected: string; ma
   { key: 'stage.7', period: '30d', tile: 'CMP-5', expected: '1 · T-2025-305 · 30 h left of 48 h' },
   { key: 'stage.7', period: '30d', tile: 'CMP-1', expected: '0', match: 'part' },
   { key: 'stage.8', period: '30d', tile: 'SUB-1', expected: '1 · T-2025-298 · Thu 12 Mar, 10:00 · 4 working days' },
-  { key: 'stage.8', period: '30d', tile: 'SUB-5', expected: '3 · SAR 786.0 M · oldest T-2025-284 · 21 days' },
-  { key: 'stage.9', period: '30d', tile: 'OUT-1', expected: '1 won · 2 lost', match: 'part' },
+  { key: 'stage.8', period: '30d', tile: 'SUB-5', expected: '7 · SAR 2.00 bn · oldest T-2025-426 · 26 days' },
+  { key: 'stage.9', period: '30d', tile: 'OUT-1', expected: '50%', match: 'part' },
   { key: 'stage.9', period: '30d', tile: 'RES-1', expected: '1 · T-2026-079', match: 'part' },
   { key: 'stage.9', period: '30d', tile: 'RES-2', expected: '1 · T-2025-262 · 12 days since award' },
-  { key: 'stage.9', period: '30d', tile: 'RES-3', expected: '1 of 3', match: 'part' },
+  { key: 'stage.9', period: '30d', tile: 'RES-3', expected: '67%', match: 'part' },
   { key: 'requests', period: '30d', tile: 'REQ-1', expected: '1', match: 'part' },
   { key: 'requests', period: '30d', tile: 'REQ-3', expected: '1 · T-2026-101', match: 'part' },
   { key: 'requests', period: '30d', tile: 'REQ-4', expected: 'T-2026-097 · Facility headroom and bond capacity, Thu 5 Mar', match: 'includes' },
@@ -102,7 +102,7 @@ function checks(tenant: GccTenantKey): Check[] {
   // The §7.2 readings (Najd), or the same tiles as information (the other tenants).
   for (const t of NAJD) {
     const vm = vmOf(t.key, t.period);
-    const period = PERIODS.find((x) => x.key === t.period)!.label;
+    const period = periodLabel(t.period);
     add(`${vm?.title ?? t.key} · ${period} · ${t.tile}`, tileText(vm, t.tile), tenant === 'najd' ? t.expected : undefined, t.match);
   }
 

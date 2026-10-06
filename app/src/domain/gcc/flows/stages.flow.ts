@@ -65,7 +65,7 @@ function stageFlow(n: StageN): FlowDef {
     info: {
       means: `How tenders moved through ${s.full} in this period: how many entered each step, ${ending}. Counted from each tender's stage history.`,
       counted: (n === 1
-        ? 'Notices captured and linked come from the intake counts. Each later step counts the tenders that entered it in the period, so the numbers need not add up.'
+        ? 'Notices captured, new and previous (re-issued tenders seen before), come from the intake counts. Each later step counts the tenders that entered it in the period, so the numbers need not add up.'
         : 'Each step counts the tenders that entered it in the period. A tender can enter several steps, so the numbers need not add up.')
         + ' A step’s bar splits the tenders that entered it by where each is now: green moved on, orange still here, grey stopped.',
       source: 'Tender lifecycles: stage history and gate records',
@@ -88,11 +88,11 @@ function stageFlow(n: StageN): FlowDef {
       const steps: FlowStepVM[] = [];
 
       if (n === 1) {
-        // dashboards.md §10.4, amended by plan 027d: Captured (new · linked) → Logged → Screened → Awaiting DG1 → DG1.
+        // dashboards.md §10.4, amended by plans 027d and 039: Captured (new · previous) → Logged → Screened → Awaiting DG1 → DG1.
         const c = q.capturesIn(ctx.window);
         steps.push(column('notices', 'Captured', 'New notices', 'received', [
           { key: 'n', count: c.captured, label: 'new', outcome: 'on', drill: null },
-          { key: 'linked', count: c.linked, label: 'linked', outcome: 'stopped', drill: null },
+          { key: 'linked', count: c.linked, label: 'previous', outcome: 'previous', drill: null },
         ]));
         steps.push(stepBox('captured', 'Logged'), stepBox('screened', 'Screened'), stepBox('awaiting-dg1', 'Awaiting DG1'));
       } else if (n === 9) {

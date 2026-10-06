@@ -65,33 +65,33 @@ interface Roster {
 const ROSTER: Record<GccKey, Roster> = {
   najd: {
     hot: 'Faisal Al-Harbi', coord: 'Aisha Al-Qahtani', bid: 'Omar Siddiqui', proc: 'Joseph Mathew', exec: 'Eng. Abdulaziz Al-Dosari',
-    cfo: 'Khalid Al-Mutairi', technical: 'Dr Hany Farouk', operations: 'Saad Al-Shehri', sector: ['Majed Al-Otaibi', 'Water and wastewater'],
-    comm: 'Tarek Haddad', plan: 'Arjun Pillai', prop: 'Rami Aziz', comp: 'Lina Barakat', dir: 'Mohammed Al-Ghamdi', fin: 'Sultan Al-Anazi', hr: 'Noura Al-Shammari',
+    cfo: 'Khalid Al-Mutairi', technical: 'Dr Hany Farouk', operations: 'Sami Al-Suhaimi', sector: ['Majed Al-Otaibi', 'Water and wastewater'],
+    comm: 'Tarek Haddad', plan: 'Arjun Pillai', prop: 'Rami Aziz', comp: 'Lina Barakat', dir: 'Mazen Al-Ghufaili', fin: 'Sultan Al-Anazi', hr: 'Noura Al-Shammari',
   },
   corniche: {
-    hot: 'Rania Khoury', coord: "Joanna D'Souza", bid: 'Sameer Qureshi', proc: 'Ivan Petrov', exec: 'Hamad Al Mazrouei',
-    cfo: 'Priya Raman', technical: 'Stefan Novak', operations: 'Yousef Al Hammadi', sector: ['Mariam Al Suwaidi', 'Buildings MEP'],
-    comm: 'Daniel Okafor', plan: 'Kiran Patel', prop: 'Sophie Laurent', comp: 'Hala Mansour', dir: 'Graham Whitfield', fin: 'Anil Kumar', hr: 'Fatima Al Nuaimi',
+    hot: 'Rania Khoury', coord: "Joanna D'Souza", bid: 'Sameer Qureshi', proc: 'Ivan Petrov', exec: 'Humaid Al Matrooshi',
+    cfo: 'Preeti Raghunath', technical: 'Stefan Novak', operations: 'Yousef Al Hammadi', sector: ['Mariam Al Suwaidi', 'Buildings MEP'],
+    comm: 'Daniel Okafor', plan: 'Kiran Pandya', prop: 'Sophie Laurent', comp: 'Hala Mansour', dir: 'Graham Whitfield', fin: 'Anil Kumar', hr: 'Fatima Al Naqbi',
   },
   dafna: {
-    hot: 'Nasser Al-Kuwari', coord: 'Maria Santos', bid: 'Bilal Ahmed', proc: 'Suresh Babu', exec: 'Jassim Al-Sulaiti',
+    hot: 'Nasser Al-Kuwari', coord: 'Maria Santos', bid: 'Bilal Ahmed', proc: 'Sudhir Balan', exec: 'Jaber Al-Shahwani',
     cfo: 'Waleed Hamdan', technical: 'Emad Youssef', operations: 'Mubarak Al-Marri', sector: ['Abdulla Al-Emadi', 'Utility networks'],
-    comm: 'George Khalil', plan: 'Deepak Sharma', prop: 'Ahmed Fathy', comp: 'Reem Al-Ansari', dir: 'Mark Ellison', fin: 'Hisham Nasr', hr: 'Sara Al-Mohannadi',
+    comm: 'George Khalil', plan: 'Deepak Sharma', prop: 'Ayman Fikry', comp: 'Reem Al-Ansari', dir: 'Mark Ellison', fin: 'Hisham Nasr', hr: 'Sara Al-Mohannadi',
   },
   batinah: {
-    hot: 'Said Al-Balushi', coord: 'Shamsa Al-Hinai', bid: 'Imran Sheikh', proc: 'Ravi Shankar', exec: 'Talal Al-Rawahi',
+    hot: 'Said Al-Balushi', coord: 'Shamsa Al-Hinai', bid: 'Imran Sheikh', proc: 'Rakesh Sundaram', exec: 'Talal Al-Rawahi',
     cfo: 'Hilal Al-Kindi', technical: 'Ashraf Kamel', operations: 'Salim Al-Saadi', sector: ['Khamis Al-Amri', 'Roads'],
-    comm: 'Nabil Aoun', plan: 'Vinod Kumar', prop: 'Latifa Al-Maawali', comp: 'Muna Al-Harthy', dir: 'Peter Grant', fin: 'Badar Al-Riyami', hr: 'Zainab Al-Lawati',
+    comm: 'Nabil Aoun', plan: 'Vinod Kumar', prop: 'Latifa Al-Maawali', comp: 'Muna Al-Harthy', dir: 'Philip Garside', fin: 'Badar Al-Riyami', hr: 'Zainab Al-Lawati',
   },
   qurain: {
-    hot: 'Bader Al-Mutawa', coord: 'Grace Pereira', bid: 'Tariq Mahmood', proc: 'Sanjay Verma', exec: 'Fahad Al-Enezi',
+    hot: 'Basel Al-Mudhaf', coord: 'Grace Pereira', bid: 'Tariq Mahmood', proc: 'Sandeep Vohra', exec: 'Fawaz Al-Eidan',
     cfo: 'Rashed Al-Ajmi', technical: 'Walid Saab', operations: 'Hamad Al-Rashidi', sector: ['Dalal Al-Shatti', 'Water'],
     comm: 'Karim Nassar', plan: 'Rohit Malhotra', prop: 'Mona Al-Rifai', comp: 'Nour El-Din', dir: 'Alan Brooks', fin: 'Yacoub Al-Qattan', hr: 'Huda Al-Kandari',
   },
 };
 
 /** The supplier contact is the same firm in every tenant (the portal preview uses tenant A's supplier). */
-const SUPPLIER = { name: 'Ahmed Saleh', firm: 'Gulf Process Systems Co.' };
+const SUPPLIER = { name: 'Amjad Salameh', firm: 'Gulf Process Systems Co.' };
 
 function gccPeople(tenant: GccKey): Person[] {
   const r = ROSTER[tenant];

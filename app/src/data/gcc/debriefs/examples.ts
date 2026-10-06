@@ -21,7 +21,7 @@ export const EXAMPLES: Partial<Record<GccTenantKey, Record<string, DebriefInput>
       rivalId: 'al-masar',
       employer: { state: 'booked', at: '2026-03-12T11:00' },
       lessons: [
-        { area: 'pricing', text: 'Al-Masar priced the transmission line below our cost build-up again. Before the next NCWS bid, benchmark our pipe-laying rates against their recent awards, not against our own past bids.' },
+        { area: 'pricing', text: 'Al-Thamad priced the transmission line below our cost build-up again. Before the next NCWS bid, benchmark our pipe-laying rates against their recent awards, not against our own past bids.' },
         { area: 'sourcing', text: 'Our ductile iron pipe quote came from a single mill, two weeks late. Ask two mills for firm prices within a week of DG1.' },
       ],
       bidAgain: 'yes',
@@ -62,7 +62,7 @@ export const EXAMPLES: Partial<Record<GccTenantKey, Record<string, DebriefInput>
       rivalId: 'sarab-bs',
       employer: { state: 'booked', at: '2026-03-11T10:00' },
       lessons: [
-        { area: 'sourcing', text: 'Our ICV score fell behind Sarab\'s because the chillers and the pre-insulated pipe were quoted from abroad. Shortlist an ICV-certified supplier for every major package at Stage 2.' },
+        { area: 'sourcing', text: 'Our ICV score fell behind Maswaan\'s because the chillers and the pre-insulated pipe were quoted from abroad. Shortlist an ICV-certified supplier for every major package at Stage 2.' },
         { area: 'compliance', text: 'Collect the suppliers\' ICV certificates with their quotes, not after pricing, so the ICV plan is evidenced when the bid goes in.' },
       ],
       bidAgain: 'conditions',

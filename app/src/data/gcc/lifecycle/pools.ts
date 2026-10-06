@@ -77,8 +77,8 @@ export const POOLS: Record<GccTenantKey, TenantPool> = {
     cities: ['Dubai', 'Abu Dhabi', 'Sharjah', 'Ajman', 'Ras Al Khaimah', 'Fujairah', 'Al Ain', 'Umm Al Quwain', 'Dubai Marina', 'Business Bay',
       'Jumeirah', 'Deira', 'Al Barsha', 'Dubai South', 'Jebel Ali', 'Al Reem Island', 'Yas Island', 'Saadiyat', 'Khalifa City', 'Mussafah',
       'Al Qusais', 'Mirdif'],
-    issuers: ['Crescent Bay Health Holding', 'Gulfshore Hospitality Developments', 'Emirates Cooling Utilities Company', 'Sharjah Campus Development Office',
-      'Palm Crescent Properties', 'Northern Emirates Education Projects Office', 'Desert Rose Developments', 'Harbour Gate Real Estate'],
+    issuers: ['Crescent Bay Health Holding', 'Gulfshore Hospitality Developments', 'Chillmont Cooling Utilities Company', 'Sharjah Campus Development Office',
+      'Coralwick Properties', 'Northern Emirates Education Projects Office', 'Saltreed Developments', 'Berthwick Real Estate'],
     sectors: {
       'Buildings MEP': {
         works: ['hospital MEP package', 'office tower MEP', 'residential towers MEP', 'school campus MEP', 'hotel MEP works', 'university labs MEP',

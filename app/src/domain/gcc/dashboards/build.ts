@@ -86,8 +86,8 @@ function buildTile(id: string, ctx: KpiCtx): TileVM {
     };
   }
   const baseLabel = ctx.window.key === 'today' && def.labelToday ? def.labelToday : def.label;
-  const info = (label: string, smallSample?: boolean): InfoVM => ({
-    label, ...def.info, period: periodText(def.kind, ctx, def.periodAware), ...(smallSample ? { smallSample } : {}),
+  const info = (label: string, smallSample?: boolean, target?: string): InfoVM => ({
+    label, ...def.info, period: periodText(def.kind, ctx, def.periodAware), ...(smallSample ? { smallSample } : {}), ...(target ? { target } : {}),
   });
   if (def.cap && !holds(ctx, def.cap)) {
     return { id, label: baseLabel, display: 'Masked for your role', masked: { by: holdersOf(def.cap) }, info: info(baseLabel), drill: null };
@@ -96,7 +96,7 @@ function buildTile(id: string, ctx: KpiCtx): TileVM {
   const label = r.label ?? baseLabel;
   return {
     id, label, display: r.display, sub: r.sub, detail: r.detail, ref: r.ref, status: r.status, tone: r.tone, ownerTag: r.ownerTag, masked: r.masked, smallSample: r.smallSample,
-    info: info(label, r.smallSample),
+    info: info(label, r.smallSample, r.infoTarget),
     drill: r.masked ? null : safe(`KPI ${id} drill`, () => def.drill?.(ctx) ?? null, null),
   };
 }

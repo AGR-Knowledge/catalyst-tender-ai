@@ -4,10 +4,10 @@ import { TIHAMA } from '../partners';
 import { dg1Records, dg2Records, fit, outcomes, type Dg1Tuple, type Dg2Tuple, type OutcomeTuple } from '../build';
 
 /**
- * Dafna Keystone Civil W.L.L. (tenant C): a Doha civil and utilities
+ * Dafna Kerrowstone Civil W.L.L. (tenant C): a Doha civil and utilities
  * contractor whose Riyadh branch holds the Saudi registrations, at Water &
  * sewage works Grade 2 (gcc-demo-data §2.4, §5.2). Alone it fails four hero PQ
- * lines; with Tihama Hydro Works as JV lead at 60% it passes them.
+ * lines; with Qunfudhah Hydro Works as JV lead at 60% it passes them.
  */
 
 const QAR = (amount: number) => ({ amount, ccy: 'QAR' as const });
@@ -212,13 +212,13 @@ export const DAFNA: TenantSeed = {
   key: 'dafna',
   company: {
     hq: 'Doha; registered branch in Riyadh',
-    employees: 1_900,
+    employees: 7_600,
     fyEnd: '12-31',
     financials: [
-      { fy: 2022, turnover: QAR(780_000_000), audited: true },
-      { fy: 2023, turnover: QAR(815_000_000), audited: true },
-      { fy: 2024, turnover: QAR(865_000_000), audited: true, netWorth: QAR(290_000_000), currentRatio: 1.22 },
-      { fy: 2025, turnover: QAR(900_000_000), audited: false, auditDate: '2026-04-28' },
+      { fy: 2022, turnover: QAR(3_340_000_000), audited: true },
+      { fy: 2023, turnover: QAR(3_490_000_000), audited: true },
+      { fy: 2024, turnover: QAR(3_700_000_000), audited: true, netWorth: QAR(1_240_000_000), currentRatio: 1.22 },
+      { fy: 2025, turnover: QAR(3_850_000_000), audited: false, auditDate: '2026-04-28' },
     ],
   },
   fit: {

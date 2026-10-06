@@ -33,7 +33,7 @@ const EXPECT: Record<string, string> = {
   'Fit and verdict': '81 · Pursue',
   'Seed: Stage 1, validating; DG1 locked': 'Stage 1 · validating · DG1 locked',
   'After the bond conflict and DG1 Pursue: Stage 2': 'Stage 2 · packaging · 6 packages',
-  'Pack: no gaps; margin masked for the Procurement Lead': '10 of 10 sections current · 61 ± 8 · Masked for your role',
+  'Pack: no gaps; margin masked for the Procurement Lead': '10 of 10 sections current · 78 ± 8 · Masked for your role',
 };
 
 type Write = { key: string; value: string };

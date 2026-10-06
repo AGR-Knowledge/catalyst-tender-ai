@@ -2,6 +2,9 @@ import { Check } from 'lucide-react';
 import type { CanResult } from '@/data/access';
 import { stampText, type InputItem, type InputsVM, type PackSection, type Section910 } from '@/domain/gcc/s3';
 import { StatusPill } from '@/components/tender/StatusPill';
+import { ContactLinks } from '@/components/tender/ContactLinks';
+import { personById } from '@/data/people';
+import { contactSubject } from '@/domain/gcc/contact';
 import { Empty, SectionFrame } from './Section';
 
 /** A contributor input's status in the one vocabulary (ui-direction §7.3). */
@@ -27,12 +30,14 @@ export function NudgeButton({ i, check, onNudge }: { i: InputItem; check: CanRes
 }
 
 /** 9.9 Inputs status: which contributor inputs are in, late or missing, with Nudge. */
-export function InputsSection({ sec, nudgeCheck, onNudge, onOpenInputs, collapsible, open, lens }: {
+export function InputsSection({ sec, nudgeCheck, onNudge, onOpenInputs, contacts, collapsible, open, lens }: {
   sec: PackSection<InputsVM>;
   nudgeCheck: CanResult | null;
   onNudge(i: InputItem): void;
   /** Opens the Inputs tab. */
   onOpenInputs?: () => void;
+  /** At DG2: Calendar, Call and Teams beside each contributor (plan 044). */
+  contacts?: boolean;
   collapsible?: boolean; open?: boolean; lens?: boolean;
 }) {
   const v = sec.body;
@@ -52,7 +57,9 @@ export function InputsSection({ sec, nudgeCheck, onNudge, onOpenInputs, collapsi
               <tr key={i.key}>
                 <th scope="row">{i.label}</th>
                 <td className="mono">{i.feeds}</td>
-                <td>{i.ownerName}</td>
+                <td>{contacts
+                  ? <span className="cl-cell">{i.ownerName}<ContactLinks person={personById(i.ownerId)} subject={contactSubject(v.tenderId, 'DG2', `your input (${i.label})`)} compact keepSpace /></span>
+                  : i.ownerName}</td>
                 <td><InputState i={i} /></td>
                 <td className="num">{i.state === 'submitted' ? i.dueText : <>{stampText(i.due)} · <span className={i.state === 'late' ? 't-red' : ''}>{i.dueText}</span></>}</td>
                 <td className="r"><NudgeButton i={i} check={nudgeCheck} onNudge={onNudge} /></td>

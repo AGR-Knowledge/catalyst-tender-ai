@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
-import type { DashboardVM, DrillVM, TableFilterVM } from '@/domain/gcc/viewmodels';
+import type { DashboardVM, DrillVM, ListPanelVM, TableFilterVM } from '@/domain/gcc/viewmodels';
 import type { PeriodKey, PeriodWindow } from '@/domain/gcc/period';
 import { EmptyState } from '@/components/tender/EmptyState';
 import { PeriodFilter } from './PeriodFilter';
@@ -11,6 +11,7 @@ import { ActionList } from './ActionList';
 import { ViewToggle, useMainView } from './ViewToggle';
 import { TenderGrid } from './grid/TenderGrid';
 import { TenderTracker } from './TenderTracker';
+import { ListPanel } from './ListPanel';
 import './dashboard.css';
 
 /** Recharts loads only when someone opens the Graph. */
@@ -21,8 +22,8 @@ const StageChart = lazy(() => import('./chart/StageChart'));
  * 2026-09-28): Z1 header and period, Z2 tiles, Z3 the flow as its own card at
  * full width (plan 027d), then one row with
  * Z5 Table | Graph at two thirds and Z4 Needs your action at one third, and Z6
- * the tracker for a selected row. It renders the view model; it computes
- * nothing.
+ * the tracker for a selected row. A tile may open a list panel over the page
+ * instead (plan 040). It renders the view model; it computes nothing.
  */
 export interface DashboardPageProps {
   vm: DashboardVM;
@@ -38,18 +39,20 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
   const [view, setView] = useMainView();
   const [selected, setSelected] = useState<string | null>(null);
   const [filter, setFilter] = useState<TableFilterVM | null>(null);
+  const [panel, setPanel] = useState<ListPanelVM | null>(null);
   const main = useRef<HTMLElement>(null);
   const hasGraph = !!vm.graph;
   const showGraph = hasGraph && view === 'graph';
 
   // Another dashboard, or another period: drill-down chips and the selection belong to the old one.
-  useEffect(() => { setSelected(null); setFilter(null); }, [vm.key]);
-  useEffect(() => { setFilter(null); }, [period.key]);
+  useEffect(() => { setSelected(null); setFilter(null); setPanel(null); }, [vm.key]);
+  useEffect(() => { setFilter(null); setPanel(null); }, [period.key]);
 
   const toMain = () => window.setTimeout(() => main.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 30);
 
   const drill = (d: DrillVM) => {
     if (d.kind === 'route') { navigate(d.to); return; }
+    if (d.kind === 'list') { setPanel(d.panel); return; }
     const { kind: _k, ...f } = d;
     setView('table');
     setFilter(f);
@@ -135,6 +138,12 @@ export function DashboardPage({ vm, period, metric, setMetric, subline }: Dashbo
 
       {/* Z6 */}
       {tracker && <TenderTracker vm={tracker} onClose={() => setSelected(null)} onOpen={openTender} />}
+
+      {/* A tile's list panel (plan 040): its link under the list hands back a table or route drill. */}
+      <ListPanel
+        panel={panel} onClose={() => setPanel(null)} onOpen={(to) => { setPanel(null); navigate(to); }}
+        onFoot={(d) => { setPanel(null); drill(d); }}
+      />
     </div>
   );
 }

@@ -48,6 +48,8 @@ export interface KpiResult {
   detail?: string;
   ref?: TileRefVM;
   status?: string;
+  /** Plan 040: the ⓘ target for this reading, where it depends on the tenant ("45% or more, from 5 results"). */
+  infoTarget?: string;
 }
 
 export interface KpiDef {

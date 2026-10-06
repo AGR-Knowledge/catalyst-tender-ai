@@ -210,7 +210,7 @@ export const SEEDED_INPUTS: SeededInput[] = [
         { clause: '17.6', page: 27, risk: 'Limitation of liability: total liability capped at the contract value, with no exclusion of indirect loss', stance: 'qualify', category: 'contractual', rating: 'high',
           mitigation: 'Qualify the bid: exclude indirect and consequential loss' },
         { clause: '5.1', page: 12, risk: 'Design responsibility for the process guarantees (treated water quality) rests with the contractor', stance: 'qualify', category: 'technical', rating: 'high',
-          mitigation: 'Back-to-back process guarantee from the filtration supplier; Rafid Process Engineering to review the design basis' },
+          mitigation: 'Back-to-back process guarantee from the filtration supplier; Thawban Process Engineering to review the design basis' },
         { clause: '4.12', page: 15, risk: 'Ground risk at the intake: unforeseen ground conditions are at the contractor\'s risk', stance: 'price', category: 'technical', rating: 'medium',
           mitigation: 'Carry a ground-risk allowance; ask the employer for the geotechnical report' },
         { clause: '15.5', page: 36, risk: 'Termination for convenience with no compensation for loss of profit', stance: 'accept', category: 'counterparty', rating: 'low',
