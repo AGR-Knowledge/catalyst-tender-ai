@@ -60,6 +60,17 @@ The orchestrator session writes the plans; executor sessions implement them. The
 | 042 | [OG and Previous labels](042-og-previous-labels.md): "OG" on the tenders built on real client-supplied documents; "Previous" on re-issued tenders, linked to the earlier record | 12 | none | DONE (2026-10-06, reviewed) |
 | 043 | [Real-names audit](043-names-audit.md): no real people or companies in the data; public bodies and portals stay | 12 | none | DONE (2026-10-06, reviewed) |
 | 044 | [Contact links and the user manual](044-contact-and-manual.md): Calendar, Call and Teams links next to every contributor where the Head of Tendering approves; the `/workflow` manual for GCC companies, opened from Settings | 12 | none | DONE (2026-10-06, reviewed) |
+| 045 | [Live-looking extraction on upload](045-live-extraction-upload.md): about 20 s of visible reading and extraction (pages, dates, criteria, flags, eligibility, fit, register match), then the tender's Overview, for every demo document | 12b | 039–044 | DONE (2026-10-06, reviewed) |
+
+**Plan 045 review (orchestrator, 2026-10-06): accepted.**
+- Typecheck and build pass. `/dev/checks` has 0 failing rows in all five tenants.
+- Checked: frames of the Wadi Zarqa run taken during the run, at 1440, as the Najd Head of Tendering; it lands on T-2026-120's Overview with no console errors.
+- **User decisions:**
+  - Wadi Zarqa keeps its real dates, so its page reads "Overdue"; present it as a past prequalification we analysed;
+  - the hero booklet (T-2026-118) is the alternative upload for a "live" tender.
+- **Same session:**
+  - Next submission (PF-6) replaced Tenders accepted on the Head of Tendering's dashboard;
+  - check 51's obsolete "never called Live pipeline" row now reflects the user's revert.
 
 **Wave 12 review (orchestrator, 2026-10-06): 039–044 accepted.**
 - Typecheck and build pass. `/dev/checks` passes in all five tenants. Screens checked with no console errors: Najd Head of Tendering (dashboard at 30 and 90 days, calendar, DG2 T-2026-097, Company › Bid record, `/workflow`), Najd Bid Manager, Corniche Head of Tendering at 12 months.

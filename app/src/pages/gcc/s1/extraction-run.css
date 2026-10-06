@@ -1,0 +1,92 @@
+/* The upload's extraction run (plan 045). Steps left, fields right, one bar for the run. No stripes: status is a tick, a spinner or a word. */
+
+.modal:has(.xr) { max-width: 980px; }
+.s1-modal:has(.xr) { padding-bottom: 0; }
+
+.xr { display: grid; gap: 14px; min-width: 0; }
+
+.xr-bar { height: 3px; border-radius: 2px; background: var(--line-2); overflow: hidden; }
+.xr-bar > span { display: block; height: 100%; background: var(--brand, var(--ink)); transform-origin: left center; transition: transform 120ms linear; }
+
+.xr-cols {
+  display: grid; grid-template-columns: 280px minmax(0, 1fr); gap: 0 22px; min-height: 0;
+  /* Fits 1280 × 800 and 1440 × 900 with the modal's head and foot: the fields scroll inside. */
+  height: min(468px, calc(100dvh - 300px));
+}
+
+/* Steps */
+.xr-side { display: flex; flex-direction: column; min-height: 0; padding-right: 18px; border-right: 1px solid var(--line-2); }
+.xr-steps { list-style: none; margin: 0; padding: 0; display: grid; }
+.xr-step {
+  display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 0 9px; align-items: center; padding: 7px 0;
+  border-bottom: 1px solid var(--line-3); font-size: 12.5px; line-height: 1.35;
+}
+.xr-step:last-child { border-bottom: 0; }
+.xr-ic { width: 16px; height: 16px; border-radius: 50%; display: inline-grid; place-items: center; box-sizing: border-box; }
+.xr-step.is-waiting .xr-ic { border: 1px solid var(--line-strong); }
+.xr-step.is-done .xr-ic { background: var(--green); color: var(--surface); animation: popIn var(--dur-pop) var(--ease-out) both; }
+.xr-spin { width: 14px; height: 14px; border-radius: 50%; box-sizing: border-box; border: 1.75px solid var(--line-strong); border-top-color: var(--ink-2); animation: xrSpin 0.75s linear infinite; }
+.xr-sl { min-width: 0; color: var(--ink-4); transition: color var(--dur-fast) ease; }
+.xr-step.is-running .xr-sl { color: var(--ink); font-weight: 600; }
+.xr-step.is-done .xr-sl { color: var(--ink-2); }
+.xr-sd, .xr-gc, .xr-n { font-variant-numeric: tabular-nums; }
+.xr-sd { font-size: 11.5px; color: var(--ink-3); white-space: nowrap; }
+.xr-skip { margin-top: auto; align-self: flex-start; padding: 12px 0 0; color: var(--ink-3); }
+.xr-skip:hover { color: var(--ink); }
+
+/* Fields as they are found */
+.xr-fields { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; padding: 0 6px 12px 0; display: grid; align-content: start; gap: 14px; }
+.xr-g { display: grid; gap: 2px; animation: rowIn var(--dur-overlay) var(--ease-out) both; }
+.xr-gh {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 0; padding-bottom: 4px;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; color: var(--ink-3);
+  border-bottom: 1px solid var(--line-2);
+}
+.xr-gc { font-weight: 500; letter-spacing: 0; text-transform: none; font-size: 11.5px; }
+.xr-rows { list-style: none; margin: 0; padding: 0; display: grid; }
+
+/* One row anatomy for every field: name · value · word · page. */
+.xr-row {
+  display: grid; grid-template-columns: minmax(118px, 30%) minmax(0, 1fr) auto 40px; gap: 0 12px; align-items: baseline;
+  padding: 6px 0; border-bottom: 1px solid var(--line-3); font-size: 12.5px; line-height: 1.45;
+  animation: rowIn var(--dur-overlay) var(--ease-out) both;
+}
+.xr-row:last-child { border-bottom: 0; }
+.xr-row.wide > .xr-v { grid-column: 1 / 3; }
+.xr-k { color: var(--ink-3); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.xr-v { min-width: 0; color: var(--ink); font-weight: 500; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.xr-v .bv { gap: 1px; }
+.xr-v .bv.on { grid-template-columns: minmax(0, 1fr); }
+.xr-v .bv-src { font-weight: 400; font-size: 12px; line-height: 1.6; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* A bilingual value: the English keeps its two lines, the Arabic one line beneath. */
+.xr-v:has(.bv) { display: block; }
+.xr-v .bv-en { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+.xr-w { font-size: 11.5px; font-weight: 600; white-space: nowrap; }
+.xr-p { font-size: 11.5px; color: var(--ink-4); text-align: right; white-space: nowrap; animation: fadeIn var(--dur-overlay) var(--ease-out) 120ms both; }
+
+/* The pages, filling in as they are read. */
+.xr-pages { display: flex; gap: 2px; padding: 9px 0 7px; }
+.xr-pages > i { flex: 1 1 0; min-width: 2px; max-width: 12px; height: 12px; border-radius: 1.5px; background: var(--line-2); transition: background-color var(--dur-fast) ease; }
+.xr-pages > i.on { background: var(--ink-4); }
+
+/* The next field, still being read. */
+.xr-ph { padding: 9px 0; }
+.xr-ph > span { display: block; height: 8px; width: 46%; border-radius: 4px; background: var(--line-2); animation: xrPulse 1.1s ease-in-out infinite alternate; }
+
+.xr-open { margin: 2px 0 0; font-size: 12.5px; color: var(--ink-3); animation: fadeIn var(--dur-overlay) var(--ease-out) both; }
+
+@keyframes xrSpin { to { transform: rotate(360deg); } }
+@keyframes xrPulse { from { opacity: 0.45; } to { opacity: 1; } }
+
+/* Reduced motion: the same steps at the same times, without the fades, the spin or the pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .xr-row, .xr-g, .xr-p, .xr-open, .xr-step.is-done .xr-ic, .xr-ph > span, .xr-spin { animation: none !important; }
+  .xr-bar > span, .xr-pages > i, .xr-sl { transition: none; }
+  .xr-spin { border-top-color: var(--ink-3); }
+}
+
+@media (max-width: 760px) {
+  .xr-cols { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .xr-side { border-right: 0; padding-right: 0; }
+  .xr-fields { max-height: 50dvh; }
+}

@@ -4,16 +4,17 @@ import { FileUp, UploadCloud } from 'lucide-react';
 import { can, holdersOf } from '@/data/access';
 import { firstWithRole, personById } from '@/data/people';
 import { HERO_FILE_NAME, HERO_ID } from '@/data/gcc/hero';
-import { pipelineFor } from '@/domain/gcc/s1';
 import { dataOf, shortWhen } from '@/domain/gcc/s1/common';
 import { documentFor } from '@/domain/gcc/documents';
+import { extractionRun, type ExtractionRunScript } from '@/domain/gcc/s1/extractionRun';
+import { EXIT_MS } from '@/state/presence';
 import { DEMO_TODAY, addDays } from '@/domain/calendar';
 import { Callout } from '@/components/tender/Callout';
 import { DemoTag } from '@/components/tender/DemoTag';
 import { useS1 } from './vm/useS1';
 import { uploadWrite } from './vm/uploads';
 import { S1Modal } from './parts/Modal';
-import { IntakeSteps } from './IntakeSteps';
+import { ExtractionRun } from './ExtractionRun';
 import './s1.css';
 
 /**
@@ -21,7 +22,12 @@ import './s1.css';
  * recognises the files it holds by name (`recogniseUpload`): the hero booklet
  * and the other demo documents open their tender; any other file stops after
  * the page read and waits in the Coordinator's queue; the same name again is
- * a duplicate. It says it is the demo's recognition, never live extraction.
+ * a duplicate.
+ *
+ * A demo document the viewer may open plays the extraction run (plan 045):
+ * about 20 seconds of the agent reading it, then the tender's Overview. The
+ * upload is recorded when the file is taken; the toast comes at the end.
+ * Close or Esc stops the run and records nothing more.
  */
 
 interface Result {
@@ -33,12 +39,31 @@ interface Result {
   tenderId?: string;
 }
 
+/** A recognised document playing its extraction run. */
+interface Run { script: ExtractionRunScript; toast: string; again: boolean }
+
+/** The tender's heading, once the workspace has rendered and the modal has handed focus back: focus goes there. */
+function focusHeading() {
+  let tries = 0;
+  const go = () => {
+    const h = document.querySelector<HTMLElement>('.wsh-title');
+    if (h && !document.querySelector('[aria-modal="true"]')) {
+      if (!h.hasAttribute('tabindex')) h.setAttribute('tabindex', '-1');
+      h.focus({ preventScroll: true });
+      return;
+    }
+    if (++tries < 60) window.setTimeout(go, 50);
+  };
+  window.setTimeout(go, EXIT_MS + 20);
+}
+
 export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button' }) {
   const s1 = useS1();
   const { tenant, viewer, viewAs, done } = s1;
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const [result, setResult] = useState<Result | null>(null);
+  const [run, setRun] = useState<Run | null>(null);
   const [over, setOver] = useState(false);
   const input = useRef<HTMLInputElement>(null);
 
@@ -78,6 +103,15 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
     s1.logAudit({ actorId: viewer.id, action: 'Uploaded a tender document', ...(tid ? { target: tid } : {}), detail: `${file}: ${what} (demo recognition by file name)` });
     // A tender outside the viewer's role is logged, never named (plan 016b).
     const named = !!tid && canOpen(tid);
+    // A demo document this viewer may open: the extraction run, then its Overview. The toast waits for the end.
+    const doc = named && w.hit ? documentFor(tenant, tid) : null;
+    const script = doc && tid ? extractionRun(tenant, tid, doc.record, {
+      file, done, ...(w.previous ? { previous: { at: w.previous.times[0].at, by: personById(w.previous.times[0].byId)?.name } } : {}),
+    }) : null;
+    if (script) {
+      setRun({ script, again: w.duplicate, toast: w.duplicate ? `${iso(file)} was uploaded before: linked to ${tid}, not added again.` : `${iso(file)} recognised as ${tid}.` });
+      return;
+    }
     s1.toast(w.duplicate ? `${iso(file)} was uploaded before: flagged as a duplicate.` : w.hit ? `${iso(file)} recognised${named ? ` as ${tid}` : tid ? ' and logged to the register' : ''}.` : `${iso(file)} isn't in the demo set. It waits in ${coord?.name ?? 'the Coordinator'}'s queue.`, w.duplicate ? 'ink3' : w.hit ? 'green' : 'orange');
     setResult({
       file, duplicate: w.duplicate, docKey: w.hit?.docKey, ...(tid ? { tenderId: tid } : {}),
@@ -92,10 +126,15 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
     if (f) take(f.name);
   };
 
-  const close = () => { setOpen(false); setResult(null); };
+  const close = () => { setOpen(false); setResult(null); setRun(null); };
+  // The run's end, or "Skip to tender": the toast, then the tender's Overview with focus on its heading.
+  const finish = (r: Run) => {
+    setOpen(false); setRun(null); setResult(null);
+    s1.toast(r.toast, r.again ? 'ink3' : 'green');
+    navigate(`/tenders/${encodeURIComponent(r.script.tenderId)}`);
+    focusHeading();
+  };
   const t = result?.tenderId ? dataOf(tenant).register.find((x) => x.id === result.tenderId) : undefined;
-  const ev = t ? dataOf(tenant).intakeToday.find((e) => e.tenderId === t.id && e.disposition !== 'addendum') : undefined;
-  const pipeline = ev ? pipelineFor(tenant, ev.id) : null;
   const opens = !!result?.tenderId && canOpen(result.tenderId);
 
   const trigger = variant === 'header'
@@ -117,9 +156,13 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
     <>
       {trigger}
       <S1Modal
-        open={open} onClose={close} eyebrow="Intake" title={result ? iso(result.file) : 'Upload a tender document'}
-        sub={result ? undefined : 'The Intake & Extraction agent reads it, checks the register and screens it for your company.'}
-        actions={result
+        open={open} onClose={close}
+        eyebrow={run ? 'Intake & Extraction agent' : 'Intake'}
+        title={run ? iso(run.script.file) : result ? iso(result.file) : 'Upload a tender document'}
+        sub={result || run ? undefined : 'The Intake & Extraction agent reads it, checks the register and screens it for your company.'}
+        actions={run
+          ? [{ label: 'Close', onClick: close }]
+          : result
           ? [
             ...(opens ? [{ label: `Open ${result.tenderId}`, primary: true, onClick: () => { close(); navigate(`/tenders/${result.tenderId}?tab=documents`); } }] : []),
             { label: 'Upload another', onClick: () => setResult(null) },
@@ -127,7 +170,9 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
           ]
           : [{ label: 'Choose a file', primary: true, onClick: () => input.current?.click() }, { label: 'Cancel', onClick: close }]}
       >
-        {!result ? (
+        {run ? (
+          <ExtractionRun key={run.script.file} script={run.script} onDone={() => finish(run)} onSkip={() => finish(run)} />
+        ) : !result ? (
           <>
             <label
               className={`s1-drop ${over ? 'over' : ''}`} onDragOver={(e) => { e.preventDefault(); setOver(true); }} onDragLeave={() => setOver(false)} onDrop={onDrop}
@@ -143,7 +188,6 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
               ))}
               <button type="button" className="btn btn-sm" onClick={() => take('scanned-letter-0308.pdf')}>A file the demo does not hold</button>
             </div>
-            <p className="s1-note">Demo: files are recognised by their name. Nothing is read live, and nothing leaves the app.</p>
           </>
         ) : result.duplicate ? (
           <Callout variant="route" word="Duplicate" title={`Uploaded before${result.firstAt ? `, ${shortWhen(result.firstAt)}` : ''}${result.firstBy ? ` by ${result.firstBy}` : ''}`}>
@@ -154,13 +198,9 @@ export function UploadGcc({ variant = 'header' }: { variant?: 'header' | 'button
             It is outside your role.
           </Callout>
         ) : result.docKey && t ? (
-          <>
-            <Callout variant="verdict" word="Recognised" title={`${t.id} · ${t.shortTitle}`}>
-              Already on the register, captured from {t.sourceDetail}. Linked, not duplicated: both sources are listed in Documents.
-            </Callout>
-            {pipeline && <><h3 className="s1-h3">Intake of this tender this morning</h3><IntakeSteps pipeline={pipeline} tender={t} compact /></>}
-            <p className="s1-note">Demo recognition by file name. The steps are the agent's simulated timings.</p>
-          </>
+          <Callout variant="verdict" word="Recognised" title={`${t.id} · ${t.shortTitle}`}>
+            Already on the register, captured from {t.sourceDetail}. Linked, not duplicated: both sources are listed in Documents.
+          </Callout>
         ) : result.docKey ? (
           <Callout variant="route" word="Recognised" title="Not on this company's register">
             The demo holds this document for another company. It waits in {coord?.name ?? 'the Coordinator'}'s queue to be logged.

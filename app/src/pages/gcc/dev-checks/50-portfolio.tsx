@@ -115,7 +115,7 @@ function checks(tenant: GccTenantKey): Check[] {
     out.push({ name: `${label} · PF-2`, got: vm.tiles.find((x) => x.id === 'PF-2')!.display, expected: t?.pf2, match: 'prefix' });
     out.push({ name: `${label} · PF-3`, got: vm.tiles.find((x) => x.id === 'PF-3')!.display, expected: t?.pf3, match: 'prefix' });
     out.push({ name: `${label} · PF-4`, got: [pf4.display, pf4.sub].filter(Boolean).join(' · '), expected: t?.pf4, match: 'prefix' });
-    for (const id of ['PF-1', 'PF-7', 'SCR-6']) add(`${label} · ${id}`, tileText(vm, id));
+    for (const id of ['PF-1', 'PF-6', 'SCR-6']) add(`${label} · ${id}`, tileText(vm, id));
     add(`${label} · graph: tenders now`, graphText(vm));
   }
 

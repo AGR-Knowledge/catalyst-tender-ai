@@ -28,8 +28,9 @@ import { DataTable } from '@/components/ui/DataTable';
  * script in the plan's acceptance checks reads those.
  *
  * Plan 040 adds the Head of Tendering's six tiles: their order, and that
- * Live pipeline, Tenders accepted, Decisions on time and Documentation gaps
- * read the same facts as their sources and their list panels.
+ * Live pipeline, Next submission, Decisions on time and Documentation gaps
+ * read the same facts as their sources and their list panels (Next submission
+ * replaced Tenders accepted in the user's review, 2026-10-06).
  */
 
 interface Check { name: string; got: string; ok: boolean; expected?: string }
@@ -100,7 +101,7 @@ function checks(tenant: GccTenantKey): Check[] {
 
 /* ------------------------------------------------------------- plan 040 */
 
-const HOT_ORDER = ['PF-1', 'PF-3', 'PF-2', 'PF-7', 'PF-4', 'SCR-6'];
+const HOT_ORDER = ['PF-1', 'PF-3', 'PF-2', 'PF-6', 'PF-4', 'SCR-6'];
 
 function hotVM(tenant: GccTenantKey, viewer: Person, period: PeriodKey): DashboardVM | null {
   const spec = dashboardSpec('portfolio.hot');
@@ -123,17 +124,16 @@ function hotChecks(tenant: GccTenantKey): Check[] {
   const w30 = windowOf('30d', tenant);
 
   const order = vm.tiles.map((t) => t.id);
-  add('Tiles in order: Live pipeline, Win & Loss, Average ticket size, Tenders accepted, Decisions on time, Documentation gaps',
+  add('Tiles in order: Live pipeline, Win & Loss, Average ticket size, Next submission, Decisions on time, Documentation gaps',
     order.join() === HOT_ORDER.join(), vm.tiles.map((t) => t.label).join(' · '));
 
   // User review 2026-10-06: Live pipeline is the pursued pipeline again (Stages 2–8, value and count).
   const pf1 = tile('PF-1');
   add('Live pipeline = pursued tenders now (Stages 2–8), with their value', !!pf1 && pf1.label === 'Live pipeline' && /^\d+ live tenders?$/.test(pf1.detail ?? ''), `${pf1?.label}: ${pf1?.display} · ${pf1?.detail}`);
 
-  const cap = q.capturesIn(w30);
-  const pf7 = tile('PF-7');
-  add('Tenders accepted = notices that passed the AI screening', !!pf7 && pf7.display === cap.passed.toLocaleString('en-GB') && (!(cap.captured + cap.linked) || pf7.detail === `of ${(cap.captured + cap.linked).toLocaleString('en-GB')} captured`),
-    `${pf7?.display} · ${pf7?.detail} · ${pf7?.ref?.k} ${pf7?.ref?.v} / passed ${cap.passed} of ${cap.captured + cap.linked}`);
+  // User review 2026-10-06: Next submission replaces Tenders accepted, company-wide for the Head of Tendering.
+  const pf6 = tile('PF-6');
+  add('Next submission: a tender and the working days left', !!pf6 && /^T-\d{4}-\d{3}$/.test(pf6.detail ?? '') && pf6.ref?.k === 'Time left', `${pf6?.display} · ${pf6?.detail} · ${pf6?.ref?.k} ${pf6?.ref?.v}`);
 
   const pf4 = tile('PF-4');
   const decisions = q.gateEventsIn(w30).length;
@@ -168,7 +168,8 @@ function hotChecks(tenant: GccTenantKey): Check[] {
     const t = buildDashboard(spec, dashboardCtx(spec, { tenant, viewer: p, viewAs: false, window: w, prev: previousOf(w), done: {}, now: DEMO_NOW }), dataPort()).tiles.find((x) => x.id === 'PF-1');
     return [`${p.title}: ${t?.label ?? 'no PF-1'}`];
   });
-  add('CEO and Bid Manager: the pursued pipeline is never called “Live pipeline”', others.length === 2 && others.every((x) => !x.endsWith(': Live pipeline')), others.join(' · '));
+  // User review 2026-10-06: the pursued pipeline is "Live pipeline" again, everywhere but the Bid Manager's own "My live bids".
+  add('CEO and Bid Manager: the pursued pipeline reads “Live pipeline” and “My live bids”', others.length === 2 && others[0].endsWith(': Live pipeline') && others[1].endsWith(': My live bids'), others.join(' · '));
   return out;
 }
 
